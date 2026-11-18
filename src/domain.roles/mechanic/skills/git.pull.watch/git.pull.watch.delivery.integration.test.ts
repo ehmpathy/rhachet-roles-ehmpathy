@@ -7,9 +7,9 @@ import {
   genWatchTestScene,
   SKILL_DIR,
   type WatchScene,
-} from './__test_utils__/genWatchTestScene';
-import { getAllWatchDaemonPids } from './__test_utils__/getAllWatchDaemonPids';
-import { waitForWatch } from './__test_utils__/waitForWatch';
+} from './.test.utils/genWatchTestScene';
+import { getAllWatchDaemonPids } from './.test.utils/getAllWatchDaemonPids';
+import { waitForWatch } from './.test.utils/waitForWatch';
 
 /**
  * .what = alert delivery: a busy clone holds the alert, a lost token pauses

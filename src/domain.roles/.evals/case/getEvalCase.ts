@@ -1,7 +1,7 @@
 import { BadRequestError } from 'helpful-errors';
 import * as yaml from 'yaml';
 
-import type { EvalCase } from '../schemas';
+import type { EvalCase } from '@src/domain.roles/.evals/schemas';
 
 /**
  * .what = parse and validate eval case from yaml content

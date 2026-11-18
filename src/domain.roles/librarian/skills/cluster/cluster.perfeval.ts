@@ -15,12 +15,12 @@ import { withSimpleCacheAsync } from 'with-simple-cache';
 import {
   type ClusterResult,
   clusterKernels as clusterKernelsRaw,
-} from '../../../../domain.operations/kernelize/clusterKernels';
+} from '@src/domain.operations/kernelize/clusterKernels';
 import {
   type ConceptKernel,
   extractKernels,
-} from '../../../../domain.operations/kernelize/extractKernels';
-import { loadAllTestBriefs } from '../brief.compress/.test/fixtures/briefs';
+} from '@src/domain.operations/kernelize/extractKernels';
+import { loadAllTestBriefs } from '@src/domain.roles/librarian/skills/brief.compress/.test/fixtures/briefs';
 
 /**
  * .what = rate limiter for parallel brain calls
@@ -91,6 +91,11 @@ const clusterKernels = withSimpleCacheAsync(
           .slice(0, 24);
         return `cluster-${kernelHash}`;
       },
+      // the on-disk cache stores strings; serialize the output so a read returns the object
+      value: (output) => JSON.stringify(output),
+    },
+    deserialize: {
+      value: (cached) => JSON.parse(cached),
     },
   },
 );

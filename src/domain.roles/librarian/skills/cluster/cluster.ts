@@ -10,8 +10,8 @@ import * as fs from 'fs/promises';
 import {
   type ClusterResult,
   clusterKernels,
-} from '../../../../domain.operations/kernelize/clusterKernels';
-import type { ConceptKernel } from '../../../../domain.operations/kernelize/extractKernels';
+} from '@src/domain.operations/kernelize/clusterKernels';
+import type { ConceptKernel } from '@src/domain.operations/kernelize/extractKernels';
 
 /**
  * .what = input format for cluster skill

@@ -1,6 +1,7 @@
 import * as path from 'path';
 
-import type { EvalCase } from '../schemas';
+import type { EvalCase } from '@src/domain.roles/.evals/schemas';
+
 import { getEvalCase } from './getEvalCase';
 import { readAllYamlFilesFromDir } from './readAllYamlFilesFromDir';
 

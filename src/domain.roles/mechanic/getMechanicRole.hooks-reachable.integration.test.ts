@@ -2,9 +2,10 @@ import { existsSync, readdirSync, readFileSync } from 'fs';
 import * as path from 'path';
 import { given, then, useBeforeAll, when } from 'test-fns';
 
-import { asBashInvokedPaths } from '../../domain.operations/hooks/asBashInvokedPaths';
-import { asHookEvents } from '../../domain.operations/hooks/asHookEvents';
-import { asWrappedCommands } from '../../domain.operations/hooks/asWrappedCommands';
+import { asBashInvokedPaths } from '@src/domain.operations/hooks/asBashInvokedPaths';
+import { asHookEvents } from '@src/domain.operations/hooks/asHookEvents';
+import { asWrappedCommands } from '@src/domain.operations/hooks/asWrappedCommands';
+
 import { ROLE_MECHANIC } from './getMechanicRole';
 
 /**

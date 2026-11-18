@@ -470,6 +470,11 @@ export const compressViaBhrain = withSimpleCacheAsync(_compressViaBhrain, {
         supplements: input.supplements,
         kernels: input.kernels,
       }),
+    // the on-disk cache stores strings; serialize the output so a read returns the object
+    value: (output) => JSON.stringify(output),
+  },
+  deserialize: {
+    value: (cached) => JSON.parse(cached),
   },
   bypass: {
     get: (input) => input.force === true,

@@ -12,16 +12,16 @@ import * as path from 'path';
 import { createCache } from 'simple-on-disk-cache';
 import { withSimpleCacheAsync } from 'with-simple-cache';
 
-import { clusterKernels as clusterKernelsBrain } from '../../../../domain.operations/kernelize/clusterKernels';
+import { clusterKernels as clusterKernelsBrain } from '@src/domain.operations/kernelize/clusterKernels';
 import {
   type ConceptKernel,
   extractKernels as extractKernelsRaw,
   extractKernelsWithConsensus,
-} from '../../../../domain.operations/kernelize/extractKernels';
+} from '@src/domain.operations/kernelize/extractKernels';
 import {
   loadAllTestBriefs,
   type TestBrief,
-} from '../brief.compress/.test/fixtures/briefs';
+} from '@src/domain.roles/librarian/skills/brief.compress/.test/fixtures/briefs';
 
 /**
  * .what = rate limiter for parallel brain calls
@@ -92,6 +92,11 @@ const extractKernels = withSimpleCacheAsync(
           .slice(0, 24);
         return `kernelize-${hash}`;
       },
+      // the on-disk cache stores strings; serialize the output so a read returns the object
+      value: (output) => JSON.stringify(output),
+    },
+    deserialize: {
+      value: (cached) => JSON.parse(cached),
     },
   },
 );

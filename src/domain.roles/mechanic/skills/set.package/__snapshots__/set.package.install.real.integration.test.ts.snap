@@ -1,0 +1,16 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`set.package.install.sh (real registry) given: [case1] a real block, no fake curl when: [t0] install is called for a known vulnerable version then: the live block render matches its snapshot, rows masked 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.install
+   ├─ package: lodash
+   ├─ version: X.Y.Z
+   ├─ for: prod
+   └─ security
+      └─ audit: FAILED (<N> vulnerabilities)
+         └─ <advisory rows, owned by the registry>
+
+install blocked. choose a safer package or version.
+"
+`;

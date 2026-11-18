@@ -1,5 +1,6 @@
-import { runRubricReview } from '../rubric/runRubricReview';
-import type { EvalCase, EvalVerdict } from '../schemas';
+import { runRubricReview } from '@src/domain.roles/.evals/rubric/runRubricReview';
+import type { EvalCase, EvalVerdict } from '@src/domain.roles/.evals/schemas';
+
 import { getEvalVerdict } from './getEvalVerdict';
 
 /**

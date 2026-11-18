@@ -9,7 +9,7 @@
 
 import { BadRequestError } from 'helpful-errors';
 
-import type { ConsensusStability } from '../../../../../../domain.operations/kernelize/extractKernels';
+import type { ConsensusStability } from '@src/domain.operations/kernelize/extractKernels';
 
 const DEFAULT_STABILITY_THRESHOLD = 0.7;
 

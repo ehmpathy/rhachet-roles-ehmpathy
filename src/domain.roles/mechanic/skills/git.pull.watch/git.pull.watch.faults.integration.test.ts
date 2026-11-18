@@ -7,8 +7,8 @@ import {
   genWatchTestScene,
   SKILL_DIR,
   type WatchScene,
-} from './__test_utils__/genWatchTestScene';
-import { waitForWatch } from './__test_utils__/waitForWatch';
+} from './.test.utils/genWatchTestScene';
+import { waitForWatch } from './.test.utils/waitForWatch';
 
 /**
  * .what = the faults a daemon meets on a real box: a repo root whose keyrack
