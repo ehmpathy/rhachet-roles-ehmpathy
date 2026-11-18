@@ -1092,9 +1092,9 @@ if [[ "$DO_PUSH" == true && "$PROMISE_TEXT_PUBLIC_GIVEN" != true ]]; then
     SET_RERUN_PIPE="cat ./.temp/commit.md | "
     SET_RERUN_NOTE="   # pipe the same message in again"
   fi
-  hold_push_text_until_promised \
+  guard_push_text_promised \
     auth="$AUTH" token="$ROBOT_TOKEN" output=tree \
-    rerun="$(as_cmd_with_promise_text_public "$(as_shell_cmd_without_passthrough "rhx git.commit.set" "${ORIG_ARGS[@]}")" "$SET_RERUN_PIPE" "$SET_RERUN_NOTE")"
+    rerun="$(as_cmd_with_promise_text_public cmd="$(as_shell_cmd_without_passthrough "rhx git.commit.set" "${ORIG_ARGS[@]}")" pipe="$SET_RERUN_PIPE" note="$SET_RERUN_NOTE")"
 fi
 
 # detect work outside the index (unstaged mods + untracked files)

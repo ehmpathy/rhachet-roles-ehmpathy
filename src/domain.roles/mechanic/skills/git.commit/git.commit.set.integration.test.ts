@@ -6084,6 +6084,32 @@ exit 1`,
         });
       });
 
+      when('[t7] plan --push with no promise into a public repo', () => {
+        const gh = genFakeGh({ visibility: 'PUBLIC' });
+        const result = useThen('it runs', async () =>
+          runInTempGitRepo({
+            files: { 'reef.txt': 'kelp' },
+            meterState: { uses: 3, push: 'allow' },
+            commitArgs: ['-m', MESSAGE, '--push', '--auth', 'as-human'],
+            env: gh.env,
+            promise: 'absent',
+          }),
+        );
+        then(
+          'plan nudges too, with no plan tree, so it is seen before apply',
+          () => {
+            expect(result.exitCode).toBe(2);
+            expect(result.stdout).toContain(
+              '🐢 hold up — this text goes to a public repo',
+            );
+            expect(result.stdout).not.toContain('heres the wave');
+            expect(result.stdout).toContain(
+              `--push --auth as-human --promise ${PROMISE}`,
+            );
+          },
+        );
+      });
+
       when('[t3] plan --push with no promise into a private repo', () => {
         const gh = genFakeGh({ visibility: 'PRIVATE' });
         const result = useThen('it runs', async () =>

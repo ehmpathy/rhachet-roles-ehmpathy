@@ -2842,14 +2842,22 @@ as_global_block_display() {
 #         ../git/git.promise.operations.sh; each push skill sources it
 ######################################################################
 
-# .what = the origin's owner/name; empty when origin is not on github
+# .what = owner/name from a github remote url, or empty
+# .why  = ssh, ssh://, and https remotes all name one repo. the one copy for the
+#         pull and commit families; git.pull.comment.operations.sh sources this file
+as_repo_slug_from_remote_url() {
+  local url="$1" repo=""
+  [[ "$url" =~ ^git@github\.com:([^/]+/[^/]+)$ ]] && repo="${BASH_REMATCH[1]}"
+  [[ "$url" =~ ^ssh://git@github\.com/([^/]+/[^/]+)$ ]] && repo="${BASH_REMATCH[1]}"
+  [[ "$url" =~ ^https://([^@/]+@)?github\.com/([^/]+/[^/]+)$ ]] && repo="${BASH_REMATCH[2]}"
+  echo "${repo%.git}"
+}
+
+# .what = the origin's owner/name; empty when origin is absent or not on github
 # .why  = a visibility read that fails still names the repo it held
+# .note = an absent origin is no fault here: the slug only labels the nudge
 get_origin_github_slug() {
-  local url
-  url="$(git remote get-url origin 2>/dev/null || echo "")"
-  url="${url%.git}"
-  [[ "$url" == *github.com[:/]* ]] || return 0
-  printf '%s' "${url##*github.com[:/]}"
+  as_repo_slug_from_remote_url "$(git remote get-url origin 2>/dev/null || echo "")"
 }
 
 # .what = read the repo's visibility, as `gh pr create` resolves the repo;
@@ -2896,8 +2904,8 @@ set_pr_repo_visibility() {
 #         push itself sends them, so the whole push waits on the promise (F1)
 # .note = output=json puts one machine object on stdout and the nudge on
 #         stderr; output=tree puts the nudge on both streams
-# usage: hold_push_text_until_promised auth=... token="..." output=tree|json rerun="<line>"
-hold_push_text_until_promised() {
+# usage: guard_push_text_promised auth=... token="..." output=tree|json rerun="<line>"
+guard_push_text_promised() {
   local auth="" token="" output="tree" rerun="" arg nudge
   for arg in "$@"; do
     case "$arg" in
@@ -2909,9 +2917,9 @@ hold_push_text_until_promised() {
   done
   set_pr_repo_visibility auth="$auth" token="$token"
   is_repo_visibility_ungated "$PR_REPO_VISIBILITY" && return 0
-  nudge="$(as_promise_nudge "$PR_REPO" "$PR_REPO_VISIBILITY" \
-    "the commit messages, which become the pr title and description, hold" \
-    "$rerun" "$PR_REPO_VISIBILITY_CAUSE")"
+  nudge="$(as_promise_nudge repo="$PR_REPO" visibility="$PR_REPO_VISIBILITY" \
+    subject="the commit messages, which become the pr title and description, hold" \
+    rerun="$rerun" cause="$PR_REPO_VISIBILITY_CAUSE")"
   if [[ "$output" == "json" ]]; then
     echo "$nudge" >&2
     jq -cn --arg repo "$PR_REPO" --arg visibility "$PR_REPO_VISIBILITY" --arg fix "$rerun" \
