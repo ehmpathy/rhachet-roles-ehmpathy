@@ -19,8 +19,9 @@ import * as fsSync from 'fs';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
-import { TEST_BRIEFS } from '../brief.compress/.test/fixtures/briefs';
-import type { MechanismOrModifier } from '../brief.compress/compress.via.bhrain';
+import { TEST_BRIEFS } from '@src/domain.roles/librarian/skills/brief.compress/.test/fixtures/briefs';
+import type { MechanismOrModifier } from '@src/domain.roles/librarian/skills/brief.compress/compress.via.bhrain';
+
 import { condenseFile } from './brief.condense';
 
 // ═══════════════════════════════════════════════════════════════════════════

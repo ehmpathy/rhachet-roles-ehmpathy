@@ -5,10 +5,9 @@ import * as path from 'path';
 import { given, then, useThen, when } from 'test-fns';
 
 import { configureTestGitUser } from '@src/.test/configureTestGitUser';
-
-import { genWatchTestScene } from '../git.pull.watch/__test_utils__/genWatchTestScene';
-import { getAllWatchDaemonPids } from '../git.pull.watch/__test_utils__/getAllWatchDaemonPids';
-import { waitForWatch } from '../git.pull.watch/__test_utils__/waitForWatch';
+import { genWatchTestScene } from '@src/domain.roles/mechanic/skills/git.pull.watch/.test.utils/genWatchTestScene';
+import { getAllWatchDaemonPids } from '@src/domain.roles/mechanic/skills/git.pull.watch/.test.utils/getAllWatchDaemonPids';
+import { waitForWatch } from '@src/domain.roles/mechanic/skills/git.pull.watch/.test.utils/waitForWatch';
 
 /**
  * .what = one journey from push to alert: a real `git.commit.push --mode apply`

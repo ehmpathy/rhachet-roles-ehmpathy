@@ -32,3 +32,14 @@ ignores:
   # the bhrowser role, linked by rhachet at runtime; playwright is the browser engine its skills drive
   - rhachet-roles-bhrowser
   - playwright
+  - rhachet*
+  - declastruct-aws
+  - declastruct-unix-network
+  - test-fns
+  - type-fns
+  - yaml
+ignorePatterns:
+  - .agent/.actors
+  - .claude
+  - .agent/repo=*
+  - "!.agent/repo=.this"

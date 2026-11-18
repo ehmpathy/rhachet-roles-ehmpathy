@@ -5,9 +5,9 @@ import { given, then, useThen, when } from 'test-fns';
 import {
   genWatchTestScene,
   type WatchSay,
-} from './__test_utils__/genWatchTestScene';
-import { getAllWatchDaemonPids } from './__test_utils__/getAllWatchDaemonPids';
-import { waitForWatch } from './__test_utils__/waitForWatch';
+} from './.test.utils/genWatchTestScene';
+import { getAllWatchDaemonPids } from './.test.utils/getAllWatchDaemonPids';
+import { waitForWatch } from './.test.utils/waitForWatch';
 
 /**
  * .what = the three wish events reach the mechanic: ci failure, new comment, approval

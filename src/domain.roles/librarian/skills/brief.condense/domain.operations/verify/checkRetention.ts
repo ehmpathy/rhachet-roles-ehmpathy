@@ -10,7 +10,7 @@
 import {
   type ConceptKernel,
   checkKernelRetention,
-} from '../../../../../../domain.operations/kernelize/extractKernels';
+} from '@src/domain.operations/kernelize/extractKernels';
 
 /**
  * .what = check which kernels were retained in compressed content

@@ -4,8 +4,8 @@ import * as os from 'os';
 import * as path from 'path';
 import { given, then, when } from 'test-fns';
 
-import { createTempRepo } from './__test_utils__/createTempRepo';
-import { runSkill, SKILL_PATH } from './__test_utils__/runSkill';
+import { createTempRepo } from './.test.utils/createTempRepo';
+import { runSkill, SKILL_PATH } from './.test.utils/runSkill';
 
 describe('cicd.deflake init', () => {
   given('[case1] creates route and binds', () => {

@@ -3,7 +3,7 @@ import { given, then, useThen, when } from 'test-fns';
 import {
   compareKernels,
   extractKernels,
-} from '../../../../domain.operations/kernelize/extractKernels';
+} from '@src/domain.operations/kernelize/extractKernels';
 
 /**
  * .what = brain provider for kernel extraction

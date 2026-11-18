@@ -25,9 +25,10 @@ import {
   type ConceptKernel,
   type ConsensusStability,
   extractKernelsWithConsensus,
-} from '../../../../domain.operations/kernelize/extractKernels';
-import { countTokens } from '../brief.compress/compress.shared';
-import type { MechanismOrModifier } from '../brief.compress/compress.via.bhrain';
+} from '@src/domain.operations/kernelize/extractKernels';
+import { countTokens } from '@src/domain.roles/librarian/skills/brief.compress/compress.shared';
+import type { MechanismOrModifier } from '@src/domain.roles/librarian/skills/brief.compress/compress.via.bhrain';
+
 import { pressViaPipeline } from './domain.operations/press/pressViaPipeline';
 import { assertStability } from './domain.operations/supply/assertStability';
 import { checkRetention } from './domain.operations/verify/checkRetention';

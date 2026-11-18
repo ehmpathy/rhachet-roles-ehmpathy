@@ -1,6 +1,7 @@
 import { given, then, useBeforeAll, useThen, when } from 'test-fns';
 
-import type { ConceptKernel } from '../../../../../../domain.operations/kernelize/extractKernels';
+import type { ConceptKernel } from '@src/domain.operations/kernelize/extractKernels';
+
 import { restoreKernels } from './restoreKernels';
 
 const BRAIN_SLUG = 'openrouter/deepseek/flash';

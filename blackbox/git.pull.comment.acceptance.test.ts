@@ -1,5 +1,4 @@
 import { spawnSync } from 'child_process';
-
 import { given, then, useBeforeAll, useThen, when } from 'test-fns';
 
 import { genTestDir } from './.test/invokeHook';
@@ -158,13 +157,9 @@ describe('git.pull.comment, via rhachet', () => {
       }));
       then('a known verb runs that verb', () => {
         expect(result.getHelp.code).toBe(0);
-        expect(result.getHelp.stdout).toContain(
-          'usage: git.pull.comment.get',
-        );
+        expect(result.getHelp.stdout).toContain('usage: git.pull.comment.get');
         expect(result.delHelp.code).toBe(0);
-        expect(result.delHelp.stdout).toContain(
-          'usage: git.pull.comment.del',
-        );
+        expect(result.delHelp.stdout).toContain('usage: git.pull.comment.del');
       });
       then('no verb refuses with exit 2 and names the verbs', () => {
         expect(result.bare.code).toBe(2);

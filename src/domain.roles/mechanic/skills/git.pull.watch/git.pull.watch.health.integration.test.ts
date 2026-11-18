@@ -1,7 +1,7 @@
 import { given, then, useThen, when } from 'test-fns';
 
-import { genWatchTestScene } from './__test_utils__/genWatchTestScene';
-import { waitForWatch } from './__test_utils__/waitForWatch';
+import { genWatchTestScene } from './.test.utils/genWatchTestScene';
+import { waitForWatch } from './.test.utils/waitForWatch';
 
 /**
  * .what = each pr keeps its own read health, so one dark pr cannot hide behind

@@ -1,9 +1,10 @@
 import { given, then, when } from 'test-fns';
 
-import { asBashInvokedPaths } from '../../domain.operations/hooks/asBashInvokedPaths';
-import { asMalformedHookPaths } from '../../domain.operations/hooks/asMalformedHookPaths';
-import { asUnaccountedCommands } from '../../domain.operations/hooks/asUnaccountedCommands';
-import { asWrappedCommands } from '../../domain.operations/hooks/asWrappedCommands';
+import { asBashInvokedPaths } from '@src/domain.operations/hooks/asBashInvokedPaths';
+import { asMalformedHookPaths } from '@src/domain.operations/hooks/asMalformedHookPaths';
+import { asUnaccountedCommands } from '@src/domain.operations/hooks/asUnaccountedCommands';
+import { asWrappedCommands } from '@src/domain.operations/hooks/asWrappedCommands';
+
 import { ROLE_MECHANIC } from './getMechanicRole';
 
 describe('getMechanicRole', () => {

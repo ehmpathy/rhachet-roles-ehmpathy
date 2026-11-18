@@ -1,11 +1,11 @@
-import { getAllEvalCasesForRubric } from '../case/getAllEvalCasesForRubric';
-import { computeAverage } from '../metric/computeAverage';
-import { countFailed } from '../metric/countFailed';
-import { countPassed } from '../metric/countPassed';
-import { getAllSensitivities } from '../metric/getAllSensitivities';
-import { getAllSpecificities } from '../metric/getAllSpecificities';
-import type { EvalSummary } from '../schemas';
-import { getAllVerdicts } from '../verdict/getAllVerdicts';
+import { getAllEvalCasesForRubric } from '@src/domain.roles/.evals/case/getAllEvalCasesForRubric';
+import { computeAverage } from '@src/domain.roles/.evals/metric/computeAverage';
+import { countFailed } from '@src/domain.roles/.evals/metric/countFailed';
+import { countPassed } from '@src/domain.roles/.evals/metric/countPassed';
+import { getAllSensitivities } from '@src/domain.roles/.evals/metric/getAllSensitivities';
+import { getAllSpecificities } from '@src/domain.roles/.evals/metric/getAllSpecificities';
+import type { EvalSummary } from '@src/domain.roles/.evals/schemas';
+import { getAllVerdicts } from '@src/domain.roles/.evals/verdict/getAllVerdicts';
 
 /**
  * .what = run all eval cases for a rubric and compute summary
