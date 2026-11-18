@@ -114,75 +114,32 @@ print_automerge_status() {
 }
 
 ######################################################################
-# .what = print the comment line: all answered, or the count + one row each
-# .why  = the gate's verdict rides beside the ci tally, so a driver sees it
-#         on every run, and each row names the exact verb that answers it
+# .what = print the comment line, only when a comment waits
+# .why  = progressive disclosure: a pr with naught to answer shows naught;
+#         a wait shows its count beside the ci tally, and the refusal (or
+#         `get --unanswered`) carries the detail
 #
-# usage: print_comment_status indent rows_json pr_number read_count
+# usage: print_comment_status indent count
 #   indent = "   " (status tree) or "      " (watch tree)
-#   read_count = how many comments the read found; 0 says "no comments",
-#                never a claim that each has an answer
 ######################################################################
 print_comment_status() {
   local indent="$1"
-  local rows="$2"
-  local pr_number="$3"
-  local read_count="$4"
-  local count
-
-  count=$(printf '%s' "$rows" | jq 'length')
-  if [[ "$count" == "0" && "$read_count" == "0" ]]; then
-    echo "${indent}├─ 💬 no comments to answer"
-    return 0
-  fi
-  if [[ "$count" == "0" ]]; then
-    echo "${indent}├─ 💬 all comments answered"
-    return 0
-  fi
-
+  local count="$2"
+  [[ "$count" == "0" ]] && return 0
   echo "${indent}├─ 💬 $count comment(s) unanswered"
-  # .note = words: the first line, past any code fence; a body that opens in a fence
-  #         (a suggestion block) reads "suggestion: <its first line>"; inner double
-  #         quotes become single quotes
-  # .note = each row's key comes from the row (as_rows_unanswered stamps answer_key),
-  #         unique per ask, so a re-asked thread can never reuse a prior answer's key
-  printf '%s' "$rows" | jq -r --arg ind "${indent}│  " --arg pr "$pr_number" '
-    def words: (.body // "") | gsub("\r"; "") | split("\n") | map(select(test("\\S")))
-      | ((.[0] // "") | test("^\\s*```")) as $fenced
-      | map(select(test("^\\s*```") | not)) | (.[0] // "(a code suggestion)")
-      | gsub("^\\s+|\\s+$"; "") | gsub("\""; "'"'"'")
-      | (if $fenced then "suggestion: " + . else . end)
-      | if length > 48 then (.[0:48] | sub("\\s+\\S*$"; "")) + "…" else . end;
-    def place: if .path then " · \(.path)\(if .line then ":\(.line)" else "" end)" else "" end;
-    def row_title: "\(.kind) \(.id)\(place) · @\(.author // "?") · \"\(words)\"";
-    def row_cure: if .waits_on == "reviewer"
-      then "waits on @\(.author // "?"): they mark the thread resolved on github (a reply from them hands it back to you)"
-      elif .kind == "review"
-      then "answer: rhx git.pull.comment set --which \($pr) --reply-to \(.id) --key \(.answer_key) --from <file>"
-      else "answer: rhx git.pull.comment set --which \($pr) --key \(.answer_key) --from <file>" end;
-    length as $n
-    | to_entries[]
-    | (.key == $n - 1) as $last
-    | .value as $c
-    | ($ind + (if $last then "   " else "│  " end)) as $pad
-    | ($ind + (if $last then "└─ " else "├─ " end) + ($c | row_title)),
-      (if $c.url then $pad + "├─ " + $c.url else empty end),
-      (if $c.waits_on == "reviewer" then $pad + "├─ a 🐢 answer is posted, with no reply from @\($c.author // "?") since — unread"
-       elif $c.asked_again then $pad + "├─ answered once, then asked again — the key below is new, so it posts a fresh answer"
-       elif ($c.kind == "review" and $c.in_reply_to != null) then $pad + "├─ a reply with no 🐢 signature — only a signed answer, or a resolved thread, clears it"
-       else empty end),
-      ($pad + "└─ " + ($c | row_cure))'
 }
 
 ######################################################################
-# .what = print the refusal while a comment waits on an answer
-# .why  = names the list to work from and each verb that answers a row;
-#         there is no flag to skip it, so the cure is the only path
-#
-# usage: print_comment_refusal indent pr_number review_waits
-#   review_waits = "true" when a review thread waits; an issue comment
-#                  has no resolved state, so that cure is shown only then
+# .what = the answer kinds a row list holds, as words: review issue unread
+# .why  = the refusal names only the cures that apply to what waits
 ######################################################################
+as_answer_kinds_of_rows() {
+  printf '%s' "$1" | jq -r '
+    [ (if any(.[]; .kind == "review" and .waits_on != "reviewer") then "review" else empty end),
+      (if any(.[]; .kind == "issue") then "issue" else empty end),
+      (if any(.[]; .waits_on == "reviewer") then "unread" else empty end) ] | join(" ")'
+}
+
 ######################################################################
 # .what = print one gate error block to stdout at its tree depth, and to
 #         stderr as a whole tree under its own root
@@ -200,18 +157,37 @@ emit_gate_block() {
   printf '🐚 git.release · pr #%s\n%s\n' "$pr_number" "${block//@I@/   }" >&2
 }
 
+######################################################################
+# .what = print the refusal while a comment waits on an answer
+# .why  = how to find the comments that wait, how to answer each kind, then
+#         rerun; there is no flag to skip it, so the cure is the only path
+#
+# usage: print_comment_refusal indent pr_number answer_kinds
+#   answer_kinds = words from as_answer_kinds_of_rows; only those cures show
+######################################################################
 print_comment_refusal() {
   local indent="$1"
   local pr_number="$2"
-  local review_waits="$3"
-  local resolve_line=""
-  if [[ "$review_waits" == "true" ]]; then
-    resolve_line="@I@   ├─ or: anyone with write access marks the review thread resolved on github"$'\n'
-  fi
+  local kinds="$3"
+  local cures=() lines="" i last
+
+  [[ " $kinds " == *" review "* ]] && cures+=("a review thread: rhx git.pull.comment set --which $pr_number --reply-to <id> --key answer-<id> --from <file>")
+  [[ " $kinds " == *" issue "* ]] && cures+=("an issue comment: rhx git.pull.comment set --which $pr_number --key answer-<id> --from <file>")
+  [[ " $kinds " == *" unread "* ]] && cures+=("answered, unread: its reviewer marks the thread resolved on github")
+
+  last=$(( ${#cures[@]} - 1 ))
+  for i in "${!cures[@]}"; do
+    if [[ "$i" == "$last" ]]; then
+      lines+="@I@   │  └─ ${cures[$i]}"$'\n'
+    else
+      lines+="@I@   │  ├─ ${cures[$i]}"$'\n'
+    fi
+  done
+
   emit_gate_block "$indent" "$pr_number" "@I@└─ ✋ ConstraintError: release blocked until each comment has an answer
-@I@   ├─ read: rhx git.pull.comment get --which $pr_number --unanswered
-@I@   ├─ answer: run the rhx git.pull.comment set line each 💬 row names
-${resolve_line}@I@   └─ then: re-run this same release command"
+@I@   ├─ find them: rhx git.pull.comment get --which $pr_number --unanswered
+@I@   ├─ answer each
+${lines}@I@   └─ then: re-run this same release command"
 }
 
 ######################################################################

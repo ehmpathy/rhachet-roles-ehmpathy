@@ -224,20 +224,23 @@ rhx git.release
 
 ### 8. refuse while a comment waits on an answer
 
-every pr transport shows a `💬` line beside the ci tally. a comment waits when
-`rhx git.pull.comment get --unanswered` lists it: a review thread whose latest
-comment is no signed answer and is not resolved, or a human issue comment with no
-signed answer keyed `answer-<its id>`. bots never count.
+a pr transport shows a `💬` count beside the ci tally only while a comment
+waits; naught waits, no line (progressive disclosure). a comment waits when
+`rhx git.pull.comment get --unanswered` lists it: an open review thread whose
+latest comment is no signed answer, an open review thread whose signed answer
+its reviewer has not yet read (marked resolved), or a human issue comment with
+no signed answer keyed `answer-<its id>`. bots never count.
 
 | mode | a comment waits |
 |------|-----------------|
-| plan | `💬` rows + hint; never mutates; with automerge on, says github will merge past them; exit unchanged |
-| watch | `💬` rows; if automerge is found, disables it and exits 2 |
+| plan | `💬` count; never mutates; with automerge on, says github will merge past them; exit unchanged |
+| watch | `💬` count; if automerge is found, disables it and exits 2 |
 | apply | refuses, exit 2; disables an extant automerge; each watch poll re-reads |
 
-no flag skips the gate, `--retry` included. each row names its own answer
-command, with the key `answer-<its id>`: unique per ask, so a re-asked thread
-gets a fresh answer, never an edit of the old one.
+no flag skips the gate, `--retry` included. the refusal names how to find the
+rows (`get --unanswered`), the answer form for each kind that waits, then the
+rerun. the key `answer-<id>` is unique per ask, so a re-asked thread gets a
+fresh answer, never an edit of the old one.
 
 the comment read fails closed: when it fails with automerge on, apply and
 watch turn automerge off before exit 1; plan names the command that would.
@@ -261,13 +264,11 @@ rhx git.release --apply
 🌊 release: feat(reef): add tide sensor
    ├─ 👌 all checks passed
    ├─ 💬 1 comment(s) unanswered
-   │  └─ review 801 · src/reef/getTide.ts:42 · @commander · "why not a findsert here?"
-   │     └─ answer: rhx git.pull.comment set --which 42 --reply-to 801 --key answer-801 --from <file>
    ├─ 🌴 automerge unfound — held until each comment has an answer
    └─ ✋ ConstraintError: release blocked until each comment has an answer
-      ├─ read: rhx git.pull.comment get --which 42 --unanswered
-      ├─ answer: run the rhx git.pull.comment set line each 💬 row names
-      ├─ or: anyone with write access marks the review thread resolved on github
+      ├─ find them: rhx git.pull.comment get --which 42 --unanswered
+      ├─ answer each
+      │  └─ a review thread: rhx git.pull.comment set --which 42 --reply-to <id> --key answer-<id> --from <file>
       └─ then: re-run this same release command
 ```
 

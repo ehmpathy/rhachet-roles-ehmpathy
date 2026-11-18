@@ -32,7 +32,7 @@
 #
 # sets:
 #   COMMENT_GATE_UNANSWERED   = how many comments wait on an answer
-#   COMMENT_GATE_REVIEW_WAITS = true | false (true = at least one review thread waits)
+#   COMMENT_GATE_ANSWER_KINDS = words: review issue unread (the cures that apply)
 #   COMMENT_GATE_AUTOMERGE    = on | off | removed (removed = this gate turned it off)
 #
 # returns:
@@ -45,10 +45,10 @@ emit_comment_gate() {
   local automerge_on="$3"
   local may_mutate="$4"
   local print_when="$5"
-  local rows judged count read_count err detail rc=0
+  local rows judged count err detail rc=0
 
   COMMENT_GATE_UNANSWERED=""
-  COMMENT_GATE_REVIEW_WAITS="false"
+  COMMENT_GATE_ANSWER_KINDS=""
   COMMENT_GATE_AUTOMERGE="off"
   if [[ "$automerge_on" == "true" ]]; then
     COMMENT_GATE_AUTOMERGE="on"
@@ -69,20 +69,16 @@ emit_comment_gate() {
   count=$(as_count_of_rows "$judged") || { _emit_comment_gate_blind "$pr_number" "$indent" "$may_mutate" "the unanswered rows could not be counted"; return 1; }
   COMMENT_GATE_UNANSWERED="$count"
 
-  # only a review thread can be resolved, so only a review row offers that cure
-  COMMENT_GATE_REVIEW_WAITS=$(is_any_review_row "$judged") || { _emit_comment_gate_blind "$pr_number" "$indent" "$may_mutate" "the unanswered rows could not be sorted by kind"; return 1; }
+  # the refusal names only the cures that apply to what waits
+  COMMENT_GATE_ANSWER_KINDS=$(as_answer_kinds_of_rows "$judged") || { _emit_comment_gate_blind "$pr_number" "$indent" "$may_mutate" "the unanswered rows could not be sorted by kind"; return 1; }
 
-  # all answered, or none read: a watch poll stays quiet, the status tree says which
-  read_count=$(as_count_of_rows "$rows") || { _emit_comment_gate_blind "$pr_number" "$indent" "$may_mutate" "the comments read could not be counted"; return 1; }
+  # naught waits: the tree stays quiet (progressive disclosure)
   if [[ "$count" == "0" ]]; then
-    if [[ "$print_when" == "always" ]]; then
-      print_comment_status "$indent" "$judged" "$pr_number" "$read_count"
-    fi
     return 0
   fi
 
-  # name each comment that waits, with the command that answers it
-  print_comment_status "$indent" "$judged" "$pr_number" "$read_count" || { _emit_comment_gate_blind "$pr_number" "$indent" "$may_mutate" "the unanswered rows could not be printed"; return 1; }
+  # the count rides beside the ci tally; the refusal carries the detail
+  print_comment_status "$indent" "$count"
 
   # automerge off, or plan: naught to turn off here
   if [[ "$COMMENT_GATE_AUTOMERGE" != "on" || "$may_mutate" != "true" ]]; then
