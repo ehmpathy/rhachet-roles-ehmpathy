@@ -28,7 +28,7 @@
 # guarantee:
 #   - apply mode requires a git.release.uses stamp (global ∧ org ∧ local),
 #     spends one use per apply; a commit grant never ships
-#   - apply refuses (exit 2) a pr no human approved; bots never count; no flag lifts it
+#   - apply refuses (exit 2) a pr no human approved; no flag lifts it
 #   - watches CI until complete or timeout (15 min)
 #   - surfaces errors with links and retry hints
 #
