@@ -20,8 +20,7 @@
 #   - an enrolled clone then watches the pr; a failed watch never fails the push
 #   - never decrements uses
 #   - plan by default
-#   - into a public repo, holds the whole push with a nudge until --promise
-#     text-to-public-repo-is-anonymized; a private or internal repo passes
+#   - a public repo holds until --promise text-to-public-repo-is-anonymized
 ######################################################################
 set -euo pipefail
 

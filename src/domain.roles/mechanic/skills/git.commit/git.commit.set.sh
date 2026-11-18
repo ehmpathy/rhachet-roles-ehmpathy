@@ -12,12 +12,9 @@
 #   - detail 2" | rhx git.commit.set -m @stdin                    # plan (preview)
 #   echo "..." | rhx git.commit.set -m @stdin --mode apply        # apply (commit)
 #   echo "..." | rhx git.commit.set -m @stdin --mode apply --push # apply + push
-#   echo "..." | rhx git.commit.set -m @stdin --unstaged include  # include untracked
-#   echo "..." | rhx git.commit.set -m @stdin --unstaged ignore   # ignore untracked
+#   echo "..." | rhx git.commit.set -m @stdin --unstaged include|ignore
 #
-# message format:
-#   first line = commit header (required)
-#   blank line + rest of lines = commit body (required)
+# message format: header line, blank line, body (all required)
 #
 # guarantee:
 #   - author is seaturtle[bot] <seaturtle@ehmpath.com>
@@ -30,8 +27,8 @@
 #   - push only if allowed and requested
 #   - fails fast if unstaged changes exist (unless --unstaged ignore|include)
 #   - defaults to plan mode (preview only); use --mode apply to execute
-#   - with --push into a public repo, holds before the commit with a nudge
-#     until --promise text-to-public-repo-is-anonymized; private or internal pass
+#   - --push to a public repo holds before the commit until --promise
+#     text-to-public-repo-is-anonymized
 ######################################################################
 set -euo pipefail
 
