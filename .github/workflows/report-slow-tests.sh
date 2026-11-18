@@ -15,7 +15,8 @@
 # guarantee:
 #   - exit 0 = report written to $GITHUB_STEP_SUMMARY (or /dev/null locally)
 #   - exit 0 = empty shard (0 test files) — a legitimate state, stated explicitly
-#   - exit 1 = non-empty report yielded zero real durations (schema drift)
+#   - exit 0 = every file skipped (0 tests ran) — jest reports no span for a file it never ran
+#   - exit 1 = files that ran tests yielded zero real durations (schema drift)
 ######################################################################
 set -eu
 
@@ -23,6 +24,9 @@ results="${1:-jest-results.json}"
 
 total=$(jq '.testResults | length' "$results")
 durations=$(jq -r '.testResults[] | "\((.endTime // 0) - (.startTime // 0)):\(.name)"' "$results" | sort -t: -k1 -rn)
+
+# a file ran if any of its tests passed or failed; a file whose every test is skipped has no span
+ran=$(jq '[.testResults[] | select([.assertionResults[]? | select(.status == "passed" or .status == "failed")] | length > 0)] | length' "$results")
 
 summary="${GITHUB_STEP_SUMMARY:-/dev/null}"
 
@@ -32,11 +36,17 @@ if [[ "$total" -eq 0 ]]; then
   exit 0
 fi
 
-# a non-empty testResults that yields zero real durations means the jest --json duration
+# a shard whose every file was skipped is legitimate too — it ran no test, so it has no duration.
+if [[ "$ran" -eq 0 ]]; then
+  echo "slow-test report: $total test files in $results, every one skipped (0 tests ran)" >> "$summary"
+  exit 0
+fi
+
+# files that ran tests yet yield zero real durations mean the jest --json duration
 # schema changed again — the silent death this check exists to catch. fail loud, never silent-green.
 nonzero=$(printf '%s\n' "$durations" | awk -F: '$1 > 0' | wc -l | tr -d ' ')
 if [[ "$nonzero" -eq 0 ]]; then
-  echo "::error::slow-test report parsed 0 durations from $total test files — the jest --json duration schema likely changed; read endTime/startTime from one entry of $results to see what moved"
+  echo "::error::slow-test report parsed 0 durations from $ran test files that ran — the jest --json duration schema likely changed; read endTime/startTime from one entry of $results to see what moved"
   exit 1
 fi
 

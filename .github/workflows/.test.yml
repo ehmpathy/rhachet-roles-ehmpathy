@@ -210,6 +210,16 @@ jobs:
       - name: prepare:rhachet
         run: npm run prepare:rhachet --if-present
 
+      # .why = grepsafe searches with rg only and refuses where rg is absent;
+      #        the ubuntu runner ships no rg, so provision it for the suites
+      - name: install ripgrep (for grepsafe)
+        run: command -v rg || (sudo apt-get update && sudo apt-get install -y ripgrep)
+
+      # .why = git.branch.rebase.lock's suites refresh a real pnpm lock and fail
+      #        fast where pnpm is absent; the ubuntu runner ships yarn, not pnpm
+      - name: install pnpm (for git.branch.rebase.lock)
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
       # .why = keyrack firewall translates and validates secrets before tests run
       #        - filters to declared keys in keyrack.yml
       #        - translates mechanisms (e.g., GitHub App → ghs_* token)
@@ -287,6 +297,16 @@ jobs:
       #        prepare:rhachet creates these symlinks so keyrack.source() can hydrate extended keys
       - name: prepare:rhachet
         run: npm run prepare:rhachet --if-present
+
+      # .why = grepsafe searches with rg only and refuses where rg is absent;
+      #        the ubuntu runner ships no rg, so provision it for the suites
+      - name: install ripgrep (for grepsafe)
+        run: command -v rg || (sudo apt-get update && sudo apt-get install -y ripgrep)
+
+      # .why = git.branch.rebase.lock's suites refresh a real pnpm lock and fail
+      #        fast where pnpm is absent; the ubuntu runner ships yarn, not pnpm
+      - name: install pnpm (for git.branch.rebase.lock)
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
 
       # .why = keyrack firewall translates and validates secrets before tests run
       #        - filters to declared keys in keyrack.yml
