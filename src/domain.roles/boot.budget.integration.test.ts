@@ -518,18 +518,21 @@ describe('boot.budget', () => {
             }).toMatchSnapshot();
           });
 
-          then('the boot a seat reads sheds always, so it reads no more than the slice', () => {
-            // the subject declares `inherit: { always: false }`; were `always` absorbed, the seat
-            // would read ~19k more than the slice, so a dropped opt-out fails here
-            const breach = asSubjectCapBreach({
-              slugRole: cap.slugRole,
-              slugSubject: cap.slugSubject,
-              tokens: costs.seat.tokens,
-              cap: cap.tokens,
-            });
-            expect(breach).toBeNull();
-            expect(costs.seat.tokens).toBeLessThanOrEqual(costs.slice.tokens);
-          });
+          then(
+            'the boot a seat reads sheds always, so it reads no more than the slice',
+            () => {
+              // the subject declares `inherit: { always: false }`; were `always` absorbed, the seat
+              // would read ~19k more than the slice, so a dropped opt-out fails here
+              const breach = asSubjectCapBreach({
+                slugRole: cap.slugRole,
+                slugSubject: cap.slugSubject,
+                tokens: costs.seat.tokens,
+                cap: cap.tokens,
+              });
+              expect(breach).toBeNull();
+              expect(costs.seat.tokens).toBeLessThanOrEqual(costs.slice.tokens);
+            },
+          );
         });
 
         when(
