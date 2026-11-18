@@ -34,7 +34,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: feat(ocean): add surfboards
    ├─ 🐢 1 check(s) in progress
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
@@ -47,7 +46,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       ├─ 💤 await automerge, Xs in action, Xs watched
@@ -73,7 +71,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: feat(ocean): add surfboards
    ├─ 🐢 1 check(s) in progress
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
@@ -86,7 +83,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: feat(ocean): add surfboards
    ├─ 🐢 1 check(s) in progress
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
@@ -104,7 +100,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: feat(ocean): add surfboards
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       └─ ✨ done! merged!
@@ -113,7 +108,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       └─ ✨ done! merged!
@@ -135,7 +129,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: feat(ocean): add surfboards
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
@@ -148,7 +141,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: feat(ocean): add surfboards
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
@@ -163,7 +155,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: feat(ocean): add surfboards
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [found]
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
@@ -173,7 +164,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       └─ ✨ done! merged!
@@ -195,7 +185,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: feat(ocean): add surfboards
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [found]
    └─ [dim]hint: use --apply to watch[/dim]
 "
@@ -208,7 +197,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: feat(ocean): add surfboards
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [found]
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
@@ -218,7 +206,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
@@ -236,7 +223,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    │  └─ 🔴 test
    │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ publish
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
    └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
@@ -253,7 +239,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    │  └─ 🔴 test
    │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ publish
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
    └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
@@ -270,7 +255,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    │  └─ 🔴 test
    │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ publish
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
    └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
@@ -288,7 +272,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        ├─ publish
    │        └─ 👌 rerun triggered
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
@@ -308,7 +291,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        ├─ publish
    │        └─ 👌 rerun triggered
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --watch to monitor rerun progress[/dim]
 "
@@ -325,7 +307,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        ├─ publish
    │        └─ 👌 rerun triggered
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
@@ -341,7 +322,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: feat(ocean): add surfboards
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🐚 needs rebase
    │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
@@ -355,7 +335,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: feat(ocean): add surfboards
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🐚 needs rebase
    │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
@@ -369,7 +348,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: feat(ocean): add surfboards
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🐚 needs rebase
    │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
@@ -383,7 +361,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: feat(ocean): add surfboards
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🐚 needs rebase, has conflicts
    │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
@@ -397,7 +374,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: feat(ocean): add surfboards
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🐚 needs rebase, has conflicts
    │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
@@ -411,7 +387,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: feat(ocean): add surfboards
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🐚 needs rebase, has conflicts
    │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
@@ -433,7 +408,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: 
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
@@ -468,7 +442,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: 
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
@@ -489,7 +462,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: 
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
@@ -531,7 +503,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: chore(release): v1.3.0
    ├─ 🐢 1 check(s) in progress
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
@@ -563,7 +534,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: chore(release): v1.3.0
    ├─ 🐢 1 check(s) in progress
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
@@ -582,7 +552,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: chore(release): v1.3.0
    ├─ 🐢 1 check(s) in progress
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
@@ -606,7 +575,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       └─ ✨ done! merged!
@@ -634,7 +602,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
@@ -653,7 +620,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
@@ -674,7 +640,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [found]
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
@@ -703,7 +668,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [found]
    └─ [dim]hint: use --apply to watch[/dim]
 "
@@ -722,7 +686,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [found]
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
@@ -754,7 +717,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    │  └─ 🔴 test
    │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ publish
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
    └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
@@ -777,7 +739,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    │  └─ 🔴 test
    │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ publish
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
    └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
@@ -800,7 +761,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    │  └─ 🔴 test
    │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ publish
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
    └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
@@ -824,7 +784,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        ├─ publish
    │        └─ 👌 rerun triggered
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
@@ -850,7 +809,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        ├─ publish
    │        └─ 👌 rerun triggered
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --watch to monitor rerun progress[/dim]
 "
@@ -873,7 +831,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        ├─ publish
    │        └─ 👌 rerun triggered
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
@@ -895,7 +852,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🐚 needs rebase
    │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
@@ -915,7 +871,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🐚 needs rebase
    │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
@@ -935,7 +890,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🐚 needs rebase
    │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
@@ -955,7 +909,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🐚 needs rebase, has conflicts
    │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
@@ -975,7 +928,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🐚 needs rebase, has conflicts
    │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
@@ -995,7 +947,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 
 🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🐚 needs rebase, has conflicts
    │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)

@@ -319,7 +319,7 @@ _watch_pr_comment_gate() {
 
   # a comment waits, and the gate turned automerge off: refuse
   echo "      ├─ 🌴 automerge disabled [removed] — $COMMENT_GATE_UNANSWERED comment(s) unanswered"
-  print_comment_refusal "      " "$pr_number" "$COMMENT_GATE_REVIEW_WAITS"
+  print_comment_refusal "      " "$pr_number" "$COMMENT_GATE_ANSWER_KINDS"
   return 2
 }
 

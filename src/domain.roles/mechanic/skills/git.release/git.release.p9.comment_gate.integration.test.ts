@@ -304,18 +304,23 @@ describe('git.release.p9.comment_gate', () => {
     };
 
     when('[t0] apply', () => {
-      then('refuses, exit 2, and names the thread and the verbs', () => {
+      then('refuses, exit 2, and names how to find and answer each', () => {
         const result = runCase(mockResponses, ['--into', 'main', '--apply']);
         expect(result.status).toEqual(2);
         expect(result.stdout).toContain('💬 1 comment(s) unanswered');
-        expect(result.stdout).toContain(
-          'review 801 · src/reef/getTide.ts:42 · @commander',
-        );
+        // progressive disclosure: the rows live in `get --unanswered`, not here
+        expect(result.stdout).not.toContain('review 801');
         expect(result.stdout).toContain(
           '✋ ConstraintError: release blocked until each comment has an answer',
         );
         expect(result.stdout).toContain(
-          'rhx git.pull.comment set --which 42 --reply-to 801 --key answer-801 --from <file>',
+          'find them: rhx git.pull.comment get --which 42 --unanswered',
+        );
+        expect(result.stdout).toContain(
+          'a review thread: rhx git.pull.comment set --which 42 --reply-to <id> --key answer-<id> --from <file>',
+        );
+        expect(result.stdout).toContain(
+          'then: re-run this same release command',
         );
         expect(result.stdout).not.toContain("let's watch");
         expect(result.stderr).toContain('✋ ConstraintError');
@@ -457,13 +462,11 @@ describe('git.release.p9.comment_gate', () => {
             );
             expect(result.status).toEqual(2);
             expect(result.stdout).toContain('💬 1 comment(s) unanswered');
-            expect(result.stdout).toContain('review 801');
             expect(result.stdout).toContain(
-              'a 🐢 answer is posted, with no reply from @commander since — unread',
+              'answered, unread: its reviewer marks the thread resolved on github',
             );
-            expect(result.stdout).toContain('waits on @commander');
-            // no crew verb cures it, so none is offered for this row
-            expect(result.stdout).not.toContain('--reply-to 801 --key');
+            // no crew verb cures it, so none is offered
+            expect(result.stdout).not.toContain('a review thread:');
             expect(result.stdout).not.toContain('🌴 automerge enabled');
             expect(result.stderr).toContain('ConstraintError');
             expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
@@ -492,7 +495,7 @@ describe('git.release.p9.comment_gate', () => {
             ['--into', 'main', '--apply'],
           );
           expect(result.status).toEqual(0);
-          expect(result.stdout).toContain('💬 all comments answered');
+          expect(result.stdout).not.toContain('💬'); // naught waits: no comment line
           expect(result.stdout).toContain('🌴 automerge enabled');
           expect(result.stdout).not.toContain('ConstraintError');
           expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
@@ -518,7 +521,7 @@ describe('git.release.p9.comment_gate', () => {
           ['--into', 'main', '--apply'],
         );
         expect(result.status).toEqual(0);
-        expect(result.stdout).toContain('💬 all comments answered');
+        expect(result.stdout).not.toContain('💬'); // naught waits: no comment line
       });
     });
   });
@@ -539,7 +542,7 @@ describe('git.release.p9.comment_gate', () => {
           ['--into', 'main', '--apply'],
         );
         expect(result.status).toEqual(0);
-        expect(result.stdout).toContain('💬 all comments answered');
+        expect(result.stdout).not.toContain('💬'); // naught waits: no comment line
       });
     });
 
@@ -559,7 +562,7 @@ describe('git.release.p9.comment_gate', () => {
           ['--into', 'main', '--apply'],
         );
         expect(result.status).toEqual(0);
-        expect(result.stdout).toContain('💬 all comments answered');
+        expect(result.stdout).not.toContain('💬'); // naught waits: no comment line
         expect(result.stdout).not.toContain('review 805');
       });
     });
@@ -580,7 +583,7 @@ describe('git.release.p9.comment_gate', () => {
           ['--into', 'main', '--apply'],
         );
         expect(result.status).toEqual(0);
-        expect(result.stdout).toContain('💬 no comments to answer');
+        expect(result.stdout).not.toContain('💬'); // naught waits: no comment line
         expect(result.stdout).not.toContain('all comments answered');
         expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
@@ -589,7 +592,7 @@ describe('git.release.p9.comment_gate', () => {
 
   given('[case5] a top-level issue comment', () => {
     when('[t0] only an unrelated keyed robot comment follows it', () => {
-      then('refuses, and the row names the exact answer key', () => {
+      then('refuses, and names the issue answer form alone', () => {
         const result = runCase(
           {
             'pr list': '42',
@@ -599,12 +602,11 @@ describe('git.release.p9.comment_gate', () => {
           ['--into', 'main', '--apply'],
         );
         expect(result.status).toEqual(2);
+        expect(result.stdout).toContain('💬 1 comment(s) unanswered');
         expect(result.stdout).toContain(
-          'issue 6407563822 · @commander · "also: the readme still names the old flag"',
+          'an issue comment: rhx git.pull.comment set --which 42 --key answer-<id> --from <file>',
         );
-        expect(result.stdout).toContain(
-          'rhx git.pull.comment set --which 42 --key answer-6407563822 --from <file>',
-        );
+        expect(result.stdout).not.toContain('a review thread:');
         // an issue comment has no resolved state, so that cure is never offered
         expect(result.stdout).not.toContain('resolved on github');
         expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
@@ -630,41 +632,37 @@ describe('git.release.p9.comment_gate', () => {
           ['--into', 'main', '--apply'],
         );
         expect(result.status).toEqual(0);
-        expect(result.stdout).toContain('💬 all comments answered');
+        expect(result.stdout).not.toContain('💬'); // naught waits: no comment line
       });
     });
   });
 
   given('[case6] a re-asked thread, after one answer', () => {
     when('[t0] apply', () => {
-      then(
-        'refuses, and the row names a key new to this ask, so the answer posts fresh rather than edits the old one',
-        () => {
-          const result = runCase(
-            {
-              'pr list': '42',
-              'pr view': PR_PASSED_WOUT_AUTOMERGE,
-              'api review comments': JSON.stringify([
-                REVIEW_ASK,
-                REVIEW_ANSWER,
-                REVIEW_ASK_AGAIN,
-              ]),
-              'api graphql': asThreadsPage([
-                { isResolved: false, ids: [801, 802, 803] },
-              ]),
-            },
-            ['--into', 'main', '--apply'],
-          );
-          expect(result.status).toEqual(2);
-          expect(result.stdout).toContain('review 803');
-          expect(result.stdout).toContain(
-            '--reply-to 803 --key answer-803 --from <file>',
-          );
-          expect(result.stdout).not.toContain('--key answer --from'); // the prior answer's key
-          expect(result.stdout).toContain('answered once, then asked again');
-          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
-        },
-      );
+      then('refuses: the re-ask waits on the crew again', () => {
+        const result = runCase(
+          {
+            'pr list': '42',
+            'pr view': PR_PASSED_WOUT_AUTOMERGE,
+            'api review comments': JSON.stringify([
+              REVIEW_ASK,
+              REVIEW_ANSWER,
+              REVIEW_ASK_AGAIN,
+            ]),
+            'api graphql': asThreadsPage([
+              { isResolved: false, ids: [801, 802, 803] },
+            ]),
+          },
+          ['--into', 'main', '--apply'],
+        );
+        expect(result.status).toEqual(2);
+        expect(result.stdout).toContain('💬 1 comment(s) unanswered');
+        expect(result.stdout).toContain(
+          'a review thread: rhx git.pull.comment set --which 42 --reply-to <id> --key answer-<id> --from <file>',
+        );
+        expect(result.stdout).not.toContain('answered, unread');
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+      });
     });
   });
 
@@ -686,11 +684,9 @@ describe('git.release.p9.comment_gate', () => {
           ['--into', 'main', '--apply'],
         );
         expect(result.status).toEqual(2);
-        expect(result.stdout).toContain('review 804');
-        expect(result.stdout).toContain('@human');
-        // the row says why a reply in the thread does not clear it
+        expect(result.stdout).toContain('💬 1 comment(s) unanswered');
         expect(result.stdout).toContain(
-          'a reply with no 🐢 signature — only a signed answer, or a resolved thread, clears it',
+          'a review thread: rhx git.pull.comment set',
         );
         expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
@@ -818,7 +814,7 @@ describe('git.release.p9.comment_gate', () => {
           expect(result.status).toEqual(2);
           expect(result.wasAutomergeDisabled).toEqual(true);
           // the gate read found no comment yet; the poll finds the new one
-          expect(result.stdout).toContain('💬 no comments to answer');
+          expect(result.stdout).toContain('💬 1 comment(s) unanswered');
           expect(result.stdout).toContain(
             '🌴 automerge disabled [removed] — 1 comment(s) unanswered',
           );
@@ -1011,9 +1007,12 @@ describe('git.release.p9.comment_gate', () => {
         expect(result.stdout).toContain(
           '✋ ConstraintError: release blocked until each comment has an answer',
         );
-        expect(result.stdout).toContain('--which 99 --key answer-6407563822');
-        expect(result.stdout).toContain('/pull/99#issuecomment-6407563822');
-        expect(result.stdout).not.toContain('/pull/42');
+        // the cure names the release pr, never the feat pr
+        expect(result.stdout).toContain(
+          'find them: rhx git.pull.comment get --which 99 --unanswered',
+        );
+        expect(result.stdout).toContain('--which 99 --key answer-<id>');
+        expect(result.stdout).not.toContain('--which 42');
         expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
@@ -1114,7 +1113,7 @@ describe('git.release.p9.comment_gate', () => {
           expect(result.status).toEqual(1);
           expect(result.wasAutomergeDisabled).toEqual(true);
           // the gate read found no comment; the later poll read fails
-          expect(result.stdout).toContain('💬 no comments to answer');
+          expect(result.stdout).not.toContain('💬'); // naught waits: no comment line
           expect(result.stdout).toContain(
             'automerge: disabled [removed], so github cannot merge past an unread comment',
           );
@@ -1168,7 +1167,7 @@ describe('git.release.p9.comment_gate', () => {
 
     when('[t0] apply', () => {
       then(
-        'one row per comment, each with its own exact answer, exit 2',
+        'counts every comment that waits, and names each answer form that applies, exit 2',
         () => {
           const result = runCase(
             {
@@ -1189,17 +1188,14 @@ describe('git.release.p9.comment_gate', () => {
           expect(result.status).toEqual(2);
           expect(result.stdout).toContain('💬 3 comment(s) unanswered');
           expect(result.stdout).toContain(
-            'review 805 · src/reef/setSensor.ts · @commander · "suggestion: const sensor = genSensor({ reef });"',
+            '├─ a review thread: rhx git.pull.comment set',
           );
           expect(result.stdout).toContain(
-            `"the readme says 'tide' where it means 'swell'"`,
+            '└─ an issue comment: rhx git.pull.comment set',
           );
-          expect(result.stdout).toContain('--reply-to 805 --key answer-805');
-          expect(result.stdout).toContain('--key answer-6407563830');
-          // each row links to its own comment
-          expect(result.stdout).toContain('#issuecomment-6407563830');
-          expect(result.stdout).toContain('#discussion_r805');
-          expect(result.stdout).toContain('#discussion_r801');
+          // the rows themselves live in `get --unanswered`, never in the release tree
+          expect(result.stdout).not.toContain('#discussion_r805');
+          expect(result.stdout).not.toContain('answered, unread');
           expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
         },
       );
@@ -1463,8 +1459,9 @@ describe('git.release.p9.comment_gate', () => {
         const result = runCase(mockResponses, ['--into', 'main', '--apply']);
         expect(result.status).toEqual(2);
         expect(result.stdout).toContain('💬 1 comment(s) unanswered');
-        expect(result.stdout).toContain('review 803');
-        expect(result.stdout).toContain('resolved on github');
+        expect(result.stdout).toContain(
+          'a review thread: rhx git.pull.comment set',
+        );
         expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
@@ -1491,7 +1488,7 @@ describe('git.release.p9.comment_gate', () => {
             ['--into', 'main', '--apply'],
           );
           expect(result.status).toEqual(0);
-          expect(result.stdout).toContain('💬 all comments answered');
+          expect(result.stdout).not.toContain('💬'); // naught waits: no comment line
           expect(result.stdout).not.toContain('✋ ConstraintError');
           expect(result.stdout).not.toContain('review 801');
           expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();

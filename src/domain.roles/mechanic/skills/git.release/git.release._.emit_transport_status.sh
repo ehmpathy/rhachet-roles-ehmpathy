@@ -139,7 +139,7 @@ emit_transport_status() {
       ;;
   esac
 
-  # run the comment gate on a pr: it prints each unanswered comment, and in
+  # run the comment gate on a pr: it prints a count only while a comment waits, and in
   # apply or watch turns off an automerge that would merge past one
   local comment_unanswered="0"
   local automerge_removed="false"
@@ -308,7 +308,7 @@ _emit_automerge_line() {
 ######################################################################
 _exit_on_comment_refusal() {
   local pr_number="$1"
-  print_comment_refusal "   " "$pr_number" "$COMMENT_GATE_REVIEW_WAITS"
+  print_comment_refusal "   " "$pr_number" "$COMMENT_GATE_ANSWER_KINDS"
   exit 2
 }
 

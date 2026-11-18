@@ -7,7 +7,6 @@ exports[`git.release.p2 --from main behavior given: [case-from-branch-valid] --f
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
@@ -20,7 +19,6 @@ exports[`git.release.p2 --from main behavior given: [case-from-main-on-feat] on 
 
 🌊 release: chore(release): v1.33.0 🎉
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
@@ -33,7 +31,6 @@ exports[`git.release.p2 --from main behavior given: [case-from-main-on-feat] on 
 
 🌊 release: chore(release): v1.33.0 🎉
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    └─ 🌴 automerge enabled [added] -> and merged already
 
 🫧 and then...
@@ -53,7 +50,6 @@ exports[`git.release.p2 --from main behavior given: [case-from-main-on-main] on 
 
 🌊 release: chore(release): v1.33.0 🎉
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
@@ -66,7 +62,6 @@ exports[`git.release.p2 --from main behavior given: [case-from-main-on-main] on 
 
 🌊 release: chore(release): v1.33.0 🎉
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    └─ 🌴 automerge enabled [added] -> and merged already
 
 🫧 and then...
@@ -89,7 +84,6 @@ exports[`git.release.p2 --from main behavior given: [case-from-main-release-fail
    │  └─ 🔴 test
    │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ test
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
    └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
@@ -106,7 +100,6 @@ exports[`git.release.p2 --from main behavior given: [case-from-main-release-fail
    │  └─ 🔴 test
    │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ test
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
    └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
@@ -120,7 +113,6 @@ exports[`git.release.p2 --from main behavior given: [case-from-main-release-infl
 
 🌊 release: chore(release): v1.33.0 🎉
    ├─ 🐢 1 check(s) in progress
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
@@ -133,7 +125,6 @@ exports[`git.release.p2 --from main behavior given: [case-from-main-release-infl
 
 🌊 release: chore(release): v1.33.0 🎉
    ├─ 🐢 1 check(s) in progress
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
@@ -240,7 +231,6 @@ exports[`git.release.p2 --watch flag behavior given: [case-watch-failed] checks 
    │  └─ 🔴 test
    │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ test
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
    └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
@@ -265,7 +255,6 @@ exports[`git.release.p2 --watch flag behavior given: [case-watch-passed-no-autom
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
@@ -280,7 +269,6 @@ exports[`git.release.p2 --watch flag behavior given: [case-watch-passed-with-aut
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [found]
    └─ 🥥 let's watch
       ├─ 💤 await automerge, Xs in action, Xs watched
@@ -298,7 +286,6 @@ exports[`git.release.p2 argument validation given: [case-arg-defaults] no argume
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
@@ -388,7 +375,6 @@ exports[`git.release.p2 dirty state detection given: [case-dirty-plan] dirty wor
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
@@ -401,7 +387,6 @@ exports[`git.release.p2 dirty state detection given: [case-dirty-watch] dirty wo
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
@@ -440,7 +425,6 @@ exports[`git.release.p2 permission requirements given: [case-perm-plan-no-check]
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
@@ -457,7 +441,6 @@ exports[`git.release.p2 retry behavior given: [case-retry-failed-pr] --retry wit
    │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        ├─ failed after Xm Ys
    │        └─ 👌 rerun triggered
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --watch to monitor rerun progress[/dim]
 "
@@ -473,7 +456,6 @@ exports[`git.release.p2 to main, from feat given: [case-feat-failed] feature PR 
    │  └─ 🔴 test
    │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ test
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
    └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
@@ -490,7 +472,6 @@ exports[`git.release.p2 to main, from feat given: [case-feat-failed] feature PR 
    │  └─ 🔴 test
    │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ test
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
    └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
@@ -504,7 +485,6 @@ exports[`git.release.p2 to main, from feat given: [case-feat-inflight] feature P
 
 🌊 release: feat(oceans): add reef protection
    ├─ 🐢 1 check(s) in progress
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
@@ -517,7 +497,6 @@ exports[`git.release.p2 to main, from feat given: [case-feat-inflight] feature P
 
 🌊 release: feat(oceans): add reef protection
    ├─ 🐢 1 check(s) in progress
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
@@ -562,7 +541,6 @@ exports[`git.release.p2 to main, from feat given: [case-feat-passed-with-automer
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [found]
    └─ [dim]hint: use --apply to watch[/dim]
 "
@@ -575,7 +553,6 @@ exports[`git.release.p2 to main, from feat given: [case-feat-passed-with-automer
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [found]
    └─ 🥥 let's watch
       ├─ 💤 await automerge, Xs in action, Xs watched
@@ -595,7 +572,6 @@ exports[`git.release.p2 to main, from feat given: [case-feat-passed-wout-automer
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
@@ -608,7 +584,6 @@ exports[`git.release.p2 to main, from feat given: [case-feat-passed-wout-automer
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    └─ 🌴 automerge enabled [added] -> and merged already
 
 [dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
@@ -622,7 +597,6 @@ exports[`git.release.p2 to main, from feat given: [case-feat-rebase-behind] feat
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🐚 needs rebase
    │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
@@ -636,7 +610,6 @@ exports[`git.release.p2 to main, from feat given: [case-feat-rebase-behind] feat
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🐚 needs rebase
    │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
@@ -650,7 +623,6 @@ exports[`git.release.p2 to main, from feat given: [case-feat-rebase-dirty] featu
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🐚 needs rebase, has conflicts
    │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
@@ -664,7 +636,6 @@ exports[`git.release.p2 to main, from feat given: [case-feat-rebase-dirty] featu
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🐚 needs rebase, has conflicts
    │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
@@ -699,7 +670,6 @@ exports[`git.release.p2 to prod, from main given: [case-main-failed] release PR 
    │  └─ 🔴 test
    │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ test
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
    └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
@@ -716,7 +686,6 @@ exports[`git.release.p2 to prod, from main given: [case-main-failed] release PR 
    │  └─ 🔴 test
    │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ test
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
    └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
@@ -730,7 +699,6 @@ exports[`git.release.p2 to prod, from main given: [case-main-inflight] release P
 
 🌊 release: chore(release): v1.33.0 🎉
    ├─ 🐢 1 check(s) in progress
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
@@ -743,7 +711,6 @@ exports[`git.release.p2 to prod, from main given: [case-main-inflight] release P
 
 🌊 release: chore(release): v1.33.0 🎉
    ├─ 🐢 1 check(s) in progress
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
@@ -919,7 +886,6 @@ exports[`git.release.p2 to prod, from main given: [case-main-passed-with-automer
 
 🌊 release: chore(release): v1.33.0 🎉
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [found]
    └─ [dim]hint: use --apply to watch[/dim]
 "
@@ -932,7 +898,6 @@ exports[`git.release.p2 to prod, from main given: [case-main-passed-with-automer
 
 🌊 release: chore(release): v1.33.0 🎉
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [found]
    └─ 🥥 let's watch
       ├─ 💤 await automerge, Xs in action, Xs watched
@@ -958,7 +923,6 @@ exports[`git.release.p2 to prod, from main given: [case-main-passed-wout-automer
 
 🌊 release: chore(release): v1.33.0 🎉
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
@@ -971,7 +935,6 @@ exports[`git.release.p2 to prod, from main given: [case-main-passed-wout-automer
 
 🌊 release: chore(release): v1.33.0 🎉
    ├─ 👌 all checks passed
-   ├─ 💬 no comments to answer
    └─ 🌴 automerge enabled [added] -> and merged already
 
 🫧 and then...
