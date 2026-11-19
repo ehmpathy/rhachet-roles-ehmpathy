@@ -20,4 +20,9 @@ stage every file commit lists: patch, note, manifest entry, lockfile.
 - edit dir stays in-tree; never the live install, patches dir, or shared store
 - several versions installed: `--package <name>@<version>`
 - rerun is safe: a sealed patch is a no-op; a lost manifest or lockfile record is refused with the restore step named
+- commit makes `pnpm-workspace.yaml` upgrade-safe (`allowUnusedPatches` + `ignorePatchFailures`): an upgrade lands, the stale patch surfaces via `check`
+
+## after the seal
+
+`get` lists each patch · `check` names each stale one + its repair (exit 2) · `del --package <name>[@<version>]` retires one. the onStop hook nudges via `check`, never blocks.
 

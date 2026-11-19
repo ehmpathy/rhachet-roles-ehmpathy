@@ -19,6 +19,8 @@
 #   - writes patches/<name>@<version>.patch + .patch.note.md; removes the edit dir
 #   - pnpm patch-commit also records the patchedDependencies entry and reinstalls,
 #     so the manifest and pnpm-lock.yaml change too; the output names each file
+#   - sets allowUnusedPatches + ignorePatchFailures in pnpm-workspace.yaml, so a
+#     later upgrade past the patched version never fails pnpm install
 #   - a re-run after seal with the same note is a no-op
 #   - plan by default; --mode apply writes
 #   - exit 0 = ok, 1 = malfunction, 2 = constraint
@@ -350,6 +352,7 @@ if [[ "$MODE" == "plan" ]]; then
   print_tree_leaf "would write note" "$NOTE_REL"
   print_tree_leaf "would record" "patchedDependencies[$PACKAGE_NAME@$PACKAGE_VERSION]"
   print_tree_leaf "would reinstall" "pnpm patch-commit runs an install; pnpm-lock.yaml changes"
+  print_tree_leaf "would keep upgrade-safe" "$SETTINGS_MANIFEST_REL sets $(as_tolerance_keys_text)"
   print_tree_leaf "mode" "plan (naught changed)" true
   print_coconut_hint "rerun this same commit with --mode apply to seal it" "$COMMIT_APPLY_CMD"
   exit 0
@@ -411,6 +414,14 @@ if ! has_lockfile_patch_entry "$REPO_ROOT" "$PATCH_REL"; then
     "pnpm: $(as_last_line "$INSTALL_OUT")" "$RERUN_HINT"
 fi
 
+# keep the tree upgrade-safe: a later upgrade past this version must land, never fail the install
+TOLERANCE_PRIOR="set"
+is_patch_failure_tolerated "$REPO_ROOT" || TOLERANCE_PRIOR="absent"
+if [[ "$TOLERANCE_PRIOR" == "absent" ]]; then
+  TOLERANCE_ERR=$(set_patch_failure_tolerated "$REPO_ROOT" 2>&1) || refuse_malfunction "$ROOT_LABEL" \
+    "the patch landed, but $SETTINGS_MANIFEST_REL could not be made upgrade-safe" "$TOLERANCE_ERR" "$RERUN_HINT"
+fi
+
 # write the note beside the patch, then clear the sealed edit dir
 NOTE_BODY=$(as_patch_note --package "$PACKAGE_NAME@$PACKAGE_VERSION" --who "$WHO" --when "$WHEN" \
   --why "$WHY" --upstream "$UPSTREAM" --patch "$PATCH_REL")
@@ -431,8 +442,11 @@ print_tree_child "when: $WHEN"
 print_tree_child "why: $WHY"
 print_tree_child "upstream: $UPSTREAM" false true
 print_tree_leaf "edit dir" "removed"
+print_tree_leaf "upgrade-safe" "$(as_tolerance_text set)"
 print_tree_branch "changed, stage all of these" true
 print_tree_child "$PATCH_REL" true false
 print_tree_child "$NOTE_REL" true false
 print_tree_child "$ENTRY_MANIFEST" true false
+[[ "$TOLERANCE_PRIOR" == "set" || "$ENTRY_MANIFEST" == "$SETTINGS_MANIFEST_REL" ]] \
+  || print_tree_child "$SETTINGS_MANIFEST_REL" true false
 print_tree_child "pnpm-lock.yaml" true true

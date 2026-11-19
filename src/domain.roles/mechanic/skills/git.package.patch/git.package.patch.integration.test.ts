@@ -3148,7 +3148,7 @@ describe('git.package.patch.sh', () => {
         const result = runSkill({ cwd: __dirname, args: ['drop'] });
         expect(result.exitCode).toEqual(2);
         expect(result.stdout).toContain('unknown subcommand: drop');
-        expect(result.stdout).toContain('begin, commit, help');
+        expect(result.stdout).toContain('begin, commit, get, check, del, help');
         expect(result.stderr).toContain('unknown subcommand: drop');
         expect(result.stdout).toMatchSnapshot();
       });
@@ -3211,6 +3211,514 @@ describe('git.package.patch.sh', () => {
           expect(result.stdout).toMatchSnapshot();
         },
       );
+    });
+  });
+
+  /**
+   * .what = run the provisioned pnpm in a dir
+   * .why = the lifecycle cases drive the install the way an upgrade would
+   */
+  const runPnpm = (input: {
+    cwd: string;
+    args: string[];
+    env?: Record<string, string>;
+  }): { stdout: string; stderr: string; exitCode: number } => {
+    const result = spawnSync(path.join(tools.binDir, 'pnpm'), input.args, {
+      cwd: input.cwd,
+      encoding: 'utf-8',
+      env: { ...process.env, ...input.env },
+      timeout: 180_000,
+    });
+    return {
+      stdout: result.stdout ?? '',
+      stderr: result.stderr ?? '',
+      exitCode: result.status ?? 1,
+    };
+  };
+
+  /**
+   * .what = run the mechanic's onStop hook in a dir, as claude code would
+   */
+  const runStopHook = (input: {
+    cwd: string;
+  }): { stdout: string; stderr: string; exitCode: number } => {
+    const hookPath = path.join(
+      __dirname,
+      '../../inits/claude.hooks/stop.git-package-patch.sh',
+    );
+    const result = spawnSync('bash', [hookPath], {
+      cwd: input.cwd,
+      encoding: 'utf-8',
+      input: '{"hook_event_name":"Stop"}',
+      env: {
+        ...process.env,
+        PATH: `${tools.binDir}${path.delimiter}${process.env.PATH ?? ''}`,
+      },
+      timeout: 60_000,
+    });
+    return {
+      stdout: result.stdout ?? '',
+      stderr: result.stderr ?? '',
+      exitCode: result.status ?? 1,
+    };
+  };
+
+  given(
+    '[case10] a sealed patch on is-number@6.0.0, then an upgrade past it',
+    () => {
+      const scene = useBeforeAll(async () => ({
+        dir: genPnpmRepo({
+          slug: 'git-package-patch-lifecycle',
+          dependencies: { 'is-number': '6.0.0' },
+        }),
+      }));
+      const PATCH_LIFE_REL = 'patches/is-number@6.0.0.patch';
+
+      when('[t0] the patch is opened, edited, and sealed', () => {
+        const sealed = useThen('the seal exits 0', async () => {
+          const opened = runSkill({
+            cwd: scene.dir,
+            args: ['begin', '--package', 'is-number', '--mode', 'apply'],
+          });
+          if (opened.exitCode !== 0)
+            throw new MalfunctionError('begin is-number@6.0.0 failed', {
+              stdout: opened.stdout,
+            });
+          const file = path.join(scene.dir, EDIT_DIR_V6_REL, 'index.js');
+          fs.writeFileSync(
+            file,
+            `${fs.readFileSync(file, 'utf-8')}\n// reef patch: local fix\n`,
+          );
+          return runSkill({
+            cwd: scene.dir,
+            args: [
+              'commit',
+              '--package',
+              'is-number',
+              '--why',
+              WHY,
+              '--upstream',
+              UPSTREAM,
+              '--mode',
+              'apply',
+            ],
+          });
+        });
+
+        then('the seal writes the upgrade-safe keys', () => {
+          expect(sealed.exitCode).toEqual(0);
+          expect(sealed.stdout).toContain('├─ upgrade-safe: yes');
+          const workspace = fs.readFileSync(
+            path.join(scene.dir, 'pnpm-workspace.yaml'),
+            'utf-8',
+          );
+          expect(workspace).toContain('allowUnusedPatches: true');
+          expect(workspace).toContain('ignorePatchFailures: true');
+          expectStableSnapshot({ result: sealed, dir: scene.dir });
+        });
+
+        then('a frozen install under CI=true still lands', () => {
+          const frozen = runPnpm({
+            cwd: scene.dir,
+            args: ['install', '--frozen-lockfile'],
+            env: { CI: 'true' },
+          });
+          expect(frozen.exitCode).toEqual(0);
+        });
+      });
+
+      when('[t1] get runs', () => {
+        then('it lists the patch as applied, with its note', () => {
+          const result = runSkill({ cwd: scene.dir, args: ['get'] });
+          expect(result.exitCode).toEqual(0);
+          expect(result.stdout).toContain('├─ is-number@6.0.0');
+          expect(result.stdout).toContain(`patch: ${PATCH_LIFE_REL}`);
+          expect(result.stdout).toContain('state: applied');
+          expect(result.stdout).toContain(`why: ${WHY}`);
+          expect(result.stdout).toContain(`upstream: ${UPSTREAM}`);
+          expect(result.stdout).toContain('└─ upgrade-safe: yes');
+          expectStableSnapshot({ result, dir: scene.dir });
+        });
+      });
+
+      when('[t2] check runs while the patch applies', () => {
+        then('by hand, it exits 0 and names the patch applied', () => {
+          const result = runSkill({ cwd: scene.dir, args: ['check'] });
+          expect(result.exitCode).toEqual(0);
+          expect(result.stdout).toContain('├─ is-number@6.0.0: applied');
+          expectStableSnapshot({ result, dir: scene.dir });
+        });
+
+        then('the onStop hook is silent', () => {
+          const result = runStopHook({ cwd: scene.dir });
+          expect(result.exitCode).toEqual(0);
+          expect(result.stdout).toEqual('');
+        });
+      });
+
+      when(
+        '[t2.1] the upgrade-safe keys are stripped, and the package is upgraded',
+        () => {
+          then(
+            'the stale patch fails the install (the clamp the keys cure)',
+            () => {
+              const workspacePath = path.join(scene.dir, 'pnpm-workspace.yaml');
+              const workspace = fs.readFileSync(workspacePath, 'utf-8');
+              fs.writeFileSync(
+                workspacePath,
+                workspace
+                  .split('\n')
+                  .filter(
+                    (line) =>
+                      !line.startsWith('allowUnusedPatches:') &&
+                      !line.startsWith('ignorePatchFailures:'),
+                  )
+                  .join('\n'),
+              );
+              const result = runPnpm({
+                cwd: scene.dir,
+                args: ['add', 'is-number@7.0.0'],
+              });
+              fs.writeFileSync(workspacePath, workspace);
+              expect(result.exitCode).not.toEqual(0);
+            },
+          );
+        },
+      );
+
+      when('[t3] the package is upgraded past the patched version', () => {
+        then('the install lands, with no patch failure', () => {
+          const result = runPnpm({
+            cwd: scene.dir,
+            args: ['add', 'is-number@7.0.0'],
+          });
+          expect(result.exitCode).toEqual(0);
+        });
+      });
+
+      when('[t4] check runs after the upgrade', () => {
+        then(
+          'by hand, it exits 2 and names the stale patch with its repair',
+          () => {
+            const result = runSkill({ cwd: scene.dir, args: ['check'] });
+            expect(result.exitCode).toEqual(2);
+            expect(result.stdout).toContain('├─ is-number@6.0.0: underapplied');
+            expect(result.stdout).toContain(
+              'rhx git.package.patch begin --package is-number@7.0.0 --mode apply',
+            );
+            expect(result.stdout).toContain(
+              'rhx git.package.patch del --package is-number@6.0.0 --mode apply',
+            );
+            expect(result.stderr).toContain('✋ ConstraintError');
+            expectStableSnapshot({ result, dir: scene.dir });
+          },
+        );
+
+        then(
+          'the onStop hook nudges with the repair, and lets the stop through',
+          () => {
+            const result = runStopHook({ cwd: scene.dir });
+            expect(result.exitCode).toEqual(0);
+            expect(result.stdout).toContain(
+              '🐢 heads up, a local patch needs repair',
+            );
+            expect(result.stdout).toContain(
+              'rhx git.package.patch del --package is-number@6.0.0 --mode apply',
+            );
+            expectStableSnapshot({ result, dir: scene.dir });
+          },
+        );
+      });
+
+      when('[t5] del runs in plan mode', () => {
+        then('it names what it would retire, and changes naught', () => {
+          const result = runSkill({
+            cwd: scene.dir,
+            args: ['del', '--package', 'is-number'],
+          });
+          expect(result.exitCode).toEqual(0);
+          expect(result.stdout).toContain(
+            'would drop entry: patchedDependencies[is-number@6.0.0] in pnpm-workspace.yaml',
+          );
+          expect(fs.existsSync(path.join(scene.dir, PATCH_LIFE_REL))).toEqual(
+            true,
+          );
+          expectStableSnapshot({ result, dir: scene.dir });
+        });
+      });
+
+      when('[t6] del runs in apply mode', () => {
+        const result = useThen('it exits 0', async () =>
+          runSkill({
+            cwd: scene.dir,
+            args: ['del', '--package', 'is-number', '--mode', 'apply'],
+          }),
+        );
+
+        then('the entry, the patch, and the note are gone', () => {
+          expect(result.exitCode).toEqual(0);
+          expect(fs.existsSync(path.join(scene.dir, PATCH_LIFE_REL))).toEqual(
+            false,
+          );
+          expect(
+            fs.existsSync(path.join(scene.dir, `${PATCH_LIFE_REL}.note.md`)),
+          ).toEqual(false);
+          expect(
+            fs.readFileSync(
+              path.join(scene.dir, 'pnpm-workspace.yaml'),
+              'utf-8',
+            ),
+          ).not.toContain('patchedDependencies');
+          expect(
+            fs.readFileSync(path.join(scene.dir, 'pnpm-lock.yaml'), 'utf-8'),
+          ).not.toContain(PATCH_LIFE_REL);
+          expectStableSnapshot({ result, dir: scene.dir });
+        });
+      });
+
+      when('[t7] del runs again, and get after it', () => {
+        then('del is a no-op', () => {
+          const result = runSkill({
+            cwd: scene.dir,
+            args: ['del', '--package', 'is-number', '--mode', 'apply'],
+          });
+          expect(result.exitCode).toEqual(0);
+          expect(result.stdout).toContain(
+            'no patch for is-number; naught changed',
+          );
+        });
+
+        then('get names no patch', () => {
+          const result = runSkill({ cwd: scene.dir, args: ['get'] });
+          expect(result.exitCode).toEqual(0);
+          expect(result.stdout).toContain('└─ patches: none');
+        });
+      });
+    },
+  );
+
+  given(
+    '[case11] an installed is-number@7.0.0 with one patch in each stale state, and no upgrade-safe keys',
+    () => {
+      /**
+       * .what = a patch whose added line is the last line of the installed file
+       * .why  = it reverse-applies to 7.0.0, so 7.0.0 already holds the change
+       */
+      const asPatchHeldBy = (input: { content: string }): string => {
+        const body = input.content.replace(/\n$/, '').split('\n');
+        const context = body.slice(0, -1);
+        return [
+          'diff --git a/index.js b/index.js',
+          '--- a/index.js',
+          '+++ b/index.js',
+          `@@ -1,${context.length} +1,${body.length} @@`,
+          ...context.map((line) => ` ${line}`),
+          `+${body[body.length - 1]}`,
+          '',
+        ].join('\n');
+      };
+      const PATCH_HUNK_FAILS = [
+        'diff --git a/index.js b/index.js',
+        '--- a/index.js',
+        '+++ b/index.js',
+        '@@ -1,1 +1,2 @@',
+        ' // a reef line this file never held',
+        '+// reef patch',
+        '',
+      ].join('\n');
+
+      const scene = useBeforeAll(async () => {
+        const dir = genPnpmRepo({
+          slug: 'git-package-patch-stale-states',
+          dependencies: { 'is-number': '7.0.0' },
+        });
+        const installed = fs.readFileSync(
+          path.join(dir, 'node_modules/is-number/index.js'),
+          'utf-8',
+        );
+        fs.mkdirSync(path.join(dir, 'patches'), { recursive: true });
+        fs.writeFileSync(
+          path.join(dir, 'patches/is-number@6.0.0.patch'),
+          asPatchHeldBy({ content: installed }),
+        );
+        fs.writeFileSync(
+          path.join(dir, 'patches/is-number@7.0.0.patch'),
+          PATCH_HUNK_FAILS,
+        );
+        fs.writeFileSync(
+          path.join(dir, 'patches/left-pad@1.3.0.patch'),
+          PATCH_HUNK_FAILS,
+        );
+        fs.writeFileSync(
+          path.join(dir, 'patches/kind-of@6.0.3.patch'),
+          PATCH_HUNK_FAILS,
+        );
+        fs.writeFileSync(
+          path.join(dir, 'pnpm-workspace.yaml'),
+          [
+            'patchedDependencies:',
+            '  is-number@6.0.0: patches/is-number@6.0.0.patch',
+            '  is-number@7.0.0: patches/is-number@7.0.0.patch',
+            '  is-odd@3.0.1: patches/is-odd@3.0.1.patch',
+            '',
+          ].join('\n'),
+        );
+        const packageJson = JSON.parse(
+          fs.readFileSync(path.join(dir, 'package.json'), 'utf-8'),
+        ) as Record<string, unknown>;
+        fs.writeFileSync(
+          path.join(dir, 'package.json'),
+          JSON.stringify(
+            {
+              ...packageJson,
+              pnpm: {
+                patchedDependencies: {
+                  'left-pad@1.3.0': 'patches/left-pad@1.3.0.patch',
+                },
+              },
+            },
+            null,
+            2,
+          ),
+        );
+        return { dir };
+      });
+
+      when('[t0] check runs', () => {
+        then(
+          'it exits 2 and names each stale state with its repair, and the absent upgrade-safe keys',
+          () => {
+            const result = runSkill({ cwd: scene.dir, args: ['check'] });
+            expect(result.exitCode).toEqual(2);
+            expect(result.stdout).toContain('├─ is-number@6.0.0: obsolete');
+            expect(result.stdout).toContain('├─ is-number@7.0.0: underapplied');
+            expect(result.stdout).toContain(
+              'a hunk no longer fits the installed is-number@7.0.0',
+            );
+            expect(result.stdout).toContain('├─ is-odd@3.0.1: unbacked');
+            expect(result.stdout).toContain('├─ left-pad@1.3.0: unused');
+            expect(result.stdout).toContain('├─ kind-of@6.0.3: unrecorded');
+            expect(result.stdout).toContain('└─ upgrade-safe: no');
+            expect(result.stdout).toContain(
+              'repair: add allowUnusedPatches: true + ignorePatchFailures: true to pnpm-workspace.yaml',
+            );
+            expectStableSnapshot({ result, dir: scene.dir });
+          },
+        );
+      });
+
+      when('[t1] get runs', () => {
+        then('it lists each patch, its entry, and its state', () => {
+          const result = runSkill({ cwd: scene.dir, args: ['get'] });
+          expect(result.exitCode).toEqual(0);
+          expect(result.stdout).toContain('entry: package.json');
+          expect(result.stdout).toContain('entry: none');
+          expect(result.stdout).toContain('note: absent');
+          expectStableSnapshot({ result, dir: scene.dir });
+        });
+      });
+
+      when('[t3] del names a bare package with two patches', () => {
+        then('it is refused, exit 2, and both are named', () => {
+          const result = runSkill({
+            cwd: scene.dir,
+            args: ['del', '--package', 'is-number', '--mode', 'apply'],
+          });
+          expect(result.exitCode).toEqual(2);
+          expect(result.stdout).toContain('patched: is-number@6.0.0');
+          expect(result.stdout).toContain('patched: is-number@7.0.0');
+          expectStableSnapshot({ result, dir: scene.dir });
+        });
+      });
+
+      when('[t4] del retires the unrecorded patch file', () => {
+        then(
+          'the file goes, the upgrade-safe keys land, and no install runs',
+          () => {
+            const result = runSkill({
+              cwd: scene.dir,
+              args: ['del', '--package', 'kind-of', '--mode', 'apply'],
+            });
+            expect(result.exitCode).toEqual(0);
+            expect(
+              fs.existsSync(
+                path.join(scene.dir, 'patches/kind-of@6.0.3.patch'),
+              ),
+            ).toEqual(false);
+            expect(result.stdout).toContain('pnpm-workspace.yaml');
+            expect(result.stdout).not.toContain('pnpm-lock.yaml');
+            expectStableSnapshot({ result, dir: scene.dir });
+          },
+        );
+      });
+
+      when('[t5] del retires the unbacked entry, by version', () => {
+        then(
+          'pnpm-workspace.yaml drops it and keeps the others, and its reinstall lands past the stale ones',
+          () => {
+            const result = runSkill({
+              cwd: scene.dir,
+              args: ['del', '--package', 'is-odd@3.0.1', '--mode', 'apply'],
+            });
+            expect(result.exitCode).toEqual(0);
+            const workspace = fs.readFileSync(
+              path.join(scene.dir, 'pnpm-workspace.yaml'),
+              'utf-8',
+            );
+            expect(workspace).not.toContain('is-odd');
+            expect(workspace).toContain(
+              'is-number@7.0.0: patches/is-number@7.0.0.patch',
+            );
+            expect(workspace).toContain('allowUnusedPatches: true');
+            expectStableSnapshot({ result, dir: scene.dir });
+          },
+        );
+      });
+
+      when('[t6] del retires the package.json entry', () => {
+        then('package.json drops its emptied pnpm field', () => {
+          const result = runSkill({
+            cwd: scene.dir,
+            args: ['del', '--package', 'left-pad', '--mode', 'apply'],
+          });
+          expect(result.exitCode).toEqual(0);
+          const packageJson = JSON.parse(
+            fs.readFileSync(path.join(scene.dir, 'package.json'), 'utf-8'),
+          ) as Record<string, unknown>;
+          expect(packageJson.pnpm).toBeUndefined();
+          expect(
+            fs.existsSync(path.join(scene.dir, 'patches/left-pad@1.3.0.patch')),
+          ).toEqual(false);
+        });
+      });
+    },
+  );
+
+  given('[case12] a repo with no patch at all', () => {
+    const scene = useBeforeAll(async () => ({
+      dir: genOnDiskRepo({ slug: 'git-package-patch-no-patch' }),
+    }));
+
+    when('[t0] check runs by hand and via the onStop hook', () => {
+      then('by hand, it exits 0 and names no patch', () => {
+        const result = runSkill({ cwd: scene.dir, args: ['check'] });
+        expect(result.exitCode).toEqual(0);
+        expect(result.stdout).toContain('└─ patches: none');
+      });
+
+      then('the hook is silent and exits 0', () => {
+        const result = runStopHook({ cwd: scene.dir });
+        expect(result.exitCode).toEqual(0);
+        expect(result.stdout).toEqual('');
+      });
+    });
+
+    when('[t1] the hook runs outside any git repo', () => {
+      then('it is silent and exits 0', () => {
+        const result = runStopHook({ cwd: os.tmpdir() });
+        expect(result.exitCode).toEqual(0);
+        expect(result.stdout).toEqual('');
+      });
     });
   });
 });
