@@ -104,10 +104,15 @@ exports[`git.package.patch (acceptance) given: [case1] a linked repo with is-num
    ├─ subcommands
    │  ├─ begin    open an edit dir for a dependency, inside the tree
    │  ├─ commit   seal the edits into a patch + a LOCAL PATCH note
+   │  ├─ get      list each patch: package, why, upstream, apply state
+   │  ├─ check    name each patch that no longer applies, and its repair
+   │  ├─ del      retire a patch: its entry, its file, and its note
    │  └─ help     show this usage
    └─ examples
       ├─ rhx git.package.patch begin --package rhachet --mode apply
-      └─ rhx git.package.patch commit --package rhachet --why 'keep the stop hook quiet on a clean tree' --upstream https://github.com/ehmpathy/rhachet/issues/580 --mode apply
+      ├─ rhx git.package.patch commit --package rhachet --why 'keep the stop hook quiet on a clean tree' --upstream https://github.com/ehmpathy/rhachet/issues/580 --mode apply
+      ├─ rhx git.package.patch check
+      └─ rhx git.package.patch del --package rhachet --mode apply
 "
 `;
 
@@ -144,6 +149,7 @@ exports[`git.package.patch (acceptance) given: [case2] a linked repo with is-num
    │  ├─ why: reef fix: treat a numeric string with whitespace as not a number
    │  └─ upstream: https://github.com/jonschlinkert/is-number/issues/42
    ├─ edit dir: removed
+   ├─ upgrade-safe: yes (pnpm-workspace.yaml sets allowUnusedPatches: true + ignorePatchFailures: true), so a stale patch never fails an install
    └─ changed, stage all of these
       ├─ patches/is-number@7.0.0.patch
       ├─ patches/is-number@7.0.0.patch.note.md
