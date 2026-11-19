@@ -65,6 +65,7 @@ exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed vers
    ├─ would write note: patches/is-number@7.0.0.patch.note.md
    ├─ would record: patchedDependencies[is-number@7.0.0]
    ├─ would reinstall: pnpm patch-commit runs an install; pnpm-lock.yaml changes
+   ├─ would keep upgrade-safe: pnpm-workspace.yaml sets allowUnusedPatches: true + ignorePatchFailures: true
    └─ mode: plan (naught changed)
 
 🥥 did you know?
@@ -84,6 +85,7 @@ exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed vers
    ├─ would write note: patches/is-number@7.0.0.patch.note.md
    ├─ would record: patchedDependencies[is-number@7.0.0]
    ├─ would reinstall: pnpm patch-commit runs an install; pnpm-lock.yaml changes
+   ├─ would keep upgrade-safe: pnpm-workspace.yaml sets allowUnusedPatches: true + ignorePatchFailures: true
    └─ mode: plan (naught changed)
 
 🥥 did you know?
@@ -120,6 +122,7 @@ exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed vers
    │  ├─ why: reef fix: treat a numeric string with whitespace as not a number
    │  └─ upstream: https://github.com/jonschlinkert/is-number/issues/42
    ├─ edit dir: removed
+   ├─ upgrade-safe: yes (pnpm-workspace.yaml sets allowUnusedPatches: true + ignorePatchFailures: true), so a stale patch never fails an install
    └─ changed, stage all of these
       ├─ patches/is-number@7.0.0.patch
       ├─ patches/is-number@7.0.0.patch.note.md
@@ -488,6 +491,7 @@ exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed vers
    ├─ would write note: patches/is-number@7.0.0.patch.note.md
    ├─ would record: patchedDependencies[is-number@7.0.0]
    ├─ would reinstall: pnpm patch-commit runs an install; pnpm-lock.yaml changes
+   ├─ would keep upgrade-safe: pnpm-workspace.yaml sets allowUnusedPatches: true + ignorePatchFailures: true
    └─ mode: plan (naught changed)
 
 🥥 did you know?
@@ -724,6 +728,7 @@ exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed vers
    │  ├─ why: reef fix: treat a numeric string with whitespace as not a number
    │  └─ upstream: https://github.com/jonschlinkert/is-number/issues/42
    ├─ edit dir: removed
+   ├─ upgrade-safe: yes (pnpm-workspace.yaml sets allowUnusedPatches: true + ignorePatchFailures: true), so a stale patch never fails an install
    └─ changed, stage all of these
       ├─ patches/is-number@6.0.0.patch
       ├─ patches/is-number@6.0.0.patch.note.md
@@ -797,6 +802,7 @@ exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed vers
    │  ├─ why: the reef's fix (see #580) for [1] wave
    │  └─ upstream: https://github.com/jonschlinkert/is-number/issues/42
    ├─ edit dir: removed
+   ├─ upgrade-safe: yes (pnpm-workspace.yaml sets allowUnusedPatches: true + ignorePatchFailures: true), so a stale patch never fails an install
    └─ changed, stage all of these
       ├─ patches/is-number@7.0.0.patch
       ├─ patches/is-number@7.0.0.patch.note.md
@@ -830,6 +836,7 @@ exports[`git.package.patch.sh given: [case2b] a pnpm repo with one installed ver
    ├─ would write note: patches/is-number@7.0.0.patch.note.md
    ├─ would record: patchedDependencies[is-number@7.0.0]
    ├─ would reinstall: pnpm patch-commit runs an install; pnpm-lock.yaml changes
+   ├─ would keep upgrade-safe: pnpm-workspace.yaml sets allowUnusedPatches: true + ignorePatchFailures: true
    └─ mode: plan (naught changed)
 
 🥥 did you know?
@@ -900,7 +907,7 @@ exports[`git.package.patch.sh given: [case4] the dispatcher when: [t0] no subcom
    └─ ✋ ConstraintError: subcommand required
 
 🥥 did you know?
-   └─ rhx git.package.patch begin --package <name>  (or: commit, help)
+   └─ rhx git.package.patch begin --package <name>  (or: commit, get, check, del, help)
 "
 `;
 
@@ -911,10 +918,15 @@ exports[`git.package.patch.sh given: [case4] the dispatcher when: [t1] help is a
    ├─ subcommands
    │  ├─ begin    open an edit dir for a dependency, inside the tree
    │  ├─ commit   seal the edits into a patch + a LOCAL PATCH note
+   │  ├─ get      list each patch: package, why, upstream, apply state
+   │  ├─ check    name each patch that no longer applies, and its repair
+   │  ├─ del      retire a patch: its entry, its file, and its note
    │  └─ help     show this usage
    └─ examples
       ├─ rhx git.package.patch begin --package rhachet --mode apply
-      └─ rhx git.package.patch commit --package rhachet --why 'keep the stop hook quiet on a clean tree' --upstream https://github.com/ehmpathy/rhachet/issues/580 --mode apply
+      ├─ rhx git.package.patch commit --package rhachet --why 'keep the stop hook quiet on a clean tree' --upstream https://github.com/ehmpathy/rhachet/issues/580 --mode apply
+      ├─ rhx git.package.patch check
+      └─ rhx git.package.patch del --package rhachet --mode apply
 "
 `;
 
@@ -925,7 +937,7 @@ exports[`git.package.patch.sh given: [case4] the dispatcher when: [t2] an unknow
    └─ ✋ ConstraintError: unknown subcommand: drop
 
 🥥 did you know?
-   ├─ use one of: begin, commit, help
+   ├─ use one of: begin, commit, get, check, del, help
    └─ rhx git.package.patch help
 "
 `;
@@ -1140,6 +1152,7 @@ exports[`git.package.patch.sh given: [case6] a pnpm repo where pnpm itself fails
    │  ├─ why: reef fix: treat a numeric string with whitespace as not a number
    │  └─ upstream: https://github.com/jonschlinkert/is-number/issues/42
    ├─ edit dir: removed
+   ├─ upgrade-safe: yes (pnpm-workspace.yaml sets allowUnusedPatches: true + ignorePatchFailures: true), so a stale patch never fails an install
    └─ changed, stage all of these
       ├─ patches/@types__is-number@7.0.5.patch
       ├─ patches/@types__is-number@7.0.5.patch.note.md
@@ -1171,6 +1184,7 @@ exports[`git.package.patch.sh given: [case6] a pnpm repo where pnpm itself fails
    │  ├─ why: reef fix: treat a numeric string with whitespace as not a number
    │  └─ upstream: https://github.com/jonschlinkert/is-number/issues/42
    ├─ edit dir: removed
+   ├─ upgrade-safe: yes (pnpm-workspace.yaml sets allowUnusedPatches: true + ignorePatchFailures: true), so a stale patch never fails an install
    └─ changed, stage all of these
       ├─ patches/is-number@7.0.0.patch
       ├─ patches/is-number@7.0.0.patch.note.md
@@ -1220,6 +1234,7 @@ exports[`git.package.patch.sh given: [case7b] a pnpm repo whose .npmrc sets lock
    │  ├─ why: reef fix: treat a numeric string with whitespace as not a number
    │  └─ upstream: https://github.com/jonschlinkert/is-number/issues/42
    ├─ edit dir: removed
+   ├─ upgrade-safe: yes (pnpm-workspace.yaml sets allowUnusedPatches: true + ignorePatchFailures: true), so a stale patch never fails an install
    └─ changed, stage all of these
       ├─ patches/is-number@7.0.0.patch
       ├─ patches/is-number@7.0.0.patch.note.md
@@ -1276,10 +1291,12 @@ exports[`git.package.patch.sh given: [case8] a pnpm repo whose package.json alre
    │  ├─ why: reef fix: treat a numeric string with whitespace as not a number
    │  └─ upstream: https://github.com/jonschlinkert/is-number/issues/42
    ├─ edit dir: removed
+   ├─ upgrade-safe: yes (pnpm-workspace.yaml sets allowUnusedPatches: true + ignorePatchFailures: true), so a stale patch never fails an install
    └─ changed, stage all of these
       ├─ patches/is-number@7.0.0.patch
       ├─ patches/is-number@7.0.0.patch.note.md
       ├─ package.json
+      ├─ pnpm-workspace.yaml
       └─ pnpm-lock.yaml
 "
 `;
@@ -1365,5 +1382,211 @@ exports[`git.package.patch.sh given: [case9] hostile --edit-dir inputs, on an on
 🥥 did you know?
    ├─ rerun with --mode apply to open it
    └─ rhx git.package.patch begin --package is-number@7.0.0 --mode apply
+"
+`;
+
+exports[`git.package.patch.sh given: [case10] a sealed patch on is-number@6.0.0, then an upgrade past it when: [t0] the patch is opened, edited, and sealed then: the seal writes the upgrade-safe keys 1`] = `
+"🐢 shell yeah!
+
+🐚 git.package.patch commit
+   ├─ package: is-number@6.0.0
+   ├─ patch: patches/is-number@6.0.0.patch (written)
+   ├─ entry: patchedDependencies[is-number@6.0.0] in pnpm-workspace.yaml
+   ├─ note: patches/is-number@6.0.0.patch.note.md
+   │  ├─ who: test-fns <test-fns@test.local>
+   │  ├─ when: <date>
+   │  ├─ why: reef fix: treat a numeric string with whitespace as not a number
+   │  └─ upstream: https://github.com/jonschlinkert/is-number/issues/42
+   ├─ edit dir: removed
+   ├─ upgrade-safe: yes (pnpm-workspace.yaml sets allowUnusedPatches: true + ignorePatchFailures: true), so a stale patch never fails an install
+   └─ changed, stage all of these
+      ├─ patches/is-number@6.0.0.patch
+      ├─ patches/is-number@6.0.0.patch.note.md
+      ├─ pnpm-workspace.yaml
+      └─ pnpm-lock.yaml
+"
+`;
+
+exports[`git.package.patch.sh given: [case10] a sealed patch on is-number@6.0.0, then an upgrade past it when: [t1] get runs then: it lists the patch as applied, with its note 1`] = `
+"🐢 heres the wave...
+
+🐚 git.package.patch get
+   ├─ is-number@6.0.0
+   │  ├─ patch: patches/is-number@6.0.0.patch
+   │  ├─ entry: pnpm-workspace.yaml
+   │  ├─ state: applied (the installed is-number@6.0.0 holds this patch)
+   │  ├─ why: reef fix: treat a numeric string with whitespace as not a number
+   │  ├─ upstream: https://github.com/jonschlinkert/is-number/issues/42
+   │  └─ who: test-fns <test-fns@test.local>, <date>
+   └─ upgrade-safe: yes (pnpm-workspace.yaml sets allowUnusedPatches: true + ignorePatchFailures: true), so a stale patch never fails an install
+"
+`;
+
+exports[`git.package.patch.sh given: [case10] a sealed patch on is-number@6.0.0, then an upgrade past it when: [t2] check runs while the patch applies then: by hand, it exits 0 and names the patch applied 1`] = `
+"🐢 righteous!
+
+🐚 git.package.patch check
+   ├─ is-number@6.0.0: applied
+   └─ upgrade-safe: yes (pnpm-workspace.yaml sets allowUnusedPatches: true + ignorePatchFailures: true), so a stale patch never fails an install
+"
+`;
+
+exports[`git.package.patch.sh given: [case10] a sealed patch on is-number@6.0.0, then an upgrade past it when: [t4] check runs after the upgrade then: by hand, it exits 2 and names the stale patch with its repair 1`] = `
+"🐢 bummer dude...
+
+🐚 git.package.patch check
+   ├─ ✋ ConstraintError: 1 repair(s) owed; a stale patch no longer applies
+   ├─ is-number@6.0.0: underapplied
+   │  ├─ reason: the patch targets is-number@6.0.0, but is-number@7.0.0 is installed; it fits 7.0.0, but pnpm skips it
+   │  └─ repair
+   │     ├─ rhx git.package.patch begin --package is-number@7.0.0 --mode apply   # then redo the edits and commit
+   │     └─ rhx git.package.patch del --package is-number@6.0.0 --mode apply   # retire the stale patch, once the new one is sealed or if upstream fixed it
+   └─ upgrade-safe: yes (pnpm-workspace.yaml sets allowUnusedPatches: true + ignorePatchFailures: true), so a stale patch never fails an install
+"
+`;
+
+exports[`git.package.patch.sh given: [case10] a sealed patch on is-number@6.0.0, then an upgrade past it when: [t4] check runs after the upgrade then: the onStop hook nudges with the repair, and lets the stop through 1`] = `
+"🐢 heads up, a local patch needs repair
+
+🐚 git.package.patch check
+   ├─ is-number@6.0.0: underapplied
+   │  ├─ reason: the patch targets is-number@6.0.0, but is-number@7.0.0 is installed; it fits 7.0.0, but pnpm skips it
+   │  └─ repair
+   │     ├─ rhx git.package.patch begin --package is-number@7.0.0 --mode apply   # then redo the edits and commit
+   │     └─ rhx git.package.patch del --package is-number@6.0.0 --mode apply   # retire the stale patch, once the new one is sealed or if upstream fixed it
+   └─ upgrade-safe: yes (pnpm-workspace.yaml sets allowUnusedPatches: true + ignorePatchFailures: true), so a stale patch never fails an install
+"
+`;
+
+exports[`git.package.patch.sh given: [case10] a sealed patch on is-number@6.0.0, then an upgrade past it when: [t5] del runs in plan mode then: it names what it would retire, and changes naught 1`] = `
+"🐢 heres the wave...
+
+🐚 git.package.patch del
+   ├─ package: is-number@6.0.0
+   ├─ would drop entry: patchedDependencies[is-number@6.0.0] in pnpm-workspace.yaml
+   ├─ would delete patch: patches/is-number@6.0.0.patch
+   ├─ would delete note: patches/is-number@6.0.0.patch.note.md
+   ├─ would reinstall: pnpm install; pnpm-lock.yaml changes, the live copy turns pristine
+   └─ mode: plan (naught changed)
+
+🥥 did you know?
+   ├─ rerun with --mode apply to retire it
+   └─ rhx git.package.patch del --package is-number@6.0.0 --mode apply
+"
+`;
+
+exports[`git.package.patch.sh given: [case10] a sealed patch on is-number@6.0.0, then an upgrade past it when: [t6] del runs in apply mode then: the entry, the patch, and the note are gone 1`] = `
+"🐢 shell yeah!
+
+🐚 git.package.patch del
+   ├─ package: is-number@6.0.0
+   ├─ state: retired
+   └─ changed, stage all of these
+      ├─ pnpm-workspace.yaml
+      ├─ patches/is-number@6.0.0.patch
+      ├─ patches/is-number@6.0.0.patch.note.md
+      └─ pnpm-lock.yaml
+"
+`;
+
+exports[`git.package.patch.sh given: [case11] an installed is-number@7.0.0 with one patch in each stale state, and no upgrade-safe keys when: [t0] check runs then: it exits 2 and names each stale state with its repair, and the absent upgrade-safe keys 1`] = `
+"🐢 bummer dude...
+
+🐚 git.package.patch check
+   ├─ ✋ ConstraintError: 6 repair(s) owed; a stale patch no longer applies
+   ├─ is-number@6.0.0: obsolete
+   │  ├─ reason: the installed is-number@7.0.0 already holds this change
+   │  └─ repair
+   │     └─ rhx git.package.patch del --package is-number@6.0.0 --mode apply
+   ├─ is-number@7.0.0: underapplied
+   │  ├─ reason: a hunk no longer fits the installed is-number@7.0.0
+   │  └─ repair
+   │     ├─ rhx git.package.patch begin --package is-number@7.0.0 --mode apply   # then redo the edits and commit
+   │     └─ rhx git.package.patch del --package is-number@7.0.0 --mode apply   # retire the stale patch, once the new one is sealed or if upstream fixed it
+   ├─ is-odd@3.0.1: unbacked
+   │  ├─ reason: the entry names patches/is-odd@3.0.1.patch, which is absent
+   │  └─ repair
+   │     └─ rhx git.package.patch del --package is-odd@3.0.1 --mode apply
+   ├─ left-pad@1.3.0: unused
+   │  ├─ reason: left-pad is no longer installed
+   │  └─ repair
+   │     └─ rhx git.package.patch del --package left-pad@1.3.0 --mode apply
+   ├─ kind-of@6.0.3: unrecorded
+   │  ├─ reason: no patchedDependencies entry records this patch, so pnpm never applies it
+   │  └─ repair
+   │     └─ rhx git.package.patch del --package kind-of@6.0.3 --mode apply
+   └─ upgrade-safe: no (pnpm-workspace.yaml lacks allowUnusedPatches: true + ignorePatchFailures: true), so a stale patch fails pnpm install
+      └─ repair: add allowUnusedPatches: true + ignorePatchFailures: true to pnpm-workspace.yaml
+"
+`;
+
+exports[`git.package.patch.sh given: [case11] an installed is-number@7.0.0 with one patch in each stale state, and no upgrade-safe keys when: [t1] get runs then: it lists each patch, its entry, and its state 1`] = `
+"🐢 heres the wave...
+
+🐚 git.package.patch get
+   ├─ is-number@6.0.0
+   │  ├─ patch: patches/is-number@6.0.0.patch
+   │  ├─ entry: pnpm-workspace.yaml
+   │  ├─ state: obsolete (the installed is-number@7.0.0 already holds this change)
+   │  └─ note: absent
+   ├─ is-number@7.0.0
+   │  ├─ patch: patches/is-number@7.0.0.patch
+   │  ├─ entry: pnpm-workspace.yaml
+   │  ├─ state: underapplied (a hunk no longer fits the installed is-number@7.0.0)
+   │  └─ note: absent
+   ├─ is-odd@3.0.1
+   │  ├─ patch: patches/is-odd@3.0.1.patch
+   │  ├─ entry: pnpm-workspace.yaml
+   │  ├─ state: unbacked (the entry names patches/is-odd@3.0.1.patch, which is absent)
+   │  └─ note: absent
+   ├─ left-pad@1.3.0
+   │  ├─ patch: patches/left-pad@1.3.0.patch
+   │  ├─ entry: package.json
+   │  ├─ state: unused (left-pad is no longer installed)
+   │  └─ note: absent
+   ├─ kind-of@6.0.3
+   │  ├─ patch: patches/kind-of@6.0.3.patch
+   │  ├─ entry: none
+   │  ├─ state: unrecorded (no patchedDependencies entry records this patch, so pnpm never applies it)
+   │  └─ note: absent
+   └─ upgrade-safe: no (pnpm-workspace.yaml lacks allowUnusedPatches: true + ignorePatchFailures: true), so a stale patch fails pnpm install
+"
+`;
+
+exports[`git.package.patch.sh given: [case11] an installed is-number@7.0.0 with one patch in each stale state, and no upgrade-safe keys when: [t3] del names a bare package with two patches then: it is refused, exit 2, and both are named 1`] = `
+"🐢 bummer dude...
+
+🐚 git.package.patch del
+   ├─ ✋ ConstraintError: several patches are recorded for is-number
+   ├─ patched: is-number@6.0.0
+   └─ patched: is-number@7.0.0
+
+🥥 did you know?
+   ├─ name one
+   └─ rhx git.package.patch del --package is-number@6.0.0 --mode apply
+"
+`;
+
+exports[`git.package.patch.sh given: [case11] an installed is-number@7.0.0 with one patch in each stale state, and no upgrade-safe keys when: [t4] del retires the unrecorded patch file then: the file goes, the upgrade-safe keys land, and no install runs 1`] = `
+"🐢 shell yeah!
+
+🐚 git.package.patch del
+   ├─ package: kind-of@6.0.3
+   ├─ state: retired
+   └─ changed, stage all of these
+      ├─ patches/kind-of@6.0.3.patch
+      └─ pnpm-workspace.yaml
+"
+`;
+
+exports[`git.package.patch.sh given: [case11] an installed is-number@7.0.0 with one patch in each stale state, and no upgrade-safe keys when: [t5] del retires the unbacked entry, by version then: pnpm-workspace.yaml drops it and keeps the others, and its reinstall lands past the stale ones 1`] = `
+"🐢 shell yeah!
+
+🐚 git.package.patch del
+   ├─ package: is-odd@3.0.1
+   ├─ state: retired
+   └─ changed, stage all of these
+      ├─ pnpm-workspace.yaml
+      └─ pnpm-lock.yaml
 "
 `;

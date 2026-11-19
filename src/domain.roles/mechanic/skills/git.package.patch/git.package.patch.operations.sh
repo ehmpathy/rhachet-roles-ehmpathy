@@ -893,3 +893,433 @@ set_patch_reverted() {
   [[ -f "$file" ]] || return 0
   rm -f "$file" || return 2
 }
+
+######################################################################
+# lifecycle: get, check, del, and the upgrade-safe install
+######################################################################
+
+# the pnpm settings that keep a stale patch from a failed install: an entry
+# whose version moved (unused) and a hunk that no longer fits (failure) both
+# turn into a warn, so `pnpm install` lands and check names the stale patch
+PATCH_TOLERANCE_KEYS=(allowUnusedPatches ignorePatchFailures)
+
+# the manifest pnpm reads settings from, relative to the repo root
+SETTINGS_MANIFEST_REL="pnpm-workspace.yaml"
+
+######################################################################
+# .what = the spec a patch file is named for: "@org__pkg@1.0.0.patch" → "@org/pkg@1.0.0"
+# .why  = a patch file with no entry still names its package; del and get read it
+######################################################################
+as_spec_from_patch_rel() {
+  local base="${1##*/}"
+  base="${base%.patch}"
+  echo "${base/__//}"
+}
+
+######################################################################
+# .what = the field value of a "- <field>: <value>" line in a note, or naught
+######################################################################
+as_note_field() {
+  local note="$1" field="$2" line
+  while IFS= read -r line; do
+    [[ "$line" == "- $field: "* ]] && { echo "${line#"- $field: "}"; return 0; }
+  done <<<"$note"
+  return 0
+}
+
+######################################################################
+# .what = the upgrade-safe line for a tolerance state: set | absent
+######################################################################
+as_tolerance_text() {
+  [[ "$1" == "set" ]] && { echo "yes ($SETTINGS_MANIFEST_REL sets $(as_tolerance_keys_text)), so a stale patch never fails an install"; return 0; }
+  echo "no ($SETTINGS_MANIFEST_REL lacks $(as_tolerance_keys_text)), so a stale patch fails pnpm install"
+}
+
+######################################################################
+# .what = the tolerance keys as "a: true + b: true"
+######################################################################
+as_tolerance_keys_text() {
+  local key text=""
+  for key in "${PATCH_TOLERANCE_KEYS[@]}"; do
+    [[ -z "$text" ]] || text="$text + "
+    text="$text$key: true"
+  done
+  echo "$text"
+}
+
+######################################################################
+# .what = the del command that retires a patch, ready to paste
+######################################################################
+as_del_apply_cmd() {
+  echo "rhx git.package.patch del --package $(as_shell_arg "$1") --mode apply"
+}
+
+######################################################################
+# .what = the repair a patch in a given state needs, one command per line
+# .why  = check and the onStop nudge both name the fix, never just the state
+#
+# usage: as_patch_repair --state <state> --spec <spec> --target <version>
+######################################################################
+as_patch_repair() {
+  local state="" spec="" target=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --state) state="$2" ;;
+      --spec) spec="$2" ;;
+      --target) target="$2" ;;
+      *) echo "as_patch_repair: unknown arg $1" >&2; return 2 ;;
+    esac
+    shift $(( $# > 1 ? 2 : 1 ))
+  done
+  local name
+  name=$(as_package_name "$spec")
+  case "$state" in
+    unapplied)
+      echo "pnpm install"
+      ;;
+    underapplied)
+      echo "$(as_begin_cmd "$name@$target" "")   # then redo the edits and commit"
+      echo "$(as_del_apply_cmd "$spec")   # retire the stale patch, once the new one is sealed or if upstream fixed it"
+      ;;
+    obsolete|unused|unbacked|unrecorded)
+      as_del_apply_cmd "$spec"
+      ;;
+  esac
+}
+
+######################################################################
+# .what = whether a state needs a repair
+######################################################################
+is_patch_state_stale() {
+  [[ "$1" != "applied" ]]
+}
+
+######################################################################
+# .what = list every patchedDependencies entry, one "<spec>\t<patch rel>\t<manifest>" per line
+# .why  = pnpm records entries in pnpm-workspace.yaml or package.json#pnpm; get,
+#         check, and del read both, in the order pnpm itself prefers
+# .note = a malformed package.json prints jq's cause and returns 2
+######################################################################
+get_all_patch_entries() {
+  local root="$1"
+  if [[ -f "$root/$SETTINGS_MANIFEST_REL" ]]; then
+    awk -v manifest="$SETTINGS_MANIFEST_REL" '
+      /^patchedDependencies:[[:space:]]*(#.*)?$/ { inblock = 1; next }
+      inblock && /^[^[:space:]#]/ { inblock = 0 }
+      inblock && /^[[:space:]]+[^[:space:]#]/ {
+        line = $0
+        sub(/^[[:space:]]+/, "", line)
+        sub(/[[:space:]]+#.*$/, "", line)
+        at = index(line, ": ")
+        if (at == 0) next
+        key = substr(line, 1, at - 1)
+        val = substr(line, at + 2)
+        gsub(/^["\047]|["\047]$/, "", key)
+        gsub(/^["\047]|["\047][[:space:]]*$/, "", val)
+        print key "\t" val "\t" manifest
+      }
+    ' "$root/$SETTINGS_MANIFEST_REL" || return 2
+  fi
+  if [[ -f "$root/package.json" ]]; then
+    jq -r '(.pnpm.patchedDependencies // {}) | to_entries[] | "\(.key)\t\(.value)\tpackage.json"' \
+      "$root/package.json" || return 2
+  fi
+}
+
+######################################################################
+# .what = list every patch file under the patches dir, relative to the repo root
+######################################################################
+get_all_patch_files() {
+  local root="$1" file
+  for file in "$root/$PATCHES_DIR_REL"/*.patch; do
+    [[ -f "$file" ]] || continue
+    echo "${file#"$root"/}"
+  done
+}
+
+######################################################################
+# .what = list every patch the tree holds: each entry, plus each patch file
+#         no entry records (manifest "none"), as "<spec>\t<patch rel>\t<manifest>"
+# .why  = a patch file a rebase left with no entry is still a patch to retire
+######################################################################
+get_all_patch_rows() {
+  local root="$1" entries file spec patch_rel manifest recorded
+  entries=$(get_all_patch_entries "$root") || return 2
+  [[ -z "$entries" ]] || printf '%s\n' "$entries"
+  while IFS= read -r file; do
+    [[ -n "$file" ]] || continue
+    recorded="false"
+    while IFS=$'\t' read -r spec patch_rel manifest; do
+      if [[ "$patch_rel" == "$file" ]]; then recorded="true"; fi
+    done <<<"$entries"
+    [[ "$recorded" == "true" ]] || printf '%s\t%s\t%s\n' "$(as_spec_from_patch_rel "$file")" "$file" "none"
+  done < <(get_all_patch_files "$root")
+}
+
+######################################################################
+# .what = decide whether the tree holds any patch at all, cheaply
+# .why  = the onStop hook runs on every stop; a tree with no patch must cost
+#         a few file tests, never a jq or awk pass
+######################################################################
+has_any_patch_trace() {
+  local root="$1" file
+  [[ -f "$root/$SETTINGS_MANIFEST_REL" ]] && grep -q '^patchedDependencies:' "$root/$SETTINGS_MANIFEST_REL" && return 0
+  [[ -f "$root/package.json" ]] && grep -q '"patchedDependencies"' "$root/package.json" && return 0
+  for file in "$root/$PATCHES_DIR_REL"/*.patch; do
+    [[ -f "$file" ]] && return 0
+  done
+  return 1
+}
+
+######################################################################
+# .what = list every version of a package the tree uses, sorted low to high
+# .why  = pnpm keeps an orphan copy in node_modules/.pnpm for days after an
+#         upgrade (modulesCacheMaxAge), so the disk names versions the tree no
+#         longer uses; pnpm-lock.yaml names only the ones it does. with no
+#         lockfile, the disk is the only record
+# .note = a lockfile package key reads `name@version`, `/name@version`, or a
+#         quoted form, with an optional `(peer)` or `_patch_hash` suffix
+######################################################################
+get_all_used_versions() {
+  local root="$1" name="$2"
+  [[ -f "$root/pnpm-lock.yaml" ]] || { get_all_installed_versions "$root" "$name"; return $?; }
+  awk -v name="$name" '
+    /^packages:[[:space:]]*$/ { inblock = 1; next }
+    inblock && /^[^[:space:]]/ { inblock = 0 }
+    inblock && /^  [^[:space:]]/ {
+      key = $0
+      sub(/^  /, "", key)
+      sub(/:[[:space:]]*$/, "", key)
+      gsub(/^["\047]|["\047]$/, "", key)
+      sub(/^\//, "", key)
+      prefix = name "@"
+      if (substr(key, 1, length(prefix)) != prefix) next
+      version = substr(key, length(prefix) + 1)
+      sub(/[(_].*$/, "", version)
+      print version
+    }
+  ' "$root/pnpm-lock.yaml" | sort -uV
+}
+
+######################################################################
+# .what = print the real path of each installed copy of name@version, one per line
+# .why  = the top-level link wins alone, since it is the copy the tree resolves
+#         to; else every store dir of that version, since an orphan unpatched
+#         copy can sit beside the live patched one
+######################################################################
+get_all_installed_package_dirs() {
+  local root="$1" name="$2" version="$3" dir found
+  if [[ -f "$root/node_modules/$name/package.json" ]]; then
+    found=$(jq -r '.version // empty' "$root/node_modules/$name/package.json") || return 2
+    [[ "$found" != "$version" ]] || { realpath -- "$root/node_modules/$name"; return 0; }
+  fi
+  for dir in "$root"/node_modules/.pnpm/*/node_modules/"$name"; do
+    [[ -f "$dir/package.json" ]] || continue
+    found=$(jq -r '.version // empty' "$dir/package.json") || return 2
+    if [[ "$found" == "$version" ]]; then realpath -- "$dir"; fi
+  done
+  return 0
+}
+
+######################################################################
+# .what = decide whether a patch fits any of several dirs, in one direction
+######################################################################
+is_patch_fit_any() {
+  local patch="$1" direction="$2" dir
+  shift 2
+  for dir in "$@"; do
+    is_patch_fit --patch "$patch" --dir "$dir" --direction "$direction" && return 0
+  done
+  return 1
+}
+
+######################################################################
+# .what = decide whether a patch fits a package dir, forward or in reverse
+# .why  = forward fits = the dir lacks the change; reverse fits = the dir
+#         already holds it. git apply --check writes naught
+# .note = run from inside the dir, so git reads the patch's a/ b/ paths
+#         relative to the package root
+# .note = GIT_CEILING_DIRECTORIES stops repo discovery at the dir: inside a repo,
+#         git apply skips every path outside the cwd, so a check that touched no
+#         file would pass. outside any repo, it acts as a plain patch tool
+######################################################################
+is_patch_fit() {
+  local patch="" dir="" direction="forward"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --patch) patch="$2" ;;
+      --dir) dir="$2" ;;
+      --direction) direction="$2" ;;
+      *) return 1 ;;
+    esac
+    shift $(( $# > 1 ? 2 : 1 ))
+  done
+  local flags=(--check)
+  [[ "$direction" == "reverse" ]] && flags+=(--reverse)
+  (cd "$dir" && GIT_CEILING_DIRECTORIES="${dir%/*}" git apply "${flags[@]}" -- "$patch") >/dev/null 2>&1
+}
+
+######################################################################
+# .what = print "<state>\t<target version>\t<reason>" for one patch
+# .why  = the states check names:
+#         - applied       the installed copy holds the patch
+#         - unapplied     the entry fits, but pnpm has not applied it yet
+#         - underapplied  the installed version moved, or a hunk no longer fits
+#         - obsolete      the installed version already holds the change
+#         - unused        the package is no longer installed
+#         - unbacked      an entry names a patch file that is absent
+#         - unrecorded    a patch file no entry records
+#
+# usage: get_patch_state --root <root> --spec <spec> --patch <rel> --manifest <manifest>
+######################################################################
+get_patch_state() {
+  local root="" spec="" patch_rel="" manifest=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --root) root="$2" ;;
+      --spec) spec="$2" ;;
+      --patch) patch_rel="$2" ;;
+      --manifest) manifest="$2" ;;
+      *) echo "get_patch_state: unknown arg $1" >&2; return 2 ;;
+    esac
+    shift $(( $# > 1 ? 2 : 1 ))
+  done
+  local name version
+  name=$(as_package_name "$spec")
+  version=$(as_package_version "$spec")
+
+  # the record itself must be whole before the disk is read
+  [[ -f "$root/$patch_rel" ]] || { printf 'unbacked\t%s\t%s\n' "$version" "the entry names $patch_rel, which is absent"; return 0; }
+  [[ "$manifest" != "none" ]] || { printf 'unrecorded\t%s\t%s\n' "$version" "no patchedDependencies entry records this patch, so pnpm never applies it"; return 0; }
+
+  # the package must still be in use
+  local versions_raw
+  versions_raw=$(get_all_used_versions "$root" "$name") || return 2
+  local versions=()
+  set_list_from_lines --into versions --lines "$versions_raw"
+  [[ ${#versions[@]} -gt 0 ]] || { printf 'unused\t%s\t%s\n' "$version" "$name is no longer installed"; return 0; }
+
+  # the patch targets its own version when installed, else the newest installed
+  local target="$version" moved="false"
+  [[ -n "$target" ]] || target=$(as_latest_version "${versions[@]}")
+  if ! is_version_listed "$target" "${versions[@]}"; then
+    target=$(as_latest_version "${versions[@]}")
+    moved="true"
+  fi
+  local dirs_raw
+  dirs_raw=$(get_all_installed_package_dirs "$root" "$name" "$target") || return 2
+  local dirs=()
+  set_list_from_lines --into dirs --lines "$dirs_raw"
+  [[ ${#dirs[@]} -gt 0 ]] || { printf 'unapplied\t%s\t%s\n' "$target" "pnpm-lock.yaml names $name@$target, but node_modules lacks it; the tree is not installed"; return 0; }
+
+  # held in reverse: the target already carries the change
+  if is_patch_fit_any "$root/$patch_rel" reverse "${dirs[@]}"; then
+    [[ "$moved" == "true" ]] && { printf 'obsolete\t%s\t%s\n' "$target" "the installed $name@$target already holds this change"; return 0; }
+    printf 'applied\t%s\t%s\n' "$target" "the installed $name@$target holds this patch"
+    return 0
+  fi
+
+  # fits forward: the target lacks the change
+  if is_patch_fit_any "$root/$patch_rel" forward "${dirs[@]}"; then
+    [[ "$moved" == "true" ]] && { printf 'underapplied\t%s\t%s\n' "$target" "the patch targets $name@$version, but $name@$target is installed; it fits $target, but pnpm skips it"; return 0; }
+    printf 'unapplied\t%s\t%s\n' "$target" "the entry is recorded, but the installed $name@$target lacks the patch"
+    return 0
+  fi
+
+  # neither: a hunk no longer fits
+  [[ "$moved" == "true" ]] && { printf 'underapplied\t%s\t%s\n' "$target" "the patch targets $name@$version, but $name@$target is installed, and a hunk no longer fits it"; return 0; }
+  printf 'underapplied\t%s\t%s\n' "$target" "a hunk no longer fits the installed $name@$target"
+}
+
+######################################################################
+# .what = decide whether pnpm-workspace.yaml sets every patch tolerance key to true
+######################################################################
+is_patch_failure_tolerated() {
+  local root="$1" key
+  [[ -f "$root/$SETTINGS_MANIFEST_REL" ]] || return 1
+  for key in "${PATCH_TOLERANCE_KEYS[@]}"; do
+    grep -Eq "^${key}:[[:space:]]*true[[:space:]]*(#.*)?$" "$root/$SETTINGS_MANIFEST_REL" || return 1
+  done
+}
+
+######################################################################
+# .what = set every patch tolerance key to true in pnpm-workspace.yaml
+# .why  = a patch must never block `pnpm install`: an upgrade past a patched
+#         version has to land, and the stale patch then surfaces via check
+# .note = idempotent: a key already true is left as is; a key set otherwise is
+#         rewritten in place; an absent key is appended
+######################################################################
+set_patch_failure_tolerated() {
+  local root="$1" file="$1/$SETTINGS_MANIFEST_REL" key
+  [[ -f "$file" ]] || { : >"$file" || return 2; }
+  for key in "${PATCH_TOLERANCE_KEYS[@]}"; do
+    grep -Eq "^${key}:[[:space:]]*true[[:space:]]*(#.*)?$" "$file" && continue
+    if grep -Eq "^${key}:" "$file"; then
+      awk -v key="$key" '$0 ~ "^" key ":" { print key ": true"; next } { print }' "$file" >"$file.tmp" \
+        && mv "$file.tmp" "$file" || return 2
+      continue
+    fi
+    # keep the file newline-terminated before an append
+    [[ ! -s "$file" || "$(tail -c 1 "$file")" == "" ]] || { echo >>"$file" || return 2; }
+    echo "$key: true" >>"$file" || return 2
+  done
+}
+
+######################################################################
+# .what = drop the patchedDependencies entry that names a patch file
+# .why  = del retires a patch; pnpm then installs the pristine copy
+# .note = in yaml, a block left with no child loses its header too; in
+#         package.json, an emptied map and an emptied pnpm field are removed
+######################################################################
+del_patch_entry() {
+  local root="$1" manifest="$2" patch_rel="$3" file="$1/$2"
+  if [[ "$manifest" == "package.json" ]]; then
+    jq --arg p "$patch_rel" '
+      if .pnpm.patchedDependencies then
+        .pnpm.patchedDependencies |= with_entries(select(.value != $p))
+        | if (.pnpm.patchedDependencies | length) == 0 then del(.pnpm.patchedDependencies) else . end
+        | if (.pnpm | length) == 0 then del(.pnpm) else . end
+      else . end
+    ' "$file" >"$file.tmp" && mv "$file.tmp" "$file" || return 2
+    return 0
+  fi
+  awk -v target="$patch_rel" '
+    function value_of(line,   at, val) {
+      sub(/^[[:space:]]+/, "", line)
+      sub(/[[:space:]]+#.*$/, "", line)
+      at = index(line, ": ")
+      if (at == 0) return ""
+      val = substr(line, at + 2)
+      gsub(/^["\047]|["\047][[:space:]]*$/, "", val)
+      return val
+    }
+    function flush() {
+      if (kids > 0) print header buf
+      else if (buf != "") print substr(buf, 2)
+      inblock = 0
+    }
+    {
+      if (inblock) {
+        if ($0 ~ /^[[:space:]]+[^[:space:]#]/) {
+          if (value_of($0) == target) next
+          buf = buf "\n" $0
+          kids++
+          next
+        }
+        if ($0 ~ /^[[:space:]]*(#.*)?$/) { buf = buf "\n" $0; next }
+        flush()
+      }
+      if ($0 ~ /^patchedDependencies:[[:space:]]*(#.*)?$/) { inblock = 1; header = $0; buf = ""; kids = 0; next }
+      print
+    }
+    END { if (inblock) flush() }
+  ' "$file" >"$file.tmp" && mv "$file.tmp" "$file" || return 2
+}
+
+######################################################################
+# .what = remove a patch file and its note, if present
+######################################################################
+del_patch_files() {
+  local root="$1" patch_rel="$2"
+  rm -f "$root/$patch_rel" "$root/$patch_rel.note.md" || return 2
+}

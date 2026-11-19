@@ -33,3 +33,20 @@ then stage every file the commit lists: the patch, the note, the manifest entry,
 - several installed versions: name one, `--package <name>@<version>`
 - a rerun is safe: the same commit over a sealed patch is a no-op; a lost manifest or lockfile
   record is refused with the restore step named
+- commit sets `allowUnusedPatches: true` + `ignorePatchFailures: true` in `pnpm-workspace.yaml`,
+  so an upgrade past the patched version lands; the stale patch then surfaces via `check`
+
+## .the lifecycle after the seal
+
+| subcommand | does |
+|---|---|
+| `get` | list each patch: package, entry, apply state, why, upstream |
+| `check` | name each patch that no longer applies, and its repair; exit 2 if any |
+| `del --package <name>[@<version>]` | retire a patch: its entry, file, and note; reinstall the pristine copy |
+
+`check` states: `applied` · `unapplied` (run `pnpm install`) · `underapplied` (the version moved,
+or a hunk no longer fits: re-open on the new version, or `del` if upstream fixed it) · `obsolete`
+(the installed version already holds the change: `del`) · `unused` · `unbacked` · `unrecorded`.
+
+the mechanic's onStop hook runs `check --when hook.onStop`: silent while every patch applies, a
+nudge with the repair commands when one does not. it never blocks the stop.

@@ -151,7 +151,10 @@ always:
       - skills/git.branch.uses/git.branch.uses.operations.sh
       # the package patch sub-files: the git.package.patch dispatcher in ref names each subcommand
       - skills/git.package.patch/git.package.patch.begin.sh
+      - skills/git.package.patch/git.package.patch.check.sh
       - skills/git.package.patch/git.package.patch.commit.sh
+      - skills/git.package.patch/git.package.patch.del.sh
+      - skills/git.package.patch/git.package.patch.get.sh
       - skills/git.package.patch/git.package.patch.operations.sh
       - skills/git.package.patch/output.sh
 
