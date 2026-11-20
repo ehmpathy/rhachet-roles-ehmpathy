@@ -17,7 +17,8 @@
 #         communicator (its own credential), then hands the answer here
 #
 # guarantee:
-#   - pure: declares naught but values and text transforms; no gh call, no io
+#   - no gh call and no file write: values and text transforms only (the
+#     keep path forks a hasher to name a file; the gate that calls it writes)
 ######################################################################
 
 # .what = the one --promise value that owns a write of text into a public repo
@@ -55,8 +56,10 @@ is_repo_visibility_ungated() {
 # .why  = an unreadable read is held as public; the label says so, so a caller
 #         never believes a private repo turned public
 as_repo_visibility_label() {
-  [[ "$1" == "public" ]] && { echo "public"; return 0; }
-  echo "visibility unreadable, held as public"
+  case "$1" in
+    public | private | internal) echo "$1" ;;
+    *) echo "visibility unreadable, held as public" ;;
+  esac
 }
 
 # .what = the caller's rerun line: the command plus the promise, piped again if piped
@@ -74,6 +77,28 @@ as_cmd_with_promise_text_public() {
     esac
   done
   printf '%s%s --promise %s%s' "$pipe" "$cmd" "$PROMISE_TEXT_PUBLIC" "$note"
+}
+
+# .what = the path a held @stdin text is kept at, for its rerun to pipe back in:
+#         ./.temp/<name>.<sha8>.md, named by the text's own digest
+# .why  = one slot per text: two held runs from one cwd never share a file, so
+#         a rerun pipes the exact text it held, never a later run's unchecked text
+# usage: as_text_keep_path name=<reply|title|body|commit> text="<text>"
+as_text_keep_path() {
+  local name="" text="" arg digest
+  for arg in "$@"; do
+    case "$arg" in
+      name=*) name="${arg#name=}" ;;
+      text=*) text="${arg#text=}" ;;
+    esac
+  done
+  # linux ships sha256sum, macos ships shasum; either gives one digest
+  if command -v sha256sum >/dev/null 2>&1; then
+    digest="$(printf '%s' "$text" | sha256sum)"
+  else
+    digest="$(printf '%s' "$text" | shasum -a 256)"
+  fi
+  printf './.temp/%s.%s.md' "$name" "${digest:0:8}"
 }
 
 # .what = one arg as a shell word a human can read and paste: bare when plain,
@@ -124,10 +149,10 @@ as_promise_nudge() {
   echo "🐢 hold up — this text goes to a public repo"
   echo "   ├─ repo: $repo ($(as_repo_visibility_label "$visibility"))"
   [[ "$visibility" != "public" && -n "$cause" ]] && echo "   │  └─ cause: $cause"
-  echo "   ├─ check $subject none of:"
+  echo "   ├─ check $subject none of"
   echo "   │  ├─ a private org, repo, route path, or pr / issue numbers"
   echo "   │  ├─ internal endpoint, service, table or product names"
   echo "   │  └─ customer, revenue or other business detail"
-  echo "   └─ once checked, re-run with:"
+  echo "   └─ once checked, rerun with"
   echo "      └─ $rerun"
 }

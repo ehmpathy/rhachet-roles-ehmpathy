@@ -217,8 +217,17 @@ fi
 
 # hold a write into a public repo until the caller promises the body is anonymized;
 # plan too, so the nudge shows before apply. a no-op above sends no text, so it passes
+# a held @stdin body is kept at a path named by its own digest, so the rerun
+# pipes back this exact body, never another held run's
+KEEP_PATH=""
+GATE_PIPE=""
+[[ "$FROM" == "@stdin" ]] && KEEP_PATH="$(as_text_keep_path name=body text="$TEXT")" && GATE_PIPE="cat $KEEP_PATH | "
 check_text_promise promise="$PROMISE" subject="the description holds" \
-  rerun="$(as_cmd_with_promise_text_public cmd="$(as_comment_cmd_in_mode "$SKILL" "$MODE" "${ORIG_ARGS[@]}")" pipe="$STDIN_PIPE" note="$STDIN_NOTE")"
+  keep_path="$KEEP_PATH" keep_text="$TEXT" \
+  rerun="$(as_cmd_with_promise_text_public cmd="$(as_comment_cmd_in_mode "$SKILL" "$MODE" "${ORIG_ARGS[@]}")" pipe="$GATE_PIPE" note="$STDIN_NOTE")"
+
+# a held run kept this exact body: the plan's apply hint pipes that file, which holds it
+[[ -n "$KEEP_PATH" && -f "$KEEP_PATH" ]] && STDIN_PIPE="$GATE_PIPE"
 
 # plan: say what would happen, write naught
 if [[ "$MODE" == "plan" ]]; then

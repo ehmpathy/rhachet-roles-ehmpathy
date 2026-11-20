@@ -1,6 +1,8 @@
 import { spawnSync } from 'child_process';
+import { createHash } from 'crypto';
+import * as fs from 'fs';
 import * as path from 'path';
-import { given, then, useThen, when } from 'test-fns';
+import { genTempDir, given, then, useThen, when } from 'test-fns';
 
 /**
  * .what = caselist tests for the public-repo text promise transformers
@@ -52,7 +54,7 @@ describe('git.promise.operations.sh', () => {
         expect: {
           visibility: 'private',
           ungated: true,
-          label: 'visibility unreadable, held as public',
+          label: 'private',
         },
       },
       {
@@ -61,7 +63,7 @@ describe('git.promise.operations.sh', () => {
         expect: {
           visibility: 'internal',
           ungated: true,
-          label: 'visibility unreadable, held as public',
+          label: 'internal',
         },
       },
       {
@@ -83,8 +85,8 @@ describe('git.promise.operations.sh', () => {
         },
       },
     ];
-    CASES.map((thisCase) =>
-      when(`[t0] ${thisCase.description}`, () => {
+    CASES.map((thisCase, index) =>
+      when(`[t${index}] ${thisCase.description}`, () => {
         then('it maps, gates, and labels as expected', () => {
           const visibility = runOps({
             fn: 'as_repo_visibility',
@@ -96,7 +98,7 @@ describe('git.promise.operations.sh', () => {
             args: [visibility],
           });
           expect(ungated.exitCode === 0).toEqual(thisCase.expect.ungated);
-          // the label is read only on a hold; any non-public visibility reads as held
+          // each known visibility names itself; only an unreadable one reads as held
           const label = runOps({
             fn: 'as_repo_visibility_label',
             args: [visibility],
@@ -165,8 +167,8 @@ describe('git.promise.operations.sh', () => {
         expect: { line: 'rhx git.commit.push --mode apply' },
       },
     ];
-    CASES.map((thisCase) =>
-      when(`[t0] ${thisCase.description}`, () => {
+    CASES.map((thisCase, index) =>
+      when(`[t${index}] ${thisCase.description}`, () => {
         then('the line pastes back as the same command', () => {
           const line = runOps({
             fn: 'as_shell_cmd_without_passthrough',
@@ -226,7 +228,7 @@ describe('git.promise.operations.sh', () => {
           '🐢 hold up — this text goes to a public repo',
         );
         expect(result.stdout).toContain('repo: ehmpathy/surf-demo (public)');
-        expect(result.stdout).toContain('check the comment holds none of:');
+        expect(result.stdout).toContain('check the comment holds none of');
         expect(result.stdout).not.toContain('cause:');
         expect(result.stdout).toMatchSnapshot();
       });
@@ -256,6 +258,80 @@ describe('git.promise.operations.sh', () => {
           expect(result.stdout).toMatchSnapshot();
         },
       );
+    });
+  });
+
+  given('[case6] a held text, named for its keep path', () => {
+    const TEXT = 'fix(reef): map the kelp beds\n\n- add the kelp map';
+    // .what = the path, from an oracle apart from the shell: node's own sha256
+    const PATH_EXPECTED = `./.temp/commit.${createHash('sha256').update(TEXT).digest('hex').slice(0, 8)}.md`;
+
+    /**
+     * .what = a bin dir that holds shasum and no sha256sum, as a mac host does
+     * .mock = PATH holds only a symlink to the host's real shasum
+     * .why  = a linux runner ships sha256sum, so the shasum fallback never runs without it
+     * .real = [t0] runs the host's own sha256sum; both answers meet node's sha256 oracle
+     */
+    const genBinWithShasumOnly = (): string => {
+      const binDir = genTempDir({ slug: 'keep-path-shasum-only', git: false });
+      fs.symlinkSync(
+        spawnSync('bash', ['-c', 'command -v shasum'], {
+          encoding: 'utf-8', // note: library api requires this term
+        }).stdout.trim(),
+        path.join(binDir, 'shasum'),
+      );
+      return binDir;
+    };
+
+    when('[t0] the host ships sha256sum', () => {
+      const result = useThen('it runs', async () =>
+        runOps({
+          fn: 'as_text_keep_path',
+          args: ['name=commit', `text=${TEXT}`],
+        }),
+      );
+      then('the path is the text digest, prefix eight, under ./.temp', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toEqual(PATH_EXPECTED);
+      });
+    });
+
+    when('[t1] the host ships only shasum', () => {
+      const result = useThen('it runs', async () => {
+        const binDir = genBinWithShasumOnly();
+        return spawnSync(
+          'bash',
+          [
+            '-c',
+            'source "$1"; PATH="$2"; as_text_keep_path name=commit "text=$3"',
+            'ops',
+            opsPath,
+            binDir,
+            TEXT,
+          ],
+          { encoding: 'utf-8' }, // note: library api requires this term
+        );
+      });
+      then('the shasum fallback gives the same path', () => {
+        expect(result.status).toBe(0);
+        expect(result.stdout).toEqual(PATH_EXPECTED);
+      });
+    });
+
+    when('[t2] two texts differ by one character', () => {
+      const result = useThen('it runs', async () => ({
+        one: runOps({
+          fn: 'as_text_keep_path',
+          args: ['name=commit', `text=${TEXT}`],
+        }).stdout,
+        two: runOps({
+          fn: 'as_text_keep_path',
+          args: ['name=commit', `text=${TEXT}.`],
+        }).stdout,
+      }));
+      then('they name two paths, so two held runs never share a file', () => {
+        expect(result.one).not.toEqual(result.two);
+      });
     });
   });
 });

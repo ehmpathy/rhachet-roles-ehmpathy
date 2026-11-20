@@ -1,4 +1,5 @@
 import { spawnSync } from 'child_process';
+import { createHash } from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, useThen, when } from 'test-fns';
@@ -3806,6 +3807,15 @@ exit 2
     '[case22] a write into a public repo waits on the anonymized promise',
     () => {
       const PROMISE = 'text-to-public-repo-is-anonymized';
+      // .what = the path a held text is kept at: named by the text's own digest
+      const asKeepPath = (text: string) =>
+        `./.temp/reply.${createHash('sha256').update(text).digest('hex').slice(0, 8)}.md`;
+      const getKeptReplies = (dir: string) =>
+        fs.existsSync(path.join(dir, '.temp'))
+          ? fs
+              .readdirSync(path.join(dir, '.temp'))
+              .filter((file) => file.startsWith('reply.'))
+          : [];
       const SCENE_PUBLIC = {
         ...SCENE_BARE,
         store: { visibility: 'public' as const },
@@ -3838,7 +3848,7 @@ exit 2
             '🐢 hold up — this text goes to a public repo',
           );
           expect(result.stdout).toContain(`repo: ${REPO} (public)`);
-          expect(result.stdout).toContain('check the comment holds none of:');
+          expect(result.stdout).toContain('check the comment holds none of');
           expect(result.stderr).toContain(
             '🐢 hold up — this text goes to a public repo',
           );
@@ -3894,6 +3904,7 @@ exit 2
           expect(result.stdout).toContain(
             `rhx git.pull.comment.set --which 7 --key status --from ./status.md --mode plan --promise ${PROMISE}`,
           );
+          expect(result.stdout).toMatchSnapshot();
           expect(scene.getWrites()).toEqual([]);
         });
       });
@@ -3930,10 +3941,68 @@ exit 2
         then('the rerun line pipes the text in again', () => {
           expect(result.exitCode).toBe(2);
           expect(result.stdout).toContain(
-            `cat ./.temp/reply.md | rhx git.pull.comment.set --which 7 --key status --from @stdin --mode apply --promise ${PROMISE}`,
+            `cat ${asKeepPath('waves are up')} | rhx git.pull.comment.set --which 7 --key status --from @stdin --mode apply --promise ${PROMISE}`,
           );
           expect(result.stdout).toMatchSnapshot();
           expect(scene.getWrites()).toEqual([]);
+        });
+        then(
+          'the held text waits in one file named by its digest, which the rerun pipes',
+          () => {
+            expect(getKeptReplies(scene.tempDir)).toHaveLength(1);
+            const held = fs.readFileSync(
+              path.join(scene.tempDir, asKeepPath('waves are up')),
+              'utf-8',
+            );
+            expect(held.trim()).toEqual('waves are up');
+          },
+        );
+      });
+
+      when('[t4c] two texts held from one cwd, before either rerun', () => {
+        const scene = genScene(SCENE_PUBLIC);
+        const result = useThen('it runs', async () => ({
+          first: scene.run('set', argsApply('@stdin'), {
+            stdin: 'waves are up',
+          }),
+          second: scene.run('set', argsApply('@stdin'), {
+            stdin: 'reef is closed',
+          }),
+        }));
+        then(
+          'each keeps its own file, so each rerun pipes back the exact text it held',
+          () => {
+            expect(result.first.exitCode).toBe(2);
+            expect(result.second.exitCode).toBe(2);
+            expect(getKeptReplies(scene.tempDir)).toHaveLength(2);
+            expect(result.first.stdout).toContain(
+              `cat ${asKeepPath('waves are up')} |`,
+            );
+            expect(result.second.stdout).toContain(
+              `cat ${asKeepPath('reef is closed')} |`,
+            );
+            const heldFirst = fs.readFileSync(
+              path.join(scene.tempDir, asKeepPath('waves are up')),
+              'utf-8',
+            );
+            expect(heldFirst.trim()).toEqual('waves are up');
+            expect(scene.getWrites()).toEqual([]);
+          },
+        );
+      });
+
+      when('[t4b] apply via @stdin with no promise into a private repo', () => {
+        const scene = genScene({
+          ...SCENE_BARE,
+          store: { visibility: 'private' },
+        });
+        const result = useThen('it runs', async () =>
+          scene.run('set', argsApply('@stdin'), { stdin: 'waves are up' }),
+        );
+        then('it posts as today, and keeps no scratch text', () => {
+          expect(result.exitCode).toBe(0);
+          expect(scene.getWrites()).toHaveLength(1);
+          expect(getKeptReplies(scene.tempDir)).toEqual([]);
         });
       });
 
@@ -4008,7 +4077,8 @@ exit 2
         );
         then('it is refused before any gh call', () => {
           expect(result.exitCode).toBe(2);
-          expect(result.stdout).toContain(`--promise must be ${PROMISE}`);
+          expect(result.stdout).toContain(`--promise must be '${PROMISE}'`);
+          expect(result.stdout).toMatchSnapshot();
           expect(scene.getCalls()).toEqual([]);
         });
       });
@@ -4116,6 +4186,7 @@ exit 2
               `rhx git.pull.comment.set --which 7 --key status --from ./status.md --promise ${PROMISE} --mode apply`,
             );
             expect(scene.getWrites()).toEqual([]);
+            expect(result.stdout).toMatchSnapshot();
           },
         );
       });
@@ -4196,7 +4267,7 @@ exit 2
         );
         then('plan refuses the same, before any gh call', () => {
           expect(resultPlan.exitCode).toBe(2);
-          expect(resultPlan.stdout).toContain(`--promise must be ${PROMISE}`);
+          expect(resultPlan.stdout).toContain(`--promise must be '${PROMISE}'`);
         });
         then('json refuses with one constraint object', () => {
           expect(resultJson.exitCode).toBe(2);

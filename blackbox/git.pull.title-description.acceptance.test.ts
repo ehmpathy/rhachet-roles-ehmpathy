@@ -778,4 +778,143 @@ describe('git.pull.title and git.pull.description, via rhachet', () => {
       });
     });
   });
+
+  given('[case6] a linked repo whose pull lives in a public repo', () => {
+    const PROMISE = 'text-to-public-repo-is-anonymized';
+    const TITLE_NEW = 'feat(lessons): book a surf lesson, with a reef map';
+    /**
+     * .mock = gh is the PATH stub of genGitPullScene, which answers visibility public
+     * .why  = github cannot be set public on demand, and a test job holds no write scope
+     * .real = external.contracts.integration.test.ts [case4] runs the visibility read
+     *         through the real gh
+     */
+    const scene = useBeforeAll(async () => {
+      const dir = await genTestDir({
+        slug: 'git-pull-title-description-public',
+      });
+      const stub = setGitPullStubInto({
+        dir,
+        branch: 'surf/book-lesson',
+        store: {
+          visibility: 'public',
+          prs: {
+            '7': {
+              title: 'feat(lessons): book a surf lesson',
+              body: 'surf lesson booker',
+              head: 'surf/book-lesson',
+              author: PULL_SCENE_LOGIN_HUMAN,
+            },
+          },
+        },
+      });
+      return { dir, stub };
+    });
+
+    when('[t0] the driver sets the title and body, is held, checks the text, and reruns with the promise', () => {
+      const result = useThen('it runs', async () => {
+        const run = (skill: string, args: string[], stdin?: string) =>
+          runViaRhachet({
+            dir: scene.dir,
+            skill,
+            args: [...args, '--auth', 'as-human'],
+            stdin,
+            env: scene.stub.env,
+          });
+
+        // the title, piped in: held, and kept for the rerun
+        const titleHeld = run(
+          'git.pull.title',
+          ['set', '--from', '@stdin', '--mode', 'apply'],
+          TITLE_NEW,
+        );
+        const writesAfterTitleHeld = scene.stub.getWrites().length;
+        const keptPath = titleHeld.stdout.match(
+          /cat (\.\/\.temp\/title\.[0-9a-f]{8}\.md) \|/,
+        )?.[1];
+        if (!keptPath)
+          throw new MalfunctionError('the held title named no kept file', {
+            titleHeld,
+          });
+        const titlePromised = run(
+          'git.pull.title',
+          ['set', '--from', '@stdin', '--mode', 'apply', '--promise', PROMISE],
+          fs.readFileSync(path.join(scene.dir, keptPath), 'utf-8'),
+        );
+        const writesAfterTitlePromised = scene.stub.getWrites().length;
+
+        // the body, from a file: held, then the same command with the promise
+        fs.mkdirSync(path.join(scene.dir, '.temp'), { recursive: true });
+        fs.writeFileSync(
+          path.join(scene.dir, '.temp', 'body.md'),
+          '## .what\n\nbook a surf lesson at the reef\n',
+        );
+        const bodyHeld = run('git.pull.description', [
+          'set',
+          '--from',
+          './.temp/body.md',
+          '--mode',
+          'apply',
+        ]);
+        const writesAfterBodyHeld = scene.stub.getWrites().length;
+        const bodyPromised = run('git.pull.description', [
+          'set',
+          '--from',
+          './.temp/body.md',
+          '--mode',
+          'apply',
+          '--promise',
+          PROMISE,
+        ]);
+        return {
+          titleHeld,
+          writesAfterTitleHeld,
+          titlePromised,
+          writesAfterTitlePromised,
+          bodyHeld,
+          writesAfterBodyHeld,
+          bodyPromised,
+          store: scene.stub.getStore(),
+          writes: scene.stub.getWrites().length,
+        };
+      });
+
+      then('the title is held, exit 2, the nudge on both streams, and no write', () => {
+        expect(result.titleHeld.code).toBe(2);
+        expect(result.titleHeld.stdout).toContain(
+          '🐢 hold up — this text goes to a public repo',
+        );
+        expect(result.titleHeld.stderr).toContain(
+          '🐢 hold up — this text goes to a public repo',
+        );
+        expect(result.writesAfterTitleHeld).toBe(0);
+        expect(asSkillRender(result.titleHeld)).toMatchSnapshot();
+      });
+
+      then('the rerun with the promise writes the title once', () => {
+        expect(result.titlePromised.code).toBe(0);
+        expect(result.store.prs['7']!.title).toEqual(TITLE_NEW);
+        expect(result.writesAfterTitlePromised).toBe(1);
+        expect(asSkillRender(result.titlePromised)).toMatchSnapshot();
+      });
+
+      then('the body is held the same way, with no write', () => {
+        expect(result.bodyHeld.code).toBe(2);
+        expect(result.bodyHeld.stdout).toContain(
+          'check the description holds none of',
+        );
+        // no write since the title's: the count stands where the title left it
+        expect(result.writesAfterBodyHeld).toBe(result.writesAfterTitlePromised);
+        expect(asSkillRender(result.bodyHeld)).toMatchSnapshot();
+      });
+
+      then('the rerun with the promise writes the body once', () => {
+        expect(result.bodyPromised.code).toBe(0);
+        expect(result.store.prs['7']!.body).toContain(
+          'book a surf lesson at the reef',
+        );
+        expect(result.writes).toBe(2);
+        expect(asSkillRender(result.bodyPromised)).toMatchSnapshot();
+      });
+    });
+  });
 });

@@ -848,7 +848,13 @@ exec /usr/bin/git "$@"
           branch: 'turtle/bare-flag',
           commits: ['feat: bare flag'],
         });
-        const result = runPush({ tempDir, pushArgs: ['--mode'] });
+        // promise absent: an appended --promise would sit after --mode, so
+        // --mode would no longer be the last arg this case names
+        const result = runPush({
+          tempDir,
+          pushArgs: ['--mode'],
+          promise: 'absent',
+        });
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain(
@@ -3911,6 +3917,8 @@ exec /usr/bin/git "$@"
        * .what = a seaturtle commit on a branch, a bare origin, and a gh stub that
        *         logs each call and answers `repo view` with the given visibility
        * .mock = gh: github cannot be set public or private on demand per case
+       * .real = external.contracts.integration.test.ts [case4] runs the same
+       *         `gh repo view` read through the real gh (no credential, revoked token)
        */
       const genPushGateScene = (input: {
         visibility: string | null;
@@ -3991,7 +3999,7 @@ exit 1`,
           );
           expect(result.stdout).toContain('repo: ehmpathy/surf-demo (public)');
           expect(result.stdout).toContain(
-            'check the commit messages, which become the pr title and description, hold none of:',
+            'check the commit messages, which become the pr title and description, hold none of',
           );
           expect(result.stderr).toContain(
             '🐢 hold up — this text goes to a public repo',
@@ -4051,6 +4059,7 @@ exit 1`,
           expect(result.stdout).toContain(
             `rhx git.commit.push --mode plan --auth as-human --promise ${PROMISE}`,
           );
+          expect(result.stdout).toMatchSnapshot();
         });
       });
 
@@ -4070,6 +4079,9 @@ exit 1`,
             expect(parsed.status).toEqual('error');
             expect(parsed.visibility).toEqual('public');
             expect(parsed.fix).toContain(`--promise ${PROMISE}`);
+            expect(parsed.error).toContain('public repo');
+            expect(parsed.repo).toBeTruthy();
+            expect(parsed).toMatchSnapshot();
             expect(result.stderr).toContain('🐢 hold up');
             expect(scene.isBranchOnRemote()).toBe(false);
           },
@@ -4138,6 +4150,7 @@ exit 1`,
         then('it is refused before any gh call', () => {
           expect(result.exitCode).toBe(2);
           expect(result.stdout).toContain(`--promise must be '${PROMISE}'`);
+          expect(result.stdout).toMatchSnapshot();
           expect(scene.getGhCalls()).toEqual([]);
           expect(scene.isBranchOnRemote()).toBe(false);
         });

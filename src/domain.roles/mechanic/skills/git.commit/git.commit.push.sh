@@ -456,21 +456,66 @@ if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "master" ]]; then
 fi
 
 ######################################################################
+# set_push_pr_token: the seaturtle token for this push, fetched at most once
+#
+# .what = sets GH_PR_TOKEN, KEYRACK_TOKEN_STATUS, TOKEN_FETCH_ERR
+# .why  = the visibility gate and the pr open both need the token. one fetch
+#         serves both, so a push touches the keyrack once (its fallback runs
+#         `keyrack unlock`) and the two reads can never see two tokens.
+#         the threaded value from git.commit.set wins: PREFETCHED means
+#         "resolved upstream" even when the value is empty (the upstream fetch
+#         failed), so an empty result is reused, never re-fetched
+######################################################################
+PR_TOKEN_SET=false
+GH_PR_TOKEN=""
+KEYRACK_TOKEN_STATUS=""
+TOKEN_FETCH_ERR=""
+set_push_pr_token() {
+  [[ "$PR_TOKEN_SET" == "true" ]] && return 0
+  PR_TOKEN_SET=true
+  GH_PR_TOKEN="${SEATURTLE_PR_TOKEN_VALUE:-}"
+  KEYRACK_TOKEN_STATUS="${SEATURTLE_PR_TOKEN_STATUS:-}"
+  [[ "${SEATURTLE_PR_TOKEN_PREFETCHED:-}" == "1" ]] && return 0
+
+  # standalone: fetch via the shared communicator (the same operation
+  # git.commit.set uses) — it tries the default owner, then the ehmpath keyrack
+  # fallback, and echoes an empty string when the token is unreachable.
+  [[ "$DEBUG" == "true" ]] && echo "[debug] as-ehmpath: fetch token via fetch_github_token..." >&2
+  # capture the fetch's stderr (not /dev/null) so a real failure — network
+  # timeout, daemon down, corrupted credential store — is surfaced in the guide
+  # detail rather than hidden behind a generic message (rule.forbid.failhide)
+  local err_file status_file
+  err_file=$(mktemp)
+  status_file=$(mktemp)
+  GH_PR_TOKEN=$(fetch_github_token status_file="$status_file" 2>"$err_file" || echo "")
+  TOKEN_FETCH_ERR=$(cat "$err_file")
+  KEYRACK_TOKEN_STATUS=$(cat "$status_file")
+  rm -f "$err_file" "$status_file"
+
+  # strong identity check on a freshly-fetched token: the same graphql-verified
+  # assert git.commit.set runs after its fetch (set.sh), recomposed onto this
+  # standalone path so the guarantee holds at BOTH fetch sites. the local name
+  # check cannot catch a ghs_ token rotated to a DIFFERENT app installation (same
+  # prefix, different bot id) — assert_token_identity_in_sync verifies the live
+  # bot id via graphql and fails loud on that divergence. the composed path
+  # (PREFETCHED=1) already verified once in set.sh, so it returns above and pays
+  # no redundant round-trip.
+  assert_token_identity_in_sync "$GH_PR_TOKEN" || exit 2
+}
+
+######################################################################
 # GATE: text into a public repo waits on the anonymized promise
 ######################################################################
 
 # the promise skips the read: the caller already checked the text (fulcrum F5).
 # the whole push waits, not only the pr: commit messages are public text too (F1)
 if [[ -z "$PROMISE" ]]; then
-  # as-ehmpath reads with the seaturtle token: threaded from git.commit.set, else fetched.
-  # a failed fetch leaves it empty, which the gate holds and names (case=10): never a write
-  VISIBILITY_TOKEN=""
-  if [[ "$AUTH" == "as-ehmpath" ]]; then
-    VISIBILITY_TOKEN="${SEATURTLE_PR_TOKEN_VALUE:-}"
-    [[ "${SEATURTLE_PR_TOKEN_PREFETCHED:-}" == "1" ]] || VISIBILITY_TOKEN="$(fetch_github_token 2>/dev/null || echo "")"
-  fi
+  # as-ehmpath reads with the seaturtle token; as-human with the human's gh login.
+  # a failed fetch leaves the token empty, which the gate holds and names, with
+  # the fetch's own cause (case=10): never a write
+  [[ "$AUTH" == "as-ehmpath" ]] && set_push_pr_token
   guard_push_text_promised \
-    auth="$AUTH" token="$VISIBILITY_TOKEN" output="$OUTPUT" \
+    auth="$AUTH" token="$GH_PR_TOKEN" token_cause="$(printf '%s' "$TOKEN_FETCH_ERR" | head -n 1)" output="$OUTPUT" \
     rerun="$(as_cmd_with_promise_text_public cmd="$(as_shell_cmd_without_passthrough "rhx git.commit.push" ${ORIG_ARGS[@]+"${ORIG_ARGS[@]}"})")"
 fi
 
@@ -571,45 +616,13 @@ PUSH_STATUS="$PUSH_TARGET ✓"
 # pick the pr-open auth
 # - as-human   → no token; gh uses the human's own `gh auth login` session
 # - as-ehmpath → fetch the ehmpath keyrack token so the seaturtle bot opens the pr
-GH_PR_TOKEN=""
 if [[ "$AUTH" == "as-ehmpath" ]]; then
-  # reuse a token an upstream git.commit.set already fetched, if it threaded one.
-  # a composed --push then performs exactly ONE keyrack fetch and ONE identity
+  # one fetch per push: a token the gate above already fetched, or one an
+  # upstream git.commit.set threaded, is reused (see set_push_pr_token). a
+  # composed --push then performs exactly ONE keyrack fetch and ONE identity
   # resolution shared by the commit author (set.sh) and the pr opener (here), so
-  # the two cannot diverge into the "3rd contributor on squash" bug. the
-  # PREFETCHED flag means "resolved upstream" even when the value is empty (the
-  # upstream fetch failed) — so we reuse an empty result rather than re-fetch a
-  # possibly-divergent one. default GH_PR_TOKEN to the threaded value; only fetch
-  # when not threaded (a standalone invocation) — single if, no else.
-  GH_PR_TOKEN="${SEATURTLE_PR_TOKEN_VALUE:-}"
-  KEYRACK_TOKEN_STATUS="${SEATURTLE_PR_TOKEN_STATUS:-}"
-  TOKEN_FETCH_ERR=""
-  if [[ "${SEATURTLE_PR_TOKEN_PREFETCHED:-}" != "1" ]]; then
-    # standalone: fetch via the shared communicator (the same operation
-    # git.commit.set uses) — it tries the default owner, then the ehmpath keyrack
-    # fallback, and echoes an empty string when the token is unreachable.
-    [[ "$DEBUG" == "true" ]] && echo "[debug] as-ehmpath: fetch token via fetch_github_token..." >&2
-    # capture the fetch's stderr (not /dev/null) so a real failure — network
-    # timeout, daemon down, corrupted credential store — is surfaced in the guide
-    # detail rather than hidden behind a generic message (rule.forbid.failhide)
-    TOKEN_FETCH_ERR_FILE=$(mktemp)
-    TOKEN_STATUS_FILE=$(mktemp)
-    GH_PR_TOKEN=$(fetch_github_token status_file="$TOKEN_STATUS_FILE" 2>"$TOKEN_FETCH_ERR_FILE" || echo "")
-    TOKEN_FETCH_ERR=$(cat "$TOKEN_FETCH_ERR_FILE")
-    KEYRACK_TOKEN_STATUS=$(cat "$TOKEN_STATUS_FILE")
-    rm -f "$TOKEN_FETCH_ERR_FILE" "$TOKEN_STATUS_FILE"
-
-    # strong identity check on a freshly-fetched token: the same graphql-verified
-    # assert git.commit.set runs after its fetch (set.sh), recomposed onto this
-    # standalone path so the guarantee holds at BOTH fetch sites. the local name
-    # check below (:432) only compares a prefix-derived name to HEAD_AUTHOR; it
-    # cannot catch a ghs_ token rotated to a DIFFERENT app installation (same
-    # prefix, different bot id) — assert_token_identity_in_sync verifies the live
-    # bot id via graphql and fails loud on that divergence. the composed path
-    # (PREFETCHED=1) already verified once in set.sh, so it skips this branch and
-    # pays no redundant round-trip.
-    assert_token_identity_in_sync "$GH_PR_TOKEN" || exit 2
-  fi
+  # the two cannot diverge into the "3rd contributor on squash" bug
+  set_push_pr_token
 
   # keyrack unreachable → the commit is already pushed; only the pr-open is
   # blocked. guide the caller to the as-human fallback instead of a dead end.

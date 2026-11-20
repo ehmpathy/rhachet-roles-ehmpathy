@@ -873,7 +873,7 @@ exports[`git.commit.set.sh given: [case33] adhoc Co-authored-by forbidden when: 
 `;
 
 exports[`git.commit.set.sh given: [case34] --help short-circuits before the identity fetch when: [t0] NODE_ENV=production would otherwise make the keyrack fetch reachable then: --help exits 0 with usage and emits no keyrack heads-up 1`] = `
-"usage: echo 'header\\n\\n- body' | git.commit.set -m @stdin [--mode plan|apply] [--push] [--auth as-ehmpath|as-human]
+"usage: echo 'header\\n\\n- body' | git.commit.set -m @stdin [--mode plan|apply] [--push] [--auth as-ehmpath|as-human] [--promise text-to-public-repo-is-anonymized]
 
 options:
   --message, -m @stdin   read multiline commit message from stdin (required)
@@ -1409,11 +1409,42 @@ ask your human to reset the quota, then grant again:
 exports[`git.commit.set.sh given: [case60] a --push into a public repo waits on the anonymized promise when: [t0] apply --push with no promise into a public repo then: it exits 2 with the nudge, whose rerun pipes the message again 1`] = `
 "🐢 hold up — this text goes to a public repo
    ├─ repo: ehmpathy/surf-demo (public)
-   ├─ check the commit messages, which become the pr title and description, hold none of:
+   ├─ check the commit messages, which become the pr title and description, hold none of
    │  ├─ a private org, repo, route path, or pr / issue numbers
    │  ├─ internal endpoint, service, table or product names
    │  └─ customer, revenue or other business detail
-   └─ once checked, re-run with:
-      └─ cat ./.temp/commit.md | rhx git.commit.set -m @stdin --mode apply --push --auth as-human --promise text-to-public-repo-is-anonymized   # pipe the same message in again
+   └─ once checked, rerun with
+      └─ cat ./.temp/commit.75caa149.md | rhx git.commit.set -m @stdin --mode apply --push --auth as-human --promise text-to-public-repo-is-anonymized   # the held message, kept in ./.temp/commit.75caa149.md
+"
+`;
+
+exports[`git.commit.set.sh given: [case60] a --push into a public repo waits on the anonymized promise when: [t5] a --promise of an unknown value then: it is refused, and names both known promises 1`] = `
+"✋ ConstraintError: --promise must be 'is-netnew-behavior' or 'text-to-public-repo-is-anonymized'
+usage: echo 'header\\n\\n- body' | git.commit.set -m @stdin [--promise is-netnew-behavior] [--promise text-to-public-repo-is-anonymized]
+"
+`;
+
+exports[`git.commit.set.sh given: [case60] a --push into a public repo waits on the anonymized promise when: [t7] plan --push with no promise into a public repo then: plan nudges too, with no plan tree, so it is seen before apply 1`] = `
+"🐢 hold up — this text goes to a public repo
+   ├─ repo: ehmpathy/surf-demo (public)
+   ├─ check the commit messages, which become the pr title and description, hold none of
+   │  ├─ a private org, repo, route path, or pr / issue numbers
+   │  ├─ internal endpoint, service, table or product names
+   │  └─ customer, revenue or other business detail
+   └─ once checked, rerun with
+      └─ cat ./.temp/commit.75caa149.md | rhx git.commit.set -m @stdin --push --auth as-human --promise text-to-public-repo-is-anonymized   # the held message, kept in ./.temp/commit.75caa149.md
+"
+`;
+
+exports[`git.commit.set.sh given: [case60] a --push into a public repo waits on the anonymized promise when: [t11] apply --push with no promise, and github answers no visibility then: it holds the repo as public, with the cause, before any commit 1`] = `
+"🐢 hold up — this text goes to a public repo
+   ├─ repo: ehmpathy/surf-demo (visibility unreadable, held as public)
+   │  └─ cause: github answered no visibility
+   ├─ check the commit messages, which become the pr title and description, hold none of
+   │  ├─ a private org, repo, route path, or pr / issue numbers
+   │  ├─ internal endpoint, service, table or product names
+   │  └─ customer, revenue or other business detail
+   └─ once checked, rerun with
+      └─ cat ./.temp/commit.75caa149.md | rhx git.commit.set -m @stdin --mode apply --push --auth as-human --promise text-to-public-repo-is-anonymized   # the held message, kept in ./.temp/commit.75caa149.md
 "
 `;

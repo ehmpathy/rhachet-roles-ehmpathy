@@ -1956,12 +1956,24 @@ exports[`git.pull.comment given: [case21] get --unanswered lists what waits on a
 exports[`git.pull.comment given: [case22] a write into a public repo waits on the anonymized promise when: [t0] apply with no promise then: it exits 2 with the nudge on both streams 1`] = `
 "🐢 hold up — this text goes to a public repo
    ├─ repo: ehmpathy/surf-demo (public)
-   ├─ check the comment holds none of:
+   ├─ check the comment holds none of
    │  ├─ a private org, repo, route path, or pr / issue numbers
    │  ├─ internal endpoint, service, table or product names
    │  └─ customer, revenue or other business detail
-   └─ once checked, re-run with:
+   └─ once checked, rerun with
       └─ rhx git.pull.comment.set --which 7 --key status --from ./status.md --mode apply --promise text-to-public-repo-is-anonymized
+"
+`;
+
+exports[`git.pull.comment given: [case22] a write into a public repo waits on the anonymized promise when: [t2] plan with no promise then: plan shows the same nudge, so it is seen before apply 1`] = `
+"🐢 hold up — this text goes to a public repo
+   ├─ repo: ehmpathy/surf-demo (public)
+   ├─ check the comment holds none of
+   │  ├─ a private org, repo, route path, or pr / issue numbers
+   │  ├─ internal endpoint, service, table or product names
+   │  └─ customer, revenue or other business detail
+   └─ once checked, rerun with
+      └─ rhx git.pull.comment.set --which 7 --key status --from ./status.md --mode plan --promise text-to-public-repo-is-anonymized
 "
 `;
 
@@ -1983,12 +1995,12 @@ exports[`git.pull.comment given: [case22] a write into a public repo waits on th
 exports[`git.pull.comment given: [case22] a write into a public repo waits on the anonymized promise when: [t4] apply via @stdin with no promise then: the rerun line pipes the text in again 1`] = `
 "🐢 hold up — this text goes to a public repo
    ├─ repo: ehmpathy/surf-demo (public)
-   ├─ check the comment holds none of:
+   ├─ check the comment holds none of
    │  ├─ a private org, repo, route path, or pr / issue numbers
    │  ├─ internal endpoint, service, table or product names
    │  └─ customer, revenue or other business detail
-   └─ once checked, re-run with:
-      └─ cat ./.temp/reply.md | rhx git.pull.comment.set --which 7 --key status --from @stdin --mode apply --promise text-to-public-repo-is-anonymized   # pipe the same body in again
+   └─ once checked, rerun with
+      └─ cat ./.temp/reply.1bb69ce7.md | rhx git.pull.comment.set --which 7 --key status --from @stdin --mode apply --promise text-to-public-repo-is-anonymized   # pipe the same body in again
 "
 `;
 
@@ -1996,11 +2008,39 @@ exports[`git.pull.comment given: [case22] a write into a public repo waits on th
 "🐢 hold up — this text goes to a public repo
    ├─ repo: ehmpathy/surf-demo (visibility unreadable, held as public)
    │  └─ cause: gh: Bad Gateway (HTTP 502)
-   ├─ check the comment holds none of:
+   ├─ check the comment holds none of
    │  ├─ a private org, repo, route path, or pr / issue numbers
    │  ├─ internal endpoint, service, table or product names
    │  └─ customer, revenue or other business detail
-   └─ once checked, re-run with:
+   └─ once checked, rerun with
       └─ rhx git.pull.comment.set --which 7 --key status --from ./status.md --mode apply --promise text-to-public-repo-is-anonymized
+"
+`;
+
+exports[`git.pull.comment given: [case22] a write into a public repo waits on the anonymized promise when: [t8] a --promise of another value then: it is refused before any gh call 1`] = `
+"✋ ConstraintError: --promise must be 'text-to-public-repo-is-anonymized', got 'task-to-public-repo-is-anonymized'
+
+🥥 did you know?
+   └─ to fix it
+      └─ --promise text-to-public-repo-is-anonymized   # once the text holds naught private
+"
+`;
+
+exports[`git.pull.comment given: [case22] a write into a public repo waits on the anonymized promise when: [t13] plan with the promise then: the usual plan shows, and its apply hint keeps the promise 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.comment.set --mode plan
+   ├─ target: ehmpathy/surf-demo#7, top-level comment key=status
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: POST repos/ehmpathy/surf-demo/issues/7/comments
+   ├─ new
+   │  ├─ from: ./status.md
+   │  ├─ bytes: 59
+   │  └─ sha256: 8275918b35973e671db782ac065e08a03a7a98112f3c0521b213488953498c81
+   └─ verdict: would post (plan)
+
+🥥 did you know?
+   └─ plan writes naught; to write it
+      └─ rhx git.pull.comment.set --which 7 --key status --from ./status.md --promise text-to-public-repo-is-anonymized --mode apply
 "
 `;
