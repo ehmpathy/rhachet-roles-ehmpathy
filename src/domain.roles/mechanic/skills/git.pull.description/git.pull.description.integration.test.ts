@@ -1,4 +1,5 @@
 import { spawnSync } from 'child_process';
+import { createHash } from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import { given, then, useThen, when } from 'test-fns';
@@ -1194,4 +1195,204 @@ describe('git.pull.description', () => {
       });
     });
   });
+
+  given(
+    '[case30] a description set into a public repo waits on the anonymized promise',
+    () => {
+      const PROMISE = 'text-to-public-repo-is-anonymized';
+      const BODY_NEW =
+        '## .what\n\nbook a surf lesson at the reef, with a tide chart';
+      // .what = the path a held body is kept at: named by the body's own digest
+      const KEEP_PATH = `./.temp/body.${createHash('sha256').update(BODY_NEW).digest('hex').slice(0, 8)}.md`;
+      const getKeptBodies = (dir: string) =>
+        fs.existsSync(path.join(dir, '.temp'))
+          ? fs
+              .readdirSync(path.join(dir, '.temp'))
+              .filter((file) => file.startsWith('body.'))
+          : [];
+      const SCENE_PUBLIC = {
+        ...PULL_SCENE_BARE,
+        store: { visibility: 'public' as const },
+      };
+      const runSet = (
+        scene: ReturnType<typeof genGitPullScene>,
+        args: string[],
+      ) =>
+        scene.run(
+          skill('git.pull.description.set'),
+          ['--from', '@stdin', ...args],
+          {
+            stdin: BODY_NEW,
+          },
+        );
+
+      when('[t0] apply with no promise', () => {
+        const scene = genGitPullScene(SCENE_PUBLIC);
+        const result = useThen('it runs', async () =>
+          runSet(scene, ['--mode', 'apply']),
+        );
+        then('it exits 2 with the nudge, and the description stands', () => {
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain(
+            '🐢 hold up — this text goes to a public repo',
+          );
+          expect(result.stdout).toContain(
+            'check the description holds none of',
+          );
+          expect(result.stderr).toContain(
+            '🐢 hold up — this text goes to a public repo',
+          );
+          expect(result.stdout).toContain(
+            `cat ${KEEP_PATH} | rhx git.pull.description.set --from @stdin --mode apply --promise ${PROMISE}`,
+          );
+          expect(result.stdout).toMatchSnapshot();
+          expect(scene.getWrites()).toHaveLength(0);
+        });
+        then(
+          'the held body waits in one file named by its digest, which the rerun pipes',
+          () => {
+            expect(getKeptBodies(scene.tempDir)).toHaveLength(1);
+            const held = fs.readFileSync(
+              path.join(scene.tempDir, KEEP_PATH),
+              'utf-8',
+            );
+            expect(held.trim()).toEqual(BODY_NEW);
+          },
+        );
+      });
+
+      when('[t1] apply with the promise', () => {
+        const scene = genGitPullScene(SCENE_PUBLIC);
+        const result = useThen('it runs', async () =>
+          runSet(scene, ['--mode', 'apply', '--promise', PROMISE]),
+        );
+        then('it writes once, as today, with no visibility read', () => {
+          expect(result.exitCode).toBe(0);
+          expect(scene.getStore().prs['7']!.body).toContain(
+            'with a tide chart',
+          );
+          expect(scene.getWrites()).toHaveLength(1);
+          expect(
+            scene
+              .getCalls()
+              .filter((call) => call.argv.includes('repos/ehmpathy/surf-demo')),
+          ).toHaveLength(0);
+        });
+      });
+
+      when('[t2] plan with no promise', () => {
+        const scene = genGitPullScene(SCENE_PUBLIC);
+        const result = useThen('it runs', async () => runSet(scene, []));
+        then('plan shows the nudge too', () => {
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain(
+            '🐢 hold up — this text goes to a public repo',
+          );
+          expect(result.stdout).toMatchSnapshot();
+          expect(scene.getWrites()).toHaveLength(0);
+        });
+      });
+
+      when('[t3] apply with no promise into a private repo', () => {
+        const scene = genGitPullScene({
+          ...PULL_SCENE_BARE,
+          store: { visibility: 'private' },
+        });
+        const result = useThen('it runs', async () =>
+          runSet(scene, ['--mode', 'apply']),
+        );
+        then('it writes as today, and keeps no scratch body', () => {
+          expect(result.exitCode).toBe(0);
+          expect(scene.getWrites()).toHaveLength(1);
+          expect(getKeptBodies(scene.tempDir)).toEqual([]);
+        });
+      });
+
+      when('[t4] apply with no promise, and the visibility read fails', () => {
+        const scene = genGitPullScene({
+          ...PULL_SCENE_BARE,
+          store: { visibilityFail: 'gh: Bad Gateway (HTTP 502)' },
+        });
+        const result = useThen('it runs', async () =>
+          runSet(scene, ['--mode', 'apply']),
+        );
+        then('it holds the repo as public, with the cause', () => {
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain(
+            '(visibility unreadable, held as public)',
+          );
+          expect(result.stdout).toContain('cause: gh: Bad Gateway (HTTP 502)');
+          expect(result.stdout).toMatchSnapshot();
+          expect(scene.getWrites()).toHaveLength(0);
+        });
+      });
+
+      when('[t5] a --promise of another value', () => {
+        const scene = genGitPullScene(SCENE_PUBLIC);
+        const result = useThen('it runs', async () =>
+          runSet(scene, ['--mode', 'apply', '--promise', 'yes']),
+        );
+        then('it is refused before any gh call', () => {
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain(`--promise must be '${PROMISE}'`);
+          expect(result.stdout).toMatchSnapshot();
+          expect(scene.getCalls()).toHaveLength(0);
+        });
+      });
+
+      when('[t8] a held run, then the promised plan of its rerun', () => {
+        const scene = genGitPullScene(SCENE_PUBLIC);
+        const result = useThen('it runs', async () => {
+          const held = runSet(scene, []);
+          const plan = runSet(scene, ['--mode', 'plan', '--promise', PROMISE]);
+          return { held, plan };
+        });
+        then(
+          'the apply hint pipes the kept file, which holds this exact body',
+          () => {
+            expect(result.held.exitCode).toBe(2);
+            expect(result.plan.exitCode).toBe(0);
+            expect(result.plan.stdout).toContain('(plan)');
+            expect(result.plan.stdout).toContain(
+              `cat ${KEEP_PATH} | rhx git.pull.description.set --from @stdin --promise ${PROMISE} --mode apply   # pipe the same body in again`,
+            );
+            expect(scene.getWrites()).toHaveLength(0);
+            expect(result.plan.stdout).toMatchSnapshot();
+          },
+        );
+      });
+
+      when('[t6] set --help', () => {
+        const scene = genGitPullScene(SCENE_PUBLIC);
+        const result = useThen('it runs', async () =>
+          scene.run(skill('git.pull.description.set'), ['--help']),
+        );
+        then('the help names the promise', () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain(`--promise ${PROMISE}`);
+        });
+      });
+
+      when('[t7] apply --output json with no promise', () => {
+        const scene = genGitPullScene(SCENE_PUBLIC);
+        const result = useThen('it runs', async () =>
+          runSet(scene, ['--mode', 'apply', '--output', 'json']),
+        );
+        then('it exits 2 with a json refusal that names the rerun', () => {
+          expect(result.exitCode).toBe(2);
+          const refusal = JSON.parse(result.stdout);
+          expect(refusal.error.class).toEqual('ConstraintError');
+          expect(refusal.error.details).toEqual([
+            'repo: ehmpathy/surf-demo (public)',
+          ]);
+          expect(refusal.error.fixes).toEqual([
+            `cat ${KEEP_PATH} | rhx git.pull.description.set --from @stdin --output json --mode apply --promise ${PROMISE}   # pipe the same body in again`,
+          ]);
+          // the parsed object, as title and comment snap the same refusal
+          expect(refusal).toMatchSnapshot();
+          expect(scene.getWrites()).toHaveLength(0);
+        });
+      });
+    },
+  );
 });

@@ -28,4 +28,7 @@ ignores:
   - rhachet-roles-ehmpathy
   - rhachet-brains-anthropic
   - rhachet-brains-openrouter
+  - rhachet-brains-fireworksai
   - rhachet-roles-rhachet
+  - rhachet-roles-bhrowser
+  - rhachet-roles-ghlitch

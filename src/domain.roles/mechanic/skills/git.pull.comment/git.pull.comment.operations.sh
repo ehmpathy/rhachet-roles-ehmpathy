@@ -29,6 +29,10 @@ source "$COMMENT_SKILL_DIR/../git.commit/git.commit.operations.sh"
 #        print_tree_start, print_coconut_hint, is_arg_in_enum)
 # shellcheck source=../git.commit/output.sh
 source "$COMMENT_SKILL_DIR/../git.commit/output.sh"
+# .why = the public-repo text promise: one value, one rule, one nudge across
+#        every writer of pr text (comment, title, description, push)
+# shellcheck source=../git/git.promise.operations.sh
+source "$COMMENT_SKILL_DIR/../git/git.promise.operations.sh"
 
 # .why = fd 3 holds the real stdout, so a refusal raised inside a $(...)
 #        capture still reaches the caller's terminal rather than a variable
@@ -178,18 +182,6 @@ as_comment_cmd_in_mode() {
   echo "${out[*]} --mode $mode"
 }
 
-# .what = one arg as a shell word a human can read and paste: bare when plain,
-#         else in single quotes (an inner ' closes, escapes, and reopens)
-# .why  = printf %q pastes, yet reads as `feat\(reef\):\ map`; a hint is for a human
-as_shell_word() {
-  local arg="$1" q="'"
-  if [[ "$arg" =~ ^[A-Za-z0-9_./:@=+,%-]+$ ]]; then
-    printf '%s' "$arg"
-    return 0
-  fi
-  printf "'%s'" "${arg//$q/$q\\$q$q}"
-}
-
 # .what = render one refusal: a header, detail leaves, then a 🥥 hint with the fixes
 # .why  = every refusal of the family shares this one shape. under --output json,
 #         stdout gets one json object and stderr the tree, so a json caller parses
@@ -325,6 +317,16 @@ check_auth_arg() {
   is_arg_in_enum "$1" "${AUTH_VALID_VALUES[@]}" || fail_comment_constraint "--auth must be $(get_enum_choice_list "${AUTH_VALID_VALUES[@]}"), got '$1'" "--auth $AUTH_DEFAULT (the default)"
 }
 
+# .what = check --promise, when given: only the public-repo text promise
+# .why  = a typo or another skill's promise must never pass as this one; the
+#         refusal names the one value, before any gh call
+check_promise_arg() {
+  local promise="$1"
+  [[ -z "$promise" ]] && return 0
+  is_promise_text_public "$promise" || fail_comment_constraint "--promise must be '$PROMISE_TEXT_PUBLIC', got '$promise'" \
+    "--promise $PROMISE_TEXT_PUBLIC   # once the text holds naught private"
+}
+
 ######################################################################
 # repo: derive from git, then fence — both before any gh call
 ######################################################################
@@ -338,16 +340,6 @@ get_git_origin_url() {
   [[ "$rc" == "0" || "$rc" == "1" ]] || fail_comment_malfunction "git config could not read remote.origin.url" "exit: $rc" \
     "rerun with --in <owner/name>, which skips the origin read"
   printf '%s' "$url"
-}
-
-# .what = owner/name from a github remote url, or empty
-# .why  = ssh, ssh://, and https remotes all name one repo
-as_repo_slug_from_remote_url() {
-  local url="$1" repo=""
-  [[ "$url" =~ ^git@github\.com:([^/]+/[^/]+)$ ]] && repo="${BASH_REMATCH[1]}"
-  [[ "$url" =~ ^ssh://git@github\.com/([^/]+/[^/]+)$ ]] && repo="${BASH_REMATCH[1]}"
-  [[ "$url" =~ ^https://([^@/]+@)?github\.com/([^/]+/[^/]+)$ ]] && repo="${BASH_REMATCH[2]}"
-  echo "${repo%.git}"
 }
 
 # .what = the home orgs of this machine: each ~/git/<org>/ dir that holds a
@@ -637,6 +629,101 @@ del_one_gh_resource() {
   [[ "$rc" == "0" ]] && return 0
   is_gh_not_found "$detail" && return 3
   fail_gh_call "DELETE $endpoint" "$detail"
+}
+
+# .what = set REPO_VISIBILITY (public | private | internal | unreadable) of
+#         COMMENT_REPO, and REPO_VISIBILITY_CAUSE when the read failed
+# .why  = the text promise gate decides on it. any failure (network, auth,
+#         404) cannot prove the repo private, so it reads unreadable, which
+#         the gate holds as public; the cause rides the nudge, never hidden
+# .note = a global, never a $(...) capture, so both values survive the call
+REPO_VISIBILITY=""
+REPO_VISIBILITY_CAUSE=""
+set_repo_visibility() {
+  local err out rc=0
+  err="$(mktemp)"
+  out="$(run_gh_as_auth api --method GET "repos/$COMMENT_REPO" --jq '.visibility' 2>"$err")" || rc=$?
+  REPO_VISIBILITY_CAUSE="$(head -n 1 "$err")"
+  rm -f "$err"
+  [[ "$rc" == "0" ]] || out=""
+  REPO_VISIBILITY="$(as_repo_visibility "$out")"
+  [[ "$rc" == "0" && "$REPO_VISIBILITY" == "unreadable" ]] && REPO_VISIBILITY_CAUSE="github answered no visibility"
+  return 0
+}
+
+# .what = hold a write of text into a public repo until the caller promises
+#         the text is anonymized; a private or internal repo passes
+# .why  = once sent, an edit keeps the original in the public history, so the
+#         one safe moment to check is before the send. a promise skips the
+#         read: with it, every visibility leads to the same write
+# .note = subject = the phrase for the text this skill sends (e.g. "the comment
+#         holds"). exits 2 with the nudge on both streams; under --output json,
+#         stdout holds the family's refusal object
+# .note = keep_path + keep_text: a spent @stdin text the rerun pipes back in. it
+#         is written only on the held branch, so the printed `cat <path> |` reads
+#         the exact text held, never a stale file; a passed gate writes naught
+# usage: check_text_promise promise="<--promise value>" subject="..." rerun="<line>" [keep_path=<file> keep_text="<text>"]
+check_text_promise() {
+  local promise="" subject="" rerun="" keep_path="" keep_text="" block cause="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      promise=*) promise="${arg#promise=}" ;;
+      subject=*) subject="${arg#subject=}" ;;
+      rerun=*) rerun="${arg#rerun=}" ;;
+      keep_path=*) keep_path="${arg#keep_path=}" ;;
+      keep_text=*) keep_text="${arg#keep_text=}" ;;
+    esac
+  done
+  # only the one value passes; the leaf holds that line itself, not each caller
+  is_promise_text_public "$promise" && return 0
+  [[ -z "$promise" ]] || check_promise_arg "$promise"
+  set_repo_visibility
+  is_repo_visibility_ungated "$REPO_VISIBILITY" && return 0
+
+  # held: keep the text the rerun pipes back in
+  if [[ -n "$keep_path" ]]; then
+    mkdir -p "$(dirname "$keep_path")"
+    printf '%s\n' "$keep_text" | tee "$keep_path" >/dev/null
+  fi
+
+  block="$(as_promise_nudge repo="$COMMENT_REPO" visibility="$REPO_VISIBILITY" \
+    subject="$subject" rerun="$rerun" cause="$REPO_VISIBILITY_CAUSE")"
+  if [[ "$COMMENT_OUTPUT" != "json" ]]; then
+    emit_both "$block" >&3
+    exit 2
+  fi
+  printf '%s\n' "$block" >&2
+  # the json details read as the tree's repo line does: one label, and the cause of an unreadable read
+  [[ "$REPO_VISIBILITY" == "public" ]] || cause="$REPO_VISIBILITY_CAUSE"
+  as_comment_promise_refusal_json repo="$COMMENT_REPO" \
+    visibility_label="$(as_repo_visibility_label "$REPO_VISIBILITY")" cause="$cause" fix="$rerun" >&3
+  exit 2
+}
+
+# .what = the comment family's json refusal for a held public-repo write
+# .why  = the family's refusal shape (`emit_comment_refusal`): class, message,
+#         details (the repo line, plus the cause of an unreadable read), fixes
+# .note = `label` is a jq keyword, so the jq arg is named `visibility_label`
+# usage: as_comment_promise_refusal_json repo= visibility_label= [cause=] fix=
+as_comment_promise_refusal_json() {
+  local repo="" visibility_label="" cause="" fix="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      repo=*) repo="${arg#repo=}" ;;
+      visibility_label=*) visibility_label="${arg#visibility_label=}" ;;
+      cause=*) cause="${arg#cause=}" ;;
+      fix=*) fix="${arg#fix=}" ;;
+    esac
+  done
+  jq -n --arg repo "$repo" --arg visibility_label "$visibility_label" \
+    --arg cause "$cause" --arg fix "$fix" '{
+    error: {
+      class: "ConstraintError",
+      message: "this text goes to a public repo; check it holds naught private, then rerun with the promise",
+      details: (["repo: \($repo) (\($visibility_label))"] + (if $cause == "" then [] else ["cause: \($cause)"] end)),
+      fixes: [$fix]
+    }
+  }'
 }
 
 # .what = set COMMENT_LOGIN to the current credential's login

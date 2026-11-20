@@ -28,7 +28,7 @@ options:
   --output tree|json           the output shape (default: tree)
   --help, -h                   show this help
 ",
-  "set": "usage: git.pull.comment.set (--key <k> [--reply-to <id>] | --id <id> --kind issue|review) --from <path|@stdin> [--which <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
+  "set": "usage: git.pull.comment.set (--key <k> [--reply-to <id>] | --id <id> --kind issue|review) --from <path|@stdin> [--which <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json] [--promise text-to-public-repo-is-anonymized]
 
 options:
   --key <k>                    a top-level comment, upserted by key: absent → post, differs → edit, same → no-op
@@ -40,6 +40,12 @@ options:
   --mode plan|apply            plan shows preview, apply writes and reads back (default: plan)
   --auth as-ehmpath|as-human   who writes (default: as-ehmpath)
   --output tree|json           the output shape (default: tree)
+  --promise text-to-public-repo-is-anonymized
+                               owed on a write into a public repo: you checked the
+                               comment holds no private org, repo, route, pr or
+                               issue number, internal name, or business detail.
+                               absent, a public write halts with a nudge (exit 2);
+                               a private or internal repo needs none
   --help, -h                   show this help
 ",
 }
