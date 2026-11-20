@@ -272,9 +272,20 @@ source "$SCRIPT_DIR/../git/git.promise.operations.sh"
 # the caller's argv, kept whole: the push nudge's rerun line names the exact command
 ORIG_ARGS=("$@")
 
+# .what = fill SET_RERUN_ARGS with the given argv, its -m / --message value swapped for @stdin
+# .why  = a held message reruns from its kept file, piped in; the rerun line names @stdin
+set_rerun_args_with_message_via_stdin() {
+  local arg swap=false
+  SET_RERUN_ARGS=()
+  for arg in "$@"; do
+    [[ "$swap" == true ]] && { SET_RERUN_ARGS+=("@stdin"); swap=false; continue; }
+    [[ "$arg" == "-m" || "$arg" == "--message" ]] && swap=true
+    SET_RERUN_ARGS+=("$arg")
+  done
+}
+
 # parse arguments
 MESSAGE=""
-MESSAGE_FROM_STDIN=false
 DO_PUSH=false
 UNSTAGED=""
 MODE="plan"
@@ -296,7 +307,6 @@ while [[ $# -gt 0 ]]; do
         if [[ "$1" == "@stdin" ]]; then
           # read message from stdin
           MESSAGE=$(cat)
-          MESSAGE_FROM_STDIN=true
         else
           MESSAGE="$1"
         fi
@@ -356,7 +366,7 @@ while [[ $# -gt 0 ]]; do
       PROMISES+=("$PROMISE_VALUE")
       ;;
     --help|-h)
-      echo "usage: echo 'header\n\n- body' | git.commit.set -m @stdin [--mode plan|apply] [--push] [--auth as-ehmpath|as-human]"
+      echo "usage: echo 'header\n\n- body' | git.commit.set -m @stdin [--mode plan|apply] [--push] [--auth as-ehmpath|as-human] [--promise $PROMISE_TEXT_PUBLIC]"
       echo ""
       echo "options:"
       echo "  --message, -m @stdin   read multiline commit message from stdin (required)"
@@ -1085,17 +1095,25 @@ IFS=$'\t' read -r ROBOT_NAME ROBOT_EMAIL < <(get_one_seaturtle_identity "$ROBOT_
 # stage or commit: the commit messages become public text once pushed (F1, F6).
 # the promise skips the read; the caller already checked the text (F5)
 if [[ "$DO_PUSH" == true && "$PROMISE_TEXT_PUBLIC_GIVEN" != true ]]; then
-  # a message piped via @stdin is spent once read, so the rerun pipes it again
-  SET_RERUN_PIPE=""
-  SET_RERUN_NOTE=""
-  if [[ "$MESSAGE_FROM_STDIN" == true ]]; then
-    SET_RERUN_PIPE="cat ./.temp/commit.md | "
-    SET_RERUN_NOTE="   # pipe the same message in again"
-  fi
+  # a held gate keeps the message at ./.temp/commit.<sha8>.md, named by its own
+  # digest so two held runs never share a file, and its rerun pipes it from there
+  # via -m @stdin: a piped message is spent once read, and a multiline -m literal
+  # echoed back would break the nudge's tree. the printed line runs as is, and the
+  # caller may edit the file first. the work guards below skip these scratch
+  # files, so the kept file never trips them, in any repo. a passed gate writes naught
+  SET_KEEP_PATH="$(as_text_keep_path name=commit text="$MESSAGE")"
+  SET_RERUN_PIPE="cat $SET_KEEP_PATH | "
+  SET_RERUN_NOTE="   # the held message, kept in $SET_KEEP_PATH"
+  set_rerun_args_with_message_via_stdin "${ORIG_ARGS[@]}"
   guard_push_text_promised \
-    auth="$AUTH" token="$ROBOT_TOKEN" output=tree \
-    rerun="$(as_cmd_with_promise_text_public cmd="$(as_shell_cmd_without_passthrough "rhx git.commit.set" "${ORIG_ARGS[@]}")" pipe="$SET_RERUN_PIPE" note="$SET_RERUN_NOTE")"
+    auth="$AUTH" token="$ROBOT_TOKEN" token_cause="$(printf '%s' "${TOKEN_FETCH_ERR:-}" | head -n 1)" output=tree \
+    keep_path="$SET_KEEP_PATH" keep_text="$MESSAGE" \
+    rerun="$(as_cmd_with_promise_text_public cmd="$(as_shell_cmd_without_passthrough "rhx git.commit.set" "${SET_RERUN_ARGS[@]}")" pipe="$SET_RERUN_PIPE" note="$SET_RERUN_NOTE")"
 fi
+
+# the promise gate's scratch (a held @stdin message, kept for its rerun) is no
+# work of the caller: every untracked read and the include-stage skip it
+SET_SCRATCH_EXCLUDE=':(top,exclude,glob)**/.temp/commit.*.md'
 
 # detect work outside the index (unstaged mods + untracked files)
 HAS_UNSTAGED_MODS=false
@@ -1103,7 +1121,7 @@ HAS_UNTRACKED=false
 if ! git diff --quiet; then
   HAS_UNSTAGED_MODS=true
 fi
-if [[ -n "$(git ls-files --others --exclude-standard)" ]]; then
+if [[ -n "$(git ls-files --others --exclude-standard -- "$SET_SCRATCH_EXCLUDE")" ]]; then
   HAS_UNTRACKED=true
 fi
 
@@ -1114,7 +1132,7 @@ if [[ "$HAS_UNSTAGED_MODS" == true || "$HAS_UNTRACKED" == true ]]; then
     WILL_INCLUDE_UNSTAGED=true
     # only actually add in apply mode
     if [[ "$MODE" == "apply" ]]; then
-      git add -A
+      git add -A -- ':/' "$SET_SCRATCH_EXCLUDE"
     fi
   elif [[ "$UNSTAGED" == "ignore" ]]; then
     : # proceed with only staged changes
@@ -1126,7 +1144,7 @@ if [[ "$HAS_UNSTAGED_MODS" == true || "$HAS_UNTRACKED" == true ]]; then
       echo ""
       echo "unstaged files:"
       git diff --name-only | while read -r f; do echo "  $f"; done
-      git ls-files --others --exclude-standard | while read -r f; do echo "  $f (untracked)"; done
+      git ls-files --others --exclude-standard -- "$SET_SCRATCH_EXCLUDE" | while read -r f; do echo "  $f (untracked)"; done
       echo ""
       echo "either:"
       echo "  1. stage the changes you want to commit"
@@ -1147,7 +1165,7 @@ if [[ "$WILL_INCLUDE_UNSTAGED" == false ]]; then
   fi
 else
   # in plan mode with --unstaged include, check that there ARE changes to include
-  if git diff --cached --quiet && git diff --quiet && [[ -z "$(git ls-files --others --exclude-standard)" ]]; then
+  if git diff --cached --quiet && git diff --quiet && [[ -z "$(git ls-files --others --exclude-standard -- "$SET_SCRATCH_EXCLUDE")" ]]; then
     NO_CHANGES_ERR="✋ ConstraintError: no changes to commit"
     echo "$NO_CHANGES_ERR"
     echo "$NO_CHANGES_ERR" >&2
@@ -1170,7 +1188,7 @@ PUSH_DISPLAY="held"
 
 # collect staged files for output
 if [[ "$WILL_INCLUDE_UNSTAGED" == true ]]; then
-  STAGED_FILES=$(git diff --cached --name-only; git diff --name-only; git ls-files --others --exclude-standard)
+  STAGED_FILES=$(git diff --cached --name-only; git diff --name-only; git ls-files --others --exclude-standard -- "$SET_SCRATCH_EXCLUDE")
 else
   STAGED_FILES=$(git diff --cached --name-only)
 fi

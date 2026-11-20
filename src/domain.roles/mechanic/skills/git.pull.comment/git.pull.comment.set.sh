@@ -16,8 +16,7 @@
 #   - plan by default; apply reads back + hash-checks
 #   - refuses a new comment with no --key, a foreign or twin key (exit 2)
 #   - refuses the pr description; it is no comment
-#   - into a public repo, holds the write with a nudge until --promise
-#     text-to-public-repo-is-anonymized; a private or internal repo passes
+#   - a public repo holds until --promise text-to-public-repo-is-anonymized
 ######################################################################
 set -euo pipefail
 
@@ -333,8 +332,13 @@ fi
 # hold a write into a public repo until the caller promises the text is anonymized;
 # plan too, so the nudge shows before apply. a no-op above sends no text, so it passes
 STDIN_PIPE=""
-[[ "$FROM" == "@stdin" ]] && STDIN_PIPE="cat ./.temp/reply.md | "
+# a held @stdin text is kept at a path named by its own digest, so the rerun
+# pipes back this exact text, never another held run's
+KEEP_PATH=""
+KEEP_TEXT="$(cat "$WORK/text.md")"
+[[ "$FROM" == "@stdin" ]] && KEEP_PATH="$(as_text_keep_path name=reply text="$KEEP_TEXT")" && STDIN_PIPE="cat $KEEP_PATH | "
 check_text_promise promise="$PROMISE" subject="the comment holds" \
+  keep_path="$KEEP_PATH" keep_text="$KEEP_TEXT" \
   rerun="$(as_cmd_with_promise_text_public cmd="$(as_comment_cmd_in_mode set "$MODE" "${ORIG_ARGS[@]}")" pipe="$STDIN_PIPE" note="$STDIN_NOTE")"
 
 # plan: say what would happen, write naught

@@ -5957,6 +5957,12 @@ exec /usr/bin/git "$@"
       /**
        * .what = a gh stub that logs each call and answers `repo view` with a visibility
        * .mock = gh: github cannot be set public or private on demand per case
+       * .why  = each case needs a fixed visibility; a real repo holds one, and a
+       *        push to it would publish the fixture's commit
+       * .real = external.contracts.integration.test.ts [case4] runs this read form
+       *        through the real gh: no credential and a revoked token each read
+       *        unreadable, so the gate holds. the positive read waits on a ci test
+       *        token (.dream/2026_11_18.real-visibility-read-with-a-ci-token.dream.md)
        */
       const genFakeGh = (input: { visibility: string }) => {
         const fakeBinDir = genTempDir({
@@ -6017,10 +6023,27 @@ exit 1`,
             expect(result.stderr).toContain(
               '🐢 hold up — this text goes to a public repo',
             );
-            expect(result.stdout).toContain(
-              `cat ./.temp/commit.md | rhx git.commit.set -m @stdin --mode apply --push --auth as-human --promise ${PROMISE}   # pipe the same message in again`,
+            expect(result.stdout).toMatch(
+              new RegExp(
+                `cat \\./\\.temp/commit\\.[0-9a-f]{8}\\.md \\| rhx git\\.commit\\.set -m @stdin --mode apply --push --auth as-human --promise ${PROMISE}   # the held message, kept in \\./\\.temp/commit\\.[0-9a-f]{8}\\.md`,
+              ),
             );
             expect(result.stdout).toMatchSnapshot();
+          },
+        );
+        then(
+          'the held message waits in one file, named by its own digest, which the rerun pipes',
+          () => {
+            const kept = fs
+              .readdirSync(path.join(result.tempDir, '.temp'))
+              .filter((name) => /^commit\.[0-9a-f]{8}\.md$/.test(name));
+            expect(kept).toHaveLength(1);
+            expect(result.stdout).toContain(`cat ./.temp/${kept[0]} |`);
+            const held = fs.readFileSync(
+              path.join(result.tempDir, '.temp', kept[0]!),
+              'utf-8',
+            );
+            expect(held.trim()).toEqual(MESSAGE.trim());
           },
         );
         then(
@@ -6106,6 +6129,33 @@ exit 1`,
             expect(result.stdout).toContain(
               `--push --auth as-human --promise ${PROMISE}`,
             );
+            expect(result.stdout).toMatchSnapshot();
+          },
+        );
+        then(
+          'the -m literal is kept and piped, so the rerun stays one line in the tree',
+          () => {
+            expect(result.stdout).toMatch(
+              new RegExp(
+                `cat \\./\\.temp/commit\\.[0-9a-f]{8}\\.md \\| rhx git\\.commit\\.set -m @stdin --push --auth as-human --promise ${PROMISE}`,
+              ),
+            );
+            // every line after the header sits inside the tree
+            const linesOutOfTree = result.stdout
+              .trimEnd()
+              .split('\n')
+              .slice(1)
+              .filter((line) => !line.startsWith('   '));
+            expect(linesOutOfTree).toEqual([]);
+            const kept = fs
+              .readdirSync(path.join(result.tempDir, '.temp'))
+              .filter((name) => /^commit\.[0-9a-f]{8}\.md$/.test(name));
+            expect(kept).toHaveLength(1);
+            const held = fs.readFileSync(
+              path.join(result.tempDir, '.temp', kept[0]!),
+              'utf-8',
+            );
+            expect(held.trim()).toEqual(MESSAGE.trim());
           },
         );
       });
@@ -6129,6 +6179,121 @@ exit 1`,
           ).toHaveLength(1);
         });
       });
+
+      when(
+        '[t8] plan --push via @stdin with no promise into a private repo',
+        () => {
+          const gh = genFakeGh({ visibility: 'PRIVATE' });
+          const result = useThen('it runs', async () =>
+            runInTempGitRepo({
+              files: { 'reef.txt': 'kelp' },
+              meterState: { uses: 3, push: 'allow' },
+              commitArgs: ['-m', '@stdin', '--push', '--auth', 'as-human'],
+              stdin: MESSAGE,
+              env: gh.env,
+              promise: 'absent',
+            }),
+          );
+          then(
+            'it plans as today: the passed gate keeps no scratch, so the unstaged guard sees none',
+            () => {
+              expect(result.exitCode).toBe(0);
+              expect(result.stdout).not.toContain('hold up');
+              expect(result.stdout).not.toContain('unstaged');
+              const tempDirKept = path.join(result.tempDir, '.temp');
+              const kept = fs.existsSync(tempDirKept)
+                ? fs
+                    .readdirSync(tempDirKept)
+                    .filter((name) => name.startsWith('commit.'))
+                : [];
+              expect(kept).toEqual([]);
+            },
+          );
+        },
+      );
+
+      when(
+        '[t9] the promised rerun, beside the held message it kept, in a repo that does not ignore .temp',
+        () => {
+          const gh = genFakeGh({ visibility: 'PUBLIC' });
+          const result = useThen('it runs', async () =>
+            runInTempGitRepo({
+              files: { 'reef.txt': 'kelp' },
+              filesUnstaged: { '.temp/commit.0a1b2c3d.md': MESSAGE },
+              meterState: { uses: 3, push: 'allow' },
+              commitArgs: ['-m', '@stdin', '--push', '--auth', 'as-human'],
+              stdin: MESSAGE,
+              env: gh.env,
+              promise: 'given',
+            }),
+          );
+          then(
+            'the kept file is no work of the caller: the unstaged guard skips it, and the plan runs',
+            () => {
+              expect(result.exitCode).toBe(0);
+              expect(result.stdout).not.toContain('unstaged changes detected');
+              expect(result.stdout).not.toContain('.temp/commit.');
+            },
+          );
+        },
+      );
+
+      when('[t10] plan --push with no promise into an internal repo', () => {
+        const gh = genFakeGh({ visibility: 'INTERNAL' });
+        const result = useThen('it runs', async () =>
+          runInTempGitRepo({
+            files: { 'reef.txt': 'kelp' },
+            meterState: { uses: 3, push: 'allow' },
+            commitArgs: ['-m', MESSAGE, '--push', '--auth', 'as-human'],
+            env: gh.env,
+            promise: 'absent',
+          }),
+        );
+        then('it plans as today, with no nudge', () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).not.toContain('hold up');
+        });
+      });
+
+      when(
+        '[t11] apply --push with no promise, and github answers no visibility',
+        () => {
+          const gh = genFakeGh({ visibility: '' });
+          const result = useThen('it runs', async () =>
+            runInTempGitRepo({
+              files: { 'reef.txt': 'kelp' },
+              meterState: { uses: 3, push: 'allow' },
+              commitArgs: [
+                '-m',
+                MESSAGE,
+                '--mode',
+                'apply',
+                '--push',
+                '--auth',
+                'as-human',
+              ],
+              env: gh.env,
+              promise: 'absent',
+            }),
+          );
+          then(
+            'it holds the repo as public, with the cause, before any commit',
+            () => {
+              expect(result.exitCode).toBe(2);
+              expect(result.stdout).toContain(
+                '(visibility unreadable, held as public)',
+              );
+              expect(result.stdout).toContain(
+                'cause: github answered no visibility',
+              );
+              expect(getHeadSubject(result.tempDir)).not.toEqual(
+                'fix(reef): map the kelp beds',
+              );
+              expect(result.stdout).toMatchSnapshot();
+            },
+          );
+        },
+      );
 
       when('[t4] a feat on a no-level branch, with both promises', () => {
         const gh = genFakeGh({ visibility: 'PUBLIC' });
@@ -6172,6 +6337,7 @@ exit 1`,
           expect(result.stdout).toContain(
             `--promise must be 'is-netnew-behavior' or '${PROMISE}'`,
           );
+          expect(result.stdout).toMatchSnapshot();
           expect(gh.getCalls()).toEqual([]);
         });
       });

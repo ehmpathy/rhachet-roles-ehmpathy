@@ -1,4 +1,5 @@
 import { spawnSync } from 'child_process';
+import { createHash } from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import { given, then, useThen, when } from 'test-fns';
@@ -1201,6 +1202,14 @@ describe('git.pull.description', () => {
       const PROMISE = 'text-to-public-repo-is-anonymized';
       const BODY_NEW =
         '## .what\n\nbook a surf lesson at the reef, with a tide chart';
+      // .what = the path a held body is kept at: named by the body's own digest
+      const KEEP_PATH = `./.temp/body.${createHash('sha256').update(BODY_NEW).digest('hex').slice(0, 8)}.md`;
+      const getKeptBodies = (dir: string) =>
+        fs.existsSync(path.join(dir, '.temp'))
+          ? fs
+              .readdirSync(path.join(dir, '.temp'))
+              .filter((file) => file.startsWith('body.'))
+          : [];
       const SCENE_PUBLIC = {
         ...PULL_SCENE_BARE,
         store: { visibility: 'public' as const },
@@ -1228,17 +1237,28 @@ describe('git.pull.description', () => {
             '🐢 hold up — this text goes to a public repo',
           );
           expect(result.stdout).toContain(
-            'check the description holds none of:',
+            'check the description holds none of',
           );
           expect(result.stderr).toContain(
             '🐢 hold up — this text goes to a public repo',
           );
           expect(result.stdout).toContain(
-            `rhx git.pull.description.set --from @stdin --mode apply --promise ${PROMISE}`,
+            `cat ${KEEP_PATH} | rhx git.pull.description.set --from @stdin --mode apply --promise ${PROMISE}`,
           );
           expect(result.stdout).toMatchSnapshot();
           expect(scene.getWrites()).toHaveLength(0);
         });
+        then(
+          'the held body waits in one file named by its digest, which the rerun pipes',
+          () => {
+            expect(getKeptBodies(scene.tempDir)).toHaveLength(1);
+            const held = fs.readFileSync(
+              path.join(scene.tempDir, KEEP_PATH),
+              'utf-8',
+            );
+            expect(held.trim()).toEqual(BODY_NEW);
+          },
+        );
       });
 
       when('[t1] apply with the promise', () => {
@@ -1268,6 +1288,7 @@ describe('git.pull.description', () => {
           expect(result.stdout).toContain(
             '🐢 hold up — this text goes to a public repo',
           );
+          expect(result.stdout).toMatchSnapshot();
           expect(scene.getWrites()).toHaveLength(0);
         });
       });
@@ -1280,9 +1301,10 @@ describe('git.pull.description', () => {
         const result = useThen('it runs', async () =>
           runSet(scene, ['--mode', 'apply']),
         );
-        then('it writes as today', () => {
+        then('it writes as today, and keeps no scratch body', () => {
           expect(result.exitCode).toBe(0);
           expect(scene.getWrites()).toHaveLength(1);
+          expect(getKeptBodies(scene.tempDir)).toEqual([]);
         });
       });
 
@@ -1300,6 +1322,7 @@ describe('git.pull.description', () => {
             '(visibility unreadable, held as public)',
           );
           expect(result.stdout).toContain('cause: gh: Bad Gateway (HTTP 502)');
+          expect(result.stdout).toMatchSnapshot();
           expect(scene.getWrites()).toHaveLength(0);
         });
       });
@@ -1311,9 +1334,32 @@ describe('git.pull.description', () => {
         );
         then('it is refused before any gh call', () => {
           expect(result.exitCode).toBe(2);
-          expect(result.stdout).toContain(`--promise must be ${PROMISE}`);
+          expect(result.stdout).toContain(`--promise must be '${PROMISE}'`);
+          expect(result.stdout).toMatchSnapshot();
           expect(scene.getCalls()).toHaveLength(0);
         });
+      });
+
+      when('[t8] a held run, then the promised plan of its rerun', () => {
+        const scene = genGitPullScene(SCENE_PUBLIC);
+        const result = useThen('it runs', async () => {
+          const held = runSet(scene, []);
+          const plan = runSet(scene, ['--mode', 'plan', '--promise', PROMISE]);
+          return { held, plan };
+        });
+        then(
+          'the apply hint pipes the kept file, which holds this exact body',
+          () => {
+            expect(result.held.exitCode).toBe(2);
+            expect(result.plan.exitCode).toBe(0);
+            expect(result.plan.stdout).toContain('(plan)');
+            expect(result.plan.stdout).toContain(
+              `cat ${KEEP_PATH} | rhx git.pull.description.set --from @stdin --promise ${PROMISE} --mode apply   # pipe the same body in again`,
+            );
+            expect(scene.getWrites()).toHaveLength(0);
+            expect(result.plan.stdout).toMatchSnapshot();
+          },
+        );
       });
 
       when('[t6] set --help', () => {
@@ -1324,6 +1370,27 @@ describe('git.pull.description', () => {
         then('the help names the promise', () => {
           expect(result.exitCode).toBe(0);
           expect(result.stdout).toContain(`--promise ${PROMISE}`);
+        });
+      });
+
+      when('[t7] apply --output json with no promise', () => {
+        const scene = genGitPullScene(SCENE_PUBLIC);
+        const result = useThen('it runs', async () =>
+          runSet(scene, ['--mode', 'apply', '--output', 'json']),
+        );
+        then('it exits 2 with a json refusal that names the rerun', () => {
+          expect(result.exitCode).toBe(2);
+          const refusal = JSON.parse(result.stdout);
+          expect(refusal.error.class).toEqual('ConstraintError');
+          expect(refusal.error.details).toEqual([
+            'repo: ehmpathy/surf-demo (public)',
+          ]);
+          expect(refusal.error.fixes).toEqual([
+            `cat ${KEEP_PATH} | rhx git.pull.description.set --from @stdin --output json --mode apply --promise ${PROMISE}   # pipe the same body in again`,
+          ]);
+          // the parsed object, as title and comment snap the same refusal
+          expect(refusal).toMatchSnapshot();
+          expect(scene.getWrites()).toHaveLength(0);
         });
       });
     },

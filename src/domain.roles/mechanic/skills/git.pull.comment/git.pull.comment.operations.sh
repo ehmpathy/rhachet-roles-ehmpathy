@@ -323,7 +323,7 @@ check_auth_arg() {
 check_promise_arg() {
   local promise="$1"
   [[ -z "$promise" ]] && return 0
-  is_promise_text_public "$promise" || fail_comment_constraint "--promise must be $PROMISE_TEXT_PUBLIC, got '$promise'" \
+  is_promise_text_public "$promise" || fail_comment_constraint "--promise must be '$PROMISE_TEXT_PUBLIC', got '$promise'" \
     "--promise $PROMISE_TEXT_PUBLIC   # once the text holds naught private"
 }
 
@@ -659,19 +659,33 @@ set_repo_visibility() {
 # .note = subject = the phrase for the text this skill sends (e.g. "the comment
 #         holds"). exits 2 with the nudge on both streams; under --output json,
 #         stdout holds the family's refusal object
-# usage: check_text_promise promise="<--promise value>" subject="..." rerun="<line>"
+# .note = keep_path + keep_text: a spent @stdin text the rerun pipes back in. it
+#         is written only on the held branch, so the printed `cat <path> |` reads
+#         the exact text held, never a stale file; a passed gate writes naught
+# usage: check_text_promise promise="<--promise value>" subject="..." rerun="<line>" [keep_path=<file> keep_text="<text>"]
 check_text_promise() {
-  local promise="" subject="" rerun="" block cause="" arg
+  local promise="" subject="" rerun="" keep_path="" keep_text="" block cause="" arg
   for arg in "$@"; do
     case "$arg" in
       promise=*) promise="${arg#promise=}" ;;
       subject=*) subject="${arg#subject=}" ;;
       rerun=*) rerun="${arg#rerun=}" ;;
+      keep_path=*) keep_path="${arg#keep_path=}" ;;
+      keep_text=*) keep_text="${arg#keep_text=}" ;;
     esac
   done
-  [[ -n "$promise" ]] && return 0
+  # only the one value passes; the leaf holds that line itself, not each caller
+  is_promise_text_public "$promise" && return 0
+  [[ -z "$promise" ]] || check_promise_arg "$promise"
   set_repo_visibility
   is_repo_visibility_ungated "$REPO_VISIBILITY" && return 0
+
+  # held: keep the text the rerun pipes back in
+  if [[ -n "$keep_path" ]]; then
+    mkdir -p "$(dirname "$keep_path")"
+    printf '%s\n' "$keep_text" | tee "$keep_path" >/dev/null
+  fi
+
   block="$(as_promise_nudge repo="$COMMENT_REPO" visibility="$REPO_VISIBILITY" \
     subject="$subject" rerun="$rerun" cause="$REPO_VISIBILITY_CAUSE")"
   if [[ "$COMMENT_OUTPUT" != "json" ]]; then
@@ -681,17 +695,35 @@ check_text_promise() {
   printf '%s\n' "$block" >&2
   # the json details read as the tree's repo line does: one label, and the cause of an unreadable read
   [[ "$REPO_VISIBILITY" == "public" ]] || cause="$REPO_VISIBILITY_CAUSE"
-  # .note = `label` is a jq keyword, so the arg is named `visibility_label`
-  jq -n --arg repo "$COMMENT_REPO" --arg visibility_label "$(as_repo_visibility_label "$REPO_VISIBILITY")" \
-    --arg cause "$cause" --arg fix "$rerun" '{
+  as_comment_promise_refusal_json repo="$COMMENT_REPO" \
+    visibility_label="$(as_repo_visibility_label "$REPO_VISIBILITY")" cause="$cause" fix="$rerun" >&3
+  exit 2
+}
+
+# .what = the comment family's json refusal for a held public-repo write
+# .why  = the family's refusal shape (`emit_comment_refusal`): class, message,
+#         details (the repo line, plus the cause of an unreadable read), fixes
+# .note = `label` is a jq keyword, so the jq arg is named `visibility_label`
+# usage: as_comment_promise_refusal_json repo= visibility_label= [cause=] fix=
+as_comment_promise_refusal_json() {
+  local repo="" visibility_label="" cause="" fix="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      repo=*) repo="${arg#repo=}" ;;
+      visibility_label=*) visibility_label="${arg#visibility_label=}" ;;
+      cause=*) cause="${arg#cause=}" ;;
+      fix=*) fix="${arg#fix=}" ;;
+    esac
+  done
+  jq -n --arg repo "$repo" --arg visibility_label "$visibility_label" \
+    --arg cause "$cause" --arg fix "$fix" '{
     error: {
       class: "ConstraintError",
       message: "this text goes to a public repo; check it holds naught private, then rerun with the promise",
       details: (["repo: \($repo) (\($visibility_label))"] + (if $cause == "" then [] else ["cause: \($cause)"] end)),
       fixes: [$fix]
     }
-  }' >&3
-  exit 2
+  }'
 }
 
 # .what = set COMMENT_LOGIN to the current credential's login

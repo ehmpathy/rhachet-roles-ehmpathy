@@ -1,4 +1,5 @@
 import { spawnSync } from 'child_process';
+import { createHash } from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import { given, then, useThen, when } from 'test-fns';
@@ -670,6 +671,16 @@ describe('git.pull.title', () => {
     '[case30] a title set into a public repo waits on the anonymized promise',
     () => {
       const PROMISE = 'text-to-public-repo-is-anonymized';
+      // .what = the path a held text is kept at: named by the text's own digest
+      const asKeepPath = (name: string, text: string) =>
+        `./.temp/${name}.${createHash('sha256').update(text).digest('hex').slice(0, 8)}.md`;
+      // .what = the held-text files of one kind in a scene's .temp
+      const getKeptFiles = (dir: string, name: string) =>
+        fs.existsSync(path.join(dir, '.temp'))
+          ? fs
+              .readdirSync(path.join(dir, '.temp'))
+              .filter((file) => file.startsWith(`${name}.`))
+          : [];
       const SCENE_PUBLIC = {
         ...PULL_SCENE_BARE,
         store: { visibility: 'public' as const },
@@ -693,12 +704,12 @@ describe('git.pull.title', () => {
           expect(result.stdout).toContain(
             '🐢 hold up — this text goes to a public repo',
           );
-          expect(result.stdout).toContain('check the title holds none of:');
+          expect(result.stdout).toContain('check the title holds none of');
           expect(result.stderr).toContain(
             '🐢 hold up — this text goes to a public repo',
           );
           expect(result.stdout).toContain(
-            `cat ./.temp/title.md | rhx git.pull.title.set --from @stdin --mode apply --promise ${PROMISE}   # pipe the same title in again`,
+            `cat ${asKeepPath('title', TITLE_NEW)} | rhx git.pull.title.set --from @stdin --mode apply --promise ${PROMISE}   # pipe the same title in again`,
           );
           expect(result.stdout).toMatchSnapshot();
           expect(scene.getWrites()).toHaveLength(0);
@@ -706,6 +717,17 @@ describe('git.pull.title', () => {
             'feat(lessons): book a surf lesson',
           );
         });
+        then(
+          'the held title waits in one file named by its digest, which the rerun pipes',
+          () => {
+            expect(getKeptFiles(scene.tempDir, 'title')).toHaveLength(1);
+            const held = fs.readFileSync(
+              path.join(scene.tempDir, asKeepPath('title', TITLE_NEW)),
+              'utf-8',
+            );
+            expect(held.trim()).toEqual(TITLE_NEW);
+          },
+        );
       });
 
       when('[t1] apply with the promise', () => {
@@ -734,6 +756,7 @@ describe('git.pull.title', () => {
           expect(result.stdout).toContain(
             '🐢 hold up — this text goes to a public repo',
           );
+          expect(result.stdout).toMatchSnapshot();
           expect(scene.getWrites()).toHaveLength(0);
         });
       });
@@ -751,6 +774,7 @@ describe('git.pull.title', () => {
           const parsed = JSON.parse(result.stdout);
           expect(parsed.error.class).toEqual('ConstraintError');
           expect(parsed.error.fixes[0]).toContain(`--promise ${PROMISE}`);
+          expect(parsed).toMatchSnapshot();
           expect(result.stderr).toContain('🐢 hold up');
           expect(scene.getWrites()).toHaveLength(0);
         });
@@ -777,12 +801,16 @@ describe('git.pull.title', () => {
             }),
             writes:
               viaPrivate.getWrites().length + viaInternal.getWrites().length,
+            kept: [viaPrivate, viaInternal].flatMap((scene) =>
+              getKeptFiles(scene.tempDir, 'title'),
+            ).length,
           };
         });
-        then('each writes as today', () => {
+        then('each writes as today, and keeps no scratch title', () => {
           expect(result.private.exitCode).toBe(0);
           expect(result.internal.exitCode).toBe(0);
           expect(result.writes).toBe(2);
+          expect(result.kept).toBe(0);
         });
       });
 
@@ -800,6 +828,7 @@ describe('git.pull.title', () => {
             '(visibility unreadable, held as public)',
           );
           expect(result.stdout).toContain('cause: gh: Bad Gateway (HTTP 502)');
+          expect(result.stdout).toMatchSnapshot();
           expect(scene.getWrites()).toHaveLength(0);
         });
       });
@@ -814,7 +843,8 @@ describe('git.pull.title', () => {
         );
         then('it is refused before any gh call', () => {
           expect(result.exitCode).toBe(2);
-          expect(result.stdout).toContain(`--promise must be ${PROMISE}`);
+          expect(result.stdout).toContain(`--promise must be '${PROMISE}'`);
+          expect(result.stdout).toMatchSnapshot();
           expect(scene.getCalls()).toHaveLength(0);
         });
       });
@@ -830,7 +860,34 @@ describe('git.pull.title', () => {
         then('a no-op sends no text, so it passes with no promise', () => {
           expect(result.exitCode).toBe(0);
           expect(result.stdout).toContain('already there — no-op');
+          expect(scene.getWrites()).toHaveLength(0);
+          expect(countVisibilityReads(scene)).toBe(0);
         });
+      });
+
+      when('[t9] a held run, then the promised plan of its rerun', () => {
+        const scene = genGitPullScene(SCENE_PUBLIC);
+        const result = useThen('it runs', async () => {
+          const held = runSet(scene, { title: TITLE_NEW, args: [] });
+          const plan = runSet(scene, {
+            title: TITLE_NEW,
+            args: ['--mode', 'plan', '--promise', PROMISE],
+          });
+          return { held, plan };
+        });
+        then(
+          'the apply hint pipes the kept file, which holds this exact title',
+          () => {
+            expect(result.held.exitCode).toBe(2);
+            expect(result.plan.exitCode).toBe(0);
+            expect(result.plan.stdout).toContain('would set (plan)');
+            expect(result.plan.stdout).toContain(
+              `cat ${asKeepPath('title', TITLE_NEW)} | rhx git.pull.title.set --from @stdin --promise ${PROMISE} --mode apply   # pipe the same title in again`,
+            );
+            expect(scene.getWrites()).toHaveLength(0);
+            expect(result.plan.stdout).toMatchSnapshot();
+          },
+        );
       });
 
       when('[t8] set --help', () => {

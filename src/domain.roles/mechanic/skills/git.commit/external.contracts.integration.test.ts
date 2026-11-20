@@ -18,7 +18,9 @@ import { genTempDir, given, then, useThen, when } from 'test-fns';
  *         and in ci. each case reaches the real service in a state any host can
  *         reach: a public read, or the lack-of-creds refusal the rule requires
  *         at minimum. the fakes elsewhere stand in only for states a real
- *         service cannot be driven into on demand.
+ *         service cannot be driven into on demand. a repo's visibility is
+ *         answered only to a credential, so its positive read waits on a test
+ *         credential in ci (.dream/2026_11_18.real-visibility-read-with-a-ci-token.dream.md)
  */
 describe('external contracts — the real services the git.commit skills cross', () => {
   const keyrackOpsPath = path.join(__dirname, 'keyrack.operations.sh');
@@ -167,6 +169,130 @@ describe('external contracts — the real services the git.commit skills cross',
       },
     );
   });
+
+  given(
+    '[case4] the real repo visibility read, which gates pr text into a public repo',
+    () => {
+      // .what = each family's real reader, run through the real gh against a real public repo
+      // .why  = every gate suite stubs this read with a fixed visibility; here the
+      //         live refusals are parsed by the same functions the skills call, so a
+      //         gh change that let a failed read pass as private goes red here
+      const pullOpsPath = path.join(
+        __dirname,
+        '../git.pull.comment/git.pull.comment.operations.sh',
+      );
+      const commitOpsPath = path.join(__dirname, 'git.commit.operations.sh');
+      const REPO = 'ehmpathy/rhachet-roles-ehmpathy';
+
+      // .what = an env with no gh login and no ambient token: no credential at all
+      const genEnvWithNoCredential = (): NodeJS.ProcessEnv => {
+        const env: NodeJS.ProcessEnv = {
+          ...process.env,
+          GH_CONFIG_DIR: genTempDir({
+            slug: 'gh-visibility-no-login',
+            git: false,
+          }),
+        };
+        delete env.GH_TOKEN;
+        delete env.GITHUB_TOKEN;
+        return env;
+      };
+
+      // .what = the comment family's reader: `gh api repos/<o>/<n> --jq .visibility`
+      const readViaPull = (input: {
+        auth: 'as-ehmpath' | 'as-human';
+        token: string;
+        env: NodeJS.ProcessEnv;
+      }) => {
+        const result = runReal({
+          command: 'bash',
+          args: [
+            '-c',
+            'source "$1"; COMMENT_AUTH="$2"; COMMENT_TOKEN="$3"; COMMENT_REPO="$4"; set_repo_visibility; printf "%s\\n%s\\n" "$REPO_VISIBILITY" "$REPO_VISIBILITY_CAUSE"',
+            'reader',
+            pullOpsPath,
+            input.auth,
+            input.token,
+            REPO,
+          ],
+          env: input.env,
+          cwd: repoRoot,
+        });
+        const [visibility, cause] = result.stdout.split('\n');
+        return { exitCode: result.exitCode, visibility, cause };
+      };
+
+      // .what = the push family's reader: `gh repo view --json nameWithOwner,visibility`,
+      //         run in a repo whose origin is the real public repo, as git.commit.push runs it
+      const readViaPush = (input: {
+        auth: 'as-ehmpath' | 'as-human';
+        token: string;
+        env: NodeJS.ProcessEnv;
+      }) => {
+        const cwd = genTempDir({ slug: 'gh-visibility-push', git: true });
+        spawnSync(
+          'git',
+          ['remote', 'add', 'origin', `https://github.com/${REPO}.git`],
+          { cwd },
+        );
+        const result = runReal({
+          command: 'bash',
+          args: [
+            '-c',
+            'source "$1"; set_pr_repo_visibility auth="$2" token="$3"; printf "%s\\n%s\\n%s\\n" "$PR_REPO" "$PR_REPO_VISIBILITY" "$PR_REPO_VISIBILITY_CAUSE"',
+            'reader',
+            commitOpsPath,
+            input.auth,
+            input.token,
+          ],
+          env: input.env,
+          cwd,
+        });
+        const [repo, visibility, cause] = result.stdout.split('\n');
+        return { exitCode: result.exitCode, repo, visibility, cause };
+      };
+
+      when('[t0] both readers run with no credential at all', () => {
+        const result = useThen('the real github refuses each read', () => {
+          const env = genEnvWithNoCredential();
+          return {
+            pull: readViaPull({ auth: 'as-human', token: '', env }),
+            push: readViaPush({ auth: 'as-human', token: '', env }),
+          };
+        });
+
+        then(
+          'each reads unreadable, with the cause gh gave, so the gate holds as public',
+          () => {
+            expect(result.pull.visibility).toEqual('unreadable');
+            expect(result.pull.cause).not.toEqual('');
+            expect(result.push.visibility).toEqual('unreadable');
+            expect(result.push.cause).not.toEqual('');
+            // the push reader still names the repo, from the origin remote
+            expect(result.push.repo).toEqual(REPO);
+          },
+        );
+      });
+
+      when('[t1] both readers run with a revoked token, as-ehmpath', () => {
+        const result = useThen('the real github answers 401', () => {
+          const env = genEnvWithNoCredential();
+          const token = `ghp_${'0'.repeat(36)}`;
+          return {
+            pull: readViaPull({ auth: 'as-ehmpath', token, env }),
+            push: readViaPush({ auth: 'as-ehmpath', token, env }),
+          };
+        });
+
+        then('each reads unreadable, with the bad-credential cause', () => {
+          expect(result.pull.visibility).toEqual('unreadable');
+          expect(result.pull.cause).toMatch(/401|bad credentials/i);
+          expect(result.push.visibility).toEqual('unreadable');
+          expect(result.push.cause).toMatch(/401|bad credentials/i);
+        });
+      });
+    },
+  );
 
   given('[case3] the real git remote, read in public', () => {
     when('[t0] ls-remote reads the default branch of a real repo', () => {
