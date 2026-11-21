@@ -1,0 +1,1045 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.release.p9.review_gate given: [case0] the incident replay, in one repo (E0) when: [t0] route complete, --into prod --apply --dirty allow on an unreviewed pr; then a human approves; then the same command again then: the first run is refused with naught merged; the re-run ships to prod 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --into prod --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ why: no reviews yet
+   ├─ rule: a merge needs a human's approval review; a commit quota grants commits, never a merge
+   └─ ask your human to review: https://github.com/ehmpathy/surf-shop/pull/XX
+
+--- after the human approves ---
+
+🐢 cowabunga!
+
+🐚 git.release --into prod --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 await automerge, Xs in action, Xs watched
+      └─ ✨ done! Xm Ys in action, Xs watched
+
+🫧 and then...
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      ├─ 💤 await automerge, Xs in action, Xs watched
+      ├─ 💤 await automerge, Xs in action, Xs watched
+      ├─ 💤 await automerge, Xs in action, Xs watched
+      ├─ ... (Nx more)
+      └─ ✨ done! Xm Ys in action, Xs watched
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case1] feature pr #42, checks passed, no reviews when: [t0] --into main --apply then: exit 2, names the pr, says a human approval is owed, naught merged 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ why: no reviews yet
+   ├─ rule: a merge needs a human's approval review; a commit quota grants commits, never a merge
+   └─ ask your human to review: https://github.com/ehmpathy/surf-shop/pull/XX
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case1] feature pr #42, checks passed, no reviews when: [t1] --into prod --apply --dirty allow then: exit 2; --dirty allow does not lift; naught merged 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --into prod --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ why: no reviews yet
+   ├─ rule: a merge needs a human's approval review; a commit quota grants commits, never a merge
+   └─ ask your human to review: https://github.com/ehmpathy/surf-shop/pull/XX
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case1] feature pr #42, checks passed, no reviews when: [t2] --into main --mode apply (no --watch) then: exit 2; naught merged 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ why: no reviews yet
+   ├─ rule: a merge needs a human's approval review; a commit quota grants commits, never a merge
+   └─ ask your human to review: https://github.com/ehmpathy/surf-shop/pull/XX
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case1] feature pr #42, checks passed, no reviews when: [t3] --into main --apply --watch then: exit 2; naught merged; no watch poll begins 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ why: no reviews yet
+   ├─ rule: a merge needs a human's approval review; a commit quota grants commits, never a merge
+   └─ ask your human to review: https://github.com/ehmpathy/surf-shop/pull/XX
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case1] feature pr #42, checks passed, no reviews when: [t4] --into prod --apply --retry then: exit 2; --retry does not lift; naught merged 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --into prod --mode apply --watch --retry
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ why: no reviews yet
+   ├─ rule: a merge needs a human's approval review; a commit quota grants commits, never a merge
+   └─ ask your human to review: https://github.com/ehmpathy/surf-shop/pull/XX
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case2] feature pr #42, checks passed, a human member approved when: [t0] --into main --apply then: automerge enabled; merges as before; exit 0 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      └─ ✨ done! merged!
+
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case3] only bots, robots, or outsiders approved when: [t0] --apply, approved by app bot (type Bot, [bot] login) then: exit 2; names why the approval does not count; naught merged 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ why: the approval by @ehm-a-seaturtle[bot] does not count: it is a bot
+   ├─ rule: a merge needs a human's approval review; a commit quota grants commits, never a merge
+   └─ ask your human to review: https://github.com/ehmpathy/surf-shop/pull/XX
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case3] only bots, robots, or outsiders approved when: [t1] --apply, approved by a [bot] login that reads type User, MEMBER, off the roster then: exit 2; names why the approval does not count; naught merged 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ why: the approval by @kelp-sync[bot] does not count: it is a bot
+   ├─ rule: a merge needs a human's approval review; a commit quota grants commits, never a merge
+   └─ ask your human to review: https://github.com/ehmpathy/surf-shop/pull/XX
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case3] only bots, robots, or outsiders approved when: [t2] --apply, approved by clone robot account (type User, MEMBER, on the roster) then: exit 2; names why the approval does not count; naught merged 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ why: the approval by @ehm-seaturtle does not count: it is a robot account
+   ├─ rule: a merge needs a human's approval review; a commit quota grants commits, never a merge
+   └─ ask your human to review: https://github.com/ehmpathy/surf-shop/pull/XX
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case3] only bots, robots, or outsiders approved when: [t3] --apply, approved by outsider human on a public repo (association NONE) then: exit 2; names why the approval does not count; naught merged 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ why: the approval by @drive-by-surfer does not count: no authority on the repo (association: none)
+   ├─ rule: a merge needs a human's approval review; a commit quota grants commits, never a merge
+   └─ ask your human to review: https://github.com/ehmpathy/surf-shop/pull/XX
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case3] only bots, robots, or outsiders approved when: [t4] --apply, approved by past contributor with no current role then: exit 2; names why the approval does not count; naught merged 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ why: the approval by @old-wave does not count: no authority on the repo (association: contributor)
+   ├─ rule: a merge needs a human's approval review; a commit quota grants commits, never a merge
+   └─ ask your human to review: https://github.com/ehmpathy/surf-shop/pull/XX
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case4] no reviews, plan and watch modes when: [t0] plan (no flags) then: exit 0; no review read; no refusal 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --mode plan
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case4] no reviews, plan and watch modes when: [t1] --watch then: no review read; no refusal; naught merged 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! Xm Ys in action, Xs watched
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case5] the review read fails when: [t0] --apply, no automerge on then: exit 1; MalfunctionError; naught merged 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 💥 MalfunctionError: could not read the reviews on pr #42
+   ├─ why: without them, no human approval can be confirmed; naught was merged
+   └─ retry in a moment; if it persists, check the token can read pull requests
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case5] the review read fails when: [t1] --apply, automerge already on then: automerge disabled; exit 1 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 💥 MalfunctionError: could not read the reviews on pr #42
+   ├─ why: without them, no human approval can be confirmed; naught was merged
+   ├─ 🌴 automerge disabled on pr #42, so a later push cannot merge unreviewed (--apply enables it again)
+   └─ retry in a moment; if it persists, check the token can read pull requests
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case5] the review read fails when: [t2] --apply, automerge already on, and the disable fails then: exit 1; says automerge is still on; names the hand fix 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 💥 MalfunctionError: could not read the reviews on pr #42
+   ├─ why: without them, no human approval can be confirmed; naught was merged
+   ├─ ⚠️ automerge is still on and could not be disabled; github may merge it
+   └─ automerge is still on, so github may merge it; disable it by hand now: gh pr merge 42 --disable-auto
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case5] the review read fails when: [t3] plan (no flags) then: exit 0; plan never reads reviews, so the fault cannot block it 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --mode plan
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case6] withdrawn, vetoed, stale, or non-decisive reviews when: [t0] --apply, CHANGES_REQUESTED only then: exit 2; names the cause; naught merged 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ why: changes requested by @reef-keeper; address them, then ask for a fresh review
+   ├─ rule: a merge needs a human's approval review; a commit quota grants commits, never a merge
+   └─ ask your human to review: https://github.com/ehmpathy/surf-shop/pull/XX
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case6] withdrawn, vetoed, stale, or non-decisive reviews when: [t1] --apply, APPROVED on an older commit than the head then: exit 2; names the cause; naught merged 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ why: the approval by @reef-keeper is on an older commit (approved 0ldc0de, head feedc0d); the head needs a fresh review
+   ├─ rule: a merge needs a human's approval review; a commit quota grants commits, never a merge
+   └─ ask your human to review: https://github.com/ehmpathy/surf-shop/pull/XX
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case6] withdrawn, vetoed, stale, or non-decisive reviews when: [t2] --apply, APPROVED on an older commit, then APPROVED on the head then: proceeds to merge 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      └─ ✨ done! merged!
+
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case6] withdrawn, vetoed, stale, or non-decisive reviews when: [t3] --apply, human-a APPROVED an older commit + human-b APPROVED the head then: proceeds to merge 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      └─ ✨ done! merged!
+
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case6] withdrawn, vetoed, stale, or non-decisive reviews when: [t4] --apply, DISMISSED alone (github rewrites the approval in place) then: exit 2; names the cause; naught merged 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ why: the review by @reef-keeper was dismissed
+   ├─ rule: a merge needs a human's approval review; a commit quota grants commits, never a merge
+   └─ ask your human to review: https://github.com/ehmpathy/surf-shop/pull/XX
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case6] withdrawn, vetoed, stale, or non-decisive reviews when: [t5] --apply, APPROVED then CHANGES_REQUESTED by the same human then: exit 2; names the cause; naught merged 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ why: changes requested by @reef-keeper; address them, then ask for a fresh review
+   ├─ rule: a merge needs a human's approval review; a commit quota grants commits, never a merge
+   └─ ask your human to review: https://github.com/ehmpathy/surf-shop/pull/XX
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case6] withdrawn, vetoed, stale, or non-decisive reviews when: [t6] --apply, APPROVED then CHANGES_REQUESTED, listed out of order then: exit 2; names the cause; naught merged 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ why: changes requested by @reef-keeper; address them, then ask for a fresh review
+   ├─ rule: a merge needs a human's approval review; a commit quota grants commits, never a merge
+   └─ ask your human to review: https://github.com/ehmpathy/surf-shop/pull/XX
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case6] withdrawn, vetoed, stale, or non-decisive reviews when: [t7] --apply, APPROVED then DISMISSED then: exit 2; names the cause; naught merged 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ why: the review by @reef-keeper was dismissed
+   ├─ rule: a merge needs a human's approval review; a commit quota grants commits, never a merge
+   └─ ask your human to review: https://github.com/ehmpathy/surf-shop/pull/XX
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case6] withdrawn, vetoed, stale, or non-decisive reviews when: [t8] --apply, COMMENTED only then: exit 2; names the cause; naught merged 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ why: only comments so far; a comment is not an approval
+   ├─ rule: a merge needs a human's approval review; a commit quota grants commits, never a merge
+   └─ ask your human to review: https://github.com/ehmpathy/surf-shop/pull/XX
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case6] withdrawn, vetoed, stale, or non-decisive reviews when: [t9] --apply, human-a APPROVED + human-b CHANGES_REQUESTED then: exit 2; names the cause; naught merged 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ why: changes requested by @tide-watcher; address them, then ask for a fresh review
+   ├─ rule: a merge needs a human's approval review; a commit quota grants commits, never a merge
+   └─ ask your human to review: https://github.com/ehmpathy/surf-shop/pull/XX
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case6] withdrawn, vetoed, stale, or non-decisive reviews when: [t10] --apply, APPROVED then a later COMMENTED by the same human then: proceeds to merge 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      └─ ✨ done! merged!
+
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case6] withdrawn, vetoed, stale, or non-decisive reviews when: [t11] --apply, human-a APPROVED + human-b COMMENTED then: proceeds to merge 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      └─ ✨ done! merged!
+
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case6] withdrawn, vetoed, stale, or non-decisive reviews when: [t12] --apply, robot APPROVED + human member APPROVED then: proceeds to merge 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      └─ ✨ done! merged!
+
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case6] withdrawn, vetoed, stale, or non-decisive reviews when: [t13] --apply, a deleted account COMMENTED + human member APPROVED then: proceeds to merge 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      └─ ✨ done! merged!
+
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case6] withdrawn, vetoed, stale, or non-decisive reviews when: [t14] --apply, a human OWNER APPROVED then: proceeds to merge 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      └─ ✨ done! merged!
+
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case6] withdrawn, vetoed, stale, or non-decisive reviews when: [t15] --apply, a human COLLABORATOR APPROVED then: proceeds to merge 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      └─ ✨ done! merged!
+
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case6] withdrawn, vetoed, stale, or non-decisive reviews when: [t16] --apply, only a deleted account APPROVED then: exit 2; names the cause; naught merged 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ why: the approval by a deleted account does not count: the account was deleted
+   ├─ rule: a merge needs a human's approval review; a commit quota grants commits, never a merge
+   └─ ask your human to review: https://github.com/ehmpathy/surf-shop/pull/XX
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case7] unreviewed pr with automerge already on (an earlier run) when: [t0] --into main --apply then: automerge disabled, then exit 2; naught merged 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ why: no reviews yet
+   ├─ rule: a merge needs a human's approval review; a commit quota grants commits, never a merge
+   ├─ 🌴 automerge disabled on pr #42, so a later push cannot merge unreviewed (--apply enables it again)
+   └─ ask your human to review: https://github.com/ehmpathy/surf-shop/pull/XX
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case7] unreviewed pr with automerge already on (an earlier run) when: [t1] --into main --apply, and the disable fails then: exit 1; says automerge is still on 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 💥 MalfunctionError: could not disable automerge on pr #42
+   ├─ why: pr #42 has no approval from a human, so it must not merge
+   └─ automerge is still on, so github may merge it; disable it by hand now: gh pr merge 42 --disable-auto
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case7] unreviewed pr with automerge already on (an earlier run) when: [t2] --into main --apply, approved by a human member then: no disable; proceeds 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [found]
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! Xm Ys in action, Xs watched
+
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case8] the gate against other pr states when: [t0] checks failed, no reviews, --into main --apply then: the gate fires first: exit 2, the refusal names the red checks too 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ why: no reviews yet
+   ├─ rule: a merge needs a human's approval review; a commit quota grants commits, never a merge
+   ├─ ⚓ 1 check(s) failed too
+   └─ fix the failed checks (rhx show.gh.test.errors), then ask your human to review: https://github.com/ehmpathy/surf-shop/pull/XX
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case8] the gate against other pr states when: [t0a] an explicit --from <feature branch>, no reviews, --into main --apply then: the gate fires the same: exit 2, the refusal echoes --from 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --from turtle/feature-x --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ why: no reviews yet
+   ├─ rule: a merge needs a human's approval review; a commit quota grants commits, never a merge
+   └─ ask your human to review: https://github.com/ehmpathy/surf-shop/pull/XX
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case8] the gate against other pr states when: [t1] already merged, no reviews, --into main --apply then: naught left to gate: no review read, no refusal 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case9] --into prod: the release pr is not gated (F1) when: [t0] feature pr #42 approved, release pr #100 with zero reviews, --into prod --apply then: merges through to prod; the reviews of #100 are never read 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into prod --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 await automerge, Xs in action, Xs watched
+      └─ ✨ done! Xm Ys in action, Xs watched
+
+🫧 and then...
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      ├─ 💤 await automerge, Xs in action, Xs watched
+      ├─ 💤 await automerge, Xs in action, Xs watched
+      ├─ 💤 await automerge, Xs in action, Xs watched
+      ├─ ... (Nx more)
+      └─ ✨ done! Xm Ys in action, Xs watched
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case9] --into prod: the release pr is not gated (F1) when: [t1] the repo refuses automerge (free tier), --into prod --apply then: the release pr falls back to a direct merge, unpinned; the tree names it 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into prod --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge unavailable on this repo; merged directly [direct]
+   └─ 🥥 let's watch
+      └─ ✨ done! merged!
+
+🫧 and then...
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge unavailable on this repo; merged directly [direct]
+   └─ 🥥 let's watch
+      └─ ✨ done! merged!
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case10] a caller marked as human (F4: no exemption) when: [t0] __I_AM_HUMAN=true, no reviews, --into main --apply then: exit 2; the human marker does not lift the gate 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ why: no reviews yet
+   ├─ rule: a merge needs a human's approval review; a commit quota grants commits, never a merge
+   └─ ask your human to review: https://github.com/ehmpathy/surf-shop/pull/XX
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case11] the merge is pinned to the head the gate judged when: [t0] approved, no push after the gate, --into main --apply then: the merge carries --match-head-commit <head>; merged 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      └─ ✨ done! merged!
+
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case11] the merge is pinned to the head the gate judged when: [t1] approved, then a push moves the head before the merge, --into main --apply then: exit 2; the merge is refused; naught merged 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ ✋ ConstraintError: the head of pr #42 moved after the review gate read it; naught was merged
+   ├─ why: the approval covers feedc0d; github refused the merge of any other head
+   └─ re-run, and the gate judges the new head
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case11] the merge is pinned to the head the gate judged when: [t2] the moved head with --retry, --into main --apply then: exit 2; --retry does not lift the refusal 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch --retry
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ ✋ ConstraintError: the head of pr #42 moved after the review gate read it; naught was merged
+   ├─ why: the approval covers feedc0d; github refused the merge of any other head
+   └─ re-run, and the gate judges the new head
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case11] the merge is pinned to the head the gate judged when: [t3] the head read fails, --into main --apply then: exit 1; names the head read as the fault; naught merged 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 💥 MalfunctionError: could not read the head commit of pr #42
+   ├─ why: without it, no approval can be matched to the code that would merge; naught was merged
+   └─ retry in a moment; if it persists, check the token can read pull requests
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case11] the merge is pinned to the head the gate judged when: [t4] the repo refuses automerge (free tier), approved, --into main --apply then: the direct-merge fallback carries the same pin; merged 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge unavailable on this repo; merged directly [direct]
+   └─ 🥥 let's watch
+      └─ ✨ done! merged!
+
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case11] the merge is pinned to the head the gate judged when: [t5] free tier, and a push moves the head before the direct merge, --into main --apply then: exit 2; the direct merge is refused; naught merged 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ ✋ ConstraintError: the head of pr #42 moved after the review gate read it; naught was merged
+   ├─ why: the approval covers feedc0d; github refused the merge of any other head
+   └─ re-run, and the gate judges the new head
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case12] the apply watch holds an automerge lease on the gated head when: [t0] a push moves the head after automerge is armed, --into main --apply then: the watch disarms automerge and refuses; exit 2 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      ├─ ✋ ConstraintError: the head of pr #42 moved after the review gate read it
+      ├─ why: the approval covers feedc0d; the head is now b0a7c0d
+      ├─ 🌴 automerge disabled on pr #42, so a later push cannot merge unreviewed (--apply enables it again)
+      └─ re-run --apply; the gate judges the new head
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case12] the apply watch holds an automerge lease on the gated head when: [t0a] a push moves the head after automerge is armed, and the disable fails then: exit 1, not 2: the stuck automerge outranks the refusal 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      ├─ ✋ ConstraintError: the head of pr #42 moved after the review gate read it
+      ├─ why: the approval covers feedc0d; the head is now b0a7c0d
+      ├─ 🌴 the disable of automerge on pr #42 failed; one more try at exit
+      └─ re-run --apply; the gate judges the new head
+
+💥 MalfunctionError: automerge is still on for pr #42 and could not be disabled
+   └─ disable it by hand now: gh pr merge 42 --disable-auto
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case12] the apply watch holds an automerge lease on the gated head when: [t1] checks go red after automerge is armed, --into main --apply then: the watch disarms automerge, so a fix pushed later cannot merge unreviewed; exit 2 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      ├─ ⚓ 1 check(s) failed
+      │  └─ 🔴 test
+      │        ├─ https://github.com/test/repo/actions/runs/XXX
+      │        └─ publish
+      ├─ 🌴 automerge disabled on pr #42, so a later push cannot merge unreviewed (--apply enables it again)
+      ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+      └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case12] the apply watch holds an automerge lease on the gated head when: [t2] checks go red after automerge is armed, and the disarm fails then: exit 1; says automerge is still on; names the hand fix 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      ├─ ⚓ 1 check(s) failed
+      │  └─ 🔴 test
+      │        ├─ https://github.com/test/repo/actions/runs/XXX
+      │        └─ publish
+      ├─ 🌴 the disable of automerge on pr #42 failed; one more try at exit
+      ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+      └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
+
+💥 MalfunctionError: automerge is still on for pr #42 and could not be disabled
+   └─ disable it by hand now: gh pr merge 42 --disable-auto
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case12] the apply watch holds an automerge lease on the gated head when: [t3] --watch alone, automerge already on, checks go red then: no lease: the watch writes naught and exits 2 as today 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [found]
+   └─ 🥥 let's watch
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ ⚓ 1 check(s) failed
+      │  └─ 🔴 test
+      │        ├─ https://github.com/test/repo/actions/runs/XXX
+      │        └─ publish
+      ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+      └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case12] the apply watch holds an automerge lease on the gated head when: [t4] checks stay in progress past the watch timeout, --into main --apply then: the watch disarms automerge before the timeout exit; exit 2 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ ... (Nx more)
+      ├─ 🌴 automerge disabled on pr #42, so a later push cannot merge unreviewed (--apply enables it again)
+      └─ ⏰ timeout after Xs
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case12] the apply watch holds an automerge lease on the gated head when: [t5] the status read fails right after automerge is armed, --into main --apply then: exit 1; MalfunctionError on both streams; the exit trap disarms 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 💥 MalfunctionError: automerge enabled on pr #42, then its status could not be read
+   └─ retry in a moment; if it persists, check the token can read pull requests
+
+🌴 automerge disabled on pr #42, so a later push cannot merge unreviewed (--apply enables it again)
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case12] the apply watch holds an automerge lease on the gated head when: [t6] the head read fails on a watch poll, --into main --apply then: exit 1; MalfunctionError names the head read; disarmed 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      ├─ 💥 MalfunctionError: could not read the head commit of pr #42
+      ├─ 🌴 automerge disabled on pr #42, so a later push cannot merge unreviewed (--apply enables it again)
+      └─ retry in a moment; if it persists, check the token can read pull requests
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case12] the apply watch holds an automerge lease on the gated head when: [t7] the reviews re-read fails on a watch poll, --into main --apply then: exit 1; MalfunctionError names the reviews re-read; disarmed 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      ├─ 💥 MalfunctionError: could not re-read the reviews of pr #42
+      ├─ 🌴 automerge disabled on pr #42, so a later push cannot merge unreviewed (--apply enables it again)
+      └─ retry in a moment; if it persists, check the token can read pull requests
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case13] the lease is bound to the process, not to a list of exits when: [t0] gh breaks on a watch poll after automerge is armed then: the run aborts non-zero and the exit trap disarms 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      ├─ 💥 MalfunctionError: could not read the status of pr #42 before the first poll; the watch stops here
+      └─ retry in a moment; if it persists, check the token can read pull requests
+
+🌴 automerge disabled on pr #42, so a later push cannot merge unreviewed (--apply enables it again)
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case13] the lease is bound to the process, not to a list of exits when: [t0a] gh breaks on a poll inside the watch loop then: exit 1, the mid-watch line, and the exit trap disarms 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      ├─ 💥 MalfunctionError: could not read the status of pr #42 mid-watch; the watch stops here
+      └─ retry in a moment; if it persists, check the token can read pull requests
+
+🌴 automerge disabled on pr #42, so a later push cannot merge unreviewed (--apply enables it again)
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case13] the lease is bound to the process, not to a list of exits when: [t1] automerge already armed, checks red, no --retry, --into main --apply then: exit 2 before any watch, and the exit trap disarms 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 test
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
+   │        └─ publish
+   ├─ 🌴 automerge enabled [found]
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
+
+🌴 automerge disabled on pr #42, so a later push cannot merge unreviewed (--apply enables it again)
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case13] the lease is bound to the process, not to a list of exits when: [t2.0] ctrl-c (SIGINT) mid-watch after automerge is armed then: the signal trap disarms before the run dies 1`] = `
+"🌴 interrupted (SIGINT); disable automerge on pr #42 before exit...
+
+🌴 automerge disabled on pr #42, so a later push cannot merge unreviewed (--apply enables it again)
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case13] the lease is bound to the process, not to a list of exits when: [t2.1] a harness timeout (SIGTERM) mid-watch after automerge is armed then: the signal trap disarms before the run dies 1`] = `
+"🌴 interrupted (SIGTERM); disable automerge on pr #42 before exit...
+
+🌴 automerge disabled on pr #42, so a later push cannot merge unreviewed (--apply enables it again)
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case13] the lease is bound to the process, not to a list of exits when: [t2.2] a closed terminal (SIGHUP) mid-watch after automerge is armed then: the signal trap disarms before the run dies 1`] = `
+"🌴 interrupted (SIGHUP); disable automerge on pr #42 before exit...
+
+🌴 automerge disabled on pr #42, so a later push cannot merge unreviewed (--apply enables it again)
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case14] the lease re-judges the verdict each poll, not only the head when: [t0] the human requests changes mid-watch, on the same head then: the watch disarms automerge and refuses; exit 2 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      ├─ ✋ ConstraintError: pr #42 lost its human approval after the review gate
+      ├─ why: changes requested by @reef-keeper; address them, then ask for a fresh review
+      ├─ 🌴 automerge disabled on pr #42, so a later push cannot merge unreviewed (--apply enables it again)
+      └─ ask your human to review again, then re-run --apply
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case14] the lease re-judges the verdict each poll, not only the head when: [t1] the approval is dismissed mid-watch then: the watch disarms automerge and refuses; exit 2 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      ├─ ✋ ConstraintError: pr #42 lost its human approval after the review gate
+      ├─ why: the review by @reef-keeper was dismissed
+      ├─ 🌴 automerge disabled on pr #42, so a later push cannot merge unreviewed (--apply enables it again)
+      └─ ask your human to review again, then re-run --apply
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case14] the lease re-judges the verdict each poll, not only the head when: [t2] every review vanishes mid-watch then: an empty review set is no approval: disarmed, exit 2 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      ├─ ✋ ConstraintError: pr #42 lost its human approval after the review gate
+      ├─ why: the reviews on pr #42 are gone; the approval the gate saw no longer exists
+      ├─ 🌴 automerge disabled on pr #42, so a later push cannot merge unreviewed (--apply enables it again)
+      └─ ask your human to review again, then re-run --apply
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case14] the lease re-judges the verdict each poll, not only the head when: [t3] the approval is dismissed mid-watch, and the disable fails then: exit 1, not 2: the stuck automerge outranks the refusal 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      ├─ ✋ ConstraintError: pr #42 lost its human approval after the review gate
+      ├─ why: the review by @reef-keeper was dismissed
+      ├─ 🌴 the disable of automerge on pr #42 failed; one more try at exit
+      └─ ask your human to review again, then re-run --apply
+
+💥 MalfunctionError: automerge is still on for pr #42 and could not be disabled
+   └─ disable it by hand now: gh pr merge 42 --disable-auto
+"
+`;

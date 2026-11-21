@@ -148,6 +148,17 @@ always:
       - skills/git.branch.cutover/git.branch.cutover.output.sh
       - skills/git.branch.uses/git.branch.uses.local.sh
       - skills/git.branch.uses/git.branch.uses.operations.sh
+      # the git.release sub-files: sourced libraries git.release.sh calls; no human calls them
+      - skills/git.release/git.release._.and_then_await.sh
+      - skills/git.release/git.release._.emit_one_transport_status_exitcode.sh
+      - skills/git.release/git.release._.emit_transport_status.sh
+      - skills/git.release/git.release._.emit_transport_watch.sh
+      - skills/git.release/git.release._.get_all_flags_from_input.sh
+      - skills/git.release/git.release._.get_one_goal_from_input.sh
+      - skills/git.release/git.release._.get_one_transport_status.sh
+      - skills/git.release/git.release._.guard_pr_has_human_approval.sh
+      - skills/git.release/git.release.operations.sh
+      - skills/git.release/output.sh
 
 subject.code.prod:
   briefs:

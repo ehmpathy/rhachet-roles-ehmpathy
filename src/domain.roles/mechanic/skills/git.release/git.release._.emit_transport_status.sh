@@ -30,6 +30,8 @@
 #   $4 = flag_retry ("true" or "false")
 #   $5 = flag_watch ("true" or "false")
 #   $6 = status_json (optional, pre-fetched for PR transports)
+#   $7 = merge_head_sha (PR transports in apply mode): the head the review
+#        gate judged, or `@unpinned` for the release pr; see enable_automerge
 #
 # output:
 #   stdout: formatted status tree
@@ -38,6 +40,7 @@
 #   0 = success (can continue)
 #   2 = constraint (needs action, cannot continue)
 #   3 = already merged (caller should skip watch)
+#   4 = merge refused: the pinned head moved after the review gate (caller exits 2)
 ######################################################################
 emit_transport_status() {
   local transport_type="$1"
@@ -46,6 +49,7 @@ emit_transport_status() {
   local flag_retry="${4:-false}"
   local flag_watch="${5:-false}"
   local status_json="${6:-}"
+  local merge_head_sha="${7:-}"
 
   # get transport status (pass pre-fetched status_json if available to avoid duplicate API calls)
   local status_output
@@ -150,17 +154,38 @@ emit_transport_status() {
   if [[ "$flag_apply" == "true" && "$automerge_status" == "unfound" && "$transport_type" == "pr" && "$check_status" != "failed" ]]; then
     # enable automerge (failloud: errors propagate via explicit || return)
     # note: set -e doesn't reliably propagate function failures inside if blocks
-    enable_automerge "$transport_ref" || return 1
+    # .note = exit 2 = the pinned head moved (refused, no --retry can lift it); all else = malfunction
+    local enable_result=0
+    enable_automerge pr_number="$transport_ref" head_sha="$merge_head_sha" || enable_result=$?
+    if [[ $enable_result -eq 2 ]]; then return 4; fi
+    if [[ $enable_result -ne 0 ]]; then return 1; fi
 
     # check if instantly merged
     local post_status
-    post_status=$(get_pr_status "$transport_ref")
+    post_status=$(get_pr_status "$transport_ref") || post_status=""
+    if [[ -z "$post_status" ]]; then
+      # a fault is output and an error: both streams (rule.require.skill-output-streams)
+      local fault_msg="   ├─ 💥 MalfunctionError: automerge enabled on pr #$transport_ref, then its status could not be read"
+      local hint_msg="   └─ retry in a moment; if it persists, check the token can read pull requests"
+      echo "$fault_msg"
+      echo "$hint_msg"
+      echo "$fault_msg" >&2
+      echo "$hint_msg" >&2
+      return 1
+    fi
+    # the free-tier fallback merges directly; the tree says which path ran
+    local merge_via="${ENABLE_AUTOMERGE_VIA:-auto}"
     if [[ $(is_pr_merged "$post_status") == "true" ]]; then
+      if [[ "$merge_via" == "direct" ]]; then
+        echo "   └─ 🌴 automerge unavailable on this repo; merged directly [direct] -> and merged already"
+        return 3
+      fi
       echo "   └─ 🌴 automerge enabled [added] -> and merged already"
       return 3  # 3 = already merged, caller should skip watch
     fi
 
     automerge_added="true"
+    if [[ "$merge_via" == "direct" ]]; then automerge_added="direct"; fi
   fi
 
   # emit automerge line
@@ -225,7 +250,9 @@ _emit_automerge_line() {
   local flag_apply="$3"
   local is_last="${4:-false}"
 
-  if [[ "$automerge_added" == "true" ]]; then
+  if [[ "$automerge_added" == "direct" ]]; then
+    print_automerge_status "direct" "" "$is_last"
+  elif [[ "$automerge_added" == "true" ]]; then
     print_automerge_status "enabled" "just added" "$is_last"
   elif [[ "$automerge_status" == "found" ]]; then
     print_automerge_status "enabled" "" "$is_last"

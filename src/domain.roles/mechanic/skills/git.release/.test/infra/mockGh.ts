@@ -38,10 +38,57 @@ export type PrState =
   | 'passed:with-automerge'
   | 'merged'
   | 'failed'
+  | 'failed:with-automerge'
   | 'rebase:behind'
   | 'rebase:dirty';
 
 export type TagState = 'unfound' | 'inflight' | 'passed' | 'failed';
+
+/**
+ * .what = one review as the gate reads it (rest /pulls/{n}/reviews, flattened)
+ * .why = lets a scene declare who reviewed and what they decided
+ */
+export interface ReviewFixture {
+  /** null when the author's account was deleted: github returns `user: null` (the "ghost") */
+  login: string | null;
+  type: 'User' | 'Bot' | null;
+  association: 'OWNER' | 'MEMBER' | 'COLLABORATOR' | 'CONTRIBUTOR' | 'NONE';
+  state: 'APPROVED' | 'CHANGES_REQUESTED' | 'COMMENTED' | 'DISMISSED';
+  submitted_at: string;
+  /** the pr head the review was submitted against; an approval counts only on the current head */
+  commit_id: string;
+}
+
+/**
+ * .what = the head commit every mock answers for the feature pr
+ * .why = the gate counts an approval only when its commit_id is the pr head
+ */
+export const MOCK_FEAT_HEAD_SHA = 'feedc0defeedc0defeedc0defeedc0defeedc0de';
+
+/** .what = the feature pr head after a push no human reviewed */
+export const MOCK_PUSHED_HEAD_SHA = 'b0a7c0deb0a7c0deb0a7c0deb0a7c0deb0a7c0de';
+
+/**
+ * .what = the default review set: one human member approved the current head
+ * .why = every extant apply scene predates the review gate and assumes a mergeable pr
+ */
+export const REVIEWS_APPROVED_BY_HUMAN: ReviewFixture[] = [
+  {
+    login: 'reef-keeper',
+    type: 'User',
+    association: 'MEMBER',
+    state: 'APPROVED',
+    submitted_at: '2026-01-01T00:00:00Z',
+    commit_id: MOCK_FEAT_HEAD_SHA,
+  },
+];
+
+/**
+ * .what = render reviews as `gh api --paginate --jq '.[] | {...}'` prints them
+ * .why = one json object per line, the shape get_pr_reviews then slurps
+ */
+export const asGhReviewLines = (reviews: ReviewFixture[]): string =>
+  reviews.map((review) => JSON.stringify(review)).join('\n');
 
 /**
  * .what = scene config for test scenarios
@@ -113,6 +160,69 @@ export interface Scene {
    * workflow status for release workflow on timeout
    */
   awaitWorkflowStatus?: 'failed' | 'in_progress' | 'passed' | 'not_found';
+  /**
+   * reviews on the feature PR, or 'read-fails' to make the reviews call exit 1
+   * default: REVIEWS_APPROVED_BY_HUMAN
+   */
+  featPrReviews?: ReviewFixture[] | 'read-fails';
+  /**
+   * the reviews after the gate's read: read 2 onward returns these (a review posted mid-watch)
+   * default: featPrReviews, unchanged
+   */
+  featPrReviewsAfterGate?: ReviewFixture[];
+  /** make `gh pr merge --disable-auto` exit 1 */
+  disableAutoFails?: boolean;
+  /**
+   * the repo refuses automerge (free tier): `gh pr merge --auto` exits 1 with
+   * "auto merge is not allowed", so the skill falls back to a direct merge
+   * default: false
+   */
+  automergeUnavailable?: boolean;
+  /** make the feature pr head read (`.head.sha`) exit 1 */
+  featPrHeadReadFails?: boolean;
+  /**
+   * the feature pr head at merge time, when a push lands after the gate read it.
+   * a merge pinned (`--match-head-commit`) to another sha is refused, as github does;
+   * an unpinned merge goes through
+   * default: MOCK_FEAT_HEAD_SHA (no push after the gate)
+   */
+  featPrHeadAtMerge?: string;
+  /**
+   * a push lands after this many head reads: read N+1 onward returns MOCK_PUSHED_HEAD_SHA.
+   * the gate reads once, so 1 = the head moves before the first watch poll
+   * default: never
+   */
+  featPrHeadMovesAfterReads?: number;
+  /**
+   * the feature pr checks go red after this many `pr view` reads (an armed automerge stays armed)
+   * default: never
+   */
+  featPrFailsAfterViews?: number;
+  /**
+   * the feature pr `pr view` read itself exits 1 after this many reads (gh down mid-watch);
+   * the `--disable-auto` write still works
+   * default: never
+   */
+  featPrViewBreaksAfterViews?: number;
+  /** each feature pr `pr view` read sleeps this many seconds (to hold a watch open for a signal) */
+  featPrViewSleepSeconds?: number;
+  /**
+   * the feature pr checks never finish and it never merges (to reach the watch timeout)
+   * default: false
+   */
+  featPrStaysInflight?: boolean;
+  /**
+   * the feature pr head read exits 1 after this many reads (gh down mid-watch);
+   * the gate reads once, so 1 = the first watch poll's head read breaks
+   * default: never
+   */
+  featPrHeadReadBreaksAfterReads?: number;
+  /**
+   * the feature pr reviews read exits 1 after this many reads (gh down mid-watch);
+   * the gate reads once, so 1 = the first watch poll's re-read breaks
+   * default: never
+   */
+  featPrReviewsReadBreaksAfterReads?: number;
 }
 
 export interface MockGhOptions {
@@ -251,6 +361,25 @@ export const genPrViewJson = (input: {
         ],
         autoMergeRequest: null,
         mergeStateStatus: 'CLEAN',
+        state: 'OPEN',
+        title: input.title,
+      });
+
+    // .note = github keeps an armed automerge through a red check run
+    case 'failed:with-automerge':
+      return JSON.stringify({
+        statusCheckRollup: [
+          {
+            conclusion: 'FAILURE',
+            status: 'COMPLETED',
+            name: 'test',
+            startedAt: now,
+            completedAt,
+            detailsUrl: 'https://github.com/test/repo/actions/runs/123',
+          },
+        ],
+        autoMergeRequest: { enabledAt: '2024-01-01T00:00:00Z' },
+        mergeStateStatus: 'BLOCKED',
         state: 'OPEN',
         title: input.title,
       });
@@ -589,23 +718,35 @@ export const genSceneGhMock = (input: {
   const releaseTag = scene.releaseTag ?? 'v1.3.0';
   const priorReleaseTitle = scene.priorReleaseTitle ?? 'chore(release): v1.3.0 🎉';
 
+  // the feature pr view carries its url, as `gh pr view --json url` does; the review gate's refusal links it
+  const featPrUrl = `https://github.com/ehmpathy/surf-shop/pull/${featPrNum}`;
+  const withFeatPrUrl = (json: string): string =>
+    json ? JSON.stringify({ ...JSON.parse(json), url: featPrUrl }) : json;
+
   // pre-generate all needed JSON variants
   const featPrView = scene.featPr && scene.featPr !== 'unfound'
-    ? genPrViewJson({ state: scene.featPr, title: featPrTitle, nowIso })
+    ? withFeatPrUrl(genPrViewJson({ state: scene.featPr, title: featPrTitle, nowIso }))
     : '';
-  const featPrViewMerged = genPrViewJson({ state: 'merged', title: featPrTitle, nowIso });
-  const featPrViewPassed = genPrViewJson({
+  const featPrViewMerged = withFeatPrUrl(genPrViewJson({ state: 'merged', title: featPrTitle, nowIso }));
+  const featPrViewPassed = withFeatPrUrl(genPrViewJson({
     state: scene.featPr === 'passed:with-automerge' ? 'passed:with-automerge' : 'passed:wout-automerge',
     title: featPrTitle,
     nowIso,
-  });
-  const featPrViewWithAutomerge = genPrViewJson({ state: 'inflight:with-automerge', title: featPrTitle, nowIso });
-  const featPrViewPassedWithAutomerge = genPrViewJson({ state: 'passed:with-automerge', title: featPrTitle, nowIso });
-  const featPrViewInflight = genPrViewJson({ state: 'inflight', title: featPrTitle, nowIso });
+  }));
+  const featPrViewWithAutomerge = withFeatPrUrl(genPrViewJson({ state: 'inflight:with-automerge', title: featPrTitle, nowIso }));
+  const featPrViewPassedWithAutomerge = withFeatPrUrl(genPrViewJson({ state: 'passed:with-automerge', title: featPrTitle, nowIso }));
+  const featPrViewInflight = withFeatPrUrl(genPrViewJson({ state: 'inflight', title: featPrTitle, nowIso }));
 
+  // .why = a release pr the await finds is a real pr: it views as passed, no automerge
+  //        (real gh never answers a found pr with an empty body)
+  const isReleasePrFoundByAwait =
+    scene.releasePr === 'unfound' &&
+    (scene.awaitReleasePr === 'immediate' || scene.awaitReleasePr === 'after-wait');
   const releasePrView = scene.releasePr && scene.releasePr !== 'unfound'
     ? genPrViewJson({ state: scene.releasePr, title: releasePrTitle, nowIso })
-    : '';
+    : isReleasePrFoundByAwait
+      ? genPrViewJson({ state: 'passed:wout-automerge', title: releasePrTitle, nowIso })
+      : '';
   const releasePrViewMerged = genPrViewJson({ state: 'merged', title: releasePrTitle, nowIso });
   const releasePrViewPassed = genPrViewJson({
     state: scene.releasePr === 'passed:with-automerge' ? 'passed:with-automerge' : 'passed:wout-automerge',
@@ -632,6 +773,14 @@ export const genSceneGhMock = (input: {
 
   // escape single quotes for bash
   const esc = (s: string) => s.replace(/'/g, "'\"'\"'");
+
+  // reviews on the feature pr (default: one human member approved)
+  const featPrReviewsReadFails = scene.featPrReviews === 'read-fails';
+  const featPrReviewLines = asGhReviewLines(
+    scene.featPrReviews === undefined || scene.featPrReviews === 'read-fails'
+      ? REVIEWS_APPROVED_BY_HUMAN
+      : scene.featPrReviews,
+  );
 
   return `#!/bin/bash
 set -euo pipefail
@@ -742,6 +891,9 @@ has_release_automerge_enabled() {
 # this ensures watch sees "passed with automerge" before merge
 should_auto_merge_feat() {
   local pr_num="$1"
+  if [[ "${scene.featPrStaysInflight ? 'true' : 'false'}" == "true" ]]; then
+    return 1
+  fi
   if ! has_feat_automerge_enabled "$pr_num"; then
     return 1
   fi
@@ -917,6 +1069,12 @@ case "$CMD_KEY" in
 
     inc_counter "view-$PR_NUM" > /dev/null
     if [[ "$PR_NUM" == "${featPrNum}" ]]; then
+      ${scene.featPrViewSleepSeconds ? `sleep ${scene.featPrViewSleepSeconds}` : '# no view sleep'}
+      # gh down mid-watch: the read breaks, past a count
+      if [[ $(get_counter "view-$PR_NUM") -gt ${scene.featPrViewBreaksAfterViews ?? 999999} ]]; then
+        echo "HTTP 502: Bad Gateway (mock)" >&2
+        exit 1
+      fi
       # handle retry: if rerun was triggered and scene started as failed, show poll cycles then transition
       if was_rerun_triggered "${featPrNum}" && [[ "${scene.featPr}" == "failed" ]]; then
         RETRY_COUNT=$(get_counter "view-$PR_NUM")
@@ -927,7 +1085,7 @@ case "$CMD_KEY" in
             if [[ -f "$STATE_DIR/automerge-enabled-$PR_NUM" ]]; then
               echo '${esc(featPrViewPassedWithAutomerge)}'
             else
-              echo '${esc(genPrViewJson({ state: 'passed:wout-automerge', title: featPrTitle, nowIso }))}'
+              echo '${esc(withFeatPrUrl(genPrViewJson({ state: 'passed:wout-automerge', title: featPrTitle, nowIso })))}'
             fi
           else
             # retry failed - return to failed state
@@ -940,6 +1098,15 @@ case "$CMD_KEY" in
           else
             echo '${esc(featPrViewInflight)}'
           fi
+        fi
+        exit 0
+      fi
+      # checks go red mid-watch: an armed automerge stays armed, as on github
+      if [[ $(get_counter "view-$PR_NUM") -gt ${scene.featPrFailsAfterViews ?? 999999} ]] && ! is_merged "${featPrNum}"; then
+        if has_feat_automerge_enabled "$PR_NUM"; then
+          echo '${esc(withFeatPrUrl(genPrViewJson({ state: 'failed:with-automerge', title: featPrTitle, nowIso })))}'
+        else
+          echo '${esc(withFeatPrUrl(genPrViewJson({ state: 'failed', title: featPrTitle, nowIso })))}'
         fi
         exit 0
       fi
@@ -1016,8 +1183,83 @@ case "$CMD_KEY" in
     fi
     ;;
 
+  "api -X")
+    # review read for the gate (gh api -X GET --paginate .../pulls/N/reviews --jq ...)
+    # .note = only the feature pr holds reviews; any other pr reads as none, so a gate
+    #         wrongly put on the release pr would refuse, never pass on #${featPrNum}'s approval
+    if echo "$ALL_ARGS" | grep -q "/pulls/${featPrNum}/reviews"; then
+      ${featPrReviewsReadFails ? `echo "HTTP 502: Bad Gateway (mock)" >&2
+      exit 1` : `REVIEW_READS=$(( $(cat "$STATE_DIR/review-reads" 2>/dev/null || echo 0) + 1 ))
+      echo "$REVIEW_READS" > "$STATE_DIR/review-reads"
+      # gh down mid-watch: the re-read breaks, past a count
+      if [[ "$REVIEW_READS" -gt ${scene.featPrReviewsReadBreaksAfterReads ?? 999999} ]]; then
+        echo "HTTP 502: Bad Gateway (mock)" >&2
+        exit 1
+      fi
+      ${
+        scene.featPrReviewsAfterGate
+          ? `if [[ "$REVIEW_READS" -gt 1 ]]; then
+        cat <<'REVIEWS_EOF'
+${asGhReviewLines(scene.featPrReviewsAfterGate)}
+REVIEWS_EOF
+      else
+        cat <<'REVIEWS_EOF'
+${featPrReviewLines}
+REVIEWS_EOF
+      fi`
+          : `cat <<'REVIEWS_EOF'
+${featPrReviewLines}
+REVIEWS_EOF`
+      }`}
+      exit 0
+    fi
+    if echo "$ALL_ARGS" | grep -q "/reviews"; then
+      exit 0
+    fi
+    # head read for the gate (gh api -X GET .../pulls/N --jq '.head.sha')
+    if echo "$ALL_ARGS" | grep -q "/pulls/${featPrNum} "; then
+      ${scene.featPrHeadReadFails ? `echo "HTTP 502: Bad Gateway (mock)" >&2
+      exit 1` : `HEAD_READS=$(( $(cat "$STATE_DIR/head-reads" 2>/dev/null || echo 0) + 1 ))
+      echo "$HEAD_READS" > "$STATE_DIR/head-reads"
+      # gh down mid-watch: the head read breaks, past a count
+      if [[ "$HEAD_READS" -gt ${scene.featPrHeadReadBreaksAfterReads ?? 999999} ]]; then
+        echo "HTTP 502: Bad Gateway (mock)" >&2
+        exit 1
+      fi
+      if [[ "$HEAD_READS" -gt ${scene.featPrHeadMovesAfterReads ?? 999999} ]]; then
+        echo "${MOCK_PUSHED_HEAD_SHA}"
+      else
+        echo "${MOCK_FEAT_HEAD_SHA}"
+      fi
+      exit 0`}
+    fi
+    echo "mock: unhandled gh $*" >&2
+    exit 1
+    ;;
+
   "pr merge")
     PR_NUM="$3"
+    # disable automerge: the gate's refusal path
+    if echo "$ALL_ARGS" | grep -q -- "--disable-auto"; then
+      ${scene.disableAutoFails ? `echo "GraphQL: could not disable auto-merge (mock)" >&2
+      exit 1` : `rm -f "$STATE_DIR/automerge-enabled-$PR_NUM"
+      touch "$STATE_DIR/automerge-disabled-$PR_NUM"
+      echo "auto-merge disabled"
+      exit 0`}
+    fi
+    # free tier: the repo refuses automerge, so the skill falls back to a direct merge
+    ${scene.automergeUnavailable ? `if echo "$ALL_ARGS" | grep -q -- "--auto"; then
+      echo "GraphQL: Auto merge is not allowed for this repository (enablePullRequestAutoMerge) (mock)" >&2
+      exit 1
+    fi` : ''}
+    # head pin: github refuses a merge pinned to a head that moved
+    if [[ "$PR_NUM" == "${featPrNum}" ]] && echo "$ALL_ARGS" | grep -q -- "--match-head-commit"; then
+      PINNED_HEAD=$(echo "$ALL_ARGS" | grep -oP -- '--match-head-commit \\K\\S+')
+      if [[ "$PINNED_HEAD" != "${scene.featPrHeadAtMerge ?? MOCK_FEAT_HEAD_SHA}" ]]; then
+        echo "GraphQL: Head branch was modified. Review and try the merge again. (mergePullRequest) (mock)" >&2
+        exit 1
+      fi
+    fi
     touch "$STATE_DIR/automerge-enabled-$PR_NUM"
     if [[ "$PR_NUM" == "${featPrNum}" ]]; then
       if has_feat_automerge_enabled "$PR_NUM" && is_passed "$PR_NUM"; then
@@ -1372,6 +1614,38 @@ export const writeSimpleGhMock = (input: {
   const ghPath = path.join(mockBinDir, 'gh');
   fs.writeFileSync(ghPath, ghMock);
   fs.chmodSync(ghPath, '755');
+};
+
+/**
+ * .what = write a gh shim that answers the reviews read with a human approval,
+ *         and hands every other gh call to the test's own gh mock
+ * .why = suites whose inline gh mocks predate the review gate still reach the
+ *        merge path; the gate itself is clamped in p9, so here a human approval
+ *        is the default, the same default the scene mock carries
+ * .note = put the returned dir AHEAD of the test's mock bin dir on PATH
+ */
+export const writeReviewsApprovedShim = (input: {
+  tempDir: string;
+  mockBinDir: string;
+}): { shimDir: string } => {
+  const shimDir = path.join(input.tempDir, '.fakebin-reviews');
+  fs.mkdirSync(shimDir, { recursive: true });
+  const shim = `#!/bin/bash
+# reviews read → a human approval of the head; head read → that head; all else → the test's gh mock
+if [[ "$1" == "api" && "$*" == *"/reviews"* ]]; then
+  echo '${asGhReviewLines(REVIEWS_APPROVED_BY_HUMAN)}'
+  exit 0
+fi
+if [[ "$1" == "api" && "$*" == *"/pulls/"* && "$*" == *".head.sha"* ]]; then
+  echo '${MOCK_FEAT_HEAD_SHA}'
+  exit 0
+fi
+exec "${path.join(input.mockBinDir, 'gh')}" "$@"
+`;
+  const shimPath = path.join(shimDir, 'gh');
+  fs.writeFileSync(shimPath, shim);
+  fs.chmodSync(shimPath, '755');
+  return { shimDir };
 };
 
 /**

@@ -30,6 +30,7 @@
 #   - --watch watches without automerge
 #   - apply mode enables automerge and watches
 #   - apply mode requires git.commit.uses permission (locally or globally)
+#   - apply refuses (exit 2) a pr no human approved; no flag lifts it
 #   - watches CI until complete or timeout (15 min)
 #   - surfaces errors with links and retry hints
 #   - --into prod is the default, safe path; --from main is special-circumstance only
@@ -58,6 +59,7 @@ source "$SKILL_DIR/git.release._.emit_transport_status.sh"
 source "$SKILL_DIR/git.release._.emit_transport_watch.sh"
 source "$SKILL_DIR/git.release._.emit_one_transport_status_exitcode.sh"
 source "$SKILL_DIR/git.release._.and_then_await.sh"
+source "$SKILL_DIR/git.release._.guard_pr_has_human_approval.sh"
 
 ######################################################################
 # argument parse
@@ -124,6 +126,8 @@ while [[ $# -gt 0 ]]; do
       echo "  --retry       rerun failed workflows before watch"
       echo "  --dirty block fail fast if unstaged changes (default)"
       echo "  --dirty allow allow release even with unstaged changes"
+      echo ""
+      echo "  apply needs a human's approval review on the feature pr (no flag lifts it)"
       echo ""
       echo "  special circumstances only (footgun — prefer --into prod):"
       echo "  --from main   skip the feature branch, release whatever is on main"
@@ -660,16 +664,39 @@ if [[ "$GOAL_FROM" != "main" ]]; then
   # get pr status for display
   status_json=$(get_pr_status "$pr_number")
 
-  # print turtle header
-  if [[ "$TURTLE_PRINTED" == "false" ]]; then
-    # build --from clause if explicit branch specified
-    from_clause=""
-    if [[ "$GOAL_FROM" != "feat" && "$GOAL_FROM" != "main" ]]; then
-      from_clause="--from $GOAL_FROM "
+  # build --from clause if explicit branch specified
+  from_clause=""
+  if [[ "$GOAL_FROM" != "feat" && "$GOAL_FROM" != "main" ]]; then
+    from_clause="--from $GOAL_FROM "
+  fi
+
+  retry_flag=""
+  if [[ "$RETRY" == "true" ]]; then retry_flag=" --retry"; fi
+
+  # guard: a merge needs a human approval; apply mode only, no flag lifts it
+  # .note = an already-merged pr has naught left to gate
+  # .note = the head read here is the one the gate judges AND the one the
+  #         merge pins (--match-head-commit); a push after the gate cannot merge
+  feat_head_sha=""
+  if [[ "$MODE" == "apply" && $(is_pr_merged "$status_json") != "true" ]]; then
+    feat_head_sha=$(get_pr_head_sha pr_number="$pr_number") || feat_head_sha=""
+    guard_result=0
+    guard_pr_has_human_approval \
+      pr_number="$pr_number" \
+      head_sha="$feat_head_sha" \
+      status_json="$status_json" \
+      command_line="🐚 git.release ${from_clause}--into $GOAL_INTO --mode apply --watch${retry_flag}" \
+      || guard_result=$?
+    if [[ $guard_result -ne 0 ]]; then
+      exit $guard_result
     fi
 
-    retry_flag=""
-    if [[ "$RETRY" == "true" ]]; then retry_flag=" --retry"; fi
+    # approved: from here until a merge is seen, any exit disarms automerge
+    hold_automerge_lease pr_number="$pr_number"
+  fi
+
+  # print turtle header
+  if [[ "$TURTLE_PRINTED" == "false" ]]; then
     if [[ "$MODE" == "apply" ]]; then
       print_turtle_header "cowabunga!"
       echo "🐚 git.release ${from_clause}--into $GOAL_INTO --mode apply --watch${retry_flag}"
@@ -687,11 +714,16 @@ if [[ "$GOAL_FROM" != "main" ]]; then
   # emit status via decomposed operation
   # note: use `|| status_result=$?` pattern to capture non-zero returns under set -e
   status_result=0
-  emit_transport_status "pr" "$pr_number" "$FLAG_APPLY" "$RETRY" "$WATCH" "$status_json" || status_result=$?
+  emit_transport_status "pr" "$pr_number" "$FLAG_APPLY" "$RETRY" "$WATCH" "$status_json" "$feat_head_sha" || status_result=$?
 
   # check for malfunction (exit 1) - propagate failloud
   if [[ $status_result -eq 1 ]]; then
     exit 1
+  fi
+
+  # the pinned head moved after the gate: refused, and no --retry lifts it
+  if [[ $status_result -eq 4 ]]; then
+    exit 2
   fi
 
   # if status returned constraint (exit 2), decide next action
@@ -716,13 +748,15 @@ if [[ "$GOAL_FROM" != "main" ]]; then
   skip_watch="false"
   if [[ $status_result -eq 3 ]]; then
     skip_watch="true"
+    drop_automerge_lease
   fi
 
   # watch if requested (watch/apply after retry is valid per blueprint)
   if [[ "$WATCH" == "true" || "$FLAG_APPLY" == "true" ]] && [[ "$skip_watch" != "true" ]]; then
     # note: use `|| watch_result=$?` pattern to capture non-zero returns under set -e
     watch_result=0
-    emit_transport_watch "pr" "$pr_number" || watch_result=$?
+    # .note = in apply mode the watch holds an automerge lease on the gated head
+    emit_transport_watch "pr" "$pr_number" "$feat_head_sha" || watch_result=$?
 
     if [[ $watch_result -ne 0 ]]; then
       exit $watch_result
@@ -731,6 +765,8 @@ if [[ "$GOAL_FROM" != "main" ]]; then
     # note: emit_transport_watch returns 0 when:
     # - PR is merged (success) → continue to next transport
     # - checks pass without automerge (success) → exit 0, hint already shown
+    # either way no automerge stays armed, so the lease is done
+    drop_automerge_lease
   fi
 
   # if not bound for prod, done here
@@ -888,11 +924,17 @@ if [[ "$GOAL_INTO" == "prod" ]]; then
   # emit status via decomposed operation
   # note: use `|| status_result=$?` pattern to capture non-zero returns under set -e
   status_result=0
-  emit_transport_status "pr" "$release_pr" "$FLAG_APPLY" "$RETRY" "$WATCH" "$release_status_json" || status_result=$?
+  # .note = the release pr carries no review gate (F1), so its merge is explicitly unpinned
+  emit_transport_status "pr" "$release_pr" "$FLAG_APPLY" "$RETRY" "$WATCH" "$release_status_json" "@unpinned" || status_result=$?
 
   # check for malfunction (exit 1) - propagate failloud
   if [[ $status_result -eq 1 ]]; then
     exit 1
+  fi
+
+  # a refused merge never falls through to the watch (unpinned today, so unreachable)
+  if [[ $status_result -eq 4 ]]; then
+    exit 2
   fi
 
   # if status returned constraint (exit 2), decide next action

@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`git.commit.push, via rhachet given: [case1] a repo with the mechanic role linked when: [t0] the push is asked for --help then: the help is snapped 1`] = `
-"usage: git.commit.push [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json] [--pr-title-fallback "..."] [--debug]
+"usage: git.commit.push [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json] [--base <branch>] [--pr-title-fallback "..."] [--debug]
 
 options:
   --mode plan|apply            plan shows preview, apply executes (default: plan)
@@ -9,6 +9,9 @@ options:
                                as-ehmpath = seaturtle bot via ehmpath keyrack token
                                as-human   = the gh cli login (fallback on keyrack failure)
   --output tree|json           tree for standalone, json for composition (default: tree)
+  --base <branch>              open the pr on this branch, or move a found pr onto it
+                               (default: the repo's default branch); for a stack of prs
+                               it names the slice below, which must be on origin
   --pr-title-fallback "..."    fallback pr title when no commits on branch yet
   --debug                      show verbose debug output
   --help, -h                   show this help
