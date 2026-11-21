@@ -7,7 +7,7 @@
 #
 # usage:
 #   rhx git.pull.comment.set --which 69 --key status --from ./status.md [--mode apply]
-#   rhx git.pull.comment.set --which 69 --reply-to <id> --key answer --from ./a.md
+#   rhx git.pull.comment.set --which 69 --reply-to <id> --key answer-<id> --from ./a.md
 #   rhx git.pull.comment.set --which 69 --id <id> --kind issue|review --from ./a.md
 #   rhx git.pull.comment.set --help    # every flag
 #
@@ -16,6 +16,8 @@
 #   - plan by default; apply reads back + hash-checks
 #   - refuses a new comment with no --key, a foreign or twin key (exit 2)
 #   - refuses the pr description; it is no comment
+#   - after an apply, names every comment on the pr that awaits a reply;
+#     a read that fails warns in one line, and the set still exits 0
 ######################################################################
 set -euo pipefail
 
@@ -47,7 +49,9 @@ options:
   --from <path|@stdin>         the body; written as '🐢 ' + body, plus a hidden key marker
   --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
-  --mode plan|apply            plan shows preview, apply writes and reads back (default: plan)
+  --mode plan|apply            plan shows preview, apply writes and reads back (default: plan);
+                               after an apply, a 🥥 names each comment on the pr that awaits a reply,
+                               with the command that answers it (tree only; a failed read warns, exit 0)
   --auth as-ehmpath|as-human   who writes (default: as-ehmpath)
   --output tree|json           the output shape (default: tree)
   --help, -h                   show this help
@@ -313,9 +317,148 @@ emit() {
   echo "      └─ url: $url"
 }
 
+# .what = the 🥥 hint rows: one per comment that awaits a reply, then its command
+# .why  = a reply round's to-do list arrives with each answer, paste-ready
+# .note = each command carries --mode apply, so a paste answers rather than plans
+# .note = the key is answer-<row id>: a re-ask is a new comment with a new id, so
+#         its key is new and the set posts a reply. a reused key would edit the
+#         old answer, and an edit never answers (order is by creation)
+# .note = named args: rows=<the rows that await> target=<the --which/--in/--auth flags>
+as_unanswered_hint_lines() {
+  local rows="" target="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      rows=*) rows="${arg#*=}" ;;
+      target=*) target="${arg#*=}" ;;
+    esac
+  done
+  printf '%s' "$rows" | jq -r --arg target "$target" --arg marker "$COMMENT_KEY_MARKER_REGEX" '
+    def first_words: (.body // "") | gsub($marker; "") | sub("^🐢 ?"; "")
+      | gsub("\r"; "") | split("\n") | map(gsub("^\\s+|\\s+$"; "")) | map(select(. != "")) | (first // "")
+      | if length > 60 then .[0:60] + "…" else . end;
+    def where: if .kind == "issue" then "top-level"
+      elif .path then "\(.path)\(if .line then ":\(.line)" else "" end)"
+      else "review thread" end;
+    def command: "rhx git.pull.comment.set \($target)"
+      + (if .kind == "review" then " --reply-to \(.id)" else "" end)
+      + " --key answer-\(.id) --from <file> --mode apply";
+    # one top-level answer clears every top-level wait above it, so only the
+    # latest top-level row carries a command
+    ( [ .[] | select(.kind == "issue") ] ) as $issues
+    | ( $issues | last | .id ) as $issue_last
+    | length as $n
+    | to_entries[]
+    | .key as $i | .value as $c
+    | (if $i == $n - 1 then "      └─ " else "      ├─ " end) as $head
+    | (if $i == $n - 1 then "         " else "      │  " end) as $pad
+    | $head + "\($c.kind) \($c.id) by \($c.author // "?"), \($c | where): \"\($c | first_words)\""
+      + ( if $c.kind == "issue" and $c.id != $issue_last then ""
+          else "\n" + $pad + "└─ " + ($c | command)
+            + (if $c.kind == "issue" and ($issues | length) > 1 then "   # answers every top-level comment above" else "" end)
+          end )'
+}
+
+# .what = the hint block: a 🥥 that names what awaits a reply, or says naught does
+# .why  = the tree render; the json form carries no hint
+print_unanswered_hint() {
+  local rows="$1" count
+  count="$(get_count_of_comments "$rows")"
+
+  # open the 🥥
+  echo ""
+  echo "🥥 did you know?"
+
+  # naught awaits: one line
+  [[ "$count" == "0" ]] && { echo "   └─ naught on $COMMENT_REPO#$PR awaits a reply"; return 0; }
+
+  # one row per comment that awaits, each with its answer command
+  echo "   └─ $(as_unanswered_hint_label "$count")"
+  as_unanswered_hint_lines rows="$rows" target="$(as_comment_cmd_target "$PR")"
+}
+
+# .what = the hint's label: how many comments on the pr await a reply
+# .why  = one comment reads singular, so the label matches its count
+as_unanswered_hint_label() {
+  local count="$1"
+  [[ "$count" == "1" ]] && { echo "1 comment on $COMMENT_REPO#$PR still awaits a reply"; return 0; }
+  echo "$count comments on $COMMENT_REPO#$PR still await a reply"
+}
+
+# .what = the one warn line for a hint read that failed: its cause, and the command that retries it
+# .why  = a failed read must be loud yet never fail the set the write already landed
+# .note = named args: cause=<the phrase from as_comment_read_failure_cause>
+as_hint_failure_line() {
+  local cause="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      cause=*) cause="${arg#*=}" ;;
+    esac
+  done
+  printf '\n⚠️  could not read the comments that await a reply (%s); run rhx git.pull.comment.get %s --unanswered' \
+    "$cause" "$(as_comment_cmd_target "$PR")"
+}
+
+# .what = the hint text: read every row, merge the written one, keep those that
+#         await, and render them
+# .why  = one unit of work, so one containment boundary holds every step of it,
+#         the render included
+# .note = named args: written_kind= written_json=, both absent for a no-op.
+#         github's list may lag a write it just accepted, so the written row is
+#         merged in, and the hint never re-lists the thread the set just answered
+get_unanswered_hint_text() {
+  local written_kind="" written_json="" arg all rows
+  for arg in "$@"; do
+    case "$arg" in
+      written_kind=*) written_kind="${arg#*=}" ;;
+      written_json=*) written_json="${arg#*=}" ;;
+    esac
+  done
+
+  # read every row of the pr
+  all="$(get_all_comment_rows_of_pr "$PR")" || exit $?
+
+  # merge the row this set wrote, so a lagged list still sees it
+  [[ -z "$written_json" ]] || all="$(as_comment_rows_with_row rows="$all" row="$(as_comment_row kind="$written_kind" json="$written_json")")"
+
+  # keep those that await, and render them
+  rows="$(as_comment_rows_unanswered rows="$all" login="$COMMENT_LOGIN")"
+  print_unanswered_hint "$rows"
+}
+
+# .what = after an apply, name the comments of the pr that await a reply
+# .why  = the hint is a read: it never writes, and never fails the set. a failed
+#         step prints one warn line, and the set still exits 0, since the write
+#         landed and its exit code reports the write
+# .note = named args: written_kind= written_json=, both absent for a no-op
+# .note = the whole hint runs inside run_comment_read_contained: a refusal leaks
+#         no ✋/💥 block, any fault (read, merge, or render) arrives as data, and
+#         the main shell only prints the finished text
+# .note = the json form carries no hint: stdout keeps its one object, and a json
+#         caller reads what awaits via get --unanswered --output json
+emit_unanswered_hint() {
+  local refusal_file="$WORK/hint.refusal.json" stderr_file="$WORK/hint.stderr" text rc=0 cause
+
+  # the json form carries no hint
+  [[ "$OUTPUT" == "json" ]] && return 0
+
+  # build the whole hint inside one containment boundary
+  text="$(run_comment_read_contained refusal="$refusal_file" stderr="$stderr_file" -- get_unanswered_hint_text "$@")" || rc=$?
+
+  # a step failed: one warn line on both streams, with its cause and class
+  if [[ "$rc" != "0" ]]; then
+    cause="$(as_comment_read_failure_cause refusal="$(cat "$refusal_file" 2>/dev/null || true)" stderr="$(cat "$stderr_file" 2>/dev/null || true)")"
+    emit_both "$(as_hint_failure_line cause="$cause")"
+    return 0
+  fi
+
+  # the hint held: print it
+  printf '%s\n' "$text"
+}
+
 # no-op: the target already says this
 if [[ "$VERDICT" == "no-op" ]]; then
   emit "already there — no-op" "${ID:-$PR}" "$CUR_URL"
+  [[ "$MODE" == "apply" ]] && emit_unanswered_hint
   exit 0
 fi
 
@@ -369,6 +512,7 @@ fi
 ACTED="posted"
 [[ "$METHOD" == "PATCH" ]] && ACTED="edited"
 emit "$ACTED, read back, hash matches" "$NEW_ID" "$NEW_URL" "$BACK_SHA"
+emit_unanswered_hint written_kind="${ONE_KIND:-$KIND}" written_json="$BACK"
 
 # a ledger fault: the comment stands, the watch will echo it once; name the cause and the fix
 # .note = exit 0: the comment landed, so a nonzero exit would tell a composer the set

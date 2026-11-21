@@ -84,6 +84,8 @@ const login = process.env.GH_TOKEN === undefined ? state.loginHuman : state.logi
 if (argv[0] !== 'api') { process.stderr.write('stub gh: only api\n'); process.exit(1); }
 // the whoami fails only when asked by name: a logged-out gh fails here first
 if (argv[1] === 'graphql' && state.fail && state.failMethod === 'GRAPHQL') { process.stderr.write(state.fail + '\n'); process.exit(1); }
+// a failure on the review-thread read alone: the write holds, the hint read breaks
+if (argv[1] === 'graphql' && argv.some((a) => a.includes('reviewThreads')) && state.failThreads) { process.stderr.write(state.failThreads + '\n'); process.exit(1); }
 // review threads: one thread per root review comment; a root in state.resolved reads resolved
 // state.threadCommentCap mirrors github's comments(first: N) cap: later comments go unnamed
 if (argv[1] === 'graphql' && argv.some((a) => a.includes('reviewThreads'))) {
@@ -163,9 +165,10 @@ const one = (kind, id) => {
   }
 };
 // github answers 404 for the comments of a pr that does not exist
+// state.listHides mirrors a list that lags a write: those ids read back by id, yet no list holds them
 const listOf = (kind, pr) => {
   if (!state.prs[pr]) notFound();
-  return state.comments.filter((c) => c.kind === kind && c.pr === Number(pr)).map(view);
+  return state.comments.filter((c) => c.kind === kind && c.pr === Number(pr) && !(state.listHides || []).includes(c.id)).map(view);
 };
 if (rest[0] === 'issues' && rest[1] === 'comments') one('issue', rest[2]);
 if (rest[0] === 'pulls' && rest[1] === 'comments') one('review', rest[2]);
@@ -237,8 +240,10 @@ exit 2
     noId: boolean;
     fail: string | null;
     failMethod: 'POST' | 'PATCH' | 'DELETE' | 'GRAPHQL' | null;
+    failThreads: string | null;
     resolved: number[];
     threadCommentCap: number | null;
+    listHides: number[];
     prs: Record<
       string,
       {
@@ -341,8 +346,10 @@ exit 2
       noId: false,
       fail: null,
       failMethod: null,
+      failThreads: null,
       resolved: [],
       threadCommentCap: null,
+      listHides: [],
       prs: {
         '7': {
           title: 'feat(lessons): book a surf lesson',
@@ -3818,11 +3825,302 @@ exit 2
   });
 
   /**
+   * .what = the ids a set hint names, in render order
+   * .why  = assert the hint's membership apart from its snapshot
+   */
+  const asHintIds = (stdout: string): number[] =>
+    [...stdout.matchAll(/[├└]─ (?:review|issue) (\d+) by /g)].map((m) =>
+      Number(m[1]),
+    );
+
+  /**
    * .what = a fixed clock time, seconds past the scene's minute
    * .why  = the unanswered rule orders by creation; each case names its order
    */
   const at = (second: number): string =>
     `2026-10-24T00:00:${String(second).padStart(2, '0')}Z`;
+
+  given('[case22] set names the comments that still await a reply', () => {
+    const scene = genScene({
+      ...SCENE_BARE,
+      store: { prs: { '7': { ...PR_7_BY_AUTHOR_OTHER } }, clock: 40 },
+      comments: [
+        // thread 901: the one this set answers
+        genComment({
+          id: 901,
+          kind: 'review',
+          author: LOGIN_HUMAN,
+          body: 'why so?',
+          path: 'src/wave.ts',
+          line: 12,
+          created_at: at(1),
+        }),
+        // thread 903: a human asks, no answer
+        genComment({
+          id: 903,
+          kind: 'review',
+          author: LOGIN_HUMAN,
+          body: 'forbid the dot',
+          path: 'src/slug.ts',
+          line: 4,
+          created_at: at(3),
+        }),
+        // thread 904: the robot answers, then the human asks again
+        genComment({
+          id: 904,
+          kind: 'review',
+          author: LOGIN_HUMAN,
+          body: 'not hardcoded?',
+          path: 'src/cache.ts',
+          line: 42,
+          created_at: at(4),
+        }),
+        genComment({
+          id: 905,
+          kind: 'review',
+          in_reply_to_id: 904,
+          path: 'src/cache.ts',
+          line: 42,
+          created_at: at(5),
+        }),
+        genComment({
+          id: 906,
+          kind: 'review',
+          in_reply_to_id: 904,
+          author: LOGIN_HUMAN,
+          body: 'and the cache?',
+          path: 'src/cache.ts',
+          line: 42,
+          created_at: at(6),
+        }),
+        // a top-level note: no reply thread, so a top-level answer
+        genComment({
+          id: 909,
+          kind: 'issue',
+          author: LOGIN_HUMAN,
+          body: 'one more note: bump the docs too',
+          created_at: at(9),
+        }),
+      ],
+    });
+    when('[t0] set --reply-to 901 --mode apply', () => {
+      const result = useThen('it runs', async () =>
+        scene.run('set', [
+          '--which',
+          '7',
+          '--reply-to',
+          '901',
+          '--key',
+          'answer-901',
+          '--from',
+          scene.writeFile('answer-901.md', 'the wave report needs it'),
+          '--mode',
+          'apply',
+        ]),
+      );
+      then('the set posts and exits 0', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('posted, read back, hash matches');
+      });
+      then('the hint names 903, 906, and 909, oldest first; not 901', () => {
+        expect(asHintIds(result.stdout)).toEqual([903, 906, 909]);
+        expect(result.stdout).toContain(
+          '3 comments on ehmpathy/surf-demo#7 still await a reply',
+        );
+      });
+      then(
+        'a review row names path:line, first words, and its reply command',
+        () => {
+          expect(result.stdout).toContain(
+            'review 903 by surfer-kai, src/slug.ts:4: "forbid the dot"',
+          );
+          expect(result.stdout).toContain(
+            'rhx git.pull.comment.set --which 7 --in ehmpathy/surf-demo --reply-to 903 --key answer-903 --from <file>',
+          );
+        },
+      );
+      then(
+        'the re-ask row is the first human word after the last answer',
+        () => {
+          expect(result.stdout).toContain(
+            'review 906 by surfer-kai, src/cache.ts:42: "and the cache?"',
+          );
+        },
+      );
+      then(
+        'an issue row reads top-level, with a top-level --key command',
+        () => {
+          expect(result.stdout).toContain(
+            'issue 909 by surfer-kai, top-level: "one more note: bump the docs too"',
+          );
+          expect(result.stdout).toContain(
+            'rhx git.pull.comment.set --which 7 --in ehmpathy/surf-demo --key answer-909 --from <file>',
+          );
+        },
+      );
+      then('the hint writes naught', () => {
+        // one write: the reply itself
+        expect(scene.getWrites()).toHaveLength(1);
+      });
+      then('the output is snapped', () => {
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+    when('[t1] the same set reruns: a no-op', () => {
+      const result = useThen('it runs', async () =>
+        scene.run('set', [
+          '--which',
+          '7',
+          '--reply-to',
+          '901',
+          '--key',
+          'answer-901',
+          '--from',
+          './answer-901.md',
+          '--mode',
+          'apply',
+        ]),
+      );
+      then('the hint still names what waits', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('already there — no-op');
+        expect(asHintIds(result.stdout)).toEqual([903, 906, 909]);
+      });
+      then('the output is snapped', () => {
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+    when('[t2] the same set runs as a plan', () => {
+      const result = useThen('it runs', async () =>
+        scene.run('set', [
+          '--which',
+          '7',
+          '--reply-to',
+          '903',
+          '--key',
+          'answer-903',
+          '--from',
+          './answer-901.md',
+        ]),
+      );
+      then('a plan shows no unanswered hint', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).not.toContain('await a reply');
+        expect(result.stdout).not.toContain('awaits a reply');
+      });
+    });
+    when('[t3] get --unanswered reads the same rule', () => {
+      const result = useThen('it runs', async () =>
+        scene.run('get', ['--which', '7', '--unanswered', '--output', 'json']),
+      );
+      then('its ids equal the ids the hint named', () => {
+        expect(result.exitCode).toBe(0);
+        const rows: { id: number }[] = JSON.parse(result.stdout);
+        expect(rows.map((r) => r.id)).toEqual([903, 906, 909]);
+      });
+    });
+    when('[t4] the last open thread and the note get answers', () => {
+      const result = useThen('it runs', async () => {
+        const file = scene.writeFile('answer.md', 'done, thanks');
+        scene.run('set', [
+          '--which',
+          '7',
+          '--reply-to',
+          '903',
+          '--key',
+          'answer-903',
+          '--from',
+          file,
+          '--mode',
+          'apply',
+        ]);
+        scene.run('set', [
+          '--which',
+          '7',
+          '--reply-to',
+          '906',
+          '--key',
+          'answer-906',
+          '--from',
+          file,
+          '--mode',
+          'apply',
+        ]);
+        return scene.run('set', [
+          '--which',
+          '7',
+          '--key',
+          'answer-909',
+          '--from',
+          file,
+          '--mode',
+          'apply',
+        ]);
+      });
+      then('the hint is one line: naught awaits a reply', () => {
+        expect(result.exitCode).toBe(0);
+        expect(asHintIds(result.stdout)).toEqual([]);
+        expect(result.stdout).toContain(
+          '🥥 did you know?\n   └─ naught on ehmpathy/surf-demo#7 awaits a reply',
+        );
+      });
+      then('the output is snapped', () => {
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case25] the hint commands carry the auth the set ran under', () => {
+    const scene = genScene({
+      ...SCENE_BARE,
+      token: null,
+      store: { prs: { '7': { ...PR_7_BY_AUTHOR_OTHER } }, clock: 40 },
+      comments: [
+        // a peer asks; neither the gh login nor the pr author has answered
+        genComment({
+          id: 951,
+          kind: 'review',
+          author: LOGIN_PEER,
+          body: 'why cap the swell at 12ft?',
+          path: 'src/swell.ts',
+          line: 7,
+          created_at: at(1),
+        }),
+      ],
+    });
+    when('[t0] set --auth as-human --mode apply', () => {
+      const result = useThen('it runs', async () =>
+        scene.run('set', [
+          '--which',
+          '7',
+          '--key',
+          'status',
+          '--from',
+          scene.writeFile('status.md', 'paddle out at dawn'),
+          '--auth',
+          'as-human',
+          '--mode',
+          'apply',
+        ]),
+      );
+      then(
+        'the hint command names --auth as-human, so a paste answers as the same login',
+        () => {
+          expect(result.exitCode).toBe(0);
+          expect(asHintIds(result.stdout)).toEqual([951]);
+          expect(result.stdout).toContain(
+            '1 comment on ehmpathy/surf-demo#7 still awaits a reply',
+          );
+          expect(result.stdout).toContain(
+            'rhx git.pull.comment.set --which 7 --in ehmpathy/surf-demo --auth as-human --reply-to 951 --key answer-951 --from <file>',
+          );
+        },
+      );
+      then('the output is snapped', () => {
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
 
   given('[case23] the rule edges: who answers, and what is closed', () => {
     const scene = genScene({
@@ -3974,16 +4272,33 @@ exit 2
         }),
       ],
     });
-    when('[t0] get --unanswered', () => {
+    when('[t0] set --key status --mode apply', () => {
       const result = useThen('it runs', async () =>
-        scene.run('get', ['--which', '7', '--unanswered']),
+        scene.run('set', [
+          '--which',
+          '7',
+          '--key',
+          'status',
+          '--from',
+          scene.writeFile('status.md', 'round two underway'),
+          '--mode',
+          'apply',
+        ]),
       );
-      then('the tree names 708, 709, and 713; not the +1', () => {
+      then('the hint names exactly 708, 709, and 713', () => {
         expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('is the tide hardcoded?');
-        expect(result.stdout).toContain('which case?');
-        expect(result.stdout).toContain('is this cached?');
-        expect(result.stdout).not.toContain('+1');
+        expect(asHintIds(result.stdout)).toEqual([708, 709, 713]);
+      });
+      then('row 709 names the question, not the +1', () => {
+        expect(result.stdout).toContain(
+          'review 709 by surfer-kai, src/tide.ts:9: "is the tide hardcoded?"',
+        );
+        expect(result.stdout).not.toContain('by reef-nalu');
+      });
+      then('a review row with no path reads as a review thread', () => {
+        expect(result.stdout).toContain(
+          'review 708 by surfer-kai, review thread: "which case?"',
+        );
       });
       then('the output is snapped', () => {
         expect(result.stdout).toMatchSnapshot();
@@ -3993,10 +4308,250 @@ exit 2
       const result = useThen('it runs', async () =>
         scene.run('get', ['--which', '7', '--unanswered', '--output', 'json']),
       );
-      then('the ids are 708, 709, and 713', () => {
+      then('the ids equal the ids the hint named', () => {
         expect(result.exitCode).toBe(0);
         const rows: { id: number }[] = JSON.parse(result.stdout);
         expect(rows.map((r) => r.id)).toEqual([708, 709, 713]);
+      });
+    });
+  });
+
+  given('[case24] the hint read fails; the set still holds', () => {
+    const SEED = [
+      genComment({
+        id: 801,
+        kind: 'review',
+        author: LOGIN_HUMAN,
+        body: 'why?',
+        created_at: at(1),
+      }),
+    ];
+    const argsApply = (scene: ReturnType<typeof genScene>, extra: string[]) => [
+      '--which',
+      '7',
+      '--key',
+      'status',
+      '--from',
+      scene.writeFile('status.md', 'round two underway'),
+      '--mode',
+      'apply',
+      ...extra,
+    ];
+    when('[t0] a rate limit hits the read, under --output tree', () => {
+      const scene = genScene({
+        ...SCENE_BARE,
+        store: {
+          failThreads:
+            'gh: API rate limit exceeded for installation (HTTP 403)',
+        },
+        comments: SEED,
+      });
+      const result = useThen('it runs', async () =>
+        scene.run('set', argsApply(scene, [])),
+      );
+      then('the set exits 0, and its result shows the post', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('posted, read back, hash matches');
+      });
+      then('one warn line names the cause and the get command', () => {
+        const warns = result.stdout
+          .split('\n')
+          .filter((l) => l.startsWith('⚠️'));
+        expect(warns).toHaveLength(1);
+        expect(warns[0]).toContain(
+          'could not read the comments that await a reply',
+        );
+        expect(warns[0]).toContain('rate limit');
+        expect(warns[0]).toContain(
+          'run rhx git.pull.comment.get --which 7 --in ehmpathy/surf-demo --unanswered',
+        );
+        expect(result.stderr).toContain(warns[0]);
+      });
+      then('the warn names the class, so a reader knows who must act', () => {
+        const warn = result.stdout.split('\n').find((l) => l.startsWith('⚠️'));
+        expect(warn).toMatch(/\((ConstraintError|MalfunctionError): /);
+      });
+      then('no refusal block leaks, on either stream', () => {
+        const lines = (result.stdout + '\n' + result.stderr).split('\n');
+        expect(lines.filter((l) => /^(✋|💥) /.test(l))).toEqual([]);
+      });
+      then('the output is snapped', () => {
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+    when('[t1] an auth refusal hits the read', () => {
+      const scene = genScene({
+        ...SCENE_BARE,
+        store: {
+          failThreads:
+            'HTTP 401: Bad credentials (https://api.github.com/graphql)',
+        },
+        comments: SEED,
+      });
+      const result = useThen('it runs', async () =>
+        scene.run('set', argsApply(scene, [])),
+      );
+      then('still exit 0, still one warn line, no refusal block', () => {
+        expect(result.exitCode).toBe(0);
+        const warns = result.stdout
+          .split('\n')
+          .filter((l) => l.startsWith('⚠️'));
+        expect(warns).toHaveLength(1);
+        expect(warns[0]).toMatch(/\((ConstraintError|MalfunctionError): /);
+        const lines = (result.stdout + '\n' + result.stderr).split('\n');
+        expect(lines.filter((l) => /^(✋|💥) /.test(l))).toEqual([]);
+      });
+      then('the output is snapped', () => {
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+    when('[t2] the read fails under --output json', () => {
+      const scene = genScene({
+        ...SCENE_BARE,
+        store: {
+          failThreads:
+            'gh: API rate limit exceeded for installation (HTTP 403)',
+        },
+        comments: SEED,
+      });
+      const result = useThen('it runs', async () =>
+        scene.run('set', argsApply(scene, ['--output', 'json'])),
+      );
+      then('stdout parses as the set json, unchanged', () => {
+        expect(result.exitCode).toBe(0);
+        const json = JSON.parse(result.stdout);
+        expect(json.verdict).toBe('posted, read back, hash matches');
+      });
+      then(
+        'the json form carries no hint and no warn, on either stream',
+        () => {
+          expect(result.stdout + result.stderr).not.toContain('⚠️');
+          expect(result.stdout + result.stderr).not.toContain('a reply');
+        },
+      );
+      then('the json form makes no hint read at all', () => {
+        // the graphql thread read would fail here; json never reaches it
+        expect(
+          scene
+            .getCalls()
+            .filter((c) => c.argv.join(' ').includes('reviewThreads')),
+        ).toEqual([]);
+      });
+    });
+    when('[t3] the read holds under --output json', () => {
+      const scene = genScene({
+        ...SCENE_BARE,
+        store: { prs: { '7': { ...PR_7_BY_AUTHOR_OTHER } } },
+        comments: SEED,
+      });
+      const result = useThen('it runs', async () =>
+        scene.run('set', argsApply(scene, ['--output', 'json'])),
+      );
+      then('stdout holds the json alone; stderr holds no hint', () => {
+        expect(result.exitCode).toBe(0);
+        expect(JSON.parse(result.stdout).verdict).toBe(
+          'posted, read back, hash matches',
+        );
+        expect(result.stderr).not.toContain('a reply');
+      });
+    });
+  });
+
+  given('[case26] the list lags the write it just accepted', () => {
+    const scene = genScene({
+      ...SCENE_BARE,
+      // the first write gets id 5001; no list holds it, though it reads back by id
+      store: {
+        prs: { '7': { ...PR_7_BY_AUTHOR_OTHER } },
+        listHides: [5001],
+        clock: 40,
+      },
+      comments: [
+        genComment({
+          id: 961,
+          kind: 'review',
+          author: LOGIN_PEER,
+          body: 'why the dawn patrol?',
+          path: 'src/tide.ts',
+          line: 3,
+          created_at: at(1),
+        }),
+      ],
+    });
+    when('[t0] set --reply-to 961 answers the only open thread', () => {
+      const result = useThen('it runs', async () =>
+        scene.run('set', [
+          '--which',
+          '7',
+          '--reply-to',
+          '961',
+          '--key',
+          'answer-961',
+          '--from',
+          scene.writeFile('answer.md', 'the swell peaks at dawn'),
+          '--mode',
+          'apply',
+        ]),
+      );
+      then(
+        'the hint reads naught: the written reply counts though no list holds it',
+        () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('posted, read back, hash matches');
+          expect(asHintIds(result.stdout)).toEqual([]);
+          expect(result.stdout).toContain(
+            'naught on ehmpathy/surf-demo#7 awaits a reply',
+          );
+        },
+      );
+      then('the output is snapped', () => {
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case27] an edit answers while another thread still awaits', () => {
+    const scene = genScene({
+      ...SCENE_BARE,
+      store: { prs: { '7': { ...PR_7_BY_AUTHOR_OTHER } }, clock: 40 },
+      comments: [
+        genComment({
+          id: 971,
+          author: LOGIN_SELF,
+          body: asKeyedBody({ text: 'round one underway', key: 'status' }),
+          created_at: at(1),
+        }),
+        genComment({
+          id: 972,
+          kind: 'review',
+          author: LOGIN_PEER,
+          body: 'rinse the wetsuit?',
+          path: 'src/gear.ts',
+          line: 21,
+          created_at: at(2),
+        }),
+      ],
+    });
+    when('[t0] set --key status with a new body edits in place', () => {
+      const result = useThen('it runs', async () =>
+        scene.run('set', [
+          '--which',
+          '7',
+          '--key',
+          'status',
+          '--from',
+          scene.writeFile('status.md', 'round two underway'),
+          '--mode',
+          'apply',
+        ]),
+      );
+      then('the set edits, and the hint names the open thread', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('edited, read back, hash matches');
+        expect(asHintIds(result.stdout)).toEqual([972]);
+      });
+      then('the output is snapped', () => {
+        expect(result.stdout).toMatchSnapshot();
       });
     });
   });
@@ -4043,6 +4598,105 @@ exit 2
         expect(result.exitCode).toBe(0);
         const rows: { id: number }[] = JSON.parse(result.stdout);
         expect(rows.map((r) => r.id)).toEqual([]);
+      });
+    });
+  });
+
+  given('[case29] two top-level comments await beside a review thread', () => {
+    const scene = genScene({
+      ...SCENE_BARE,
+      store: { prs: { '7': { ...PR_7_BY_AUTHOR_OTHER } }, clock: 40 },
+      comments: [
+        genComment({
+          id: 1201,
+          kind: 'issue',
+          author: LOGIN_HUMAN,
+          body: 'bump the docs too',
+          created_at: at(1),
+        }),
+        genComment({
+          id: 1202,
+          kind: 'review',
+          author: LOGIN_HUMAN,
+          body: 'why so?',
+          path: 'src/wave.ts',
+          line: 12,
+          created_at: at(2),
+        }),
+        genComment({
+          id: 1203,
+          kind: 'issue',
+          author: LOGIN_PEER,
+          body: 'and the changelog',
+          created_at: at(3),
+        }),
+      ],
+    });
+    when('[t0] set --reply-to 1202 answers the review thread', () => {
+      const result = useThen('it runs', async () =>
+        scene.run('set', [
+          '--which',
+          '7',
+          '--reply-to',
+          '1202',
+          '--key',
+          'answer-1202',
+          '--from',
+          scene.writeFile('answer.md', 'the swell'),
+          '--mode',
+          'apply',
+        ]),
+      );
+      then('both top-level rows show; one command answers them both', () => {
+        expect(result.exitCode).toBe(0);
+        expect(asHintIds(result.stdout)).toEqual([1201, 1203]);
+        expect(result.stdout).not.toContain('--key answer-1201');
+        expect(result.stdout).toContain(
+          '--key answer-1203 --from <file> --mode apply   # answers every top-level comment above',
+        );
+      });
+      then('the output is snapped', () => {
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case30] a status note posts after a top-level question (F11)', () => {
+    const scene = genScene({
+      ...SCENE_BARE,
+      store: { prs: { '7': { ...PR_7_BY_AUTHOR_OTHER } }, clock: 40 },
+      comments: [
+        genComment({
+          id: 1301,
+          kind: 'issue',
+          author: LOGIN_HUMAN,
+          body: 'is the tide table cached?',
+          created_at: at(1),
+        }),
+      ],
+    });
+    when('[t0] set --key status --mode apply', () => {
+      const result = useThen('it runs', async () =>
+        scene.run('set', [
+          '--which',
+          '7',
+          '--key',
+          'status',
+          '--from',
+          scene.writeFile('status.md', 'round two underway'),
+          '--mode',
+          'apply',
+        ]),
+      );
+      then('the top-level question reads answered, by design (F11)', () => {
+        expect(result.exitCode).toBe(0);
+        expect(asHintIds(result.stdout)).toEqual([]);
+        expect(result.stdout).toContain(
+          'naught on ehmpathy/surf-demo#7 awaits a reply',
+        );
+      });
+      then('the output is snapped', () => {
+        expect(result.stdout).toMatchSnapshot();
       });
     });
   });

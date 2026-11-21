@@ -192,7 +192,7 @@ fi
 # refuse a human's comment: del deletes only what the robot wrote, and the robot
 # wrote a body only if it opens with the 🐢 that git.pull.comment.set always adds
 is_comment_by_robot "$CURRENT" || fail_comment_constraint "$KIND comment $ID is a human's comment: its body does not open with 🐢, which every git.pull.comment.set body wears; del deletes only what the robot wrote" \
-  "rhx git.pull.comment.set $(as_comment_cmd_target "$PR") --reply-to $ID --key <slug> --from <file>   # answer it instead, for a review comment"$'\n'"a human deletes it in the github ui, if it must go"
+  "rhx git.pull.comment.set $(as_comment_cmd_target "$PR") --reply-to $ID --key answer-$ID --from <file>   # answer it instead, for a review comment"$'\n'"a human deletes it in the github ui, if it must go"
 
 # plan: say what would happen, write naught
 if [[ "$MODE" == "plan" ]]; then

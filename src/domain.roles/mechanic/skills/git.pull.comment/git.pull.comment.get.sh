@@ -209,7 +209,7 @@ fi
 # narrow to the rows that wait on an answer, when asked
 if [[ "$UNANSWERED" == "true" ]]; then
   LABEL="$COMMENT_REPO#$PR, comments that await a reply from $COMMENT_LOGIN or the pr author"
-  ROWS="$(as_comment_rows_unanswered "$ROWS")"
+  ROWS="$(as_comment_rows_unanswered rows="$ROWS" login="$COMMENT_LOGIN")"
 fi
 
 # emit json
