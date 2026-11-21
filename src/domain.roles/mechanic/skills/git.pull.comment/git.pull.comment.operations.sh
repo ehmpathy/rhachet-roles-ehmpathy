@@ -56,8 +56,9 @@ COMMENT_KEY_CLAIM_REGEX='(?:^|\n)<!-- rhx:git.pull.comment key=([a-z0-9][a-z0-9.
 #        get, set, and del cannot disagree on either
 COMMENT_JQ_DEFS='
   def key_of: [(.body // "") | match($re; "g") | .captures[0].string] | last;
-  def is_login_self($author): ($author // "") as $a
-    | $a == $login or $a == ($login + "[bot]") or ($a + "[bot]") == $login;
+  def is_same_login($a; $b): ($a // "") as $x | ($b // "") as $y
+    | $x != "" and $y != "" and ($x == $y or $x == ($y + "[bot]") or ($x + "[bot]") == $y);
+  def is_login_self($author): is_same_login($author; $login);
 '
 
 ######################################################################
@@ -986,4 +987,276 @@ check_body_under_cap() {
 # .why  = the current body and the read-back body report their size one way
 as_bytes_of_json_body() {
   jq -j '.body // ""' | as_body_trimmed | as_bytes_count
+}
+
+######################################################################
+# comment rows: one shape for every comment of a pr, and the one rule
+# for "which comments await a reply". every reader of that question
+# (get --unanswered, the set hint, a release gate) sources these, so no
+# two readers can disagree
+######################################################################
+
+# .what = one github json resource (pr or comment) as a row: kind, id, author,
+#         author_type, created_at, in_reply_to, path, line, key, size, hash, body
+# .why  = every reader of a pr's comments sees one row shape, whatever endpoint
+#         the row came from
+# .note = path and line are null for a pr description or an issue comment;
+#         line falls back to original_line for an outdated review comment
+# .note = named args: kind=<body|issue|review> json=<one github resource>
+as_comment_row() {
+  local kind="" json="" arg sha bytes key
+  for arg in "$@"; do
+    case "$arg" in
+      kind=*) kind="${arg#*=}" ;;
+      json=*) json="${arg#*=}" ;;
+    esac
+  done
+  sha="$(printf '%s' "$json" | as_sha256_of_json_body)"
+  bytes="$(printf '%s' "$json" | as_bytes_of_json_body)"
+  key="$(printf '%s' "$json" | jq -j '.body // ""' | as_key_from_body)"
+  printf '%s' "$json" | jq -c --arg kind "$kind" --arg sha "$sha" --argjson bytes "$bytes" --arg key "$key" '{
+    kind: $kind,
+    id: (if $kind == "body" then null else .id end),
+    author: (.user.login // null),
+    author_type: (.user.type // null),
+    created_at: (.created_at // null),
+    in_reply_to: (.in_reply_to_id // null),
+    path: (.path // null),
+    line: (.line // .original_line // null),
+    key: (if $key == "" then null else $key end),
+    bytes: $bytes,
+    sha256: $sha,
+    url: (.html_url // null),
+    body: (.body // "")
+  }'
+}
+
+# .what = every comment of a github list as rows, one per line
+# .why  = a full read shapes issue and review lists the one way as_comment_row does
+# .note = named args: kind=<issue|review> list=<a github json array>
+as_comment_rows_of_list() {
+  local kind="" list="" arg row
+  for arg in "$@"; do
+    case "$arg" in
+      kind=*) kind="${arg#*=}" ;;
+      list=*) list="${arg#*=}" ;;
+    esac
+  done
+  while IFS= read -r row; do
+    [[ -n "$row" ]] || continue
+    as_comment_row kind="$kind" json="$row"
+    echo
+  done < <(printf '%s' "$list" | jq -c '.[]')
+}
+
+# .what = every row of a pr, in read order, from its three github reads
+# .why  = one builder, so get and the set hint shape a pr's rows one way
+# .note = named args: pull=<the pull json> issues=<issue list> reviews=<review list>
+as_comment_rows_of_pr() {
+  local pull="" issues="" reviews="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      pull=*) pull="${arg#*=}" ;;
+      issues=*) issues="${arg#*=}" ;;
+      reviews=*) reviews="${arg#*=}" ;;
+    esac
+  done
+  {
+    as_comment_row kind=body json="$pull"
+    echo
+    as_comment_rows_of_list kind=issue list="$issues"
+    as_comment_rows_of_list kind=review list="$reviews"
+  } | as_comment_rows_sorted
+}
+
+# .what = a stream of rows in read order, as one json array: the body first,
+#         then by creation time
+# .why  = a pr reads top to bottom; the body opens it
+as_comment_rows_sorted() {
+  jq -cs 'sort_by(if .kind == "body" then "" else .created_at end, (.id // 0))'
+}
+
+# .what = the rows, each review row given its thread state: "open" | "resolved"
+# .why  = a reader must see which review threads still wait on an answer
+# .note = a review row graphql does not name reads "open"; a non-review row reads null
+# .note = named args: rows=<a row array> states=<the map from get_all_review_thread_states>
+as_comment_rows_with_thread_state() {
+  local rows="" states="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      rows=*) rows="${arg#*=}" ;;
+      states=*) states="${arg#*=}" ;;
+    esac
+  done
+  printf '%s' "$rows" | jq -c --argjson states "$states" '
+    map(.thread = (if .kind == "review" then ($states["\(.id)"] // "open") else null end))'
+}
+
+# .what = the rows, each review row given its thread state, read from github
+# .why  = get and the set hint attach thread state one way; the graphql read
+#         runs only when a review row is present
+# .note = named args: rows=<a row array> pr=<n>
+get_all_comment_rows_with_thread_state() {
+  local rows="" pr="" arg states
+  for arg in "$@"; do
+    case "$arg" in
+      rows=*) rows="${arg#*=}" ;;
+      pr=*) pr="${arg#*=}" ;;
+    esac
+  done
+
+  # no review row: no thread state to read
+  is_review_among_comment_rows "$rows" || { printf '%s' "$rows"; return 0; }
+
+  # name each review row's thread state
+  states="$(get_all_review_thread_states "$pr")" || exit $?
+  as_comment_rows_with_thread_state rows="$rows" states="$states"
+}
+
+# .what = every row of pr N: the pr description, every issue comment, every
+#         review comment, each review row with its thread state
+# .why  = one call gives a reader every row the unanswered rule needs. the
+#         description row names the pr author, whom the rule counts as an answerer
+# .note = get.sh composes the same two steps (as_comment_rows_of_pr, then
+#         get_all_comment_rows_with_thread_state) around its own list reads,
+#         since its --key --reply-to path also needs the raw review list
+# .note = refusals inside reach fd 3 and exit, as every communicator here does;
+#         a caller that sets its own policy on failure runs it inside
+#         run_comment_read_contained
+get_all_comment_rows_of_pr() {
+  local pr="$1" pull issues reviews rows
+
+  # read the pull and both comment lists
+  pull="$(get_one_gh_pull "$pr")" || exit $?
+  issues="$(get_all_gh_resources "repos/$COMMENT_REPO/issues/$pr/comments")" || exit $?
+  reviews="$(get_all_gh_resources "repos/$COMMENT_REPO/pulls/$pr/comments")" || exit $?
+
+  # shape them as rows, then name each review row's thread state
+  rows="$(as_comment_rows_of_pr pull="$pull" issues="$issues" reviews="$reviews")"
+  get_all_comment_rows_with_thread_state rows="$rows" pr="$pr"
+}
+
+# .what = the rows, with one row added unless a row of its kind and id is present
+# .why  = the set hint names what awaits after a write; github's list may lag the
+#         write it just accepted, so the written comment is merged in by hand.
+#         the hint then never asks the caller to answer a thread they just answered
+# .note = named args: rows=<a row array> row=<one row>
+as_comment_rows_with_row() {
+  local rows="" row="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      rows=*) rows="${arg#*=}" ;;
+      row=*) row="${arg#*=}" ;;
+    esac
+  done
+  printf '%s' "$rows" | jq -c --argjson row "$row" '
+    if any(.[]; .kind == $row.kind and .id == $row.id) then . else . + [$row] end
+    | .[]' | as_comment_rows_sorted
+}
+
+# .what = run one read so no refusal escapes: its stdout on success; on failure,
+#         its exit code, with the refusal json and the stderr in two files
+# .why  = every family refusal writes to fd 3 and exits (emit_comment_refusal).
+#         a caller that sets its own policy on a failed read (the set hint warns,
+#         a release gate refuses) needs the failure as data, never a printed block
+# .note = named args: refusal=<file> stderr=<file>, then -- and the command to run
+run_comment_read_contained() {
+  local refusal="" stderr=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      refusal=*) refusal="${1#*=}"; shift ;;
+      stderr=*) stderr="${1#*=}"; shift ;;
+      --) shift; break ;;
+      *) fail_comment_malfunction "run_comment_read_contained got an unknown arg: '$1'" "args: refusal=<file> stderr=<file> -- <command>" ;;
+    esac
+  done
+  (
+    COMMENT_OUTPUT="json"
+    exec 3>"$refusal" 2>"$stderr"
+    "$@"
+  )
+}
+
+# .what = the cause of a failed contained read, as one phrase: class, message, first detail
+# .why  = a caller names who must act (the class) and why, in one line
+# .note = named args: refusal=<the json object a refusal writes under --output json>
+#         stderr=<the read's stderr>. a refusal carries its cause as data; a read
+#         that died with no refusal (an internal fault) is a malfunction, named
+#         by the first line it left on stderr
+as_comment_read_failure_cause() {
+  local refusal="" stderr="" arg line
+  for arg in "$@"; do
+    case "$arg" in
+      refusal=*) refusal="${arg#*=}" ;;
+      stderr=*) stderr="${arg#*=}" ;;
+    esac
+  done
+
+  # a refusal: its class, its message, and its first detail
+  printf '%s' "$refusal" | jq -e -r '.error | "\(.class): \(.message)" + (if (.details | length) > 0 then "; \(.details[0])" else "" end)' 2>/dev/null && return 0
+
+  # no refusal: an internal fault, named by its first stderr line
+  line="$(printf '%s' "$stderr" | grep -m1 -v '^[[:space:]]*$' || true)"
+  printf 'MalfunctionError: %s' "${line:-the read exited with no cause}"
+}
+
+# .what = does a row list hold a review comment?
+# .why  = only a review row carries a thread state, so the graphql read runs
+#         only when one is present
+# .note = an empty or unparseable input reads false (jq -e exits nonzero)
+is_review_among_comment_rows() {
+  printf '%s' "$1" | jq -e 'any(.[]; .kind == "review")' >/dev/null 2>&1
+}
+
+# .what = the rows that await a reply, oldest first
+# .why  = a reply round starts from "what have i not answered?". one rule, so
+#         every reader of that question agrees
+# .note = the rule:
+#         - answerer = the robot (the current login, with a body that opens 🐢)
+#           or the pr author (the description row's author), matched with the
+#           slug ≡ slug[bot] equivalence of is_login_self
+#         - a comment by an answerer or an app bot (author_type "Bot") never awaits
+#         - a review thread awaits when it is open and holds a human comment
+#           after its last answerer comment; its row is the first such comment,
+#           the question that opened the wait. --reply-to that id joins the root
+#         - the top-level (issue) conversation is one thread: each human issue
+#           comment newer than the last answerer issue comment awaits, one row each
+#         - order is by creation, ties broken by id (github stamps whole
+#           seconds); an edit never moves a comment
+# .note = known hazard, by design: top-level comments carry no reply link, so
+#         any answerer post there (a status note included) clears every earlier
+#         top-level human comment. a top-level question can hide behind a status
+#         note. a stricter rule needs an answer that names the comment it answers;
+#         review threads carry that link, so they hold no such hazard
+# .note = named args: rows=<a row array> login=<the robot's login>. the login is
+#         an input, so every reader (get, the set hint, a release gate) names the
+#         robot it means rather than lean on a global
+as_comment_rows_unanswered() {
+  local rows="" login="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      rows=*) rows="${arg#*=}" ;;
+      login=*) login="${arg#*=}" ;;
+    esac
+  done
+  [[ -n "$login" ]] || fail_comment_malfunction "the unanswered rule ran with no login" "pass login=<the robot's login>; the robot is that login with a 🐢 body"
+  printf '%s' "$rows" | jq -c --arg re "$COMMENT_KEY_CLAIM_REGEX" --arg login "$login" "$COMMENT_JQ_DEFS"'
+    ( [ .[] | select(.kind == "body") | .author ] | first ) as $pr_author
+    | def is_robot: is_login_self(.author) and ((.body // "") | startswith("🐢"));
+      def is_answerer: is_robot or is_same_login(.author; $pr_author);
+      def is_app_bot: .author_type == "Bot";
+      def is_asker: (is_answerer | not) and (is_app_bot | not);
+    ( [ .[] | select(.kind == "review") ]
+      | group_by(.in_reply_to // .id)
+      | map(
+          sort_by(.created_at, .id)
+          | select(all(.[]; .thread != "resolved"))
+          | ( [ to_entries[] | select(.value | is_answerer) | .key ] | max // -1 ) as $last
+          | [ .[($last + 1):][] | select(is_asker) ] | first
+        )
+      | map(select(. != null)) )
+    + ( [ .[] | select(.kind == "issue") ] as $issues
+        | ( [ $issues[] | select(is_answerer) | [.created_at, .id] ] | max ) as $answer_last
+        | [ $issues[] | select(is_asker and ([.created_at, .id] > $answer_last)) ] )
+    | sort_by(.created_at, .id)'
 }
