@@ -26,7 +26,8 @@ import {
   type ConceptKernel,
   checkKernelRetention as checkKernelRetentionRaw,
   extractKernels as extractKernelsRaw,
-} from '../../../../domain.operations/kernelize/extractKernels';
+} from '@src/domain.operations/kernelize/extractKernels';
+
 import { TEST_BRIEFS } from './.test/fixtures/briefs';
 import {
   compressViaBhrain as compressViaBhrainRaw,
@@ -138,6 +139,11 @@ const compressViaBhrain = withSimpleCacheAsync(
           .slice(0, 24);
         return `compress-${hash}`;
       },
+      // the on-disk cache stores strings; serialize the output so a read returns the object
+      value: (output) => JSON.stringify(output),
+    },
+    deserialize: {
+      value: (cached) => JSON.parse(cached),
     },
   },
 );
@@ -155,6 +161,11 @@ const extractKernels = withSimpleCacheAsync(extractKernelsRaw, {
         .slice(0, 24);
       return `kernels-${hash}`;
     },
+    // the on-disk cache stores strings; serialize the output so a read returns the object
+    value: (output) => JSON.stringify(output),
+  },
+  deserialize: {
+    value: (cached) => JSON.parse(cached),
   },
 });
 
@@ -172,6 +183,11 @@ const checkKernelRetention = withSimpleCacheAsync(checkKernelRetentionRaw, {
         .slice(0, 24);
       return `retention-${hash}`;
     },
+    // the on-disk cache stores strings; serialize the output so a read returns the object
+    value: (output) => JSON.stringify(output),
+  },
+  deserialize: {
+    value: (cached) => JSON.parse(cached),
   },
 });
 

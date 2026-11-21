@@ -3,11 +3,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, useThen, when } from 'test-fns';
 
-import { genWatchSkillCopy } from '../../skills/git.pull.watch/__test_utils__/genWatchSkillCopy';
-import { genWatchTestScene } from '../../skills/git.pull.watch/__test_utils__/genWatchTestScene';
-import { getAllWatchDaemonPids } from '../../skills/git.pull.watch/__test_utils__/getAllWatchDaemonPids';
-import { isPidAlive } from '../../skills/git.pull.watch/__test_utils__/isPidAlive';
-import { waitForWatch } from '../../skills/git.pull.watch/__test_utils__/waitForWatch';
+import { genWatchSkillCopy } from '@src/domain.roles/mechanic/skills/git.pull.watch/.test.utils/genWatchSkillCopy';
+import { genWatchTestScene } from '@src/domain.roles/mechanic/skills/git.pull.watch/.test.utils/genWatchTestScene';
+import { getAllWatchDaemonPids } from '@src/domain.roles/mechanic/skills/git.pull.watch/.test.utils/getAllWatchDaemonPids';
+import { isPidAlive } from '@src/domain.roles/mechanic/skills/git.pull.watch/.test.utils/isPidAlive';
+import { waitForWatch } from '@src/domain.roles/mechanic/skills/git.pull.watch/.test.utils/waitForWatch';
 
 /**
  * .what = the session start hook brings back the pr-watch daemon of a clone

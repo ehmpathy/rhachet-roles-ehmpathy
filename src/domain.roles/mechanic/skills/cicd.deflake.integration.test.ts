@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import { given, then, when } from 'test-fns';
 
-import { createTempRepo } from './cicd.deflake/__test_utils__/createTempRepo';
-import { runSkill } from './cicd.deflake/__test_utils__/runSkill';
+import { createTempRepo } from './cicd.deflake/.test.utils/createTempRepo';
+import { runSkill } from './cicd.deflake/.test.utils/runSkill';
 
 describe('cicd.deflake', () => {
   given('[case1] help: shows usage', () => {

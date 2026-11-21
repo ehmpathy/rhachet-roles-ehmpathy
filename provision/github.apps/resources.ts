@@ -3,6 +3,7 @@ import type { DeclastructProvider } from 'declastruct';
 import { getDeclastructGithubProvider } from 'declastruct-github';
 import type { DomainEntity } from 'domain-objects';
 import { UnexpectedCodePathError } from 'helpful-errors';
+import { genLogMethods } from 'sdk-logs';
 
 import { getResourcesOfAppEhmASeaturtle } from './resources.app.ehm-a-seaturtle';
 
@@ -43,12 +44,8 @@ export const getProviders = async (): Promise<DeclastructProvider[]> => [
       },
     },
     {
-      log: {
-        info: () => {},
-        debug: () => {},
-        warn: console.warn,
-        error: console.error,
-      },
+      // MUST be an sdk-logs logger — declastruct-github DAOs read log._.level via as-procedure
+      log: genLogMethods(),
     },
   ),
 ];

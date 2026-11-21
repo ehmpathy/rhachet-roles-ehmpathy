@@ -4,7 +4,10 @@ import { existsSync } from 'fs';
 import { resolve } from 'path';
 import { genTempDir, given, then, useThen, when } from 'test-fns';
 
-import { type BootYml, bootYmlTestKit } from '../.test/bootYml.testkit';
+import {
+  type BootYml,
+  bootYmlTestKit,
+} from '@src/domain.roles/.test/bootYml.testkit';
 
 /**
  * .what = integration tests for the mechanic boot.yml

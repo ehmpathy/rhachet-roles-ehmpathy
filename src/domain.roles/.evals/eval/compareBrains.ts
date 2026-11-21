@@ -1,4 +1,5 @@
-import type { EvalSummary } from '../schemas';
+import type { EvalSummary } from '@src/domain.roles/.evals/schemas';
+
 import { runReviewEval } from './runReviewEval';
 
 /**

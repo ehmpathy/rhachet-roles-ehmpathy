@@ -1,7 +1,6 @@
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-
 import { genTempDir, given, then, useBeforeAll, when } from 'test-fns';
 
 import { genTestDir } from './.test/invokeHook';
@@ -157,7 +156,10 @@ const asSnapshotSafe = (input: { dir: string; text: string }): string =>
   input.text
     .split(input.dir)
     .join('<repo>')
-    .replace(/HEAD is authored by [^,]+,/g, 'HEAD is authored by <fixture author>,')
+    .replace(
+      /HEAD is authored by [^,]+,/g,
+      'HEAD is authored by <fixture author>,',
+    )
     .replace(/rescue\/[0-9a-f]{40}/g, 'rescue/<tree>')
     .replace(/\b[0-9a-f]{40}\b/g, '<sha40>')
     .replace(/\b[0-9a-f]{7}\b/g, '<sha>');
@@ -218,20 +220,34 @@ describe('git.branch.cutover (acceptance)', () => {
 
     when('[t0] the caller previews the cutover, with a tracked edit', () => {
       const res = useBeforeAll(async () => {
-        fs.writeFileSync(path.join(scene.dir, 'src', 'wave.ts'), 'export const wave = 2;\n');
-        return runViaRhachet({ dir: scene.dir, home: scene.home, args: begin([]) });
+        fs.writeFileSync(
+          path.join(scene.dir, 'src', 'wave.ts'),
+          'export const wave = 2;\n',
+        );
+        return runViaRhachet({
+          dir: scene.dir,
+          home: scene.home,
+          args: begin([]),
+        });
       });
 
-      then('the plan names base, picks, and the edit, and changes naught', () => {
-        expect(res.code).toBe(0);
-        expect(res.stdout).toContain('begin --mode plan');
-        expect(res.stdout).toContain('into: turtle/wave-report-v2 (new, no upstream)');
-        expect(res.stdout).toContain('M src/wave.ts');
-        expect(git(scene.dir, ['symbolic-ref', '--short', 'HEAD'])).toEqual(
-          'turtle/wave-report',
-        );
-        expect(asSnapshotSafe({ dir: scene.dir, text: res.stdout })).toMatchSnapshot();
-      });
+      then(
+        'the plan names base, picks, and the edit, and changes naught',
+        () => {
+          expect(res.code).toBe(0);
+          expect(res.stdout).toContain('begin --mode plan');
+          expect(res.stdout).toContain(
+            'into: turtle/wave-report-v2 (new, no upstream)',
+          );
+          expect(res.stdout).toContain('M src/wave.ts');
+          expect(git(scene.dir, ['symbolic-ref', '--short', 'HEAD'])).toEqual(
+            'turtle/wave-report',
+          );
+          expect(
+            asSnapshotSafe({ dir: scene.dir, text: res.stdout }),
+          ).toMatchSnapshot();
+        },
+      );
     });
 
     when('[t1] the caller applies it', () => {
@@ -243,26 +259,39 @@ describe('git.branch.cutover (acceptance)', () => {
         }),
       );
 
-      then('the new branch holds main plus both picks, and the edit rides along', () => {
-        expect(res.code).toBe(0);
-        expect(git(scene.dir, ['symbolic-ref', '--short', 'HEAD'])).toEqual(
-          'turtle/wave-report-v2',
-        );
-        expect(
-          git(scene.dir, ['log', '--format=%s', 'origin/main..HEAD']).split('\n'),
-        ).toEqual(['cont(wave): add tide window', 'feat(wave): add wave report']);
-        expect(fs.readFileSync(path.join(scene.dir, 'src', 'band.ts'), 'utf-8')).toEqual(
-          'export const band = "main";\n',
-        );
-        expect(fs.readFileSync(path.join(scene.dir, 'src', 'wave.ts'), 'utf-8')).toEqual(
-          'export const wave = 2;\n',
-        );
-      });
+      then(
+        'the new branch holds main plus both picks, and the edit rides along',
+        () => {
+          expect(res.code).toBe(0);
+          expect(git(scene.dir, ['symbolic-ref', '--short', 'HEAD'])).toEqual(
+            'turtle/wave-report-v2',
+          );
+          expect(
+            git(scene.dir, ['log', '--format=%s', 'origin/main..HEAD']).split(
+              '\n',
+            ),
+          ).toEqual([
+            'cont(wave): add tide window',
+            'feat(wave): add wave report',
+          ]);
+          expect(
+            fs.readFileSync(path.join(scene.dir, 'src', 'band.ts'), 'utf-8'),
+          ).toEqual('export const band = "main";\n');
+          expect(
+            fs.readFileSync(path.join(scene.dir, 'src', 'wave.ts'), 'utf-8'),
+          ).toEqual('export const wave = 2;\n');
+        },
+      );
 
       then('the new branch tracks no upstream', () => {
         const upstream = spawnSync(
           'git',
-          ['rev-parse', '--abbrev-ref', '--symbolic-full-name', 'turtle/wave-report-v2@{u}'],
+          [
+            'rev-parse',
+            '--abbrev-ref',
+            '--symbolic-full-name',
+            'turtle/wave-report-v2@{u}',
+          ],
           { cwd: scene.dir, encoding: 'utf-8' }, // node api param name
         );
         expect(upstream.status).not.toBe(0);
@@ -270,14 +299,19 @@ describe('git.branch.cutover (acceptance)', () => {
 
       then('the apply spends one unit of the cutover quota', () => {
         const meter = JSON.parse(
-          fs.readFileSync(path.join(scene.dir, '.meter', 'git.branch.uses.jsonc'), 'utf-8'),
+          fs.readFileSync(
+            path.join(scene.dir, '.meter', 'git.branch.uses.jsonc'),
+            'utf-8',
+          ),
         );
         expect(meter.uses).toEqual(4);
         expect(res.stdout).toContain('quota: 1 spent, 4 left');
       });
 
       then('the report matches its snapshot', () => {
-        expect(asSnapshotSafe({ dir: scene.dir, text: res.stdout })).toMatchSnapshot();
+        expect(
+          asSnapshotSafe({ dir: scene.dir, text: res.stdout }),
+        ).toMatchSnapshot();
       });
     });
   });
@@ -287,34 +321,42 @@ describe('git.branch.cutover (acceptance)', () => {
       genCutoverScene({ slug: 'cutover-acceptance-halt' }),
     );
 
-    when('[t0] the caller applies a cutover that picks the conflicted commit', () => {
-      const res = useBeforeAll(async () =>
-        runViaRhachet({
-          dir: scene.dir,
-          home: scene.home,
-          args: [
-            'begin',
-            '--from',
-            '@main',
-            '--into',
-            'turtle/wave-report-v2',
-            '--pick',
-            scene.shas.shaBand,
-            '--mode',
-            'apply',
-          ],
-        }),
-      );
+    when(
+      '[t0] the caller applies a cutover that picks the conflicted commit',
+      () => {
+        const res = useBeforeAll(async () =>
+          runViaRhachet({
+            dir: scene.dir,
+            home: scene.home,
+            args: [
+              'begin',
+              '--from',
+              '@main',
+              '--into',
+              'turtle/wave-report-v2',
+              '--pick',
+              scene.shas.shaBand,
+              '--mode',
+              'apply',
+            ],
+          }),
+        );
 
-      then('it halts at exit 2 and names the file, continue, and abort', () => {
-        expect(res.code).toBe(2);
-        expect(res.stdout).toContain('halted: a pick conflicts');
-        expect(res.stdout).toContain('src/band.ts');
-        expect(res.stdout).toContain('rhx git.branch.cutover continue');
-        expect(res.stdout).toContain('rhx git.branch.cutover abort');
-        expect(asSnapshotSafe({ dir: scene.dir, text: res.stdout })).toMatchSnapshot();
-      });
-    });
+        then(
+          'it halts at exit 2 and names the file, continue, and abort',
+          () => {
+            expect(res.code).toBe(2);
+            expect(res.stdout).toContain('halted: a pick conflicts');
+            expect(res.stdout).toContain('src/band.ts');
+            expect(res.stdout).toContain('rhx git.branch.cutover continue');
+            expect(res.stdout).toContain('rhx git.branch.cutover abort');
+            expect(
+              asSnapshotSafe({ dir: scene.dir, text: res.stdout }),
+            ).toMatchSnapshot();
+          },
+        );
+      },
+    );
 
     when('[t1] the caller continues before the settle', () => {
       const res = useBeforeAll(async () =>
@@ -324,7 +366,9 @@ describe('git.branch.cutover (acceptance)', () => {
       then('it refuses and names the file still in conflict', () => {
         expect(res.code).toBe(2);
         expect(res.stdout).toContain('files are still in conflict');
-        expect(asSnapshotSafe({ dir: scene.dir, text: res.stdout })).toMatchSnapshot();
+        expect(
+          asSnapshotSafe({ dir: scene.dir, text: res.stdout }),
+        ).toMatchSnapshot();
       });
     });
 
@@ -335,7 +379,11 @@ describe('git.branch.cutover (acceptance)', () => {
           'export const band = "settled";\n',
         );
         git(scene.dir, ['add', 'src/band.ts']);
-        return runViaRhachet({ dir: scene.dir, home: scene.home, args: ['continue'] });
+        return runViaRhachet({
+          dir: scene.dir,
+          home: scene.home,
+          args: ['continue'],
+        });
       });
 
       then('the cutover finishes with the settled pick on top of main', () => {
@@ -343,10 +391,12 @@ describe('git.branch.cutover (acceptance)', () => {
         expect(git(scene.dir, ['log', '-1', '--format=%s'])).toEqual(
           'cont(wave): add band of swell',
         );
-        expect(fs.readFileSync(path.join(scene.dir, 'src', 'band.ts'), 'utf-8')).toEqual(
-          'export const band = "settled";\n',
-        );
-        expect(asSnapshotSafe({ dir: scene.dir, text: res.stdout })).toMatchSnapshot();
+        expect(
+          fs.readFileSync(path.join(scene.dir, 'src', 'band.ts'), 'utf-8'),
+        ).toEqual('export const band = "settled";\n');
+        expect(
+          asSnapshotSafe({ dir: scene.dir, text: res.stdout }),
+        ).toMatchSnapshot();
       });
     });
   });
@@ -354,7 +404,10 @@ describe('git.branch.cutover (acceptance)', () => {
   given('[case4] a halted cutover the caller undoes', () => {
     const scene = useBeforeAll(async () => {
       const scene = await genCutoverScene({ slug: 'cutover-acceptance-abort' });
-      fs.writeFileSync(path.join(scene.dir, 'src/wave.ts'), 'export const wave = 2;\n');
+      fs.writeFileSync(
+        path.join(scene.dir, 'src/wave.ts'),
+        'export const wave = 2;\n',
+      );
       const halt = runViaRhachet({
         dir: scene.dir,
         home: scene.home,
@@ -380,23 +433,28 @@ describe('git.branch.cutover (acceptance)', () => {
         runViaRhachet({ dir: scene.dir, home: scene.home, args: ['abort'] }),
       );
 
-      then('the caller is back on the source, edit restored, new branch gone', () => {
-        expect(res.code).toBe(0);
-        expect(git(scene.dir, ['symbolic-ref', '--short', 'HEAD'])).toEqual(
-          'turtle/wave-report',
-        );
-        expect(fs.readFileSync(path.join(scene.dir, 'src/wave.ts'), 'utf-8')).toEqual(
-          'export const wave = 2;\n',
-        );
-        expect(git(scene.dir, ['status', '--porcelain', '--', 'src/wave.ts'])).toEqual(
-          'M src/wave.ts',
-        );
-        expect(res.stdout).toContain('M src/wave.ts');
-        expect(
-          git(scene.dir, ['branch', '--list', 'turtle/wave-report-v2']),
-        ).toEqual('');
-        expect(asSnapshotSafe({ dir: scene.dir, text: res.stdout })).toMatchSnapshot();
-      });
+      then(
+        'the caller is back on the source, edit restored, new branch gone',
+        () => {
+          expect(res.code).toBe(0);
+          expect(git(scene.dir, ['symbolic-ref', '--short', 'HEAD'])).toEqual(
+            'turtle/wave-report',
+          );
+          expect(
+            fs.readFileSync(path.join(scene.dir, 'src/wave.ts'), 'utf-8'),
+          ).toEqual('export const wave = 2;\n');
+          expect(
+            git(scene.dir, ['status', '--porcelain', '--', 'src/wave.ts']),
+          ).toEqual('M src/wave.ts');
+          expect(res.stdout).toContain('M src/wave.ts');
+          expect(
+            git(scene.dir, ['branch', '--list', 'turtle/wave-report-v2']),
+          ).toEqual('');
+          expect(
+            asSnapshotSafe({ dir: scene.dir, text: res.stdout }),
+          ).toMatchSnapshot();
+        },
+      );
     });
   });
 
@@ -431,12 +489,17 @@ describe('git.branch.cutover (acceptance)', () => {
         }),
       );
 
-      then('it halts at exit 2 on the carry, and names where the edit is held', () => {
-        expect(res.code).toBe(2);
-        expect(res.stdout).toContain('the carry of tracked edits conflicts');
-        expect(res.stdout).toContain('safe:');
-        expect(asSnapshotSafe({ dir: scene.dir, text: res.stdout })).toMatchSnapshot();
-      });
+      then(
+        'it halts at exit 2 on the carry, and names where the edit is held',
+        () => {
+          expect(res.code).toBe(2);
+          expect(res.stdout).toContain('the carry of tracked edits conflicts');
+          expect(res.stdout).toContain('safe:');
+          expect(
+            asSnapshotSafe({ dir: scene.dir, text: res.stdout }),
+          ).toMatchSnapshot();
+        },
+      );
     });
 
     when('[t1] the caller aborts from the carry halt', () => {
@@ -444,19 +507,24 @@ describe('git.branch.cutover (acceptance)', () => {
         runViaRhachet({ dir: scene.dir, home: scene.home, args: ['abort'] }),
       );
 
-      then('the caller is back on the source with the edit intact, new branch gone', () => {
-        expect(res.code).toBe(0);
-        expect(git(scene.dir, ['symbolic-ref', '--short', 'HEAD'])).toEqual(
-          'turtle/wave-report',
-        );
-        expect(
-          fs.readFileSync(path.join(scene.dir, 'src', 'band.ts'), 'utf-8'),
-        ).toEqual('export const band = "edited";\n');
-        expect(
-          git(scene.dir, ['branch', '--list', 'turtle/wave-report-v2']),
-        ).toEqual('');
-        expect(asSnapshotSafe({ dir: scene.dir, text: res.stdout })).toMatchSnapshot();
-      });
+      then(
+        'the caller is back on the source with the edit intact, new branch gone',
+        () => {
+          expect(res.code).toBe(0);
+          expect(git(scene.dir, ['symbolic-ref', '--short', 'HEAD'])).toEqual(
+            'turtle/wave-report',
+          );
+          expect(
+            fs.readFileSync(path.join(scene.dir, 'src', 'band.ts'), 'utf-8'),
+          ).toEqual('export const band = "edited";\n');
+          expect(
+            git(scene.dir, ['branch', '--list', 'turtle/wave-report-v2']),
+          ).toEqual('');
+          expect(
+            asSnapshotSafe({ dir: scene.dir, text: res.stdout }),
+          ).toMatchSnapshot();
+        },
+      );
     });
   });
 });

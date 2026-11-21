@@ -2,14 +2,13 @@ import { genContextBrain } from 'rhachet';
 import * as yaml from 'yaml';
 
 import { getAllBrainAtoms } from '@src/domain.operations/brain/getAllBrainAtoms';
-
 import type {
   CheckResult,
   EvalCase,
   EvalVerdict,
   ReviewResult,
-} from '../schemas';
-import { schemaOfEvalVerdict } from '../schemas';
+} from '@src/domain.roles/.evals/schemas';
+import { schemaOfEvalVerdict } from '@src/domain.roles/.evals/schemas';
 
 /**
  * .what = compute eval verdict via evaluator brain

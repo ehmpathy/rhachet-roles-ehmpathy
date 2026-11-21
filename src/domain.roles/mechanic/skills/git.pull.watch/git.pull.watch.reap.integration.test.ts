@@ -2,10 +2,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { given, then, useThen, when } from 'test-fns';
 
-import { genWatchTestScene } from './__test_utils__/genWatchTestScene';
-import { getAllWatchDaemonPids } from './__test_utils__/getAllWatchDaemonPids';
-import { isPidAlive } from './__test_utils__/isPidAlive';
-import { waitForWatch } from './__test_utils__/waitForWatch';
+import { genWatchTestScene } from './.test.utils/genWatchTestScene';
+import { getAllWatchDaemonPids } from './.test.utils/getAllWatchDaemonPids';
+import { isPidAlive } from './.test.utils/isPidAlive';
+import { waitForWatch } from './.test.utils/waitForWatch';
 
 /**
  * .what = the pr-watch state a watch or a daemon leaves behind is reaped

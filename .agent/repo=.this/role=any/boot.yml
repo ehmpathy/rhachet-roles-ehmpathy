@@ -32,6 +32,9 @@ always:
       # research/handoffs
       - briefs/research.claude-code-suspicious-syntax.md
       - briefs/handoff.test-fns-flaky-genTempDir.md
+    not:
+      - briefs/domain.terms/term=*._.choice.reason.md
+      - briefs/domain.terms/term=*._.choice.example=*.md
 
   skills:
     say:

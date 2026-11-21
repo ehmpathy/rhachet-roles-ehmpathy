@@ -1,0 +1,21 @@
+diff --git a/lib/Bottleneck.js b/lib/Bottleneck.js
+index 0000000..0000000 100644
+--- a/lib/Bottleneck.js
++++ b/lib/Bottleneck.js
+@@ -537,6 +537,7 @@ Bottleneck = function () {
+   };
+   Bottleneck.BottleneckError = Bottleneck.prototype.BottleneckError = require("./BottleneckError");
+   Bottleneck.Group = Bottleneck.prototype.Group = require("./Group");
++  Bottleneck.Group.prototype.Bottleneck = Bottleneck;
+   Bottleneck.RedisConnection = Bottleneck.prototype.RedisConnection = require("./RedisConnection");
+   Bottleneck.IORedisConnection = Bottleneck.prototype.IORedisConnection = require("./IORedisConnection");
+   Bottleneck.Batcher = Bottleneck.prototype.Batcher = require("./Batcher");
+diff --git a/lib/Group.js b/lib/Group.js
+index 0000000..0000000 100644
+--- a/lib/Group.js
++++ b/lib/Group.js
+@@ -27,4 +27,3 @@ Group = function () {
+       parser.load(this.limiterOptions, this.defaults, this);
+       this.Events = new Events(this);
+       this.instances = {};
+-      this.Bottleneck = require("./Bottleneck");
