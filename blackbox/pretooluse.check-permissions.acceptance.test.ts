@@ -928,7 +928,7 @@ describe('pretooluse.check-permissions.sh (acceptance)', () => {
         expect(res.code).toBe(2);
         expect(res.stderr).toContain('blocked: pnpm patch reef-board@7.0.0');
         expect(res.stderr).toContain('paved alternatives for `pnpm patch`');
-        expect(res.stderr).toContain('rhx git.package.patch begin');
+        expect(res.stderr).toContain('rhx git.package.patch set');
       });
 
       then('the render matches snapshot', () => {
@@ -940,7 +940,7 @@ describe('pretooluse.check-permissions.sh (acceptance)', () => {
       const res = useThen('the hook runs', async () =>
         invokeBash({
           repo: repo.dir,
-          command: 'rhx git.package.patch begin --package reef-board@7.0.0 --mode apply',
+          command: 'rhx git.package.patch set --package reef-board@7.0.0 --mode apply',
         }),
       );
 

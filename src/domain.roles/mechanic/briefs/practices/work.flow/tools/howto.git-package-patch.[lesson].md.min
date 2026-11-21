@@ -1,28 +1,3 @@
 # git.package.patch
 
-patch a dependency inside the tree via one pre-approved verb; never raw `pnpm patch`. writes a LOCAL PATCH note (who, when, why, upstream).
-
-## flow
-
-begin → edit the files under the edit dir it names → commit
-
-```bash
-rhx git.package.patch begin --package is-number --mode apply
-echo 'why' | rhx git.package.patch commit --package is-number --why @stdin --upstream <issue-url> --mode apply
-```
-
-stage every file commit lists: patch, note, manifest entry, lockfile.
-
-## rules
-
-- plan by default; `--mode apply` acts
-- `--why` + `--upstream` required
-- edit dir stays in-tree; never the live install, patches dir, or shared store
-- several versions installed: `--package <name>@<version>`
-- rerun is safe: a sealed patch is a no-op; a lost manifest or lockfile record is refused with the restore step named
-- commit makes `pnpm-workspace.yaml` upgrade-safe (`allowUnusedPatches` + `ignorePatchFailures`): an upgrade lands, the stale patch surfaces via `check`
-
-## after the seal
-
-`get` lists each patch · `check` names each stale one + its repair (exit 2) · `del --package <name>[@<version>]` retires one. the onStop hook nudges via `check`, never blocks.
-
+patch a dependency in-tree via `rhx git.package.patch set --package <name>`, never raw `pnpm patch`. edit the dir it names, then seal: same call + `--why` + `--upstream <issue-url>`. `get` checks; `del` retires. `--help` for more

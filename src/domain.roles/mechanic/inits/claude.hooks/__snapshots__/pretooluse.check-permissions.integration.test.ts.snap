@@ -243,13 +243,13 @@ exports[`pretooluse.check-permissions.sh given: [case30] blocked parts carry the
 "
 `;
 
-exports[`pretooluse.check-permissions.sh given: [case30] blocked parts carry their paved alternatives when: [t8.1] a raw pnpm patch-commit then: the block offers the paved git.package.patch commit 1`] = `
+exports[`pretooluse.check-permissions.sh given: [case30] blocked parts carry their paved alternatives when: [t8.1] a raw pnpm patch-commit then: the block offers the paved git.package.patch set 1`] = `
 "
 ✋ ConstraintError: this command is not paved
    ├─ blocked: pnpm patch-commit node_modules/.pnpm_patches/reef-board@7.0.0
    └─ paved alternatives for \`pnpm patch-commit\`
-      ├─ rhx git.package.patch begin --package <name> --mode apply
-      └─ rhx git.package.patch commit --package <name> --why '<why>' --upstream '<issue-url>' --mode apply
+      ├─ rhx git.package.patch set --package <name> --mode apply
+      └─ rhx git.package.patch set --package <name> --why '<why>' --upstream '<issue-url>' --mode apply
 
 🐚 pave what recurs
    ├─ you will use it again? pave it
@@ -265,13 +265,13 @@ exports[`pretooluse.check-permissions.sh given: [case30] blocked parts carry the
 "
 `;
 
-exports[`pretooluse.check-permissions.sh given: [case30] blocked parts carry their paved alternatives when: [t8] a raw pnpm patch then: the block offers the paved git.package.patch begin 1`] = `
+exports[`pretooluse.check-permissions.sh given: [case30] blocked parts carry their paved alternatives when: [t8] a raw pnpm patch then: the block offers the paved git.package.patch set 1`] = `
 "
 ✋ ConstraintError: this command is not paved
    ├─ blocked: pnpm patch reef-board@7.0.0
    └─ paved alternatives for \`pnpm patch\`
-      ├─ rhx git.package.patch begin --package <name> --mode apply
-      └─ rhx git.package.patch commit --package <name> --why '<why>' --upstream '<issue-url>' --mode apply
+      ├─ rhx git.package.patch set --package <name> --mode apply
+      └─ rhx git.package.patch set --package <name> --why '<why>' --upstream '<issue-url>' --mode apply
 
 🐚 pave what recurs
    ├─ you will use it again? pave it

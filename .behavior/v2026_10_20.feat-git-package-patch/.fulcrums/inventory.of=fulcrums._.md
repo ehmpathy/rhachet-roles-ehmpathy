@@ -20,3 +20,5 @@
 | F16 | hook acceptance `[case21]` snapped by proxy from the integration render (this tree's rhachet 1.51 cannot run the suite); the `genTestDir` home leak deferred to a dream | clean | open | 80% |
 | F17 | a commit rerun on a sealed patch with another why names the sealed note and both fixes, not "no open edit dir"; that text still covers a never-opened dir; the verb's other revised texts ride the same call | clean | open | 90% |
 | F18 | the acceptance seam proves each render shape once (exit 0, 2, 1; stderr frame; lost record); the full catalog and fault-only malfunction branches stay at integration | clean | open | 85% |
+| F19 | set picks open vs seal by `--why`/`--upstream`; get keeps check's exit 2; the human meter stays its own `uses` skill | clean | open | 85% |
+| F20 | the twin-tool rule boots as a cue inside scouts-honor, its full text as a ref, to fit the 30k cap | clean | open | 80% |

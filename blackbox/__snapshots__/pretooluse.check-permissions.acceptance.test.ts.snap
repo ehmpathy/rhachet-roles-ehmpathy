@@ -583,8 +583,8 @@ exports[`pretooluse.check-permissions.sh (acceptance) given: [case21] a raw pnpm
 ✋ ConstraintError: this command is not paved
    ├─ blocked: pnpm patch reef-board@7.0.0
    └─ paved alternatives for \`pnpm patch\`
-      ├─ rhx git.package.patch begin --package <name> --mode apply
-      └─ rhx git.package.patch commit --package <name> --why '<why>' --upstream '<issue-url>' --mode apply
+      ├─ rhx git.package.patch set --package <name> --mode apply
+      └─ rhx git.package.patch set --package <name> --why '<why>' --upstream '<issue-url>' --mode apply
 
 🐚 pave what recurs
    ├─ you will use it again? pave it

@@ -1,21 +1,21 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t0.1] commit runs before any begin, for a never-sealed package then: it is refused as no open edit dir, exit 2, and names begin 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t0.1] set (seal) runs before any begin, for a never-sealed package then: it is refused as no open edit dir, exit 2, and names set 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    └─ ✋ ConstraintError: no open edit dir at node_modules/.pnpm_patches/is-number@7.0.0
 
 🥥 did you know?
    ├─ open one first
-   └─ rhx git.package.patch begin --package is-number@7.0.0 --mode apply
+   └─ rhx git.package.patch set --package is-number@7.0.0 --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t0] begin runs in plan mode then: it previews the edit dir and changes naught 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t0] set (open) runs in plan mode then: it previews the edit dir and changes naught 1`] = `
 "🐢 heres the wave...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    ├─ package: is-number@7.0.0
    ├─ prior patch: none
    ├─ would open edit dir: node_modules/.pnpm_patches/is-number@7.0.0
@@ -23,41 +23,41 @@ exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed vers
 
 🥥 did you know?
    ├─ rerun with --mode apply to open it
-   └─ rhx git.package.patch begin --package is-number@7.0.0 --mode apply
+   └─ rhx git.package.patch set --package is-number@7.0.0 --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t1] begin runs in apply mode then: it opens the edit dir inside the tree 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t1] set (open) runs in apply mode then: it opens the edit dir inside the tree 1`] = `
 "🐢 shell yeah!
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    ├─ package: is-number@7.0.0
    ├─ prior patch: none
    └─ edit dir: node_modules/.pnpm_patches/is-number@7.0.0
 
 🥥 did you know?
    ├─ edit the files in the dir, then seal them
-   └─ rhx git.package.patch commit --package is-number@7.0.0 --why '<why>' --upstream '<issue-url>' --mode apply
+   └─ rhx git.package.patch set --package is-number@7.0.0 --why '<why>' --upstream '<issue-url>' --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t2] begin runs in apply mode again then: it reuses the open dir and leaves edits untouched 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t2] set (open) runs in apply mode again then: it reuses the open dir and leaves edits untouched 1`] = `
 "🐢 righteous!
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    ├─ package: is-number@7.0.0
    └─ edit dir: node_modules/.pnpm_patches/is-number@7.0.0 (already open, reused; edits untouched)
 
 🥥 did you know?
    ├─ edit the files in the dir, then seal them
-   └─ rhx git.package.patch commit --package is-number@7.0.0 --why '<why>' --upstream '<issue-url>' --mode apply
+   └─ rhx git.package.patch set --package is-number@7.0.0 --why '<why>' --upstream '<issue-url>' --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t3.1] commit runs in plan mode with a why that holds a quote then: the why stays one pasteable arg 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t3.1] set (seal) runs in plan mode with a why that holds a quote then: the why stays one pasteable arg 1`] = `
 "🐢 heres the wave...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ package: is-number@7.0.0
    ├─ edit dir: node_modules/.pnpm_patches/is-number@7.0.0
    ├─ prior patch: none
@@ -69,15 +69,15 @@ exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed vers
    └─ mode: plan (naught changed)
 
 🥥 did you know?
-   ├─ rerun this same commit with --mode apply to seal it
-   └─ rhx git.package.patch commit --package is-number@7.0.0 --why the\\ reef\\'s\\ fix --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
+   ├─ rerun this same set with --mode apply to seal it
+   └─ rhx git.package.patch set --package is-number@7.0.0 --why the\\ reef\\'s\\ fix --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t3] commit runs in plan mode then: it previews the patch + note and writes naught 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t3] set (seal) runs in plan mode then: it previews the patch + note and writes naught 1`] = `
 "🐢 heres the wave...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ package: is-number@7.0.0
    ├─ edit dir: node_modules/.pnpm_patches/is-number@7.0.0
    ├─ prior patch: none
@@ -89,12 +89,12 @@ exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed vers
    └─ mode: plan (naught changed)
 
 🥥 did you know?
-   ├─ rerun this same commit with --mode apply to seal it
-   └─ rhx git.package.patch commit --package is-number@7.0.0 --why 'reef fix: treat a numeric string with whitespace as not a number' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
+   ├─ rerun this same set with --mode apply to seal it
+   └─ rhx git.package.patch set --package is-number@7.0.0 --why 'reef fix: treat a numeric string with whitespace as not a number' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t4] commit runs in apply mode then: the note says to drop the entry before the upgrade, not after 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t4] set (seal) runs in apply mode then: the note says to drop the entry before the upgrade, not after 1`] = `
 "# local patch: is-number@7.0.0
 
 - who: <who>
@@ -109,10 +109,10 @@ no longer fits the new version aborts the install, so the drop must come first.
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t4] commit runs in apply mode then: the output matches snapshot 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t4] set (seal) runs in apply mode then: the output matches snapshot 1`] = `
 "🐢 shell yeah!
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ package: is-number@7.0.0
    ├─ patch: patches/is-number@7.0.0.patch (written)
    ├─ entry: patchedDependencies[is-number@7.0.0] in pnpm-workspace.yaml
@@ -131,10 +131,10 @@ exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed vers
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t5.1] commit reruns with the same why piped via --why @stdin then: it reads the why from stdin, and is a no-op 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t5.1] set (seal) reruns with the same why piped via --why @stdin then: it reads the why from stdin, and is a no-op 1`] = `
 "🐢 righteous!
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ package: is-number@7.0.0
    ├─ patch: patches/is-number@7.0.0.patch
    ├─ note: patches/is-number@7.0.0.patch.note.md
@@ -142,10 +142,10 @@ exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed vers
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t5] commit reruns with the same note then: it is a no-op 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t5] set (seal) reruns with the same note then: it is a no-op 1`] = `
 "🐢 righteous!
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ package: is-number@7.0.0
    ├─ patch: patches/is-number@7.0.0.patch
    ├─ note: patches/is-number@7.0.0.patch.note.md
@@ -153,72 +153,72 @@ exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed vers
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t6.1] commit runs with a --why that spans two lines then: it is refused with ConstraintError, exit 2, so no note line is forged 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t6.1] set (seal) runs with a --why that spans two lines then: it is refused with ConstraintError, exit 2, so no note line is forged 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    └─ ✋ ConstraintError: --why must be one line
 
 🥥 did you know?
    ├─ put the why on one line
-   └─ rhx git.package.patch commit --package is-number --why '<why>' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
+   └─ rhx git.package.patch set --package is-number --why '<why>' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t6.2] commit runs with --why still the placeholder then: it is refused with ConstraintError, exit 2 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t6.2] set (seal) runs with --why still the placeholder then: it is refused with ConstraintError, exit 2 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ ✋ ConstraintError: --why is still a placeholder
    └─ given: <why>
 
 🥥 did you know?
    ├─ replace it with the real reason the patch is needed
-   └─ rhx git.package.patch commit --package is-number --why '<why>' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
+   └─ rhx git.package.patch set --package is-number --why '<why>' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t6] commit runs with --why absent then: it is refused with ConstraintError, exit 2 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t6] set (seal) runs with --why absent then: it is refused with ConstraintError, exit 2 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    └─ ✋ ConstraintError: --why is required
 
 🥥 did you know?
    ├─ add --why '<why this patch is needed>', or pipe it via --why @stdin
-   └─ rhx git.package.patch commit --package is-number --why '<why>' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
+   └─ rhx git.package.patch set --package is-number --why '<why>' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t7] commit runs with --upstream absent then: it is refused with ConstraintError, exit 2 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t7] set (seal) runs with --upstream absent then: it is refused with ConstraintError, exit 2 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    └─ ✋ ConstraintError: --upstream is required
 
 🥥 did you know?
    ├─ add --upstream '<issue-url>' — an issue or pr url where the real fix is queued
-   └─ rhx git.package.patch commit --package is-number --why 'reef fix: treat a numeric string with whitespace as not a number' --upstream '<issue-url>' --mode apply
+   └─ rhx git.package.patch set --package is-number --why 'reef fix: treat a numeric string with whitespace as not a number' --upstream '<issue-url>' --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t8] commit runs with an --upstream that is not a link then: it is refused with ConstraintError, exit 2 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t8] set (seal) runs with an --upstream that is not a link then: it is refused with ConstraintError, exit 2 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ ✋ ConstraintError: --upstream must be an http(s) link
    └─ given: later
 
 🥥 did you know?
    ├─ add --upstream '<issue-url>' — an issue or pr url where the real fix is queued
-   └─ rhx git.package.patch commit --package is-number --why 'reef fix: treat a numeric string with whitespace as not a number' --upstream '<issue-url>' --mode apply
+   └─ rhx git.package.patch set --package is-number --why 'reef fix: treat a numeric string with whitespace as not a number' --upstream '<issue-url>' --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t9.1] commit runs with a git identity that spans two lines then: it is refused with ConstraintError, exit 2; no forged line lands 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t9.1] set (seal) runs with a git identity that spans two lines then: it is refused with ConstraintError, exit 2; no forged line lands 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    └─ ✋ ConstraintError: git identity spans several lines; the note needs a one-line who
 
 🥥 did you know?
@@ -226,10 +226,10 @@ exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed vers
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t9] commit runs with no git identity then: it is refused with ConstraintError, exit 2 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t9] set (seal) runs with no git identity then: it is refused with ConstraintError, exit 2 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    └─ ✋ ConstraintError: git identity absent; the note needs a who
 
 🥥 did you know?
@@ -237,148 +237,148 @@ exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed vers
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t10] begin runs with an --edit-dir outside the tree then: a .. path is refused 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t10] set (open) runs with an --edit-dir outside the tree then: a .. path is refused 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    ├─ ✋ ConstraintError: --edit-dir must sit inside the tree
    └─ given: ../reef-patch
 
 🥥 did you know?
    ├─ omit --edit-dir to use the in-tree default, node_modules/.pnpm_patches/<name>@<version>
-   └─ rhx git.package.patch begin --package is-number --mode apply
+   └─ rhx git.package.patch set --package is-number --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t10] begin runs with an --edit-dir outside the tree then: a symlink that points outside the tree is refused 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t10] set (open) runs with an --edit-dir outside the tree then: a symlink that points outside the tree is refused 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    ├─ ✋ ConstraintError: --edit-dir must sit inside the tree
    ├─ given: reef-link/edit
    └─ real: <tmp>/reef-outside-<rand>/edit
 
 🥥 did you know?
    ├─ omit --edit-dir to use the in-tree default, node_modules/.pnpm_patches/<name>@<version>
-   └─ rhx git.package.patch begin --package is-number --mode apply
+   └─ rhx git.package.patch set --package is-number --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t10] begin runs with an --edit-dir outside the tree then: an absolute path under the os tmp dir is refused 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t10] set (open) runs with an --edit-dir outside the tree then: an absolute path under the os tmp dir is refused 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    ├─ ✋ ConstraintError: --edit-dir must sit inside the tree
    ├─ given: <tmp>/reef-patch
    └─ real: <tmp>/reef-patch
 
 🥥 did you know?
    ├─ omit --edit-dir to use the in-tree default, node_modules/.pnpm_patches/<name>@<version>
-   └─ rhx git.package.patch begin --package is-number --mode apply
+   └─ rhx git.package.patch set --package is-number --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t11] commit runs with an --edit-dir outside the tree then: it is refused with ConstraintError, exit 2 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t11] set (seal) runs with an --edit-dir outside the tree then: it is refused with ConstraintError, exit 2 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ ✋ ConstraintError: --edit-dir must sit inside the tree
    ├─ given: <tmp>
    └─ real: <tmp>
 
 🥥 did you know?
    ├─ omit --edit-dir to use the in-tree default, node_modules/.pnpm_patches/<name>@<version>
-   └─ rhx git.package.patch commit --package is-number --why '<why>' --upstream '<issue-url>' --mode apply
+   └─ rhx git.package.patch set --package is-number --why '<why>' --upstream '<issue-url>' --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t12] a global flag is passed then: begin refuses -g 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t12] a global flag is passed then: set (open) refuses -g 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    └─ ✋ ConstraintError: unknown flag -g
 
 🥥 did you know?
    ├─ drop -g; this verb patches the current tree only (flags: --package, --edit-dir, --mode)
-   └─ rhx git.package.patch begin --package is-number --mode apply
+   └─ rhx git.package.patch set --package is-number --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t12] a global flag is passed then: commit refuses -g 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t12] a global flag is passed then: set (seal) refuses -g 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    └─ ✋ ConstraintError: unknown flag -g
 
 🥥 did you know?
    ├─ drop -g; this verb patches the current tree only (flags: --package, --why, --upstream, --edit-dir, --mode)
-   └─ rhx git.package.patch commit --package is-number --why 'reef fix: treat a numeric string with whitespace as not a number' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
+   └─ rhx git.package.patch set --package is-number --why 'reef fix: treat a numeric string with whitespace as not a number' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t13.1] begin names a version that is not installed then: it is refused and names the installed versions 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t13.1] set (open) names a version that is not installed then: it is refused and names the installed versions 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    └─ ✋ ConstraintError: is-number@9.9.9 is not installed
 
 🥥 did you know?
    ├─ name an installed version: 7.0.0
-   └─ rhx git.package.patch begin --package is-number@7.0.0 --mode apply
+   └─ rhx git.package.patch set --package is-number@7.0.0 --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t13.2] --mode is neither plan nor apply then: begin refuses it 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t13.2] --mode is neither plan nor apply then: set (open) refuses it 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    └─ ✋ ConstraintError: --mode must be plan or apply
 
 🥥 did you know?
    ├─ use --mode plan to preview, --mode apply to open
-   └─ rhx git.package.patch begin --package is-number --mode apply
+   └─ rhx git.package.patch set --package is-number --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t13.2] --mode is neither plan nor apply then: commit refuses it 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t13.2] --mode is neither plan nor apply then: set (seal) refuses it 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    └─ ✋ ConstraintError: --mode must be plan or apply
 
 🥥 did you know?
    ├─ use --mode plan to preview, --mode apply to seal
-   └─ rhx git.package.patch commit --package is-number --why '<why>' --upstream '<issue-url>' --mode apply
+   └─ rhx git.package.patch set --package is-number --why '<why>' --upstream '<issue-url>' --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t13.3] commit runs with --package absent then: it is refused and names the full command 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t13.3] set (seal) runs with --package absent then: it is refused and names the full command 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    └─ ✋ ConstraintError: --package is required
 
 🥥 did you know?
-   └─ rhx git.package.patch commit --package <name> --why '<why>' --upstream '<issue-url>' --mode apply
+   └─ rhx git.package.patch set --package <name> --why '<why>' --upstream '<issue-url>' --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t13.4] commit names a version that is not installed then: it is refused and names the installed versions 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t13.4] set (seal) names a version that is not installed then: it is refused and names the installed versions 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    └─ ✋ ConstraintError: is-number@9.9.9 is not installed
 
 🥥 did you know?
    ├─ name an installed version: 7.0.0
-   └─ rhx git.package.patch commit --package is-number@7.0.0 --why '<why>' --upstream '<issue-url>' --mode apply
+   └─ rhx git.package.patch set --package is-number@7.0.0 --why '<why>' --upstream '<issue-url>' --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t13.5] begin names a package the manifest declares, in a tree not yet installed then: it is refused and names pnpm install, not a new dependency 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t13.5] set (open) names a package the manifest declares, in a tree not yet installed then: it is refused and names pnpm install, not a new dependency 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    └─ ✋ ConstraintError: is-odd is not installed
 
 🥥 did you know?
@@ -390,21 +390,21 @@ exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed vers
 exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t13.6] a bare name, with a stable and a newer prerelease installed then: the hint names the newest stable version, not the prerelease 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    ├─ ✋ ConstraintError: several versions of is-number are installed
    ├─ installed: is-number@7.0.0
    └─ installed: is-number@8.0.0-beta.1
 
 🥥 did you know?
    ├─ name one
-   └─ rhx git.package.patch begin --package is-number@7.0.0 --mode apply
+   └─ rhx git.package.patch set --package is-number@7.0.0 --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t13] begin names a package that is not installed then: commit refuses it the same way 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t13] set (open) names a package that is not installed then: it is refused and names set.package.install 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    └─ ✋ ConstraintError: is-odd is not installed
 
 🥥 did you know?
@@ -413,10 +413,10 @@ exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed vers
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t13] begin names a package that is not installed then: it is refused and names set.package.install 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t13] set (open) names a package that is not installed then: set (seal) refuses it the same way 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    └─ ✋ ConstraintError: is-odd is not installed
 
 🥥 did you know?
@@ -425,50 +425,50 @@ exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed vers
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t14] commit reruns on a sealed patch with a different why then: it is refused, the note is untouched, and begin is named 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t14] set (seal) reruns on a sealed patch with a different why then: it is refused, the note is untouched, and begin is named 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    └─ ✋ ConstraintError: patches/is-number@7.0.0.patch is sealed, and its note names another why or upstream
 
 🥥 did you know?
    ├─ to correct the note alone, edit patches/is-number@7.0.0.patch.note.md by hand; to change the patch itself, open it again
-   └─ rhx git.package.patch begin --package is-number@7.0.0 --mode apply
+   └─ rhx git.package.patch set --package is-number@7.0.0 --mode apply
 "
 `;
 
 exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t15] a sealed patch is reopened, its edits reverted, and sealed with a new why then: the seal is refused as empty, and the prior patch and note stand untouched 1`] = `
 "🐢 shell yeah!
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    ├─ package: is-number@7.0.0
    ├─ prior patch: patches/is-number@7.0.0.patch (opens with it applied)
    └─ edit dir: node_modules/.pnpm_patches/is-number@7.0.0
 
 🥥 did you know?
    ├─ edit the files in the dir, then seal them
-   └─ rhx git.package.patch commit --package is-number@7.0.0 --why '<why>' --upstream '<issue-url>' --mode apply
+   └─ rhx git.package.patch set --package is-number@7.0.0 --why '<why>' --upstream '<issue-url>' --mode apply
 "
 `;
 
 exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t15] a sealed patch is reopened, its edits reverted, and sealed with a new why then: the seal is refused as empty, and the prior patch and note stand untouched 2`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ ✋ ConstraintError: no edits to seal in node_modules/.pnpm_patches/is-number@7.0.0
    ├─ prior patch: patches/is-number@7.0.0.patch, kept as it was, with its note
    └─ pnpm: No changes were found to the following directory: <repo>/node_modules/.pnpm_patches/is-number@7.0.0
 
 🥥 did you know?
-   ├─ edit the files in node_modules/.pnpm_patches/is-number@7.0.0, then rerun this commit
-   └─ rhx git.package.patch commit --package is-number@7.0.0 --why 'a motive no edit backs' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
+   ├─ edit the files in node_modules/.pnpm_patches/is-number@7.0.0, then rerun this set
+   └─ rhx git.package.patch set --package is-number@7.0.0 --why 'a motive no edit backs' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t16] begin plans while the edit dir is still open then: it previews a reuse, over the prior patch 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t16] set (open) plans while the edit dir is still open then: it previews a reuse, over the prior patch 1`] = `
 "🐢 heres the wave...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    ├─ package: is-number@7.0.0
    ├─ prior patch: patches/is-number@7.0.0.patch (opens with it applied)
    ├─ would reuse edit dir: node_modules/.pnpm_patches/is-number@7.0.0
@@ -476,14 +476,14 @@ exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed vers
 
 🥥 did you know?
    ├─ rerun with --mode apply to reuse it
-   └─ rhx git.package.patch begin --package is-number@7.0.0 --mode apply
+   └─ rhx git.package.patch set --package is-number@7.0.0 --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t17] commit plans while the edit dir is open over the prior patch then: it previews a re-seal of the prior patch, and changes naught 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t17] set (seal) plans while the edit dir is open over the prior patch then: it previews a re-seal of the prior patch, and changes naught 1`] = `
 "🐢 heres the wave...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ package: is-number@7.0.0
    ├─ edit dir: node_modules/.pnpm_patches/is-number@7.0.0
    ├─ prior patch: patches/is-number@7.0.0.patch (re-sealed)
@@ -495,132 +495,132 @@ exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed vers
    └─ mode: plan (naught changed)
 
 🥥 did you know?
-   ├─ rerun this same commit with --mode apply to seal it
-   └─ rhx git.package.patch commit --package is-number@7.0.0 --why 'a re-seal preview' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
+   ├─ rerun this same set with --mode apply to seal it
+   └─ rhx git.package.patch set --package is-number@7.0.0 --why 'a re-seal preview' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t18] --package is not a valid package name then: begin is refused before any path is built, exit 2 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t18] --package is not a valid package name then: set (open) is refused before any path is built, exit 2 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    ├─ ✋ ConstraintError: --package is not a valid package name
    └─ given: ../reef-escape
 
 🥥 did you know?
    ├─ name a package as npm does: <name> or @<scope>/<name>
-   └─ rhx git.package.patch begin --package <name> --mode apply
+   └─ rhx git.package.patch set --package <name> --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t18] --package is not a valid package name then: commit is refused before any path is built, exit 2 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t18] --package is not a valid package name then: set (seal) is refused before any path is built, exit 2 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ ✋ ConstraintError: --package is not a valid package name
    └─ given: ../reef-escape
 
 🥥 did you know?
    ├─ name a package as npm does: <name> or @<scope>/<name>
-   └─ rhx git.package.patch commit --package <name> --why '<why>' --upstream '<issue-url>' --mode apply
+   └─ rhx git.package.patch set --package <name> --why '<why>' --upstream '<issue-url>' --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t19] the --edit-dir holds files but no package.json then: begin refuses to reuse it, exit 2 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t19] the --edit-dir holds files but no package.json then: set (open) refuses to reuse it, exit 2 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    └─ ✋ ConstraintError: reef-scratch holds files but no package.json; it is not an edit dir
 
 🥥 did you know?
    ├─ omit --edit-dir to use the in-tree default, node_modules/.pnpm_patches/<name>@<version>
-   └─ rhx git.package.patch begin --package is-number --mode apply
+   └─ rhx git.package.patch set --package is-number --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t19] the --edit-dir holds files but no package.json then: commit refuses to seal it, and the dir survives, exit 2 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t19] the --edit-dir holds files but no package.json then: set (seal) refuses to seal it, and the dir survives, exit 2 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    └─ ✋ ConstraintError: reef-scratch holds files but no package.json; it is not an edit dir
 
 🥥 did you know?
    ├─ open an edit dir first
-   └─ rhx git.package.patch begin --package is-number@7.0.0 --edit-dir reef-scratch --mode apply
+   └─ rhx git.package.patch set --package is-number@7.0.0 --edit-dir reef-scratch --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t20] the --edit-dir holds another package then: begin refuses to reuse it, exit 2 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t20] the --edit-dir holds another package then: set (open) refuses to reuse it, exit 2 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    ├─ ✋ ConstraintError: the edit dir already holds is-odd@3.0.1, not is-number@7.0.0
    └─ edit dir: reef-odd
 
 🥥 did you know?
    ├─ omit --edit-dir to use the in-tree default, node_modules/.pnpm_patches/<name>@<version>
-   └─ rhx git.package.patch begin --package is-number --mode apply
+   └─ rhx git.package.patch set --package is-number --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t21] the --edit-dir holds files git tracks then: commit refuses to seal it, and the dir survives, exit 2 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t21] the --edit-dir holds files git tracks then: set (seal) refuses to seal it, and the dir survives, exit 2 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    └─ ✋ ConstraintError: reef-tracked holds files git tracks; the seal deletes its edit dir
 
 🥥 did you know?
    ├─ omit --edit-dir to use the in-tree default, node_modules/.pnpm_patches/<name>@<version>
-   └─ rhx git.package.patch commit --package is-number@7.0.0 --why '<why>' --upstream '<issue-url>' --mode apply
+   └─ rhx git.package.patch set --package is-number@7.0.0 --why '<why>' --upstream '<issue-url>' --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t22] the --edit-dir is the live install of the package then: begin refuses it, so no edit can reach the shared store 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t22] the --edit-dir is the live install of the package then: set (open) refuses it, so no edit can reach the shared store 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    ├─ ✋ ConstraintError: --edit-dir must be a scratch dir, never the live install, the patches dir, or a broken link
    ├─ given: node_modules/is-number
    └─ real: <repo>/node_modules/.pnpm/is-number@7.0.0/node_modules/is-number
 
 🥥 did you know?
    ├─ omit --edit-dir to use the in-tree default, node_modules/.pnpm_patches/<name>@<version>
-   └─ rhx git.package.patch begin --package is-number --mode apply
+   └─ rhx git.package.patch set --package is-number --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t22] the --edit-dir is the live install of the package then: commit refuses it, and the live install survives 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t22] the --edit-dir is the live install of the package then: set (seal) refuses it, and the live install survives 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ ✋ ConstraintError: --edit-dir must be a scratch dir, never the live install, the patches dir, or a broken link
    ├─ given: node_modules/is-number
    └─ real: <repo>/node_modules/.pnpm/is-number@7.0.0/node_modules/is-number
 
 🥥 did you know?
    ├─ omit --edit-dir to use the in-tree default, node_modules/.pnpm_patches/<name>@<version>
-   └─ rhx git.package.patch commit --package is-number@7.0.0 --why '<why>' --upstream '<issue-url>' --mode apply
+   └─ rhx git.package.patch set --package is-number@7.0.0 --why '<why>' --upstream '<issue-url>' --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t23] the --edit-dir is a broken symlink then: begin refuses it, exit 2 1`] = `
+exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t23] the --edit-dir is a broken symlink then: set (open) refuses it, exit 2 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    ├─ ✋ ConstraintError: --edit-dir must be a scratch dir, never the live install, the patches dir, or a broken link
    ├─ given: reef-broken-link
    └─ real: <repo>/reef-nowhere
 
 🥥 did you know?
    ├─ omit --edit-dir to use the in-tree default, node_modules/.pnpm_patches/<name>@<version>
-   └─ rhx git.package.patch begin --package is-number --mode apply
+   └─ rhx git.package.patch set --package is-number --mode apply
 "
 `;
 
 exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed version of is-number when: [t24] the call carries the rhx --skill, --repo and --role flags then: the dispatcher and the subskill strip them, and the call runs 1`] = `
 "🐢 heres the wave...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    ├─ package: is-number@7.0.0
    ├─ prior patch: patches/is-number@7.0.0.patch (opens with it applied)
    ├─ would reuse edit dir: node_modules/.pnpm_patches/is-number@7.0.0
@@ -628,54 +628,54 @@ exports[`git.package.patch.sh given: [case1] a pnpm repo with one installed vers
 
 🥥 did you know?
    ├─ rerun with --mode apply to reuse it
-   └─ rhx git.package.patch begin --package is-number@7.0.0 --mode apply
+   └─ rhx git.package.patch set --package is-number@7.0.0 --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed versions of is-number when: [t0] begin names a bare package then: it is refused and lists the installed versions 1`] = `
+exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed versions of is-number when: [t0] set (open) names a bare package then: it is refused and lists the installed versions 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    ├─ ✋ ConstraintError: several versions of is-number are installed
    ├─ installed: is-number@6.0.0
    └─ installed: is-number@7.0.0
 
 🥥 did you know?
    ├─ name one
-   └─ rhx git.package.patch begin --package is-number@7.0.0 --mode apply
+   └─ rhx git.package.patch set --package is-number@7.0.0 --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed versions of is-number when: [t1.1] commit names a bare package and no edit dir is open then: it is refused, lists the versions, and names begin 1`] = `
+exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed versions of is-number when: [t1.1] set (seal) names a bare package and no edit dir is open then: it is refused, lists the versions, and names set 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ ✋ ConstraintError: several versions of is-number are installed, and none has an open edit dir
    ├─ installed: is-number@6.0.0
    └─ installed: is-number@7.0.0
 
 🥥 did you know?
    ├─ open one first, for the version you mean
-   └─ rhx git.package.patch begin --package is-number@7.0.0 --mode apply
+   └─ rhx git.package.patch set --package is-number@7.0.0 --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed versions of is-number when: [t1.2] commit names a bare package through a custom --edit-dir that was never opened then: it is refused: no open edit dir, and begin is named with the dir 1`] = `
+exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed versions of is-number when: [t1.2] set (seal) names a bare package through a custom --edit-dir that was never opened then: it is refused: no open edit dir, and begin is named with the dir 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    └─ ✋ ConstraintError: no open edit dir at reef-never
 
 🥥 did you know?
    ├─ open one first
-   └─ rhx git.package.patch begin --package is-number --edit-dir reef-never --mode apply
+   └─ rhx git.package.patch set --package is-number --edit-dir reef-never --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed versions of is-number when: [t1] begin names a version then: it plans with that version 1`] = `
+exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed versions of is-number when: [t1] set (open) names a version then: it plans with that version 1`] = `
 "🐢 heres the wave...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    ├─ package: is-number@6.0.0
    ├─ prior patch: none
    ├─ would open edit dir: node_modules/.pnpm_patches/is-number@6.0.0
@@ -683,42 +683,42 @@ exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed vers
 
 🥥 did you know?
    ├─ rerun with --mode apply to open it
-   └─ rhx git.package.patch begin --package is-number@6.0.0 --mode apply
+   └─ rhx git.package.patch set --package is-number@6.0.0 --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed versions of is-number when: [t2] begin applies the named version then: it opens that version, not the other 1`] = `
+exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed versions of is-number when: [t2] set (open) applies the named version then: it opens that version, not the other 1`] = `
 "🐢 shell yeah!
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    ├─ package: is-number@6.0.0
    ├─ prior patch: none
    └─ edit dir: node_modules/.pnpm_patches/is-number@6.0.0
 
 🥥 did you know?
    ├─ edit the files in the dir, then seal them
-   └─ rhx git.package.patch commit --package is-number@6.0.0 --why '<why>' --upstream '<issue-url>' --mode apply
+   └─ rhx git.package.patch set --package is-number@6.0.0 --why '<why>' --upstream '<issue-url>' --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed versions of is-number when: [t3] commit applies with no edits made then: it is refused: no edits to seal, and no note is written 1`] = `
+exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed versions of is-number when: [t3] set (seal) applies with no edits made then: it is refused: no edits to seal, and no note is written 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ ✋ ConstraintError: no edits to seal in node_modules/.pnpm_patches/is-number@6.0.0
    ├─ prior patch: none
    └─ pnpm: No changes were found to the following directory: <repo>/node_modules/.pnpm_patches/is-number@6.0.0
 
 🥥 did you know?
-   ├─ edit the files in node_modules/.pnpm_patches/is-number@6.0.0, then rerun this commit
-   └─ rhx git.package.patch commit --package is-number@6.0.0 --why 'reef fix: treat a numeric string with whitespace as not a number' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
+   ├─ edit the files in node_modules/.pnpm_patches/is-number@6.0.0, then rerun this set
+   └─ rhx git.package.patch set --package is-number@6.0.0 --why 'reef fix: treat a numeric string with whitespace as not a number' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
 "
 `;
 
 exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed versions of is-number when: [t4] the named version is edited and sealed then: the patch lands under that version, with its note 1`] = `
 "🐢 shell yeah!
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ package: is-number@6.0.0
    ├─ patch: patches/is-number@6.0.0.patch (written)
    ├─ entry: patchedDependencies[is-number@6.0.0] in pnpm-workspace.yaml
@@ -737,10 +737,10 @@ exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed vers
 "
 `;
 
-exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed versions of is-number when: [t5] commit names a version the edit dir does not hold then: it is refused and names the version the dir holds 1`] = `
+exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed versions of is-number when: [t5] set (seal) names a version the edit dir does not hold then: it is refused and names the version the dir holds 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ ✋ ConstraintError: the edit dir holds is-number@6.0.0, not @7.0.0
    └─ edit dir: reef-edit
 
@@ -749,10 +749,10 @@ exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed vers
 "
 `;
 
-exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed versions of is-number when: [t6] commit names a package the edit dir does not hold then: it is refused and names the package the dir holds 1`] = `
+exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed versions of is-number when: [t6] set (seal) names a package the edit dir does not hold then: it is refused and names the package the dir holds 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ ✋ ConstraintError: the edit dir holds is-odd@3.0.1, not is-number
    └─ edit dir: odd-edit
 
@@ -764,35 +764,35 @@ exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed vers
 exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed versions of is-number when: [t7] two default edit dirs are open for one package then: a bare commit is refused and lists both 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ ✋ ConstraintError: several edit dirs are open for is-number
    ├─ open: node_modules/.pnpm_patches/is-number@6.0.0
    └─ open: node_modules/.pnpm_patches/is-number@7.0.0
 
 🥥 did you know?
    ├─ name one
-   └─ rhx git.package.patch commit --package is-number@6.0.0 --why '<why>' --upstream '<issue-url>' --mode apply
+   └─ rhx git.package.patch set --package is-number@6.0.0 --why '<why>' --upstream '<issue-url>' --mode apply
 "
 `;
 
 exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed versions of is-number when: [t8] a custom in-tree --edit-dir is opened, edited, and sealed with the why piped via @stdin then: the patch lands, the note holds the piped why, and the dir is removed 1`] = `
 "🐢 shell yeah!
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    ├─ package: is-number@7.0.0
    ├─ prior patch: none
    └─ edit dir: reef-seal
 
 🥥 did you know?
    ├─ edit the files in the dir, then seal them
-   └─ rhx git.package.patch commit --package is-number@7.0.0 --why '<why>' --upstream '<issue-url>' --edit-dir reef-seal --mode apply
+   └─ rhx git.package.patch set --package is-number@7.0.0 --why '<why>' --upstream '<issue-url>' --edit-dir reef-seal --mode apply
 "
 `;
 
 exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed versions of is-number when: [t8] a custom in-tree --edit-dir is opened, edited, and sealed with the why piped via @stdin then: the patch lands, the note holds the piped why, and the dir is removed 2`] = `
 "🐢 shell yeah!
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ package: is-number@7.0.0
    ├─ patch: patches/is-number@7.0.0.patch (written)
    ├─ entry: patchedDependencies[is-number@7.0.0] in pnpm-workspace.yaml
@@ -814,21 +814,21 @@ exports[`git.package.patch.sh given: [case2] a pnpm repo with two installed vers
 exports[`git.package.patch.sh given: [case2b] a pnpm repo with one installed version, sealed through a custom --edit-dir then: the seal lands, exit 0 1`] = `
 "🐢 shell yeah!
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    ├─ package: is-number@7.0.0
    ├─ prior patch: none
    └─ edit dir: reef-seal
 
 🥥 did you know?
    ├─ edit the files in the dir, then seal them
-   └─ rhx git.package.patch commit --package is-number@7.0.0 --why '<why>' --upstream '<issue-url>' --edit-dir reef-seal --mode apply
+   └─ rhx git.package.patch set --package is-number@7.0.0 --why '<why>' --upstream '<issue-url>' --edit-dir reef-seal --mode apply
 "
 `;
 
 exports[`git.package.patch.sh given: [case2b] a pnpm repo with one installed version, sealed through a custom --edit-dir then: the seal lands, exit 0 2`] = `
 "🐢 heres the wave...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ package: is-number@7.0.0
    ├─ edit dir: reef-seal
    ├─ prior patch: none
@@ -840,15 +840,15 @@ exports[`git.package.patch.sh given: [case2b] a pnpm repo with one installed ver
    └─ mode: plan (naught changed)
 
 🥥 did you know?
-   ├─ rerun this same commit with --mode apply to seal it
-   └─ rhx git.package.patch commit --package is-number@7.0.0 --why 'reef fix: treat a numeric string with whitespace as not a number' --upstream https://github.com/jonschlinkert/is-number/issues/42 --edit-dir reef-seal --mode apply
+   ├─ rerun this same set with --mode apply to seal it
+   └─ rhx git.package.patch set --package is-number@7.0.0 --why 'reef fix: treat a numeric string with whitespace as not a number' --upstream https://github.com/jonschlinkert/is-number/issues/42 --edit-dir reef-seal --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case3] an npm repo when: [t0] begin runs then: it is refused as pnpm-only 1`] = `
+exports[`git.package.patch.sh given: [case3] an npm repo when: [t0] set (open) runs then: it is refused as pnpm-only 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    └─ ✋ ConstraintError: this repo locks with package-lock.json; pnpm patch is pnpm-only
 
 🥥 did you know?
@@ -856,10 +856,10 @@ exports[`git.package.patch.sh given: [case3] an npm repo when: [t0] begin runs t
 "
 `;
 
-exports[`git.package.patch.sh given: [case3] an npm repo when: [t1] commit runs then: it is refused as pnpm-only 1`] = `
+exports[`git.package.patch.sh given: [case3] an npm repo when: [t1] set (seal) runs then: it is refused as pnpm-only 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    └─ ✋ ConstraintError: this repo locks with package-lock.json; pnpm patch is pnpm-only
 
 🥥 did you know?
@@ -867,10 +867,10 @@ exports[`git.package.patch.sh given: [case3] an npm repo when: [t1] commit runs 
 "
 `;
 
-exports[`git.package.patch.sh given: [case3b] a yarn or bun repo when: [t0] begin runs beside bun.lock then: it is refused as pnpm-only, and names the lockfile 1`] = `
+exports[`git.package.patch.sh given: [case3b] a yarn or bun repo when: [t0] set (open) runs beside bun.lock then: it is refused as pnpm-only, and names the lockfile 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    └─ ✋ ConstraintError: this repo locks with bun.lock; pnpm patch is pnpm-only
 
 🥥 did you know?
@@ -878,10 +878,10 @@ exports[`git.package.patch.sh given: [case3b] a yarn or bun repo when: [t0] begi
 "
 `;
 
-exports[`git.package.patch.sh given: [case3b] a yarn or bun repo when: [t0] begin runs beside bun.lockb then: it is refused as pnpm-only, and names the lockfile 1`] = `
+exports[`git.package.patch.sh given: [case3b] a yarn or bun repo when: [t0] set (open) runs beside bun.lockb then: it is refused as pnpm-only, and names the lockfile 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    └─ ✋ ConstraintError: this repo locks with bun.lockb; pnpm patch is pnpm-only
 
 🥥 did you know?
@@ -889,10 +889,10 @@ exports[`git.package.patch.sh given: [case3b] a yarn or bun repo when: [t0] begi
 "
 `;
 
-exports[`git.package.patch.sh given: [case3b] a yarn or bun repo when: [t0] begin runs beside yarn.lock then: it is refused as pnpm-only, and names the lockfile 1`] = `
+exports[`git.package.patch.sh given: [case3b] a yarn or bun repo when: [t0] set (open) runs beside yarn.lock then: it is refused as pnpm-only, and names the lockfile 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    └─ ✋ ConstraintError: this repo locks with yarn.lock; pnpm patch is pnpm-only
 
 🥥 did you know?
@@ -907,7 +907,8 @@ exports[`git.package.patch.sh given: [case4] the dispatcher when: [t0] no subcom
    └─ ✋ ConstraintError: subcommand required
 
 🥥 did you know?
-   └─ rhx git.package.patch begin --package <name>  (or: commit, get, check, del, help)
+   ├─ use one of: set, get, del, help
+   └─ rhx git.package.patch set --package <name> --mode apply
 "
 `;
 
@@ -916,16 +917,14 @@ exports[`git.package.patch.sh given: [case4] the dispatcher when: [t1] help is a
 
 🐚 git.package.patch
    ├─ subcommands
-   │  ├─ begin    open an edit dir for a dependency, inside the tree
-   │  ├─ commit   seal the edits into a patch + a LOCAL PATCH note
-   │  ├─ get      list each patch: package, why, upstream, apply state
-   │  ├─ check    name each patch that no longer applies, and its repair
-   │  ├─ del      retire a patch: its entry, its file, and its note
-   │  └─ help     show this usage
+   │  ├─ set    open an edit dir; with --why + --upstream, seal it into a patch + note
+   │  ├─ get    each patch: apply state, why, upstream, and the repair if stale
+   │  ├─ del    retire a patch: its entry, its file, and its note
+   │  └─ help   show this usage
    └─ examples
-      ├─ rhx git.package.patch begin --package rhachet --mode apply
-      ├─ rhx git.package.patch commit --package rhachet --why 'keep the stop hook quiet on a clean tree' --upstream https://github.com/ehmpathy/rhachet/issues/580 --mode apply
-      ├─ rhx git.package.patch check
+      ├─ rhx git.package.patch set --package rhachet --mode apply
+      ├─ rhx git.package.patch set --package rhachet --why 'keep the stop hook quiet on a clean tree' --upstream https://github.com/ehmpathy/rhachet/issues/580 --mode apply
+      ├─ rhx git.package.patch get
       └─ rhx git.package.patch del --package rhachet --mode apply
 "
 `;
@@ -937,74 +936,83 @@ exports[`git.package.patch.sh given: [case4] the dispatcher when: [t2] an unknow
    └─ ✋ ConstraintError: unknown subcommand: drop
 
 🥥 did you know?
-   ├─ use one of: begin, commit, get, check, del, help
+   ├─ use one of: set, get, del, help
    └─ rhx git.package.patch help
 "
 `;
 
-exports[`git.package.patch.sh given: [case4] the dispatcher when: [t3] a flag is given with no value then: begin refuses loud, never a silent exit 1`] = `
+exports[`git.package.patch.sh given: [case4] the dispatcher when: [t3] a flag is given with no value then: set (open) refuses loud, never a silent exit 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    └─ ✋ ConstraintError: --package is required
 
 🥥 did you know?
-   └─ rhx git.package.patch begin --package <name> --mode apply
+   └─ rhx git.package.patch set --package <name> --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case4] the dispatcher when: [t3] a flag is given with no value then: commit refuses loud, never a silent exit 1`] = `
+exports[`git.package.patch.sh given: [case4] the dispatcher when: [t3] a flag is given with no value then: set (seal) refuses loud, never a silent exit 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    └─ ✋ ConstraintError: --why is required
 
 🥥 did you know?
    ├─ add --why '<why this patch is needed>', or pipe it via --why @stdin
-   └─ rhx git.package.patch commit --package is-number --why '<why>' --upstream '<issue-url>' --mode apply
+   └─ rhx git.package.patch set --package is-number --why '<why>' --upstream '<issue-url>' --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case4] the dispatcher when: [t4] a subcommand help is asked for then: begin --help shows each flag, required or optional, with defaults 1`] = `
+exports[`git.package.patch.sh given: [case4] the dispatcher when: [t4] a subcommand help is asked for then: get --help names --when and each state 1`] = `
 "🐢 heres the wave...
 
-🐚 git.package.patch begin
+🐚 git.package.patch get
    ├─ usage
-   │  └─ rhx git.package.patch begin --package <name>[@<version>] [--edit-dir <dir>] [--mode plan|apply]
+   │  └─ rhx git.package.patch get [--when hook.onStop]
    ├─ flags
-   │  ├─ --package    (required) the dependency to patch; add @<version> when several are installed
-   │  ├─ --edit-dir   (optional) where to open it; default node_modules/.pnpm_patches/<name>@<version>; must sit inside the tree
-   │  └─ --mode       (optional) plan (default) previews; apply opens the dir
-   ├─ examples
-   │  ├─ rhx git.package.patch begin --package rhachet --mode apply
-   │  └─ rhx git.package.patch begin --package rhachet@1.48.1 --mode apply
-   └─ next
-      └─ edit the files in the dir, then: rhx git.package.patch commit --package <name> --why '<why>' --upstream '<issue-url>' --mode apply
-"
-`;
-
-exports[`git.package.patch.sh given: [case4] the dispatcher when: [t4] a subcommand help is asked for then: commit --help shows each flag, required or optional, with defaults 1`] = `
-"🐢 heres the wave...
-
-🐚 git.package.patch commit
-   ├─ usage
-   │  └─ rhx git.package.patch commit --package <name>[@<version>] --why '<why>' --upstream '<issue-url>' [--edit-dir <dir>] [--mode plan|apply]
-   ├─ flags
-   │  ├─ --package    (required) the dependency whose edit dir to seal
-   │  ├─ --why        (required) why the patch is needed, one line; or @stdin to pipe it
-   │  ├─ --upstream   (required) the issue or pr where the real fix is queued; an http(s) link
-   │  ├─ --edit-dir   (optional) the dir begin opened; default node_modules/.pnpm_patches/<name>@<version>; must sit inside the tree
-   │  └─ --mode       (optional) plan (default) previews; apply seals
+   │  └─ --when   (optional) hook.onStop: nudge only, always exit 0, silent when naught is owed
+   ├─ states
+   │  ├─ applied        the installed copy holds the patch
+   │  ├─ unapplied      the entry is recorded, but pnpm has not applied it yet
+   │  ├─ underapplied   the installed version moved, or a hunk no longer fits
+   │  ├─ obsolete       the installed version already holds the change
+   │  ├─ unused         the package is no longer installed
+   │  ├─ unbacked       an entry names a patch file that is absent
+   │  └─ unrecorded     a patch file no entry records
    └─ examples
-      ├─ rhx git.package.patch commit --package rhachet --why 'keep the stop hook quiet on a clean tree' --upstream https://github.com/ehmpathy/rhachet/issues/580 --mode apply
-      └─ printf 'keep the stop hook quiet' | rhx git.package.patch commit --package rhachet --why @stdin --upstream https://github.com/ehmpathy/rhachet/issues/580 --mode apply
+      ├─ rhx git.package.patch get
+      └─ rhx git.package.patch get --when hook.onStop
 "
 `;
 
-exports[`git.package.patch.sh given: [case5] a dir whose repo shape the verb refuses when: [t0] the cwd is not inside a git repo then: begin is refused 1`] = `
+exports[`git.package.patch.sh given: [case4] the dispatcher when: [t4] a subcommand help is asked for then: set --help names both phases and each flag, required or optional, with defaults 1`] = `
+"🐢 heres the wave...
+
+🐚 git.package.patch set
+   ├─ usage
+   │  ├─ rhx git.package.patch set --package <name>[@<version>] [--edit-dir <dir>] [--mode plan|apply]
+   │  └─ rhx git.package.patch set --package <name>[@<version>] --why '<why>' --upstream '<issue-url>' [--edit-dir <dir>] [--mode plan|apply]
+   ├─ phases
+   │  ├─ open   no --why, no --upstream: open an in-tree edit dir, with any committed patch laid on it
+   │  └─ seal   --why + --upstream: seal the edit dir into patches/<name>@<version>.patch + its note
+   ├─ flags
+   │  ├─ --package    (required) the dependency, bare or @<version>
+   │  ├─ --why        (seal) why the patch exists; @stdin reads it from a pipe
+   │  ├─ --upstream   (seal) the http(s) link where the upstream fix is queued
+   │  ├─ --edit-dir   (optional) an in-tree dir; default node_modules/.pnpm_patches/<name>@<version>
+   │  └─ --mode       (optional) plan (default) or apply
+   └─ examples
+      ├─ rhx git.package.patch set --package rhachet --mode apply
+      ├─ rhx git.package.patch set --package rhachet --why 'keep the stop hook quiet on a clean tree' --upstream https://github.com/ehmpathy/rhachet/issues/580 --mode apply
+      └─ printf 'keep the stop hook quiet' | rhx git.package.patch set --package rhachet --why @stdin --upstream https://github.com/ehmpathy/rhachet/issues/580 --mode apply
+"
+`;
+
+exports[`git.package.patch.sh given: [case5] a dir whose repo shape the verb refuses when: [t0] the cwd is not inside a git repo then: set (open) is refused 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    └─ ✋ ConstraintError: not inside a git repo
 
 🥥 did you know?
@@ -1012,10 +1020,10 @@ exports[`git.package.patch.sh given: [case5] a dir whose repo shape the verb ref
 "
 `;
 
-exports[`git.package.patch.sh given: [case5] a dir whose repo shape the verb refuses when: [t0] the cwd is not inside a git repo then: commit is refused 1`] = `
+exports[`git.package.patch.sh given: [case5] a dir whose repo shape the verb refuses when: [t0] the cwd is not inside a git repo then: set (seal) is refused 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    └─ ✋ ConstraintError: not inside a git repo
 
 🥥 did you know?
@@ -1023,10 +1031,10 @@ exports[`git.package.patch.sh given: [case5] a dir whose repo shape the verb ref
 "
 `;
 
-exports[`git.package.patch.sh given: [case5] a dir whose repo shape the verb refuses when: [t1] the git root holds no package.json then: begin is refused 1`] = `
+exports[`git.package.patch.sh given: [case5] a dir whose repo shape the verb refuses when: [t1] the git root holds no package.json then: set (open) is refused 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    └─ ✋ ConstraintError: the git root holds no package.json
 
 🥥 did you know?
@@ -1034,10 +1042,10 @@ exports[`git.package.patch.sh given: [case5] a dir whose repo shape the verb ref
 "
 `;
 
-exports[`git.package.patch.sh given: [case5] a dir whose repo shape the verb refuses when: [t1] the git root holds no package.json then: commit is refused 1`] = `
+exports[`git.package.patch.sh given: [case5] a dir whose repo shape the verb refuses when: [t1] the git root holds no package.json then: set (seal) is refused 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    └─ ✋ ConstraintError: the git root holds no package.json
 
 🥥 did you know?
@@ -1045,46 +1053,46 @@ exports[`git.package.patch.sh given: [case5] a dir whose repo shape the verb ref
 "
 `;
 
-exports[`git.package.patch.sh given: [case5] a dir whose repo shape the verb refuses when: [t2] the default edit dir base is a symlink out of the tree then: begin is refused, and naught lands outside 1`] = `
+exports[`git.package.patch.sh given: [case5] a dir whose repo shape the verb refuses when: [t2] the default edit dir base is a symlink out of the tree then: set (open) is refused, and naught lands outside 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    ├─ ✋ ConstraintError: the edit dir must sit inside the tree
    └─ real: <tmp>/reef-outside-<rand>/is-number@7.0.0
 
 🥥 did you know?
    ├─ replace the symlink at node_modules/.pnpm_patches with a real dir, or name an in-tree dir
-   └─ rhx git.package.patch begin --package is-number@7.0.0 --edit-dir <in-tree dir> --mode apply
+   └─ rhx git.package.patch set --package is-number@7.0.0 --edit-dir <in-tree dir> --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case5] a dir whose repo shape the verb refuses when: [t2] the default edit dir base is a symlink out of the tree then: commit is refused, and naught lands outside 1`] = `
+exports[`git.package.patch.sh given: [case5] a dir whose repo shape the verb refuses when: [t2] the default edit dir base is a symlink out of the tree then: set (seal) is refused, and naught lands outside 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ ✋ ConstraintError: the edit dir must sit inside the tree
    └─ real: <tmp>/reef-outside-<rand>/is-number@7.0.0
 
 🥥 did you know?
    ├─ replace the symlink at node_modules/.pnpm_patches with a real dir, or name an in-tree dir
-   └─ rhx git.package.patch commit --package is-number --why '<why>' --upstream '<issue-url>' --edit-dir <in-tree dir> --mode apply
+   └─ rhx git.package.patch set --package is-number --why '<why>' --upstream '<issue-url>' --edit-dir <in-tree dir> --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case5] a dir whose repo shape the verb refuses when: [t3] an installed package.json is malformed then: begin reports a malfunction, exit 1 1`] = `
+exports[`git.package.patch.sh given: [case5] a dir whose repo shape the verb refuses when: [t3] an installed package.json is malformed then: set (open) reports a malfunction, exit 1 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    ├─ 💥 MalfunctionError: could not read the installed versions of is-number
    └─ detail
          <verbatim detail>
 "
 `;
 
-exports[`git.package.patch.sh given: [case5] a dir whose repo shape the verb refuses when: [t4] the repo installs with node-linker=hoisted then: begin is refused before any write, exit 2 1`] = `
+exports[`git.package.patch.sh given: [case5] a dir whose repo shape the verb refuses when: [t4] the repo installs with node-linker=hoisted then: set (open) is refused before any write, exit 2 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    └─ ✋ ConstraintError: this repo installs with node-linker=hoisted; pnpm cannot apply a patch there
 
 🥥 did you know?
@@ -1093,10 +1101,10 @@ exports[`git.package.patch.sh given: [case5] a dir whose repo shape the verb ref
 "
 `;
 
-exports[`git.package.patch.sh given: [case5] a dir whose repo shape the verb refuses when: [t4] the repo installs with node-linker=hoisted then: commit is refused, and the manifest is unchanged 1`] = `
+exports[`git.package.patch.sh given: [case5] a dir whose repo shape the verb refuses when: [t4] the repo installs with node-linker=hoisted then: set (seal) is refused, and the manifest is unchanged 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    └─ ✋ ConstraintError: this repo installs with node-linker=hoisted; pnpm cannot apply a patch there
 
 🥥 did you know?
@@ -1108,31 +1116,35 @@ exports[`git.package.patch.sh given: [case5] a dir whose repo shape the verb ref
 exports[`git.package.patch.sh given: [case6] a pnpm repo where pnpm itself fails, and a scoped package then: commit reports a malfunction, exit 1, and keeps the edit dir open 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ 💥 MalfunctionError: the patch landed but its note could not be written
    └─ detail
          <verbatim detail>
 
 🥥 did you know?
-   ├─ fix the cause, then rerun this commit to write it
-   └─ rhx git.package.patch commit --package is-number@7.0.0 --why 'reef fix: treat a numeric string with whitespace as not a number' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
+   ├─ fix the cause, then rerun this set to write it
+   └─ rhx git.package.patch set --package is-number@7.0.0 --why 'reef fix: treat a numeric string with whitespace as not a number' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case6] a pnpm repo where pnpm itself fails, and a scoped package when: [t0] begin names a package on disk that pnpm never installed then: pnpm patch fails, and the verb reports a malfunction, exit 1 1`] = `
+exports[`git.package.patch.sh given: [case6] a pnpm repo where pnpm itself fails, and a scoped package when: [t0] set (open) names a package on disk that pnpm never installed then: pnpm patch fails, and the verb reports a malfunction, exit 1 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    ├─ 💥 MalfunctionError: pnpm patch failed
    └─ detail
          <verbatim detail>
+
+🥥 did you know?
+   ├─ fix the cause pnpm names in the detail, then rerun this set
+   └─ rhx git.package.patch set --package reef-ghost@1.0.0 --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case6] a pnpm repo where pnpm itself fails, and a scoped package when: [t1] commit seals while the patches dir is a file then: pnpm patch-commit fails, and the verb reports a malfunction, exit 1 1`] = `
+exports[`git.package.patch.sh given: [case6] a pnpm repo where pnpm itself fails, and a scoped package when: [t1] set (seal) seals while the patches dir is a file then: pnpm patch-commit fails, and the verb reports a malfunction, exit 1 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ 💥 MalfunctionError: pnpm patch-commit failed
    └─ detail
          <verbatim detail>
@@ -1142,7 +1154,7 @@ exports[`git.package.patch.sh given: [case6] a pnpm repo where pnpm itself fails
 exports[`git.package.patch.sh given: [case6] a pnpm repo where pnpm itself fails, and a scoped package when: [t2] a scoped package is opened and sealed then: the patch and note land under the flat scoped name 1`] = `
 "🐢 shell yeah!
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ package: @types/is-number@7.0.5
    ├─ patch: patches/@types__is-number@7.0.5.patch (written)
    ├─ entry: patchedDependencies[@types/is-number@7.0.5] in pnpm-workspace.yaml
@@ -1161,20 +1173,20 @@ exports[`git.package.patch.sh given: [case6] a pnpm repo where pnpm itself fails
 "
 `;
 
-exports[`git.package.patch.sh given: [case6] a pnpm repo where pnpm itself fails, and a scoped package when: [t3] the open edit dir holds a malformed package.json then: commit reports a malfunction, exit 1, and writes no note 1`] = `
+exports[`git.package.patch.sh given: [case6] a pnpm repo where pnpm itself fails, and a scoped package when: [t3] the open edit dir holds a malformed package.json then: set (seal) reports a malfunction, exit 1, and writes no note 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ 💥 MalfunctionError: the edit dir's package.json cannot be read
    └─ detail
          <verbatim detail>
 "
 `;
 
-exports[`git.package.patch.sh given: [case6] a pnpm repo where pnpm itself fails, and a scoped package when: [t5] the crew reruns the same commit then: it re-seals the patch and writes the note 1`] = `
+exports[`git.package.patch.sh given: [case6] a pnpm repo where pnpm itself fails, and a scoped package when: [t5] the crew reruns the same set then: it re-seals the patch and writes the note 1`] = `
 "🐢 shell yeah!
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ package: is-number@7.0.0
    ├─ patch: patches/is-number@7.0.0.patch (re-sealed)
    ├─ entry: patchedDependencies[is-number@7.0.0] in pnpm-workspace.yaml
@@ -1193,38 +1205,38 @@ exports[`git.package.patch.sh given: [case6] a pnpm repo where pnpm itself fails
 "
 `;
 
-exports[`git.package.patch.sh given: [case7] a pnpm repo whose seal install fails after the write when: [t0] commit seals while package.json names a dependency no registry holds then: the output matches snapshot 1`] = `
+exports[`git.package.patch.sh given: [case7] a pnpm repo whose seal install fails after the write when: [t0] set (seal) seals while package.json names a dependency no registry holds then: the output matches snapshot 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ 💥 MalfunctionError: pnpm patch-commit failed after it recorded the entry; patches/is-number@7.0.0.patch is kept so the entry holds
    └─ detail
          <verbatim detail>
 
 🥥 did you know?
-   ├─ fix the cause pnpm names in the detail, then rerun this commit
-   └─ rhx git.package.patch commit --package is-number@7.0.0 --why 'reef fix: treat a numeric string with whitespace as not a number' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
+   ├─ fix the cause pnpm names in the detail, then rerun this set
+   └─ rhx git.package.patch set --package is-number@7.0.0 --why 'reef fix: treat a numeric string with whitespace as not a number' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
 "
 `;
 
 exports[`git.package.patch.sh given: [case7b] a pnpm repo whose .npmrc sets lockfile=false then: the output names the cause and the rerun 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ 💥 MalfunctionError: the patch landed at patches/is-number@7.0.0.patch, but pnpm-lock.yaml does not record it after a reinstall; is lockfile=false set? the edit dir stays open
    └─ detail
          <verbatim detail>
 
 🥥 did you know?
-   ├─ fix the cause, then rerun this same commit
-   └─ rhx git.package.patch commit --package is-number@7.0.0 --why 'reef fix: treat a numeric string with whitespace as not a number' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
+   ├─ fix the cause, then rerun this same set
+   └─ rhx git.package.patch set --package is-number@7.0.0 --why 'reef fix: treat a numeric string with whitespace as not a number' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case7b] a pnpm repo whose .npmrc sets lockfile=false when: [t1] the crew drops lockfile=false and reruns the same commit then: the patch, its note, and its lockfile record all land 1`] = `
+exports[`git.package.patch.sh given: [case7b] a pnpm repo whose .npmrc sets lockfile=false when: [t1] the crew drops lockfile=false and reruns the same set then: the patch, its note, and its lockfile record all land 1`] = `
 "🐢 shell yeah!
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ package: is-number@7.0.0
    ├─ patch: patches/is-number@7.0.0.patch (re-sealed)
    ├─ entry: patchedDependencies[is-number@7.0.0] in pnpm-workspace.yaml
@@ -1246,42 +1258,42 @@ exports[`git.package.patch.sh given: [case7b] a pnpm repo whose .npmrc sets lock
 exports[`git.package.patch.sh given: [case7c] a sealed patch whose manifest or lockfile record a rebase dropped when: [t1] the lockfile record is dropped, and the same commit reruns then: it refuses, exit 2, and names pnpm install 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    └─ ✋ ConstraintError: patches/is-number@7.0.0.patch and its note are present, but the lockfile record is absent, so pnpm does not apply it
 
 🥥 did you know?
-   ├─ run pnpm install, so pnpm-lock.yaml records patches/is-number@7.0.0.patch, then rerun this same commit
-   └─ rhx git.package.patch commit --package is-number@7.0.0 --why 'reef fix: treat a numeric string with whitespace as not a number' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
+   ├─ run pnpm install, so pnpm-lock.yaml records patches/is-number@7.0.0.patch, then rerun this same set
+   └─ rhx git.package.patch set --package is-number@7.0.0 --why 'reef fix: treat a numeric string with whitespace as not a number' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
 "
 `;
 
 exports[`git.package.patch.sh given: [case7c] a sealed patch whose manifest or lockfile record a rebase dropped when: [t2] the manifest entry is dropped then: a rerun of the same commit refuses, exit 2, and names the entry 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    └─ ✋ ConstraintError: patches/is-number@7.0.0.patch and its note are present, but the entry record is absent, so pnpm does not apply it
 
 🥥 did you know?
-   ├─ restore the patchedDependencies entry "is-number@7.0.0": "patches/is-number@7.0.0.patch" in pnpm-workspace.yaml or package.json#pnpm (often a checkout of the file from before the rebase), then run pnpm install, then rerun this same commit
-   └─ rhx git.package.patch commit --package is-number@7.0.0 --why 'reef fix: treat a numeric string with whitespace as not a number' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
+   ├─ restore the patchedDependencies entry "is-number@7.0.0": "patches/is-number@7.0.0.patch" in pnpm-workspace.yaml or package.json#pnpm (often a checkout of the file from before the rebase), then run pnpm install, then rerun this same set
+   └─ rhx git.package.patch set --package is-number@7.0.0 --why 'reef fix: treat a numeric string with whitespace as not a number' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
 "
 `;
 
 exports[`git.package.patch.sh given: [case7c] a sealed patch whose manifest or lockfile record a rebase dropped when: [t2] the manifest entry is dropped then: begin refuses too, so a pristine reopen cannot drop the edits 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    └─ ✋ ConstraintError: patches/is-number@7.0.0.patch is present, but no patchedDependencies entry names it, so pnpm would open is-number@7.0.0 without it and a reseal would drop its edits
 
 🥥 did you know?
-   └─ restore the patchedDependencies entry "is-number@7.0.0": "patches/is-number@7.0.0.patch" in pnpm-workspace.yaml or package.json#pnpm (often a checkout of the file from before the rebase), then run pnpm install, then rerun this begin
+   └─ restore the patchedDependencies entry "is-number@7.0.0": "patches/is-number@7.0.0.patch" in pnpm-workspace.yaml or package.json#pnpm (often a checkout of the file from before the rebase), then run pnpm install, then rerun this set
 "
 `;
 
 exports[`git.package.patch.sh given: [case8] a pnpm repo whose package.json already records a patch for another package when: [t0] a second package is patched and sealed then: the output names the manifest that holds the new entry 1`] = `
 "🐢 shell yeah!
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ package: is-number@7.0.0
    ├─ patch: patches/is-number@7.0.0.patch (written)
    ├─ entry: patchedDependencies[is-number@7.0.0] in <manifest>
@@ -1301,64 +1313,64 @@ exports[`git.package.patch.sh given: [case8] a pnpm repo whose package.json alre
 "
 `;
 
-exports[`git.package.patch.sh given: [case9] hostile --edit-dir inputs, on an on-disk tree when: [t0] --edit-dir names the patches dir then: begin and commit both refuse it, exit 2 1`] = `
+exports[`git.package.patch.sh given: [case9] hostile --edit-dir inputs, on an on-disk tree when: [t0] --edit-dir names the patches dir then: set (open) and commit both refuse it, exit 2 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    ├─ ✋ ConstraintError: --edit-dir must be a scratch dir, never the live install, the patches dir, or a broken link
    ├─ given: patches
    └─ real: <repo>/patches
 
 🥥 did you know?
    ├─ omit --edit-dir to use the in-tree default, node_modules/.pnpm_patches/<name>@<version>
-   └─ rhx git.package.patch begin --package is-number --mode apply
+   └─ rhx git.package.patch set --package is-number --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case9] hostile --edit-dir inputs, on an on-disk tree when: [t0] --edit-dir names the patches dir then: begin and commit both refuse it, exit 2 2`] = `
+exports[`git.package.patch.sh given: [case9] hostile --edit-dir inputs, on an on-disk tree when: [t0] --edit-dir names the patches dir then: set (open) and commit both refuse it, exit 2 2`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ ✋ ConstraintError: --edit-dir must be a scratch dir, never the live install, the patches dir, or a broken link
    ├─ given: patches
    └─ real: <repo>/patches
 
 🥥 did you know?
    ├─ omit --edit-dir to use the in-tree default, node_modules/.pnpm_patches/<name>@<version>
-   └─ rhx git.package.patch commit --package is-number --why '<why>' --upstream '<issue-url>' --mode apply
+   └─ rhx git.package.patch set --package is-number --why '<why>' --upstream '<issue-url>' --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case9] hostile --edit-dir inputs, on an on-disk tree when: [t1] --edit-dir sits below a broken link that leads out of the tree then: begin refuses it at the bound, exit 2, before any mkdir 1`] = `
+exports[`git.package.patch.sh given: [case9] hostile --edit-dir inputs, on an on-disk tree when: [t1] --edit-dir sits below a broken link that leads out of the tree then: set (open) refuses it at the bound, exit 2, before any mkdir 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    ├─ ✋ ConstraintError: --edit-dir must sit inside the tree
    ├─ given: reef-link/child
    └─ real: <tmp>/reef-absent-<rand>/child
 
 🥥 did you know?
    ├─ omit --edit-dir to use the in-tree default, node_modules/.pnpm_patches/<name>@<version>
-   └─ rhx git.package.patch begin --package is-number --mode apply
+   └─ rhx git.package.patch set --package is-number --mode apply
 "
 `;
 
-exports[`git.package.patch.sh given: [case9] hostile --edit-dir inputs, on an on-disk tree when: [t2] an open edit dir's package.json name carries a newline then: begin refuses it, exit 2, and prints no raw name 1`] = `
+exports[`git.package.patch.sh given: [case9] hostile --edit-dir inputs, on an on-disk tree when: [t2] an open edit dir's package.json name carries a newline then: set (open) refuses it, exit 2, and prints no raw name 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    └─ ✋ ConstraintError: reef-hostile holds a package.json whose name or version is not a package spec
 
 🥥 did you know?
    ├─ omit --edit-dir to use the in-tree default, node_modules/.pnpm_patches/<name>@<version>
-   └─ rhx git.package.patch begin --package is-number --mode apply
+   └─ rhx git.package.patch set --package is-number --mode apply
 "
 `;
 
 exports[`git.package.patch.sh given: [case9] hostile --edit-dir inputs, on an on-disk tree when: [t3] --edit-dir holds shell metachars then: the paste-ready hint quotes them, so a paste names the same dir 1`] = `
 "🐢 heres the wave...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    ├─ package: is-number@7.0.0
    ├─ prior patch: none
    ├─ would open edit dir: a>b\\c
@@ -1366,14 +1378,14 @@ exports[`git.package.patch.sh given: [case9] hostile --edit-dir inputs, on an on
 
 🥥 did you know?
    ├─ rerun with --mode apply to open it
-   └─ rhx git.package.patch begin --package is-number@7.0.0 --edit-dir 'a>b\\c' --mode apply
+   └─ rhx git.package.patch set --package is-number@7.0.0 --edit-dir 'a>b\\c' --mode apply
 "
 `;
 
 exports[`git.package.patch.sh given: [case9] hostile --edit-dir inputs, on an on-disk tree when: [t4] an installed package.json carries a version that is no version then: the verb never prints it, and lists only the real version 1`] = `
 "🐢 heres the wave...
 
-🐚 git.package.patch begin
+🐚 git.package.patch set
    ├─ package: is-number@7.0.0
    ├─ prior patch: none
    ├─ would open edit dir: node_modules/.pnpm_patches/is-number@7.0.0
@@ -1381,14 +1393,14 @@ exports[`git.package.patch.sh given: [case9] hostile --edit-dir inputs, on an on
 
 🥥 did you know?
    ├─ rerun with --mode apply to open it
-   └─ rhx git.package.patch begin --package is-number@7.0.0 --mode apply
+   └─ rhx git.package.patch set --package is-number@7.0.0 --mode apply
 "
 `;
 
 exports[`git.package.patch.sh given: [case10] a sealed patch on is-number@6.0.0, then an upgrade past it when: [t0] the patch is opened, edited, and sealed then: the seal writes the upgrade-safe keys 1`] = `
 "🐢 shell yeah!
 
-🐚 git.package.patch commit
+🐚 git.package.patch set
    ├─ package: is-number@6.0.0
    ├─ patch: patches/is-number@6.0.0.patch (written)
    ├─ entry: patchedDependencies[is-number@6.0.0] in pnpm-workspace.yaml
@@ -1407,14 +1419,13 @@ exports[`git.package.patch.sh given: [case10] a sealed patch on is-number@6.0.0,
 "
 `;
 
-exports[`git.package.patch.sh given: [case10] a sealed patch on is-number@6.0.0, then an upgrade past it when: [t1] get runs then: it lists the patch as applied, with its note 1`] = `
-"🐢 heres the wave...
+exports[`git.package.patch.sh given: [case10] a sealed patch on is-number@6.0.0, then an upgrade past it when: [t1] get runs while the patch applies then: by hand, it exits 0 and names the patch applied, with its note 1`] = `
+"🐢 righteous!
 
 🐚 git.package.patch get
-   ├─ is-number@6.0.0
+   ├─ is-number@6.0.0: applied
    │  ├─ patch: patches/is-number@6.0.0.patch
    │  ├─ entry: pnpm-workspace.yaml
-   │  ├─ state: applied (the installed is-number@6.0.0 holds this patch)
    │  ├─ why: reef fix: treat a numeric string with whitespace as not a number
    │  ├─ upstream: https://github.com/jonschlinkert/is-number/issues/42
    │  └─ who: test-fns <test-fns@test.local>, <date>
@@ -1422,37 +1433,38 @@ exports[`git.package.patch.sh given: [case10] a sealed patch on is-number@6.0.0,
 "
 `;
 
-exports[`git.package.patch.sh given: [case10] a sealed patch on is-number@6.0.0, then an upgrade past it when: [t2] check runs while the patch applies then: by hand, it exits 0 and names the patch applied 1`] = `
-"🐢 righteous!
-
-🐚 git.package.patch check
-   ├─ is-number@6.0.0: applied
-   └─ upgrade-safe: yes (pnpm-workspace.yaml sets allowUnusedPatches: true + ignorePatchFailures: true), so a stale patch never fails an install
-"
-`;
-
-exports[`git.package.patch.sh given: [case10] a sealed patch on is-number@6.0.0, then an upgrade past it when: [t4] check runs after the upgrade then: by hand, it exits 2 and names the stale patch with its repair 1`] = `
+exports[`git.package.patch.sh given: [case10] a sealed patch on is-number@6.0.0, then an upgrade past it when: [t4] get runs after the upgrade then: by hand, it exits 2 and names the stale patch with its repair 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch check
+🐚 git.package.patch get
    ├─ ✋ ConstraintError: 1 repair(s) owed; a stale patch no longer applies
    ├─ is-number@6.0.0: underapplied
    │  ├─ reason: the patch targets is-number@6.0.0, but is-number@7.0.0 is installed; it fits 7.0.0, but pnpm skips it
+   │  ├─ patch: patches/is-number@6.0.0.patch
+   │  ├─ entry: pnpm-workspace.yaml
+   │  ├─ why: reef fix: treat a numeric string with whitespace as not a number
+   │  ├─ upstream: https://github.com/jonschlinkert/is-number/issues/42
+   │  ├─ who: test-fns <test-fns@test.local>, <date>
    │  └─ repair
-   │     ├─ rhx git.package.patch begin --package is-number@7.0.0 --mode apply   # then redo the edits and commit
+   │     ├─ rhx git.package.patch set --package is-number@7.0.0 --mode apply   # then redo the edits and seal
    │     └─ rhx git.package.patch del --package is-number@6.0.0 --mode apply   # retire the stale patch, once the new one is sealed or if upstream fixed it
    └─ upgrade-safe: yes (pnpm-workspace.yaml sets allowUnusedPatches: true + ignorePatchFailures: true), so a stale patch never fails an install
 "
 `;
 
-exports[`git.package.patch.sh given: [case10] a sealed patch on is-number@6.0.0, then an upgrade past it when: [t4] check runs after the upgrade then: the onStop hook nudges with the repair, and lets the stop through 1`] = `
+exports[`git.package.patch.sh given: [case10] a sealed patch on is-number@6.0.0, then an upgrade past it when: [t4] get runs after the upgrade then: the onStop hook nudges with the repair, and lets the stop through 1`] = `
 "🐢 heads up, a local patch needs repair
 
-🐚 git.package.patch check
+🐚 git.package.patch get
    ├─ is-number@6.0.0: underapplied
    │  ├─ reason: the patch targets is-number@6.0.0, but is-number@7.0.0 is installed; it fits 7.0.0, but pnpm skips it
+   │  ├─ patch: patches/is-number@6.0.0.patch
+   │  ├─ entry: pnpm-workspace.yaml
+   │  ├─ why: reef fix: treat a numeric string with whitespace as not a number
+   │  ├─ upstream: https://github.com/jonschlinkert/is-number/issues/42
+   │  ├─ who: test-fns <test-fns@test.local>, <date>
    │  └─ repair
-   │     ├─ rhx git.package.patch begin --package is-number@7.0.0 --mode apply   # then redo the edits and commit
+   │     ├─ rhx git.package.patch set --package is-number@7.0.0 --mode apply   # then redo the edits and seal
    │     └─ rhx git.package.patch del --package is-number@6.0.0 --mode apply   # retire the stale patch, once the new one is sealed or if upstream fixed it
    └─ upgrade-safe: yes (pnpm-workspace.yaml sets allowUnusedPatches: true + ignorePatchFailures: true), so a stale patch never fails an install
 "
@@ -1489,67 +1501,49 @@ exports[`git.package.patch.sh given: [case10] a sealed patch on is-number@6.0.0,
 "
 `;
 
-exports[`git.package.patch.sh given: [case11] an installed is-number@7.0.0 with one patch in each stale state, and no upgrade-safe keys when: [t0] check runs then: it exits 2 and names each stale state with its repair, and the absent upgrade-safe keys 1`] = `
+exports[`git.package.patch.sh given: [case11] an installed is-number@7.0.0 with one patch in each stale state, and no upgrade-safe keys when: [t0] get runs then: it exits 2 and names each stale state with its repair, and the absent upgrade-safe keys 1`] = `
 "🐢 bummer dude...
 
-🐚 git.package.patch check
+🐚 git.package.patch get
    ├─ ✋ ConstraintError: 6 repair(s) owed; a stale patch no longer applies
    ├─ is-number@6.0.0: obsolete
    │  ├─ reason: the installed is-number@7.0.0 already holds this change
+   │  ├─ patch: patches/is-number@6.0.0.patch
+   │  ├─ entry: pnpm-workspace.yaml
+   │  ├─ note: absent
    │  └─ repair
    │     └─ rhx git.package.patch del --package is-number@6.0.0 --mode apply
    ├─ is-number@7.0.0: underapplied
    │  ├─ reason: a hunk no longer fits the installed is-number@7.0.0
+   │  ├─ patch: patches/is-number@7.0.0.patch
+   │  ├─ entry: pnpm-workspace.yaml
+   │  ├─ note: absent
    │  └─ repair
-   │     ├─ rhx git.package.patch begin --package is-number@7.0.0 --mode apply   # then redo the edits and commit
+   │     ├─ rhx git.package.patch set --package is-number@7.0.0 --mode apply   # then redo the edits and seal
    │     └─ rhx git.package.patch del --package is-number@7.0.0 --mode apply   # retire the stale patch, once the new one is sealed or if upstream fixed it
    ├─ is-odd@3.0.1: unbacked
    │  ├─ reason: the entry names patches/is-odd@3.0.1.patch, which is absent
+   │  ├─ patch: patches/is-odd@3.0.1.patch
+   │  ├─ entry: pnpm-workspace.yaml
+   │  ├─ note: absent
    │  └─ repair
    │     └─ rhx git.package.patch del --package is-odd@3.0.1 --mode apply
    ├─ left-pad@1.3.0: unused
    │  ├─ reason: left-pad is no longer installed
+   │  ├─ patch: patches/left-pad@1.3.0.patch
+   │  ├─ entry: package.json
+   │  ├─ note: absent
    │  └─ repair
    │     └─ rhx git.package.patch del --package left-pad@1.3.0 --mode apply
    ├─ kind-of@6.0.3: unrecorded
    │  ├─ reason: no patchedDependencies entry records this patch, so pnpm never applies it
+   │  ├─ patch: patches/kind-of@6.0.3.patch
+   │  ├─ entry: none
+   │  ├─ note: absent
    │  └─ repair
    │     └─ rhx git.package.patch del --package kind-of@6.0.3 --mode apply
    └─ upgrade-safe: no (pnpm-workspace.yaml lacks allowUnusedPatches: true + ignorePatchFailures: true), so a stale patch fails pnpm install
       └─ repair: add allowUnusedPatches: true + ignorePatchFailures: true to pnpm-workspace.yaml
-"
-`;
-
-exports[`git.package.patch.sh given: [case11] an installed is-number@7.0.0 with one patch in each stale state, and no upgrade-safe keys when: [t1] get runs then: it lists each patch, its entry, and its state 1`] = `
-"🐢 heres the wave...
-
-🐚 git.package.patch get
-   ├─ is-number@6.0.0
-   │  ├─ patch: patches/is-number@6.0.0.patch
-   │  ├─ entry: pnpm-workspace.yaml
-   │  ├─ state: obsolete (the installed is-number@7.0.0 already holds this change)
-   │  └─ note: absent
-   ├─ is-number@7.0.0
-   │  ├─ patch: patches/is-number@7.0.0.patch
-   │  ├─ entry: pnpm-workspace.yaml
-   │  ├─ state: underapplied (a hunk no longer fits the installed is-number@7.0.0)
-   │  └─ note: absent
-   ├─ is-odd@3.0.1
-   │  ├─ patch: patches/is-odd@3.0.1.patch
-   │  ├─ entry: pnpm-workspace.yaml
-   │  ├─ state: unbacked (the entry names patches/is-odd@3.0.1.patch, which is absent)
-   │  └─ note: absent
-   ├─ left-pad@1.3.0
-   │  ├─ patch: patches/left-pad@1.3.0.patch
-   │  ├─ entry: package.json
-   │  ├─ state: unused (left-pad is no longer installed)
-   │  └─ note: absent
-   ├─ kind-of@6.0.3
-   │  ├─ patch: patches/kind-of@6.0.3.patch
-   │  ├─ entry: none
-   │  ├─ state: unrecorded (no patchedDependencies entry records this patch, so pnpm never applies it)
-   │  └─ note: absent
-   └─ upgrade-safe: no (pnpm-workspace.yaml lacks allowUnusedPatches: true + ignorePatchFailures: true), so a stale patch fails pnpm install
 "
 `;
 
@@ -1588,5 +1582,66 @@ exports[`git.package.patch.sh given: [case11] an installed is-number@7.0.0 with 
    └─ changed, stage all of these
       ├─ pnpm-workspace.yaml
       └─ pnpm-lock.yaml
+"
+`;
+
+exports[`git.package.patch.sh given: [case13] a gated package (rhachet-roles-bhrain) on disk when: [t1] set (open) names it with no grant then: it is refused with the upstream and the grant as the fix 1`] = `
+"🐢 bummer dude...
+
+🐚 git.package.patch set
+   └─ ✋ ConstraintError: rhachet-roles-bhrain grades or gates this tree; a clone never patches it here without a human's grant
+
+🥥 did you know?
+   ├─ cure it upstream, where its own review judges it:
+   ├─ rhx radio.task.push --via gh.issues --into ehmpathy/rhachet-roles-bhrain --title '<title>' --description @stdin
+   ├─ or a human admits it to an in-tree patch, at their own terminal:
+   └─ rhx git.package.patch.uses allow --package rhachet-roles-bhrain --why '<why>'
+"
+`;
+
+exports[`git.package.patch.sh given: [case13] a gated package (rhachet-roles-bhrain) on disk when: [t6] a human allows it with a why then: the grant lands in a gitignored meter 1`] = `
+"🐢 radical! let's ride!
+
+🐚 git.package.patch.uses allow
+   ├─ package: rhachet-roles-bhrain
+   ├─ why: hold the review guard quiet until bhrain#88 ships
+   └─ grant: a clone may set an in-tree patch of rhachet-roles-bhrain
+
+🥥 did you know?
+   ├─ withdraw it once the upstream fix ships
+   └─ rhx git.package.patch.uses block --package rhachet-roles-bhrain
+"
+`;
+
+exports[`git.package.patch.sh given: [case13] a gated package (rhachet-roles-bhrain) on disk when: [t7] get runs then: it names each gated package and its grant 1`] = `
+"🐢 lets check the meter...
+
+🐚 git.package.patch.uses
+   ├─ meter: .meter/git.package.patch.uses.jsonc
+   └─ gated packages
+      ├─ rhachet: blocked (no grant)
+      ├─ rhachet-roles-bhrain: granted: hold the review guard quiet until bhrain#88 ships
+      ├─ rhachet-roles-bhuild: blocked (no grant)
+      └─ rhachet-roles-ehmpathy: blocked (no grant)
+
+🥥 did you know?
+   ├─ a human admits a gated package at their own terminal
+   └─ rhx git.package.patch.uses allow --package <name> --why '<why>'
+"
+`;
+
+exports[`git.package.patch.sh given: [case13] a gated package (rhachet-roles-bhrain) on disk when: [t8] set (open) names it after the grant then: it is admitted, and the plan names the grant 1`] = `
+"🐢 heres the wave...
+
+🐚 git.package.patch set
+   ├─ package: rhachet-roles-bhrain@1.0.0
+   ├─ grant: a human admits this gated package: hold the review guard quiet until bhrain#88 ships
+   ├─ prior patch: none
+   ├─ would open edit dir: node_modules/.pnpm_patches/rhachet-roles-bhrain@1.0.0
+   └─ mode: plan (naught changed)
+
+🥥 did you know?
+   ├─ rerun with --mode apply to open it
+   └─ rhx git.package.patch set --package rhachet-roles-bhrain@1.0.0 --mode apply
 "
 `;

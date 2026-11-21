@@ -14,7 +14,7 @@ import {
 } from 'test-fns';
 
 /**
- * .what = integration tests for git.package.patch (begin + commit)
+ * .what = integration tests for git.package.patch (set, get, del, and the uses meter)
  * .why = the verb is pre-approved, so its bounds must hold for real: a patch
  *        lands in the tree with its note, a path outside the tree is refused,
  *        and an absent --why or --upstream is refused. real pnpm, no mocks.
@@ -67,18 +67,23 @@ describe('git.package.patch.sh', () => {
     args: string[];
     env?: Record<string, string>;
     stdin?: string;
+    executable?: string;
   }): { stdout: string; stderr: string; exitCode: number } => {
-    const result = spawnSync('bash', [scriptPath, ...input.args], {
-      cwd: input.cwd,
-      encoding: 'utf-8',
-      input: input.stdin ?? '',
-      env: {
-        ...process.env,
-        PATH: `${tools.binDir}${path.delimiter}${process.env.PATH ?? ''}`,
-        ...input.env,
+    const result = spawnSync(
+      'bash',
+      [input.executable ?? scriptPath, ...input.args],
+      {
+        cwd: input.cwd,
+        encoding: 'utf-8',
+        input: input.stdin ?? '',
+        env: {
+          ...process.env,
+          PATH: `${tools.binDir}${path.delimiter}${process.env.PATH ?? ''}`,
+          ...input.env,
+        },
+        timeout: 180_000,
       },
-      timeout: 180_000,
-    });
+    );
     return {
       stdout: result.stdout ?? '',
       stderr: result.stderr ?? '',
@@ -218,11 +223,11 @@ describe('git.package.patch.sh', () => {
       }),
     }));
 
-    when('[t0] begin runs in plan mode', () => {
+    when('[t0] set (open) runs in plan mode', () => {
       then('it previews the edit dir and changes naught', () => {
         const result = runSkill({
           cwd: scene.dir,
-          args: ['begin', '--package', 'is-number'],
+          args: ['set', '--package', 'is-number'],
         });
         expect(result.exitCode).toEqual(0);
         expect(result.stdout).toContain(`would open edit dir: ${EDIT_DIR_REL}`);
@@ -238,46 +243,41 @@ describe('git.package.patch.sh', () => {
     });
 
     when(
-      '[t0.1] commit runs before any begin, for a never-sealed package',
+      '[t0.1] set (seal) runs before any begin, for a never-sealed package',
       () => {
-        then(
-          'it is refused as no open edit dir, exit 2, and names begin',
-          () => {
-            const result = runSkill({
-              cwd: scene.dir,
-              args: [
-                'commit',
-                '--package',
-                'is-number',
-                '--why',
-                WHY,
-                '--upstream',
-                UPSTREAM,
-                '--mode',
-                'apply',
-              ],
-            });
-            expect(result.exitCode).toEqual(2);
-            expect(result.stdout).toContain(
-              `✋ ConstraintError: no open edit dir at ${EDIT_DIR_REL}`,
-            );
-            expect(result.stdout).toContain(
-              'rhx git.package.patch begin --package is-number@7.0.0 --mode apply',
-            );
-            expect(fs.existsSync(path.join(scene.dir, PATCH_REL))).toEqual(
-              false,
-            );
-            expectStableSnapshot({ result, dir: scene.dir });
-          },
-        );
+        then('it is refused as no open edit dir, exit 2, and names set', () => {
+          const result = runSkill({
+            cwd: scene.dir,
+            args: [
+              'set',
+              '--package',
+              'is-number',
+              '--why',
+              WHY,
+              '--upstream',
+              UPSTREAM,
+              '--mode',
+              'apply',
+            ],
+          });
+          expect(result.exitCode).toEqual(2);
+          expect(result.stdout).toContain(
+            `✋ ConstraintError: no open edit dir at ${EDIT_DIR_REL}`,
+          );
+          expect(result.stdout).toContain(
+            'rhx git.package.patch set --package is-number@7.0.0 --mode apply',
+          );
+          expect(fs.existsSync(path.join(scene.dir, PATCH_REL))).toEqual(false);
+          expectStableSnapshot({ result, dir: scene.dir });
+        });
       },
     );
 
-    when('[t1] begin runs in apply mode', () => {
+    when('[t1] set (open) runs in apply mode', () => {
       then('it opens the edit dir inside the tree', () => {
         const result = runSkill({
           cwd: scene.dir,
-          args: ['begin', '--package', 'is-number', '--mode', 'apply'],
+          args: ['set', '--package', 'is-number', '--mode', 'apply'],
         });
         expect(result.exitCode).toEqual(0);
         expect(
@@ -285,7 +285,7 @@ describe('git.package.patch.sh', () => {
         ).toEqual(true);
         // the seal hint is paste-ready: it seals, not a plan that changes naught
         expect(result.stdout).toContain(
-          "rhx git.package.patch commit --package is-number@7.0.0 --why '<why>' --upstream '<issue-url>' --mode apply",
+          "rhx git.package.patch set --package is-number@7.0.0 --why '<why>' --upstream '<issue-url>' --mode apply",
         );
         expect(
           asStableOutput({ stdout: result.stdout, dir: scene.dir }),
@@ -293,12 +293,12 @@ describe('git.package.patch.sh', () => {
       });
     });
 
-    when('[t2] begin runs in apply mode again', () => {
+    when('[t2] set (open) runs in apply mode again', () => {
       then('it reuses the open dir and leaves edits untouched', () => {
         editIsNumber({ dir: scene.dir });
         const result = runSkill({
           cwd: scene.dir,
-          args: ['begin', '--package', 'is-number', '--mode', 'apply'],
+          args: ['set', '--package', 'is-number', '--mode', 'apply'],
         });
         expect(result.exitCode).toEqual(0);
         expect(result.stdout).toContain('already open, reused');
@@ -314,12 +314,12 @@ describe('git.package.patch.sh', () => {
       });
     });
 
-    when('[t3] commit runs in plan mode', () => {
+    when('[t3] set (seal) runs in plan mode', () => {
       const result = useThen('it exits 0', async () =>
         runSkill({
           cwd: scene.dir,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-number',
             '--why',
@@ -341,7 +341,7 @@ describe('git.package.patch.sh', () => {
         'its rerun hint carries the given why and upstream, so the seal is one paste',
         () => {
           expect(result.stdout).toContain(
-            `rhx git.package.patch commit --package is-number@7.0.0 --why '${WHY}' --upstream ${UPSTREAM} --mode apply`,
+            `rhx git.package.patch set --package is-number@7.0.0 --why '${WHY}' --upstream ${UPSTREAM} --mode apply`,
           );
           expect(result.stdout).not.toContain("'<why>'");
         },
@@ -349,13 +349,13 @@ describe('git.package.patch.sh', () => {
     });
 
     when(
-      '[t3.1] commit runs in plan mode with a why that holds a quote',
+      '[t3.1] set (seal) runs in plan mode with a why that holds a quote',
       () => {
         then('the why stays one pasteable arg', () => {
           const result = runSkill({
             cwd: scene.dir,
             args: [
-              'commit',
+              'set',
               '--package',
               'is-number',
               '--why',
@@ -373,12 +373,12 @@ describe('git.package.patch.sh', () => {
       },
     );
 
-    when('[t4] commit runs in apply mode', () => {
+    when('[t4] set (seal) runs in apply mode', () => {
       const result = useBeforeAll(async () =>
         runSkill({
           cwd: scene.dir,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-number',
             '--why',
@@ -479,7 +479,7 @@ describe('git.package.patch.sh', () => {
       });
     });
 
-    when('[t5] commit reruns with the same note', () => {
+    when('[t5] set (seal) reruns with the same note', () => {
       then('it is a no-op', () => {
         const before = fs.readFileSync(
           path.join(scene.dir, PATCH_REL),
@@ -488,7 +488,7 @@ describe('git.package.patch.sh', () => {
         const result = runSkill({
           cwd: scene.dir,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-number',
             '--why',
@@ -511,7 +511,7 @@ describe('git.package.patch.sh', () => {
     });
 
     when(
-      '[t5.1] commit reruns with the same why piped via --why @stdin',
+      '[t5.1] set (seal) reruns with the same why piped via --why @stdin',
       () => {
         then('it reads the why from stdin, and is a no-op', () => {
           const before = fs.readFileSync(
@@ -521,7 +521,7 @@ describe('git.package.patch.sh', () => {
           const result = runSkill({
             cwd: scene.dir,
             args: [
-              'commit',
+              'set',
               '--package',
               'is-number',
               '--why',
@@ -543,11 +543,11 @@ describe('git.package.patch.sh', () => {
       },
     );
 
-    when('[t6] commit runs with --why absent', () => {
+    when('[t6] set (seal) runs with --why absent', () => {
       then('it is refused with ConstraintError, exit 2', () => {
         const result = runSkill({
           cwd: scene.dir,
-          args: ['commit', '--package', 'is-number', '--upstream', UPSTREAM],
+          args: ['set', '--package', 'is-number', '--upstream', UPSTREAM],
         });
         expect(result.exitCode).toEqual(2);
         expect(result.stdout).toContain(
@@ -564,14 +564,14 @@ describe('git.package.patch.sh', () => {
       });
     });
 
-    when('[t6.1] commit runs with a --why that spans two lines', () => {
+    when('[t6.1] set (seal) runs with a --why that spans two lines', () => {
       then(
         'it is refused with ConstraintError, exit 2, so no note line is forged',
         () => {
           const result = runSkill({
             cwd: scene.dir,
             args: [
-              'commit',
+              'set',
               '--package',
               'is-number',
               '--why',
@@ -592,12 +592,12 @@ describe('git.package.patch.sh', () => {
       );
     });
 
-    when('[t6.2] commit runs with --why still the placeholder', () => {
+    when('[t6.2] set (seal) runs with --why still the placeholder', () => {
       then('it is refused with ConstraintError, exit 2', () => {
         const result = runSkill({
           cwd: scene.dir,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-number',
             '--why',
@@ -614,11 +614,11 @@ describe('git.package.patch.sh', () => {
       });
     });
 
-    when('[t7] commit runs with --upstream absent', () => {
+    when('[t7] set (seal) runs with --upstream absent', () => {
       then('it is refused with ConstraintError, exit 2', () => {
         const result = runSkill({
           cwd: scene.dir,
-          args: ['commit', '--package', 'is-number', '--why', WHY],
+          args: ['set', '--package', 'is-number', '--why', WHY],
         });
         expect(result.exitCode).toEqual(2);
         expect(result.stdout).toContain(
@@ -635,12 +635,12 @@ describe('git.package.patch.sh', () => {
       });
     });
 
-    when('[t8] commit runs with an --upstream that is not a link', () => {
+    when('[t8] set (seal) runs with an --upstream that is not a link', () => {
       then('it is refused with ConstraintError, exit 2', () => {
         const result = runSkill({
           cwd: scene.dir,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-number',
             '--why',
@@ -657,7 +657,7 @@ describe('git.package.patch.sh', () => {
       });
     });
 
-    when('[t9] commit runs with no git identity', () => {
+    when('[t9] set (seal) runs with no git identity', () => {
       then('it is refused with ConstraintError, exit 2', () => {
         const unset = spawnSync('git', ['config', '--unset', 'user.name'], {
           cwd: scene.dir,
@@ -666,7 +666,7 @@ describe('git.package.patch.sh', () => {
         const result = runSkill({
           cwd: scene.dir,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-number',
             '--why',
@@ -687,51 +687,54 @@ describe('git.package.patch.sh', () => {
       });
     });
 
-    when('[t9.1] commit runs with a git identity that spans two lines', () => {
-      then(
-        'it is refused with ConstraintError, exit 2; no forged line lands',
-        () => {
-          // clamp: a newline in the who would forge a line in the LOCAL PATCH note
-          const forged = spawnSync(
-            'git',
-            ['config', 'user.name', 'Reef Tester\n- why: forged'],
-            { cwd: scene.dir },
-          );
-          expect(forged.status).toEqual(0);
-          const result = runSkill({
-            cwd: scene.dir,
-            args: [
-              'commit',
-              '--package',
-              'is-number',
-              '--why',
-              WHY,
-              '--upstream',
-              UPSTREAM,
-            ],
-          });
-          spawnSync('git', ['config', 'user.name', 'Reef Tester'], {
-            cwd: scene.dir,
-          });
-          expect(result.exitCode).toEqual(2);
-          expect(result.stdout).toContain(
-            '✋ ConstraintError: git identity spans several lines; the note needs a one-line who',
-          );
-          const noteText = fs.existsSync(path.join(scene.dir, NOTE_REL))
-            ? fs.readFileSync(path.join(scene.dir, NOTE_REL), 'utf-8')
-            : '';
-          expect(noteText).not.toContain('forged');
-          expectStableSnapshot({ result, dir: scene.dir });
-        },
-      );
-    });
+    when(
+      '[t9.1] set (seal) runs with a git identity that spans two lines',
+      () => {
+        then(
+          'it is refused with ConstraintError, exit 2; no forged line lands',
+          () => {
+            // clamp: a newline in the who would forge a line in the LOCAL PATCH note
+            const forged = spawnSync(
+              'git',
+              ['config', 'user.name', 'Reef Tester\n- why: forged'],
+              { cwd: scene.dir },
+            );
+            expect(forged.status).toEqual(0);
+            const result = runSkill({
+              cwd: scene.dir,
+              args: [
+                'set',
+                '--package',
+                'is-number',
+                '--why',
+                WHY,
+                '--upstream',
+                UPSTREAM,
+              ],
+            });
+            spawnSync('git', ['config', 'user.name', 'Reef Tester'], {
+              cwd: scene.dir,
+            });
+            expect(result.exitCode).toEqual(2);
+            expect(result.stdout).toContain(
+              '✋ ConstraintError: git identity spans several lines; the note needs a one-line who',
+            );
+            const noteText = fs.existsSync(path.join(scene.dir, NOTE_REL))
+              ? fs.readFileSync(path.join(scene.dir, NOTE_REL), 'utf-8')
+              : '';
+            expect(noteText).not.toContain('forged');
+            expectStableSnapshot({ result, dir: scene.dir });
+          },
+        );
+      },
+    );
 
-    when('[t10] begin runs with an --edit-dir outside the tree', () => {
+    when('[t10] set (open) runs with an --edit-dir outside the tree', () => {
       then('an absolute path under the os tmp dir is refused', () => {
         const result = runSkill({
           cwd: scene.dir,
           args: [
-            'begin',
+            'set',
             '--package',
             'is-number',
             '--edit-dir',
@@ -749,7 +752,7 @@ describe('git.package.patch.sh', () => {
         const result = runSkill({
           cwd: scene.dir,
           args: [
-            'begin',
+            'set',
             '--package',
             'is-number',
             '--edit-dir',
@@ -771,7 +774,7 @@ describe('git.package.patch.sh', () => {
         const result = runSkill({
           cwd: scene.dir,
           args: [
-            'begin',
+            'set',
             '--package',
             'is-number',
             '--edit-dir',
@@ -788,12 +791,12 @@ describe('git.package.patch.sh', () => {
       });
     });
 
-    when('[t11] commit runs with an --edit-dir outside the tree', () => {
+    when('[t11] set (seal) runs with an --edit-dir outside the tree', () => {
       then('it is refused with ConstraintError, exit 2', () => {
         const result = runSkill({
           cwd: scene.dir,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-number',
             '--why',
@@ -811,15 +814,15 @@ describe('git.package.patch.sh', () => {
     });
 
     when('[t12] a global flag is passed', () => {
-      then('begin refuses -g', () => {
+      then('set (open) refuses -g', () => {
         const result = runSkill({
           cwd: scene.dir,
-          args: ['begin', '--package', 'is-number', '-g'],
+          args: ['set', '--package', 'is-number', '-g'],
         });
         expect(result.exitCode).toEqual(2);
         expect(result.stdout).toContain('unknown flag -g');
         expect(result.stdout).toContain(
-          '└─ rhx git.package.patch begin --package is-number --mode apply',
+          '└─ rhx git.package.patch set --package is-number --mode apply',
         );
         expect(
           asStableOutput({ stdout: result.stdout, dir: scene.dir }),
@@ -831,21 +834,21 @@ describe('git.package.patch.sh', () => {
         () => {
           const result = runSkill({
             cwd: scene.dir,
-            args: ['begin', '-g', '--package', 'is-number', '--mode', 'apply'],
+            args: ['set', '-g', '--package', 'is-number', '--mode', 'apply'],
           });
           expect(result.exitCode).toEqual(2);
           expect(result.stdout).toContain('unknown flag -g');
           expect(result.stdout).toContain(
-            '└─ rhx git.package.patch begin --package is-number --mode apply',
+            '└─ rhx git.package.patch set --package is-number --mode apply',
           );
         },
       );
 
-      then('commit refuses -g', () => {
+      then('set (seal) refuses -g', () => {
         const result = runSkill({
           cwd: scene.dir,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-number',
             '--why',
@@ -864,11 +867,11 @@ describe('git.package.patch.sh', () => {
       });
     });
 
-    when('[t13] begin names a package that is not installed', () => {
+    when('[t13] set (open) names a package that is not installed', () => {
       then('it is refused and names set.package.install', () => {
         const result = runSkill({
           cwd: scene.dir,
-          args: ['begin', '--package', 'is-odd'],
+          args: ['set', '--package', 'is-odd'],
         });
         expect(result.exitCode).toEqual(2);
         expect(result.stdout).toContain('is-odd is not installed');
@@ -876,11 +879,11 @@ describe('git.package.patch.sh', () => {
         expectStableSnapshot({ result, dir: scene.dir });
       });
 
-      then('commit refuses it the same way', () => {
+      then('set (seal) refuses it the same way', () => {
         const result = runSkill({
           cwd: scene.dir,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-odd',
             '--why',
@@ -896,7 +899,7 @@ describe('git.package.patch.sh', () => {
     });
 
     when(
-      '[t13.5] begin names a package the manifest declares, in a tree not yet installed',
+      '[t13.5] set (open) names a package the manifest declares, in a tree not yet installed',
       () => {
         const fresh = useBeforeAll(async () => {
           const dir = genOnDiskRepo({ slug: 'git-package-patch-fresh-tree' });
@@ -917,7 +920,7 @@ describe('git.package.patch.sh', () => {
           () => {
             const result = runSkill({
               cwd: fresh.dir,
-              args: ['begin', '--package', 'is-odd'],
+              args: ['set', '--package', 'is-odd'],
             });
             expect(result.exitCode).toEqual(2);
             expect(result.stdout).toContain('is-odd is not installed');
@@ -955,7 +958,7 @@ describe('git.package.patch.sh', () => {
           () => {
             const result = runSkill({
               cwd: beta.dir,
-              args: ['begin', '--package', 'is-number'],
+              args: ['set', '--package', 'is-number'],
             });
             expect(result.exitCode).toEqual(2);
             expect(result.stdout).toContain('several versions of is-number');
@@ -969,11 +972,11 @@ describe('git.package.patch.sh', () => {
       },
     );
 
-    when('[t13.1] begin names a version that is not installed', () => {
+    when('[t13.1] set (open) names a version that is not installed', () => {
       then('it is refused and names the installed versions', () => {
         const result = runSkill({
           cwd: scene.dir,
-          args: ['begin', '--package', 'is-number@9.9.9'],
+          args: ['set', '--package', 'is-number@9.9.9'],
         });
         expect(result.exitCode).toEqual(2);
         expect(result.stdout).toContain('is-number@9.9.9 is not installed');
@@ -983,21 +986,21 @@ describe('git.package.patch.sh', () => {
     });
 
     when('[t13.2] --mode is neither plan nor apply', () => {
-      then('begin refuses it', () => {
+      then('set (open) refuses it', () => {
         const result = runSkill({
           cwd: scene.dir,
-          args: ['begin', '--package', 'is-number', '--mode', 'yolo'],
+          args: ['set', '--package', 'is-number', '--mode', 'yolo'],
         });
         expect(result.exitCode).toEqual(2);
         expect(result.stdout).toContain('--mode must be plan or apply');
         expectStableSnapshot({ result, dir: scene.dir });
       });
 
-      then('commit refuses it', () => {
+      then('set (seal) refuses it', () => {
         const result = runSkill({
           cwd: scene.dir,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-number',
             '--why',
@@ -1014,11 +1017,11 @@ describe('git.package.patch.sh', () => {
       });
     });
 
-    when('[t13.3] commit runs with --package absent', () => {
+    when('[t13.3] set (seal) runs with --package absent', () => {
       then('it is refused and names the full command', () => {
         const result = runSkill({
           cwd: scene.dir,
-          args: ['commit', '--why', WHY, '--upstream', UPSTREAM],
+          args: ['set', '--why', WHY, '--upstream', UPSTREAM],
         });
         expect(result.exitCode).toEqual(2);
         expect(result.stdout).toContain('--package is required');
@@ -1026,12 +1029,12 @@ describe('git.package.patch.sh', () => {
       });
     });
 
-    when('[t13.4] commit names a version that is not installed', () => {
+    when('[t13.4] set (seal) names a version that is not installed', () => {
       then('it is refused and names the installed versions', () => {
         const result = runSkill({
           cwd: scene.dir,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-number@9.9.9',
             '--why',
@@ -1047,38 +1050,41 @@ describe('git.package.patch.sh', () => {
       });
     });
 
-    when('[t14] commit reruns on a sealed patch with a different why', () => {
-      then('it is refused, the note is untouched, and begin is named', () => {
-        const noteBefore = fs.readFileSync(
-          path.join(scene.dir, NOTE_REL),
-          'utf-8',
-        );
-        const result = runSkill({
-          cwd: scene.dir,
-          args: [
-            'commit',
-            '--package',
-            'is-number',
-            '--why',
-            'a different motive',
-            '--upstream',
-            UPSTREAM,
-            '--mode',
-            'apply',
-          ],
+    when(
+      '[t14] set (seal) reruns on a sealed patch with a different why',
+      () => {
+        then('it is refused, the note is untouched, and begin is named', () => {
+          const noteBefore = fs.readFileSync(
+            path.join(scene.dir, NOTE_REL),
+            'utf-8',
+          );
+          const result = runSkill({
+            cwd: scene.dir,
+            args: [
+              'set',
+              '--package',
+              'is-number',
+              '--why',
+              'a different motive',
+              '--upstream',
+              UPSTREAM,
+              '--mode',
+              'apply',
+            ],
+          });
+          expect(result.exitCode).toEqual(2);
+          expect(result.stdout).toContain(
+            'its note names another why or upstream',
+          );
+          expect(result.stdout).toContain(`edit ${NOTE_REL} by hand`);
+          expect(result.stdout).toContain('rhx git.package.patch set');
+          expect(
+            fs.readFileSync(path.join(scene.dir, NOTE_REL), 'utf-8'),
+          ).toEqual(noteBefore);
+          expectStableSnapshot({ result, dir: scene.dir });
         });
-        expect(result.exitCode).toEqual(2);
-        expect(result.stdout).toContain(
-          'its note names another why or upstream',
-        );
-        expect(result.stdout).toContain(`edit ${NOTE_REL} by hand`);
-        expect(result.stdout).toContain('rhx git.package.patch begin');
-        expect(
-          fs.readFileSync(path.join(scene.dir, NOTE_REL), 'utf-8'),
-        ).toEqual(noteBefore);
-        expectStableSnapshot({ result, dir: scene.dir });
-      });
-    });
+      },
+    );
 
     when(
       '[t15] a sealed patch is reopened, its edits reverted, and sealed with a new why',
@@ -1096,7 +1102,7 @@ describe('git.package.patch.sh', () => {
             );
             const opened = runSkill({
               cwd: scene.dir,
-              args: ['begin', '--package', 'is-number', '--mode', 'apply'],
+              args: ['set', '--package', 'is-number', '--mode', 'apply'],
             });
             expect(opened.exitCode).toEqual(0);
             expect(opened.stdout).toContain(
@@ -1116,7 +1122,7 @@ describe('git.package.patch.sh', () => {
             const result = runSkill({
               cwd: scene.dir,
               args: [
-                'commit',
+                'set',
                 '--package',
                 'is-number',
                 '--why',
@@ -1145,11 +1151,11 @@ describe('git.package.patch.sh', () => {
       },
     );
 
-    when('[t16] begin plans while the edit dir is still open', () => {
+    when('[t16] set (open) plans while the edit dir is still open', () => {
       then('it previews a reuse, over the prior patch', () => {
         const result = runSkill({
           cwd: scene.dir,
-          args: ['begin', '--package', 'is-number'],
+          args: ['set', '--package', 'is-number'],
         });
         expect(result.exitCode).toEqual(0);
         expect(result.stdout).toContain('would reuse edit dir: ');
@@ -1161,7 +1167,7 @@ describe('git.package.patch.sh', () => {
     });
 
     when(
-      '[t17] commit plans while the edit dir is open over the prior patch',
+      '[t17] set (seal) plans while the edit dir is open over the prior patch',
       () => {
         then(
           'it previews a re-seal of the prior patch, and changes naught',
@@ -1173,7 +1179,7 @@ describe('git.package.patch.sh', () => {
             const result = runSkill({
               cwd: scene.dir,
               args: [
-                'commit',
+                'set',
                 '--package',
                 'is-number',
                 '--why',
@@ -1196,10 +1202,10 @@ describe('git.package.patch.sh', () => {
     );
 
     when('[t18] --package is not a valid package name', () => {
-      then('begin is refused before any path is built, exit 2', () => {
+      then('set (open) is refused before any path is built, exit 2', () => {
         const result = runSkill({
           cwd: scene.dir,
-          args: ['begin', '--package', '../reef-escape'],
+          args: ['set', '--package', '../reef-escape'],
         });
         expect(result.exitCode).toEqual(2);
         expect(result.stdout).toContain(
@@ -1208,11 +1214,11 @@ describe('git.package.patch.sh', () => {
         expectStableSnapshot({ result, dir: scene.dir });
       });
 
-      then('commit is refused before any path is built, exit 2', () => {
+      then('set (seal) is refused before any path is built, exit 2', () => {
         const result = runSkill({
           cwd: scene.dir,
           args: [
-            'commit',
+            'set',
             '--package',
             '../reef-escape',
             '--why',
@@ -1237,40 +1243,43 @@ describe('git.package.patch.sh', () => {
         return { rel };
       });
 
-      then('begin refuses to reuse it, exit 2', () => {
+      then('set (open) refuses to reuse it, exit 2', () => {
         const result = runSkill({
           cwd: scene.dir,
-          args: ['begin', '--package', 'is-number', '--edit-dir', scratch.rel],
+          args: ['set', '--package', 'is-number', '--edit-dir', scratch.rel],
         });
         expect(result.exitCode).toEqual(2);
         expect(result.stdout).toContain('it is not an edit dir');
         expectStableSnapshot({ result, dir: scene.dir });
       });
 
-      then('commit refuses to seal it, and the dir survives, exit 2', () => {
-        const result = runSkill({
-          cwd: scene.dir,
-          args: [
-            'commit',
-            '--package',
-            'is-number@7.0.0',
-            '--edit-dir',
-            scratch.rel,
-            '--why',
-            WHY,
-            '--upstream',
-            UPSTREAM,
-            '--mode',
-            'apply',
-          ],
-        });
-        expect(result.exitCode).toEqual(2);
-        expect(result.stdout).toContain('it is not an edit dir');
-        expect(
-          fs.existsSync(path.join(scene.dir, scratch.rel, 'notes.txt')),
-        ).toEqual(true);
-        expectStableSnapshot({ result, dir: scene.dir });
-      });
+      then(
+        'set (seal) refuses to seal it, and the dir survives, exit 2',
+        () => {
+          const result = runSkill({
+            cwd: scene.dir,
+            args: [
+              'set',
+              '--package',
+              'is-number@7.0.0',
+              '--edit-dir',
+              scratch.rel,
+              '--why',
+              WHY,
+              '--upstream',
+              UPSTREAM,
+              '--mode',
+              'apply',
+            ],
+          });
+          expect(result.exitCode).toEqual(2);
+          expect(result.stdout).toContain('it is not an edit dir');
+          expect(
+            fs.existsSync(path.join(scene.dir, scratch.rel, 'notes.txt')),
+          ).toEqual(true);
+          expectStableSnapshot({ result, dir: scene.dir });
+        },
+      );
     });
 
     when('[t20] the --edit-dir holds another package', () => {
@@ -1284,10 +1293,10 @@ describe('git.package.patch.sh', () => {
         return { rel };
       });
 
-      then('begin refuses to reuse it, exit 2', () => {
+      then('set (open) refuses to reuse it, exit 2', () => {
         const result = runSkill({
           cwd: scene.dir,
-          args: ['begin', '--package', 'is-number', '--edit-dir', odd.rel],
+          args: ['set', '--package', 'is-number', '--edit-dir', odd.rel],
         });
         expect(result.exitCode).toEqual(2);
         expect(result.stdout).toContain(
@@ -1316,30 +1325,33 @@ describe('git.package.patch.sh', () => {
         return { rel };
       });
 
-      then('commit refuses to seal it, and the dir survives, exit 2', () => {
-        const result = runSkill({
-          cwd: scene.dir,
-          args: [
-            'commit',
-            '--package',
-            'is-number@7.0.0',
-            '--edit-dir',
-            tracked.rel,
-            '--why',
-            WHY,
-            '--upstream',
-            UPSTREAM,
-            '--mode',
-            'apply',
-          ],
-        });
-        expect(result.exitCode).toEqual(2);
-        expect(result.stdout).toContain('holds files git tracks');
-        expect(
-          fs.existsSync(path.join(scene.dir, tracked.rel, 'package.json')),
-        ).toEqual(true);
-        expectStableSnapshot({ result, dir: scene.dir });
-      });
+      then(
+        'set (seal) refuses to seal it, and the dir survives, exit 2',
+        () => {
+          const result = runSkill({
+            cwd: scene.dir,
+            args: [
+              'set',
+              '--package',
+              'is-number@7.0.0',
+              '--edit-dir',
+              tracked.rel,
+              '--why',
+              WHY,
+              '--upstream',
+              UPSTREAM,
+              '--mode',
+              'apply',
+            ],
+          });
+          expect(result.exitCode).toEqual(2);
+          expect(result.stdout).toContain('holds files git tracks');
+          expect(
+            fs.existsSync(path.join(scene.dir, tracked.rel, 'package.json')),
+          ).toEqual(true);
+          expectStableSnapshot({ result, dir: scene.dir });
+        },
+      );
     });
 
     when('[t22] the --edit-dir is the live install of the package', () => {
@@ -1353,32 +1365,35 @@ describe('git.package.patch.sh', () => {
         return { pkgJson, before: fs.readFileSync(pkgJson, 'utf-8') };
       });
 
-      then('begin refuses it, so no edit can reach the shared store', () => {
-        const result = runSkill({
-          cwd: scene.dir,
-          args: [
-            'begin',
-            '--package',
-            'is-number',
-            '--edit-dir',
-            'node_modules/is-number',
-            '--mode',
-            'apply',
-          ],
-        });
-        expect(result.exitCode).toEqual(2);
-        expect(result.stdout).toContain(
-          '✋ ConstraintError: --edit-dir must be a scratch dir, never the live install, the patches dir, or a broken link',
-        );
-        expect(fs.readFileSync(live.pkgJson, 'utf-8')).toEqual(live.before);
-        expectStableSnapshot({ result, dir: scene.dir });
-      });
+      then(
+        'set (open) refuses it, so no edit can reach the shared store',
+        () => {
+          const result = runSkill({
+            cwd: scene.dir,
+            args: [
+              'set',
+              '--package',
+              'is-number',
+              '--edit-dir',
+              'node_modules/is-number',
+              '--mode',
+              'apply',
+            ],
+          });
+          expect(result.exitCode).toEqual(2);
+          expect(result.stdout).toContain(
+            '✋ ConstraintError: --edit-dir must be a scratch dir, never the live install, the patches dir, or a broken link',
+          );
+          expect(fs.readFileSync(live.pkgJson, 'utf-8')).toEqual(live.before);
+          expectStableSnapshot({ result, dir: scene.dir });
+        },
+      );
 
-      then('commit refuses it, and the live install survives', () => {
+      then('set (seal) refuses it, and the live install survives', () => {
         const result = runSkill({
           cwd: scene.dir,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-number@7.0.0',
             '--edit-dir',
@@ -1408,10 +1423,10 @@ describe('git.package.patch.sh', () => {
         return { rel };
       });
 
-      then('begin refuses it, exit 2', () => {
+      then('set (open) refuses it, exit 2', () => {
         const result = runSkill({
           cwd: scene.dir,
-          args: ['begin', '--package', 'is-number', '--edit-dir', broken.rel],
+          args: ['set', '--package', 'is-number', '--edit-dir', broken.rel],
         });
         expect(result.exitCode).toEqual(2);
         expect(result.stdout).toContain('--edit-dir must be a scratch dir');
@@ -1430,7 +1445,7 @@ describe('git.package.patch.sh', () => {
               args: [
                 '--skill',
                 'git.package.patch',
-                'begin',
+                'set',
                 '--repo',
                 'ehmpathy',
                 '--role',
@@ -1456,11 +1471,11 @@ describe('git.package.patch.sh', () => {
       }),
     }));
 
-    when('[t0] begin names a bare package', () => {
+    when('[t0] set (open) names a bare package', () => {
       then('it is refused and lists the installed versions', () => {
         const result = runSkill({
           cwd: scene.dir,
-          args: ['begin', '--package', 'is-number'],
+          args: ['set', '--package', 'is-number'],
         });
         expect(result.exitCode).toEqual(2);
         expect(result.stdout).toContain('several versions of is-number');
@@ -1472,11 +1487,11 @@ describe('git.package.patch.sh', () => {
       });
     });
 
-    when('[t1] begin names a version', () => {
+    when('[t1] set (open) names a version', () => {
       then('it plans with that version', () => {
         const result = runSkill({
           cwd: scene.dir,
-          args: ['begin', '--package', 'is-number@6.0.0'],
+          args: ['set', '--package', 'is-number@6.0.0'],
         });
         expect(result.exitCode).toEqual(0);
         expect(result.stdout).toContain('package: is-number@6.0.0');
@@ -1484,35 +1499,38 @@ describe('git.package.patch.sh', () => {
       });
     });
 
-    when('[t1.1] commit names a bare package and no edit dir is open', () => {
-      then('it is refused, lists the versions, and names begin', () => {
-        const result = runSkill({
-          cwd: scene.dir,
-          args: [
-            'commit',
-            '--package',
-            'is-number',
-            '--why',
-            WHY,
-            '--upstream',
-            UPSTREAM,
-          ],
+    when(
+      '[t1.1] set (seal) names a bare package and no edit dir is open',
+      () => {
+        then('it is refused, lists the versions, and names set', () => {
+          const result = runSkill({
+            cwd: scene.dir,
+            args: [
+              'set',
+              '--package',
+              'is-number',
+              '--why',
+              WHY,
+              '--upstream',
+              UPSTREAM,
+            ],
+          });
+          expect(result.exitCode).toEqual(2);
+          expect(result.stdout).toContain(
+            'several versions of is-number are installed, and none has an open edit dir',
+          );
+          expect(result.stdout).toContain('installed: is-number@6.0.0');
+          expect(result.stdout).toContain('installed: is-number@7.0.0');
+          expect(result.stdout).toContain(
+            'rhx git.package.patch set --package is-number@7.0.0 --mode apply',
+          );
+          expectStableSnapshot({ result, dir: scene.dir });
         });
-        expect(result.exitCode).toEqual(2);
-        expect(result.stdout).toContain(
-          'several versions of is-number are installed, and none has an open edit dir',
-        );
-        expect(result.stdout).toContain('installed: is-number@6.0.0');
-        expect(result.stdout).toContain('installed: is-number@7.0.0');
-        expect(result.stdout).toContain(
-          'rhx git.package.patch begin --package is-number@7.0.0 --mode apply',
-        );
-        expectStableSnapshot({ result, dir: scene.dir });
-      });
-    });
+      },
+    );
 
     when(
-      '[t1.2] commit names a bare package through a custom --edit-dir that was never opened',
+      '[t1.2] set (seal) names a bare package through a custom --edit-dir that was never opened',
       () => {
         then(
           'it is refused: no open edit dir, and begin is named with the dir',
@@ -1520,7 +1538,7 @@ describe('git.package.patch.sh', () => {
             const result = runSkill({
               cwd: scene.dir,
               args: [
-                'commit',
+                'set',
                 '--package',
                 'is-number',
                 '--edit-dir',
@@ -1536,7 +1554,7 @@ describe('git.package.patch.sh', () => {
               '✋ ConstraintError: no open edit dir at reef-never',
             );
             expect(result.stdout).toContain(
-              'rhx git.package.patch begin --package is-number --edit-dir reef-never --mode apply',
+              'rhx git.package.patch set --package is-number --edit-dir reef-never --mode apply',
             );
             expect(fs.existsSync(path.join(scene.dir, 'reef-never'))).toEqual(
               false,
@@ -1547,11 +1565,11 @@ describe('git.package.patch.sh', () => {
       },
     );
 
-    when('[t2] begin applies the named version', () => {
+    when('[t2] set (open) applies the named version', () => {
       then('it opens that version, not the other', () => {
         const result = runSkill({
           cwd: scene.dir,
-          args: ['begin', '--package', 'is-number@6.0.0', '--mode', 'apply'],
+          args: ['set', '--package', 'is-number@6.0.0', '--mode', 'apply'],
         });
         expect(result.exitCode).toEqual(0);
         const pkg = JSON.parse(
@@ -1565,12 +1583,12 @@ describe('git.package.patch.sh', () => {
       });
     });
 
-    when('[t3] commit applies with no edits made', () => {
+    when('[t3] set (seal) applies with no edits made', () => {
       then('it is refused: no edits to seal, and no note is written', () => {
         const result = runSkill({
           cwd: scene.dir,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-number@6.0.0',
             '--why',
@@ -1615,7 +1633,7 @@ describe('git.package.patch.sh', () => {
         // the refused seal left the dir open (t3); begin reuses it
         const reopened = runSkill({
           cwd: scene.dir,
-          args: ['begin', '--package', 'is-number@6.0.0', '--mode', 'apply'],
+          args: ['set', '--package', 'is-number@6.0.0', '--mode', 'apply'],
         });
         expect(reopened.exitCode).toEqual(0);
         const file = path.join(scene.dir, EDIT_DIR_V6_REL, 'index.js');
@@ -1626,7 +1644,7 @@ describe('git.package.patch.sh', () => {
         const result = runSkill({
           cwd: scene.dir,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-number@6.0.0',
             '--why',
@@ -1654,13 +1672,13 @@ describe('git.package.patch.sh', () => {
       });
     });
 
-    when('[t5] commit names a version the edit dir does not hold', () => {
+    when('[t5] set (seal) names a version the edit dir does not hold', () => {
       then('it is refused and names the version the dir holds', () => {
         // clamp: commit once trusted the dir over --package and sealed 6.0.0 as asked-for 7.0.0
         const opened = runSkill({
           cwd: scene.dir,
           args: [
-            'begin',
+            'set',
             '--package',
             'is-number@6.0.0',
             '--edit-dir',
@@ -1673,7 +1691,7 @@ describe('git.package.patch.sh', () => {
         const result = runSkill({
           cwd: scene.dir,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-number@7.0.0',
             '--edit-dir',
@@ -1698,12 +1716,12 @@ describe('git.package.patch.sh', () => {
       });
     });
 
-    when('[t6] commit names a package the edit dir does not hold', () => {
+    when('[t6] set (seal) names a package the edit dir does not hold', () => {
       then('it is refused and names the package the dir holds', () => {
         const opened = runSkill({
           cwd: scene.dir,
           args: [
-            'begin',
+            'set',
             '--package',
             'is-odd',
             '--edit-dir',
@@ -1716,7 +1734,7 @@ describe('git.package.patch.sh', () => {
         const result = runSkill({
           cwd: scene.dir,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-number',
             '--edit-dir',
@@ -1740,18 +1758,18 @@ describe('git.package.patch.sh', () => {
       then('a bare commit is refused and lists both', () => {
         const openSeven = runSkill({
           cwd: scene.dir,
-          args: ['begin', '--package', 'is-number@7.0.0', '--mode', 'apply'],
+          args: ['set', '--package', 'is-number@7.0.0', '--mode', 'apply'],
         });
         const openSix = runSkill({
           cwd: scene.dir,
-          args: ['begin', '--package', 'is-number@6.0.0', '--mode', 'apply'],
+          args: ['set', '--package', 'is-number@6.0.0', '--mode', 'apply'],
         });
         expect(openSeven.exitCode).toEqual(0);
         expect(openSix.exitCode).toEqual(0);
         const result = runSkill({
           cwd: scene.dir,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-number',
             '--why',
@@ -1779,7 +1797,7 @@ describe('git.package.patch.sh', () => {
             const opened = runSkill({
               cwd: scene.dir,
               args: [
-                'begin',
+                'set',
                 '--package',
                 'is-number@7.0.0',
                 '--edit-dir',
@@ -1791,7 +1809,7 @@ describe('git.package.patch.sh', () => {
             expect(opened.exitCode).toEqual(0);
             // the pasted next step must carry the custom dir, or it seals the default one
             expect(opened.stdout).toContain(
-              "rhx git.package.patch commit --package is-number@7.0.0 --why '<why>' --upstream '<issue-url>' --edit-dir reef-seal --mode apply",
+              "rhx git.package.patch set --package is-number@7.0.0 --why '<why>' --upstream '<issue-url>' --edit-dir reef-seal --mode apply",
             );
             expect(opened.stdout).toContain('edit dir: reef-seal');
             expectStableSnapshot({ result: opened, dir: scene.dir });
@@ -1805,7 +1823,7 @@ describe('git.package.patch.sh', () => {
               cwd: scene.dir,
               stdin: `${whyPiped}\n`,
               args: [
-                'commit',
+                'set',
                 '--package',
                 'is-number@7.0.0',
                 '--edit-dir',
@@ -1845,7 +1863,7 @@ describe('git.package.patch.sh', () => {
         }),
       }));
       const sealBare = [
-        'commit',
+        'set',
         '--package',
         'is-number',
         '--edit-dir',
@@ -1865,7 +1883,7 @@ describe('git.package.patch.sh', () => {
             const opened = runSkill({
               cwd: scene.dir,
               args: [
-                'begin',
+                'set',
                 '--package',
                 'is-number',
                 '--edit-dir',
@@ -1876,7 +1894,7 @@ describe('git.package.patch.sh', () => {
             });
             expect(opened.exitCode).toEqual(0);
             expect(opened.stdout).toContain(
-              "rhx git.package.patch commit --package is-number@7.0.0 --why '<why>' --upstream '<issue-url>' --edit-dir reef-seal --mode apply",
+              "rhx git.package.patch set --package is-number@7.0.0 --why '<why>' --upstream '<issue-url>' --edit-dir reef-seal --mode apply",
             );
             const file = path.join(scene.dir, 'reef-seal', 'index.js');
             fs.writeFileSync(
@@ -1915,7 +1933,7 @@ describe('git.package.patch.sh', () => {
         },
       );
 
-      when('[t1] the crew reruns the exact same commit', () => {
+      when('[t1] the crew reruns the exact same set', () => {
         then('it is the already-sealed no-op, exit 0', () => {
           expect(sealed.exitCode).toEqual(0);
           const patchBefore = fs.readFileSync(
@@ -1936,7 +1954,7 @@ describe('git.package.patch.sh', () => {
   given('[case3b] a yarn or bun repo', () => {
     const LOCKFILES = ['yarn.lock', 'bun.lock', 'bun.lockb'];
     LOCKFILES.map((lockfile) =>
-      when(`[t0] begin runs beside ${lockfile}`, () => {
+      when(`[t0] set (open) runs beside ${lockfile}`, () => {
         then('it is refused as pnpm-only, and names the lockfile', () => {
           const tempDir = genTempDir({
             slug: `git-package-patch-${lockfile.replace('.', '-')}`,
@@ -1949,7 +1967,7 @@ describe('git.package.patch.sh', () => {
           fs.writeFileSync(path.join(tempDir, lockfile), '');
           const result = runSkill({
             cwd: tempDir,
-            args: ['begin', '--package', 'is-number'],
+            args: ['set', '--package', 'is-number'],
           });
           expect(result.exitCode).toEqual(2);
           expect(result.stdout).toContain(
@@ -1969,11 +1987,11 @@ describe('git.package.patch.sh', () => {
       return { dir: tempDir };
     });
 
-    when('[t0] begin runs', () => {
+    when('[t0] set (open) runs', () => {
       then('it is refused as pnpm-only', () => {
         const result = runSkill({
           cwd: scene.dir,
-          args: ['begin', '--package', 'is-number'],
+          args: ['set', '--package', 'is-number'],
         });
         expect(result.exitCode).toEqual(2);
         expect(result.stdout).toContain('pnpm patch is pnpm-only');
@@ -1981,12 +1999,12 @@ describe('git.package.patch.sh', () => {
       });
     });
 
-    when('[t1] commit runs', () => {
+    when('[t1] set (seal) runs', () => {
       then('it is refused as pnpm-only', () => {
         const result = runSkill({
           cwd: scene.dir,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-number',
             '--why',
@@ -2009,21 +2027,21 @@ describe('git.package.patch.sh', () => {
     }));
 
     when('[t0] the cwd is not inside a git repo', () => {
-      then('begin is refused', () => {
+      then('set (open) is refused', () => {
         const result = runSkill({
           cwd: scene.outside,
-          args: ['begin', '--package', 'is-number'],
+          args: ['set', '--package', 'is-number'],
         });
         expect(result.exitCode).toEqual(2);
         expect(result.stdout).toContain('not inside a git repo');
         expectStableSnapshot({ result, dir: scene.outside });
       });
 
-      then('commit is refused', () => {
+      then('set (seal) is refused', () => {
         const result = runSkill({
           cwd: scene.outside,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-number',
             '--why',
@@ -2039,21 +2057,21 @@ describe('git.package.patch.sh', () => {
     });
 
     when('[t1] the git root holds no package.json', () => {
-      then('begin is refused', () => {
+      then('set (open) is refused', () => {
         const result = runSkill({
           cwd: scene.bare,
-          args: ['begin', '--package', 'is-number'],
+          args: ['set', '--package', 'is-number'],
         });
         expect(result.exitCode).toEqual(2);
         expect(result.stdout).toContain('the git root holds no package.json');
         expectStableSnapshot({ result, dir: scene.bare });
       });
 
-      then('commit is refused', () => {
+      then('set (seal) is refused', () => {
         const result = runSkill({
           cwd: scene.bare,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-number',
             '--why',
@@ -2079,10 +2097,10 @@ describe('git.package.patch.sh', () => {
         return { dir, outside };
       });
 
-      then('begin is refused, and naught lands outside', () => {
+      then('set (open) is refused, and naught lands outside', () => {
         const result = runSkill({
           cwd: linked.dir,
-          args: ['begin', '--package', 'is-number', '--mode', 'apply'],
+          args: ['set', '--package', 'is-number', '--mode', 'apply'],
         });
         expect(result.exitCode).toEqual(2);
         expect(result.stdout).toContain(
@@ -2092,11 +2110,11 @@ describe('git.package.patch.sh', () => {
         expectStableSnapshot({ result, dir: linked.dir });
       });
 
-      then('commit is refused, and naught lands outside', () => {
+      then('set (seal) is refused, and naught lands outside', () => {
         const result = runSkill({
           cwd: linked.dir,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-number',
             '--why',
@@ -2126,10 +2144,10 @@ describe('git.package.patch.sh', () => {
         return { dir };
       });
 
-      then('begin reports a malfunction, exit 1', () => {
+      then('set (open) reports a malfunction, exit 1', () => {
         const result = runSkill({
           cwd: broken.dir,
-          args: ['begin', '--package', 'is-number'],
+          args: ['set', '--package', 'is-number'],
         });
         expect(result.exitCode).toEqual(1);
         expect(result.stdout).toContain(
@@ -2153,10 +2171,10 @@ describe('git.package.patch.sh', () => {
         return { dir };
       });
 
-      then('begin is refused before any write, exit 2', () => {
+      then('set (open) is refused before any write, exit 2', () => {
         const result = runSkill({
           cwd: hoisted.dir,
-          args: ['begin', '--package', 'is-number', '--mode', 'apply'],
+          args: ['set', '--package', 'is-number', '--mode', 'apply'],
         });
         expect(result.exitCode).toEqual(2);
         expect(result.stdout).toContain(
@@ -2170,7 +2188,7 @@ describe('git.package.patch.sh', () => {
         expectStableSnapshot({ result, dir: hoisted.dir });
       });
 
-      then('commit is refused, and the manifest is unchanged', () => {
+      then('set (seal) is refused, and the manifest is unchanged', () => {
         const pkgBefore = fs.readFileSync(
           path.join(hoisted.dir, 'package.json'),
           'utf-8',
@@ -2178,7 +2196,7 @@ describe('git.package.patch.sh', () => {
         const result = runSkill({
           cwd: hoisted.dir,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-number',
             '--why',
@@ -2212,10 +2230,10 @@ describe('git.package.patch.sh', () => {
           return { dir };
         });
 
-        then('begin is refused before any write, exit 2', () => {
+        then('set (open) is refused before any write, exit 2', () => {
           const result = runSkill({
             cwd: hoistedYaml.dir,
-            args: ['begin', '--package', 'is-number', '--mode', 'apply'],
+            args: ['set', '--package', 'is-number', '--mode', 'apply'],
           });
           expect(result.exitCode).toEqual(2);
           expect(result.stdout).toContain(
@@ -2241,10 +2259,10 @@ describe('git.package.patch.sh', () => {
         return { dir };
       });
 
-      then('begin is refused before any write, exit 2', () => {
+      then('set (open) is refused before any write, exit 2', () => {
         const result = runSkill({
           cwd: hoistedNote.dir,
-          args: ['begin', '--package', 'is-number', '--mode', 'apply'],
+          args: ['set', '--package', 'is-number', '--mode', 'apply'],
         });
         expect(result.exitCode).toEqual(2);
         expect(result.stdout).toContain(
@@ -2268,7 +2286,7 @@ describe('git.package.patch.sh', () => {
         // seal a prior patch for is-odd through the verb
         const opened = runSkill({
           cwd: dir,
-          args: ['begin', '--package', 'is-odd', '--mode', 'apply'],
+          args: ['set', '--package', 'is-odd', '--mode', 'apply'],
         });
         if (opened.exitCode !== 0)
           throw new MalfunctionError('fixture: begin is-odd failed', {
@@ -2285,7 +2303,7 @@ describe('git.package.patch.sh', () => {
         const sealed = runSkill({
           cwd: dir,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-odd',
             '--why',
@@ -2337,7 +2355,7 @@ describe('git.package.patch.sh', () => {
           // is-odd@3.0.1 pulls is-number@6.0.0, so the version is named
           const opened = runSkill({
             cwd: scene.dir,
-            args: ['begin', '--package', 'is-number@7.0.0', '--mode', 'apply'],
+            args: ['set', '--package', 'is-number@7.0.0', '--mode', 'apply'],
           });
           expect(opened.exitCode).toEqual(0);
           editIsNumber({ dir: scene.dir });
@@ -2345,7 +2363,7 @@ describe('git.package.patch.sh', () => {
           const sealed = runSkill({
             cwd: scene.dir,
             args: [
-              'commit',
+              'set',
               '--package',
               'is-number@7.0.0',
               '--why',
@@ -2417,12 +2435,12 @@ describe('git.package.patch.sh', () => {
     }));
 
     when(
-      '[t0] commit seals while package.json names a dependency no registry holds',
+      '[t0] set (seal) seals while package.json names a dependency no registry holds',
       () => {
         const result = useThen('the seal fails, exit 1', () => {
           const opened = runSkill({
             cwd: scene.dir,
-            args: ['begin', '--package', 'is-number', '--mode', 'apply'],
+            args: ['set', '--package', 'is-number', '--mode', 'apply'],
           });
           expect(opened.exitCode).toEqual(0);
           editIsNumber({ dir: scene.dir });
@@ -2449,7 +2467,7 @@ describe('git.package.patch.sh', () => {
           const sealed = runSkill({
             cwd: scene.dir,
             args: [
-              'commit',
+              'set',
               '--package',
               'is-number',
               '--why',
@@ -2484,7 +2502,7 @@ describe('git.package.patch.sh', () => {
           expect(result.stdout).toContain(
             `${PATCH_REL} is kept so the entry holds`,
           );
-          expect(result.stdout).toContain('then rerun this commit');
+          expect(result.stdout).toContain('then rerun this set');
           expect(result.stderr).toContain('MalfunctionError');
         });
 
@@ -2516,7 +2534,7 @@ describe('git.package.patch.sh', () => {
         }),
       }));
       const sealCmd = [
-        'commit',
+        'set',
         '--package',
         'is-number',
         '--why',
@@ -2532,7 +2550,7 @@ describe('git.package.patch.sh', () => {
         const result = useThen('the seal lands, exit 0', () => {
           const opened = runSkill({
             cwd: scene.dir,
-            args: ['begin', '--package', 'is-number', '--mode', 'apply'],
+            args: ['set', '--package', 'is-number', '--mode', 'apply'],
           });
           expect(opened.exitCode).toEqual(0);
           editIsNumber({ dir: scene.dir });
@@ -2622,7 +2640,7 @@ describe('git.package.patch.sh', () => {
             expect(stripped.done).toEqual(true);
             const reopen = runSkill({
               cwd: scene.dir,
-              args: ['begin', '--package', 'is-number', '--mode', 'apply'],
+              args: ['set', '--package', 'is-number', '--mode', 'apply'],
             });
             expect(reopen.stdout).toContain(
               'no patchedDependencies entry names it',
@@ -2644,17 +2662,17 @@ describe('git.package.patch.sh', () => {
     }));
 
     when('[t0] --edit-dir names the patches dir', () => {
-      then('begin and commit both refuse it, exit 2', () => {
+      then('set (open) and commit both refuse it, exit 2', () => {
         const opened = runSkill({
           cwd: scene.dir,
-          args: ['begin', '--package', 'is-number', '--edit-dir', 'patches'],
+          args: ['set', '--package', 'is-number', '--edit-dir', 'patches'],
         });
         expect(opened.stdout).toContain('the patches dir');
         expect(opened.exitCode).toEqual(2);
         const sealed = runSkill({
           cwd: scene.dir,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-number',
             '--edit-dir',
@@ -2675,41 +2693,44 @@ describe('git.package.patch.sh', () => {
     when(
       '[t1] --edit-dir sits below a broken link that leads out of the tree',
       () => {
-        then('begin refuses it at the bound, exit 2, before any mkdir', () => {
-          const outside = path.join(
-            os.tmpdir(),
-            `reef-absent-${Date.now()}-${process.pid}`,
-          );
-          fs.symlinkSync(outside, path.join(scene.dir, 'reef-link'));
-          const opened = runSkill({
-            cwd: scene.dir,
-            args: [
-              'begin',
-              '--package',
-              'is-number',
-              '--edit-dir',
-              'reef-link/child',
-              '--mode',
-              'apply',
-            ],
-          });
-          expect(opened.stdout).toContain(
-            '--edit-dir must sit inside the tree',
-          );
-          expect(opened.exitCode).toEqual(2);
-          expect(fs.existsSync(outside)).toEqual(false);
-          expect(
-            asStableOutput({ stdout: opened.stdout, dir: scene.dir }).replace(
-              /reef-absent-\d+-\d+/g,
-              'reef-absent-<rand>',
-            ),
-          ).toMatchSnapshot();
-        });
+        then(
+          'set (open) refuses it at the bound, exit 2, before any mkdir',
+          () => {
+            const outside = path.join(
+              os.tmpdir(),
+              `reef-absent-${Date.now()}-${process.pid}`,
+            );
+            fs.symlinkSync(outside, path.join(scene.dir, 'reef-link'));
+            const opened = runSkill({
+              cwd: scene.dir,
+              args: [
+                'set',
+                '--package',
+                'is-number',
+                '--edit-dir',
+                'reef-link/child',
+                '--mode',
+                'apply',
+              ],
+            });
+            expect(opened.stdout).toContain(
+              '--edit-dir must sit inside the tree',
+            );
+            expect(opened.exitCode).toEqual(2);
+            expect(fs.existsSync(outside)).toEqual(false);
+            expect(
+              asStableOutput({ stdout: opened.stdout, dir: scene.dir }).replace(
+                /reef-absent-\d+-\d+/g,
+                'reef-absent-<rand>',
+              ),
+            ).toMatchSnapshot();
+          },
+        );
       },
     );
 
     when("[t2] an open edit dir's package.json name carries a newline", () => {
-      then('begin refuses it, exit 2, and prints no raw name', () => {
+      then('set (open) refuses it, exit 2, and prints no raw name', () => {
         const dir = path.join(scene.dir, 'reef-hostile');
         fs.mkdirSync(dir, { recursive: true });
         fs.writeFileSync(
@@ -2721,13 +2742,7 @@ describe('git.package.patch.sh', () => {
         );
         const opened = runSkill({
           cwd: scene.dir,
-          args: [
-            'begin',
-            '--package',
-            'is-number',
-            '--edit-dir',
-            'reef-hostile',
-          ],
+          args: ['set', '--package', 'is-number', '--edit-dir', 'reef-hostile'],
         });
         expect(opened.stdout).toContain('is not a package spec');
         expect(opened.stdout).not.toContain('reef-wipe');
@@ -2742,7 +2757,7 @@ describe('git.package.patch.sh', () => {
         () => {
           const opened = runSkill({
             cwd: scene.dir,
-            args: ['begin', '--package', 'is-number', '--edit-dir', 'a>b\\c'],
+            args: ['set', '--package', 'is-number', '--edit-dir', 'a>b\\c'],
           });
           expect(opened.exitCode).toEqual(0);
           expect(opened.stdout).toContain("--edit-dir 'a>b\\c'");
@@ -2772,7 +2787,7 @@ describe('git.package.patch.sh', () => {
             );
             const opened = runSkill({
               cwd: scene.dir,
-              args: ['begin', '--package', 'is-number'],
+              args: ['set', '--package', 'is-number'],
             });
             expect(opened.stdout).not.toContain('reef-wipe');
             expect(opened.stdout).toContain('package: is-number@7.0.0');
@@ -2792,7 +2807,7 @@ describe('git.package.patch.sh', () => {
       }),
     }));
     const sealCmd = [
-      'commit',
+      'set',
       '--package',
       'is-number',
       '--why',
@@ -2804,12 +2819,12 @@ describe('git.package.patch.sh', () => {
     ];
 
     const failed = useWhen(
-      '[t0] commit seals while pnpm writes no lockfile',
+      '[t0] set (seal) seals while pnpm writes no lockfile',
       () => {
         const result = useThen('the seal ends in a malfunction, exit 1', () => {
           const opened = runSkill({
             cwd: scene.dir,
-            args: ['begin', '--package', 'is-number', '--mode', 'apply'],
+            args: ['set', '--package', 'is-number', '--mode', 'apply'],
           });
           expect(opened.exitCode).toEqual(0);
           editIsNumber({ dir: scene.dir });
@@ -2824,7 +2839,7 @@ describe('git.package.patch.sh', () => {
             'pnpm-lock.yaml does not record it after a reinstall',
           );
           expect(result.stdout).toContain('is lockfile=false set?');
-          expect(result.stdout).toContain('then rerun this same commit');
+          expect(result.stdout).toContain('then rerun this same set');
           expect(result.stderr).toContain('MalfunctionError');
           expect(
             asMaskedPnpmDetail({
@@ -2844,28 +2859,25 @@ describe('git.package.patch.sh', () => {
       },
     );
 
-    when(
-      '[t1] the crew drops lockfile=false and reruns the same commit',
-      () => {
-        const rerun = useThen('the seal completes, exit 0', () => {
-          expect(failed.exitCode).toEqual(1);
-          fs.rmSync(path.join(scene.dir, '.npmrc'));
-          const sealed = runSkill({ cwd: scene.dir, args: sealCmd });
-          expect(sealed.exitCode).toEqual(0);
-          return sealed;
-        });
+    when('[t1] the crew drops lockfile=false and reruns the same set', () => {
+      const rerun = useThen('the seal completes, exit 0', () => {
+        expect(failed.exitCode).toEqual(1);
+        fs.rmSync(path.join(scene.dir, '.npmrc'));
+        const sealed = runSkill({ cwd: scene.dir, args: sealCmd });
+        expect(sealed.exitCode).toEqual(0);
+        return sealed;
+      });
 
-        then('the patch, its note, and its lockfile record all land', () => {
-          expect(rerun.exitCode).toEqual(0);
-          expect(fs.existsSync(path.join(scene.dir, PATCH_REL))).toEqual(true);
-          expect(fs.existsSync(path.join(scene.dir, NOTE_REL))).toEqual(true);
-          expect(
-            fs.readFileSync(path.join(scene.dir, 'pnpm-lock.yaml'), 'utf-8'),
-          ).toContain(`path: ${PATCH_REL}`);
-          expectStableSnapshot({ result: rerun, dir: scene.dir });
-        });
-      },
-    );
+      then('the patch, its note, and its lockfile record all land', () => {
+        expect(rerun.exitCode).toEqual(0);
+        expect(fs.existsSync(path.join(scene.dir, PATCH_REL))).toEqual(true);
+        expect(fs.existsSync(path.join(scene.dir, NOTE_REL))).toEqual(true);
+        expect(
+          fs.readFileSync(path.join(scene.dir, 'pnpm-lock.yaml'), 'utf-8'),
+        ).toContain(`path: ${PATCH_REL}`);
+        expectStableSnapshot({ result: rerun, dir: scene.dir });
+      });
+    });
   });
 
   given(
@@ -2879,7 +2891,7 @@ describe('git.package.patch.sh', () => {
       }));
 
       when(
-        '[t0] begin names a package on disk that pnpm never installed',
+        '[t0] set (open) names a package on disk that pnpm never installed',
         () => {
           then(
             'pnpm patch fails, and the verb reports a malfunction, exit 1',
@@ -2893,7 +2905,7 @@ describe('git.package.patch.sh', () => {
               );
               const result = runSkill({
                 cwd: scene.dir,
-                args: ['begin', '--package', 'reef-ghost', '--mode', 'apply'],
+                args: ['set', '--package', 'reef-ghost', '--mode', 'apply'],
               });
               expect(result.exitCode).toEqual(1);
               expect(result.stdout).toContain(
@@ -2914,13 +2926,13 @@ describe('git.package.patch.sh', () => {
         },
       );
 
-      when('[t1] commit seals while the patches dir is a file', () => {
+      when('[t1] set (seal) seals while the patches dir is a file', () => {
         then(
           'pnpm patch-commit fails, and the verb reports a malfunction, exit 1',
           () => {
             const opened = runSkill({
               cwd: scene.dir,
-              args: ['begin', '--package', 'is-number', '--mode', 'apply'],
+              args: ['set', '--package', 'is-number', '--mode', 'apply'],
             });
             expect(opened.exitCode).toEqual(0);
             editIsNumber({ dir: scene.dir });
@@ -2928,7 +2940,7 @@ describe('git.package.patch.sh', () => {
             const result = runSkill({
               cwd: scene.dir,
               args: [
-                'commit',
+                'set',
                 '--package',
                 'is-number',
                 '--why',
@@ -2964,7 +2976,7 @@ describe('git.package.patch.sh', () => {
         then('the patch and note land under the flat scoped name', () => {
           const opened = runSkill({
             cwd: scene.dir,
-            args: ['begin', '--package', '@types/is-number', '--mode', 'apply'],
+            args: ['set', '--package', '@types/is-number', '--mode', 'apply'],
           });
           expect(opened.exitCode).toEqual(0);
           expect(opened.stdout).toContain('package: @types/is-number@7.0.5');
@@ -2979,7 +2991,7 @@ describe('git.package.patch.sh', () => {
           const result = runSkill({
             cwd: scene.dir,
             args: [
-              'commit',
+              'set',
               '--package',
               '@types/is-number',
               '--why',
@@ -3011,41 +3023,49 @@ describe('git.package.patch.sh', () => {
       });
 
       when('[t3] the open edit dir holds a malformed package.json', () => {
-        then('commit reports a malfunction, exit 1, and writes no note', () => {
-          // t1 left the is-number edit dir open
-          fs.writeFileSync(
-            path.join(scene.dir, EDIT_DIR_REL, 'package.json'),
-            '{ not json',
-          );
-          const result = runSkill({
-            cwd: scene.dir,
-            args: [
-              'commit',
-              '--package',
-              'is-number',
-              '--why',
-              WHY,
-              '--upstream',
-              UPSTREAM,
-              '--mode',
-              'apply',
-            ],
-          });
-          expect(result.exitCode).toEqual(1);
-          expect(result.stdout).toContain(
-            "💥 MalfunctionError: the edit dir's package.json cannot be read",
-          );
-          expect(fs.existsSync(path.join(scene.dir, NOTE_REL))).toEqual(false);
-          expect(
-            asMaskedPnpmDetail({
-              stdout: asStableOutput({ stdout: result.stdout, dir: scene.dir }),
-            }),
-          ).toMatchSnapshot();
-        });
+        then(
+          'set (seal) reports a malfunction, exit 1, and writes no note',
+          () => {
+            // t1 left the is-number edit dir open
+            fs.writeFileSync(
+              path.join(scene.dir, EDIT_DIR_REL, 'package.json'),
+              '{ not json',
+            );
+            const result = runSkill({
+              cwd: scene.dir,
+              args: [
+                'set',
+                '--package',
+                'is-number',
+                '--why',
+                WHY,
+                '--upstream',
+                UPSTREAM,
+                '--mode',
+                'apply',
+              ],
+            });
+            expect(result.exitCode).toEqual(1);
+            expect(result.stdout).toContain(
+              "💥 MalfunctionError: the edit dir's package.json cannot be read",
+            );
+            expect(fs.existsSync(path.join(scene.dir, NOTE_REL))).toEqual(
+              false,
+            );
+            expect(
+              asMaskedPnpmDetail({
+                stdout: asStableOutput({
+                  stdout: result.stdout,
+                  dir: scene.dir,
+                }),
+              }),
+            ).toMatchSnapshot();
+          },
+        );
       });
 
       const sealArgs = [
-        'commit',
+        'set',
         '--package',
         'is-number',
         '--why',
@@ -3079,7 +3099,7 @@ describe('git.package.patch.sh', () => {
                 '💥 MalfunctionError: the patch landed but its note could not be written',
               );
               expect(result.stdout).toContain(
-                'fix the cause, then rerun this commit to write it',
+                'fix the cause, then rerun this set to write it',
               );
               expect(fs.existsSync(path.join(scene.dir, PATCH_REL))).toEqual(
                 true,
@@ -3102,7 +3122,7 @@ describe('git.package.patch.sh', () => {
         },
       );
 
-      when('[t5] the crew reruns the same commit', () => {
+      when('[t5] the crew reruns the same set', () => {
         const result = useThen('the rerun exits 0', () => {
           expect(failed.exitCode).toEqual(1);
           return runSkill({ cwd: scene.dir, args: sealArgs });
@@ -3148,27 +3168,27 @@ describe('git.package.patch.sh', () => {
         const result = runSkill({ cwd: __dirname, args: ['drop'] });
         expect(result.exitCode).toEqual(2);
         expect(result.stdout).toContain('unknown subcommand: drop');
-        expect(result.stdout).toContain('begin, commit, get, check, del, help');
+        expect(result.stdout).toContain('use one of: set, get, del, help');
         expect(result.stderr).toContain('unknown subcommand: drop');
         expect(result.stdout).toMatchSnapshot();
       });
     });
 
     when('[t3] a flag is given with no value', () => {
-      then('begin refuses loud, never a silent exit', () => {
+      then('set (open) refuses loud, never a silent exit', () => {
         const result = runSkill({
           cwd: __dirname,
-          args: ['begin', '--package'],
+          args: ['set', '--package'],
         });
         expect(result.exitCode).toEqual(2);
         expect(result.stdout).toContain('--package is required');
         expect(result.stdout).toMatchSnapshot();
       });
 
-      then('commit refuses loud, never a silent exit', () => {
+      then('set (seal) refuses loud, never a silent exit', () => {
         const result = runSkill({
           cwd: __dirname,
-          args: ['commit', '--package', 'is-number', '--why'],
+          args: ['set', '--package', 'is-number', '--why'],
         });
         expect(result.exitCode).toEqual(2);
         expect(result.stdout).toContain('--why is required');
@@ -3178,39 +3198,33 @@ describe('git.package.patch.sh', () => {
 
     when('[t4] a subcommand help is asked for', () => {
       then(
-        'begin --help shows each flag, required or optional, with defaults',
+        'set --help names both phases and each flag, required or optional, with defaults',
         () => {
           const result = runSkill({
             cwd: __dirname,
-            args: ['begin', '--help'],
+            args: ['set', '--help'],
           });
           expect(result.exitCode).toEqual(0);
+          expect(result.stdout).toContain('open   no --why, no --upstream');
+          expect(result.stdout).toContain('seal   --why + --upstream');
           expect(result.stdout).toContain('--package    (required)');
+          expect(result.stdout).toContain('--why        (seal)');
+          expect(result.stdout).toContain('--upstream   (seal)');
           expect(result.stdout).toContain('--edit-dir   (optional)');
-          expect(result.stdout).toContain('plan (default)');
-          expect(result.stdout).toContain(
-            '└─ rhx git.package.patch begin --package rhachet@1.48.1 --mode apply',
-          );
-          expect(result.stdout).toMatchSnapshot();
-        },
-      );
-
-      then(
-        'commit --help shows each flag, required or optional, with defaults',
-        () => {
-          const result = runSkill({
-            cwd: __dirname,
-            args: ['commit', '--help'],
-          });
-          expect(result.exitCode).toEqual(0);
-          expect(result.stdout).toContain('--why        (required)');
-          expect(result.stdout).toContain('--upstream   (required)');
           expect(result.stdout).toContain('plan (default)');
           expect(result.stdout).toContain('└─ examples');
           expect(result.stdout).toContain('--why @stdin --upstream https://');
           expect(result.stdout).toMatchSnapshot();
         },
       );
+
+      then('get --help names --when and each state', () => {
+        const result = runSkill({ cwd: __dirname, args: ['get', '--help'] });
+        expect(result.exitCode).toEqual(0);
+        expect(result.stdout).toContain('--when   (optional) hook.onStop');
+        expect(result.stdout).toContain('underapplied');
+        expect(result.stdout).toMatchSnapshot();
+      });
     });
   });
 
@@ -3278,7 +3292,7 @@ describe('git.package.patch.sh', () => {
         const sealed = useThen('the seal exits 0', async () => {
           const opened = runSkill({
             cwd: scene.dir,
-            args: ['begin', '--package', 'is-number', '--mode', 'apply'],
+            args: ['set', '--package', 'is-number', '--mode', 'apply'],
           });
           if (opened.exitCode !== 0)
             throw new MalfunctionError('begin is-number@6.0.0 failed', {
@@ -3292,7 +3306,7 @@ describe('git.package.patch.sh', () => {
           return runSkill({
             cwd: scene.dir,
             args: [
-              'commit',
+              'set',
               '--package',
               'is-number',
               '--why',
@@ -3327,28 +3341,23 @@ describe('git.package.patch.sh', () => {
         });
       });
 
-      when('[t1] get runs', () => {
-        then('it lists the patch as applied, with its note', () => {
-          const result = runSkill({ cwd: scene.dir, args: ['get'] });
-          expect(result.exitCode).toEqual(0);
-          expect(result.stdout).toContain('├─ is-number@6.0.0');
-          expect(result.stdout).toContain(`patch: ${PATCH_LIFE_REL}`);
-          expect(result.stdout).toContain('state: applied');
-          expect(result.stdout).toContain(`why: ${WHY}`);
-          expect(result.stdout).toContain(`upstream: ${UPSTREAM}`);
-          expect(result.stdout).toContain('└─ upgrade-safe: yes');
-          expectStableSnapshot({ result, dir: scene.dir });
-        });
+      when('[t1] get runs while the patch applies', () => {
+        then(
+          'by hand, it exits 0 and names the patch applied, with its note',
+          () => {
+            const result = runSkill({ cwd: scene.dir, args: ['get'] });
+            expect(result.exitCode).toEqual(0);
+            expect(result.stdout).toContain('├─ is-number@6.0.0: applied');
+            expect(result.stdout).toContain(`patch: ${PATCH_LIFE_REL}`);
+            expect(result.stdout).toContain(`why: ${WHY}`);
+            expect(result.stdout).toContain(`upstream: ${UPSTREAM}`);
+            expect(result.stdout).toContain('└─ upgrade-safe: yes');
+            expectStableSnapshot({ result, dir: scene.dir });
+          },
+        );
       });
 
-      when('[t2] check runs while the patch applies', () => {
-        then('by hand, it exits 0 and names the patch applied', () => {
-          const result = runSkill({ cwd: scene.dir, args: ['check'] });
-          expect(result.exitCode).toEqual(0);
-          expect(result.stdout).toContain('├─ is-number@6.0.0: applied');
-          expectStableSnapshot({ result, dir: scene.dir });
-        });
-
+      when('[t2] the onStop hook runs while the patch applies', () => {
         then('the onStop hook is silent', () => {
           const result = runStopHook({ cwd: scene.dir });
           expect(result.exitCode).toEqual(0);
@@ -3396,15 +3405,15 @@ describe('git.package.patch.sh', () => {
         });
       });
 
-      when('[t4] check runs after the upgrade', () => {
+      when('[t4] get runs after the upgrade', () => {
         then(
           'by hand, it exits 2 and names the stale patch with its repair',
           () => {
-            const result = runSkill({ cwd: scene.dir, args: ['check'] });
+            const result = runSkill({ cwd: scene.dir, args: ['get'] });
             expect(result.exitCode).toEqual(2);
             expect(result.stdout).toContain('├─ is-number@6.0.0: underapplied');
             expect(result.stdout).toContain(
-              'rhx git.package.patch begin --package is-number@7.0.0 --mode apply',
+              'rhx git.package.patch set --package is-number@7.0.0 --mode apply',
             );
             expect(result.stdout).toContain(
               'rhx git.package.patch del --package is-number@6.0.0 --mode apply',
@@ -3584,11 +3593,11 @@ describe('git.package.patch.sh', () => {
         return { dir };
       });
 
-      when('[t0] check runs', () => {
+      when('[t0] get runs', () => {
         then(
           'it exits 2 and names each stale state with its repair, and the absent upgrade-safe keys',
           () => {
-            const result = runSkill({ cwd: scene.dir, args: ['check'] });
+            const result = runSkill({ cwd: scene.dir, args: ['get'] });
             expect(result.exitCode).toEqual(2);
             expect(result.stdout).toContain('├─ is-number@6.0.0: obsolete');
             expect(result.stdout).toContain('├─ is-number@7.0.0: underapplied');
@@ -3602,20 +3611,12 @@ describe('git.package.patch.sh', () => {
             expect(result.stdout).toContain(
               'repair: add allowUnusedPatches: true + ignorePatchFailures: true to pnpm-workspace.yaml',
             );
+            expect(result.stdout).toContain('entry: package.json');
+            expect(result.stdout).toContain('entry: none');
+            expect(result.stdout).toContain('note: absent');
             expectStableSnapshot({ result, dir: scene.dir });
           },
         );
-      });
-
-      when('[t1] get runs', () => {
-        then('it lists each patch, its entry, and its state', () => {
-          const result = runSkill({ cwd: scene.dir, args: ['get'] });
-          expect(result.exitCode).toEqual(0);
-          expect(result.stdout).toContain('entry: package.json');
-          expect(result.stdout).toContain('entry: none');
-          expect(result.stdout).toContain('note: absent');
-          expectStableSnapshot({ result, dir: scene.dir });
-        });
       });
 
       when('[t3] del names a bare package with two patches', () => {
@@ -3699,9 +3700,9 @@ describe('git.package.patch.sh', () => {
       dir: genOnDiskRepo({ slug: 'git-package-patch-no-patch' }),
     }));
 
-    when('[t0] check runs by hand and via the onStop hook', () => {
+    when('[t0] get runs by hand and via the onStop hook', () => {
       then('by hand, it exits 0 and names no patch', () => {
-        const result = runSkill({ cwd: scene.dir, args: ['check'] });
+        const result = runSkill({ cwd: scene.dir, args: ['get'] });
         expect(result.exitCode).toEqual(0);
         expect(result.stdout).toContain('└─ patches: none');
       });
@@ -3719,6 +3720,216 @@ describe('git.package.patch.sh', () => {
         expect(result.exitCode).toEqual(0);
         expect(result.stdout).toEqual('');
       });
+    });
+  });
+
+  given('[case13] a gated package (rhachet-roles-bhrain) on disk', () => {
+    const USES_PATH = path.join(__dirname, 'git.package.patch.uses.sh');
+    const GATED = 'rhachet-roles-bhrain';
+    const GRANT_WHY = 'hold the review guard quiet until bhrain#88 ships';
+    const AS_CLONE = { __I_AM_HUMAN: '' };
+    const AS_HUMAN = { __I_AM_HUMAN: 'true' };
+    const scene = useBeforeAll(async () => {
+      const dir = genOnDiskRepo({ slug: 'git-package-patch-gated' });
+      const pkgDir = path.join(dir, 'node_modules', GATED);
+      fs.mkdirSync(pkgDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(pkgDir, 'package.json'),
+        JSON.stringify({ name: GATED, version: '1.0.0' }),
+      );
+      return {
+        dir,
+        meter: path.join(dir, '.meter/git.package.patch.uses.jsonc'),
+      };
+    });
+    const readMeter = (): {
+      packages: Record<string, { allowed: boolean; why?: string; at: string }>;
+    } => JSON.parse(fs.readFileSync(scene.meter, 'utf-8'));
+
+    when('[t0] a clone asks to allow it', () => {
+      then('it is refused, and no meter is written', () => {
+        const result = runSkill({
+          cwd: scene.dir,
+          executable: USES_PATH,
+          args: ['allow', '--package', GATED, '--why', GRANT_WHY],
+          env: AS_CLONE,
+        });
+        expect(result.exitCode).toEqual(2);
+        expect(result.stdout).toContain('ConstraintError');
+        expect(result.stdout).not.toContain('MalfunctionError');
+        expect(fs.existsSync(scene.meter)).toEqual(false);
+      });
+    });
+
+    when('[t1] set (open) names it with no grant', () => {
+      then('it is refused with the upstream and the grant as the fix', () => {
+        const result = runSkill({
+          cwd: scene.dir,
+          args: ['set', '--package', GATED],
+        });
+        expect(result.exitCode).toEqual(2);
+        expect(result.stdout).toContain(
+          `${GATED} grades or gates this tree; a clone never patches it here without a human's grant`,
+        );
+        expect(result.stdout).toContain(`--into ehmpathy/${GATED}`);
+        expect(result.stdout).toContain(
+          `└─ rhx git.package.patch.uses allow --package ${GATED} --why '<why>'`,
+        );
+        expect(result.stderr).toContain('grades or gates this tree');
+        expectStableSnapshot({ result, dir: scene.dir });
+      });
+    });
+
+    when('[t2] set (seal) names it with no grant', () => {
+      then('it is refused the same way', () => {
+        const result = runSkill({
+          cwd: scene.dir,
+          args: [
+            'set',
+            '--package',
+            GATED,
+            '--why',
+            WHY,
+            '--upstream',
+            UPSTREAM,
+          ],
+        });
+        expect(result.exitCode).toEqual(2);
+        expect(result.stdout).toContain('grades or gates this tree');
+      });
+    });
+
+    when('[t3] a human allows it with no --why', () => {
+      then('it is refused, and no meter is written', () => {
+        const result = runSkill({
+          cwd: scene.dir,
+          executable: USES_PATH,
+          args: ['allow', '--package', GATED],
+          env: AS_HUMAN,
+        });
+        expect(result.stdout).toContain('--why is required');
+        expect(result.exitCode).toEqual(2);
+        expect(fs.existsSync(scene.meter)).toEqual(false);
+      });
+    });
+
+    when('[t4] a human allows it with a version', () => {
+      then('it is refused; a grant names the package bare', () => {
+        const result = runSkill({
+          cwd: scene.dir,
+          executable: USES_PATH,
+          args: ['allow', '--package', `${GATED}@1.0.0`, '--why', GRANT_WHY],
+          env: AS_HUMAN,
+        });
+        expect(result.exitCode).toEqual(2);
+        expect(result.stdout).toContain('--package names a package bare');
+        expect(fs.existsSync(scene.meter)).toEqual(false);
+      });
+    });
+
+    when('[t5] a human allows an ungated package', () => {
+      then('it is refused; the package needs no grant', () => {
+        const result = runSkill({
+          cwd: scene.dir,
+          executable: USES_PATH,
+          args: ['allow', '--package', 'is-number', '--why', GRANT_WHY],
+          env: AS_HUMAN,
+        });
+        expect(result.exitCode).toEqual(2);
+        expect(result.stdout).toContain(
+          'is-number is not gated, so it needs no grant',
+        );
+      });
+    });
+
+    when('[t6] a human allows it with a why', () => {
+      then('the grant lands in a gitignored meter', () => {
+        const result = runSkill({
+          cwd: scene.dir,
+          executable: USES_PATH,
+          args: ['allow', '--package', GATED, '--why', GRANT_WHY],
+          env: AS_HUMAN,
+        });
+        expect(result.exitCode).toEqual(0);
+        expect(readMeter().packages[GATED]).toMatchObject({
+          allowed: true,
+          why: GRANT_WHY,
+        });
+        expect(
+          fs.readFileSync(path.join(scene.dir, '.meter/.gitignore'), 'utf-8'),
+        ).toContain('*');
+        expectStableSnapshot({ result, dir: scene.dir });
+      });
+    });
+
+    when('[t7] get runs', () => {
+      then('it names each gated package and its grant', () => {
+        const result = runSkill({
+          cwd: scene.dir,
+          executable: USES_PATH,
+          args: ['get'],
+        });
+        expect(result.exitCode).toEqual(0);
+        expect(result.stdout).toContain(`${GATED}: granted: ${GRANT_WHY}`);
+        expect(result.stdout).toContain('rhachet: blocked (no grant)');
+        expectStableSnapshot({ result, dir: scene.dir });
+      });
+    });
+
+    when('[t8] set (open) names it after the grant', () => {
+      then('it is admitted, and the plan names the grant', () => {
+        const result = runSkill({
+          cwd: scene.dir,
+          args: ['set', '--package', GATED],
+        });
+        expect(result.exitCode).toEqual(0);
+        expect(result.stdout).toContain(
+          `├─ grant: a human admits this gated package: ${GRANT_WHY}`,
+        );
+        expectStableSnapshot({ result, dir: scene.dir });
+      });
+    });
+
+    when('[t9] a human blocks it again', () => {
+      then(
+        'the grant is withdrawn, its why kept, and begin refuses again',
+        () => {
+          const blocked = runSkill({
+            cwd: scene.dir,
+            executable: USES_PATH,
+            args: ['block', '--package', GATED],
+            env: AS_HUMAN,
+          });
+          expect(blocked.exitCode).toEqual(0);
+          expect(readMeter().packages[GATED]).toMatchObject({
+            allowed: false,
+            why: GRANT_WHY,
+          });
+          const result = runSkill({
+            cwd: scene.dir,
+            args: ['set', '--package', GATED],
+          });
+          expect(result.exitCode).toEqual(2);
+          expect(result.stdout).toContain('grades or gates this tree');
+        },
+      );
+    });
+
+    when('[t10] the meter is not json', () => {
+      then(
+        'set (open) fails loud as a malfunction, never as "no grant"',
+        () => {
+          fs.writeFileSync(scene.meter, '{ reef: ');
+          const result = runSkill({
+            cwd: scene.dir,
+            args: ['set', '--package', GATED],
+          });
+          expect(result.exitCode).toEqual(1);
+          expect(result.stdout).toContain(
+            '💥 MalfunctionError: the grant meter .meter/git.package.patch.uses.jsonc cannot be read',
+          );
+        },
+      );
     });
   });
 });
