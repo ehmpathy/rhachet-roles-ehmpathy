@@ -152,14 +152,14 @@ describe('git.package.patch (acceptance)', () => {
   given('[case1] a linked repo with is-number@7.0.0 on disk', () => {
     const repo = useBeforeAll(async () => genPatchRepo({ slug: 'gpp-linked' }));
 
-    when('[t0] the crew runs `rhx git.package.patch begin --package is-number`', () => {
+    when('[t0] the crew runs `rhx git.package.patch set --package is-number`', () => {
       const res = useBeforeAll(async () =>
-        runViaRhachet({ dir: repo.dir, args: ['begin', '--package', 'is-number'] }),
+        runViaRhachet({ dir: repo.dir, args: ['set', '--package', 'is-number'] }),
       );
 
       then('rhachet finds the verb, and begin plans the edit dir, exit 0', () => {
         expect(res.code).toBe(0);
-        expect(res.stdout).toContain('🐚 git.package.patch begin');
+        expect(res.stdout).toContain('🐚 git.package.patch set');
         expect(res.stdout).toContain('package: is-number@7.0.0');
         expect(res.stdout).toContain('would open edit dir: ');
         expect(res.stdout).toContain('mode: plan (naught changed)');
@@ -178,7 +178,7 @@ describe('git.package.patch (acceptance)', () => {
         runViaRhachet({
           dir: repo.dir,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-number',
             '--upstream',
@@ -200,7 +200,7 @@ describe('git.package.patch (acceptance)', () => {
       const res = useBeforeAll(async () =>
         runViaRhachet({
           dir: repo.dir,
-          args: ['commit', '--package', 'is-number', '--why', WHY],
+          args: ['set', '--package', 'is-number', '--why', WHY],
         }),
       );
 
@@ -212,11 +212,11 @@ describe('git.package.patch (acceptance)', () => {
       });
     });
 
-    when('[t1.2] the crew runs commit before any begin', () => {
+    when('[t1.2] the crew runs commit before any set', () => {
       const res = useBeforeAll(async () =>
         runViaRhachet({
           dir: repo.dir,
-          args: ['commit', '--package', 'is-number', '--why', WHY, '--upstream', UPSTREAM],
+          args: ['set', '--package', 'is-number', '--why', WHY, '--upstream', UPSTREAM],
         }),
       );
 
@@ -224,7 +224,7 @@ describe('git.package.patch (acceptance)', () => {
         expect(res.code).toBe(2);
         expect(res.stdout).toContain(`✋ ConstraintError: no open edit dir at ${EDIT_DIR_REL}`);
         expect(res.stdout).toContain(
-          'rhx git.package.patch begin --package is-number@7.0.0 --mode apply',
+          'rhx git.package.patch set --package is-number@7.0.0 --mode apply',
         );
         expect(res.stderr).toContain('no open edit dir');
         expect(asStableOutput({ stdout: res.stdout, dir: repo.dir })).toMatchSnapshot();
@@ -241,7 +241,7 @@ describe('git.package.patch (acceptance)', () => {
       const res = useBeforeAll(async () =>
         runViaRhachet({
           dir: repo.dir,
-          args: ['begin', '--package', 'is-number', '-g'],
+          args: ['set', '--package', 'is-number', '-g'],
         }),
       );
 
@@ -260,9 +260,10 @@ describe('git.package.patch (acceptance)', () => {
 
       then('the help names every subcommand, exit 0', () => {
         expect(res.code).toBe(0);
-        expect(res.stdout).toContain('begin    open an edit dir');
-        expect(res.stdout).toContain('commit   seal the edits');
-        expect(res.stdout).toContain('help     show this usage');
+        expect(res.stdout).toContain('set    open an edit dir; with --why + --upstream, seal it');
+        expect(res.stdout).toContain('get    each patch: apply state');
+        expect(res.stdout).toContain('del    retire a patch');
+        expect(res.stdout).toContain('help   show this usage');
         expect(asStableOutput({ stdout: res.stdout, dir: repo.dir })).toMatchSnapshot();
       });
     });
@@ -278,7 +279,7 @@ describe('git.package.patch (acceptance)', () => {
       const opened = useThen('begin opens the edit dir, exit 0', async () => {
         const res = runViaRhachet({
           dir: repo.dir,
-          args: ['begin', '--package', 'is-number', '--mode', 'apply'],
+          args: ['set', '--package', 'is-number', '--mode', 'apply'],
           pnpmBinDir: tools.binDir,
         });
         expect(res.code).toBe(0);
@@ -295,7 +296,7 @@ describe('git.package.patch (acceptance)', () => {
         const res = runViaRhachet({
           dir: repo.dir,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-number',
             '--why',
@@ -335,7 +336,7 @@ describe('git.package.patch (acceptance)', () => {
         const res = runViaRhachet({
           dir: repo.dir,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-number',
             '--why',
@@ -365,7 +366,7 @@ describe('git.package.patch (acceptance)', () => {
         const res = runViaRhachet({
           dir: repo.dir,
           args: [
-            'begin',
+            'set',
             '--package',
             'is-number',
             '--edit-dir',
@@ -405,7 +406,7 @@ describe('git.package.patch (acceptance)', () => {
         const res = runViaRhachet({
           dir: repo.dir,
           args: [
-            'commit',
+            'set',
             '--package',
             'is-number',
             '--why',
@@ -440,7 +441,7 @@ describe('git.package.patch (acceptance)', () => {
       const res = useBeforeAll(async () =>
         runViaRhachet({
           dir: repo.dir,
-          args: ['begin', '--package', 'is-number', '--mode', 'apply'],
+          args: ['set', '--package', 'is-number', '--mode', 'apply'],
           pnpmBinDir: tools.binDir,
         }),
       );

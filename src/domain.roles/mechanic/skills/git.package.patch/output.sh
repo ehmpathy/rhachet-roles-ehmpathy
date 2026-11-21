@@ -8,9 +8,9 @@
 # usage:
 #   source "$SKILL_DIR/output.sh"
 #   print_turtle_header "shell yeah!"
-#   print_tree_start "git.package.patch begin"
+#   print_tree_start "git.package.patch set"
 #   print_tree_leaf "package" "rhachet@1.48.1"
-#   refuse_constraint "git.package.patch begin" "--edit-dir must sit inside the tree" "omit --edit-dir"
+#   refuse_constraint "git.package.patch set" "--edit-dir must sit inside the tree" "omit --edit-dir"
 ######################################################################
 
 # print turtle emoji + phrase, then the gap that ends the vibe block

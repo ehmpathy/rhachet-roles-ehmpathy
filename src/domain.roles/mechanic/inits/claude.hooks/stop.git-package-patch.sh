@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 ######################################################################
 # .what = Stop hook: nudge the clone to repair a local patch that no
-#         longer applies, via `rhx git.package.patch check`
+#         longer applies, via `rhx git.package.patch get`
 #
 # .why  = an upgrade past a patched version lands (the patch tolerance
 #         keys keep pnpm install from a fail), so the patch quietly drops;
@@ -17,14 +17,14 @@ set -uo pipefail
 
 HOOK_DIR="${BASH_SOURCE[0]%/*}"
 [[ "$HOOK_DIR" == "${BASH_SOURCE[0]}" ]] && HOOK_DIR="."
-CHECK_SH="$HOOK_DIR/../../skills/git.package.patch/git.package.patch.check.sh"
+GET_SH="$HOOK_DIR/../../skills/git.package.patch/git.package.patch.get.sh"
 
 # .note = a hook never fails the stop: an absent skill is named, then exit 0
-[[ -f "$CHECK_SH" ]] || {
-  echo "💥 MalfunctionError: ${0##*/} could not find $CHECK_SH; local patches go unchecked"
+[[ -f "$GET_SH" ]] || {
+  echo "💥 MalfunctionError: ${0##*/} could not find $GET_SH; local patches go unchecked"
   echo "   └─ fix: reinstall the mechanic role"
   exit 0
 }
 
-bash "$CHECK_SH" --when hook.onStop </dev/null
+bash "$GET_SH" --when hook.onStop </dev/null
 exit 0

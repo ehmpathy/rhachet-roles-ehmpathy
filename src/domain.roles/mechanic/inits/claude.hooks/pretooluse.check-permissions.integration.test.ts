@@ -1748,7 +1748,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
     });
 
     when('[t8] a raw pnpm patch', () => {
-      then('the block offers the paved git.package.patch begin', () => {
+      then('the block offers the paved git.package.patch set', () => {
         const opened = runHook({
           command: 'pnpm patch reef-board@7.0.0',
           settings: { allow: ['Bash(rhx:*)'] },
@@ -1756,13 +1756,13 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
         });
         expect(opened.exitCode).toBe(2);
         expect(opened.stderr).toContain('paved alternatives for `pnpm patch`');
-        expect(opened.stderr).toContain('rhx git.package.patch begin');
+        expect(opened.stderr).toContain('rhx git.package.patch set');
         expect(opened.stderr).toMatchSnapshot();
       });
     });
 
     when('[t8.1] a raw pnpm patch-commit', () => {
-      then('the block offers the paved git.package.patch commit', () => {
+      then('the block offers the paved git.package.patch set', () => {
         const sealed = runHook({
           command:
             'pnpm patch-commit node_modules/.pnpm_patches/reef-board@7.0.0',
@@ -1770,7 +1770,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
           clearNudges: true,
         });
         expect(sealed.exitCode).toBe(2);
-        expect(sealed.stderr).toContain('rhx git.package.patch commit');
+        expect(sealed.stderr).toContain('rhx git.package.patch set');
         expect(sealed.stderr).toMatchSnapshot();
       });
     });
@@ -1787,7 +1787,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
         then('begin runs with no prompt', () => {
           const result = runHook({
             command:
-              'rhx git.package.patch begin --package reef-board --mode apply',
+              'rhx git.package.patch set --package reef-board --mode apply',
             settings: { allow },
             clearNudges: true,
           });
@@ -1805,7 +1805,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
         then('commit runs with a prose --why, parens and all', () => {
           const result = runHook({
             command:
-              "rhx git.package.patch commit --package reef-board --why 'kelp fix (see #580) for [1] wave' --upstream https://github.com/ehmpathy/reef/issues/1 --mode apply",
+              "rhx git.package.patch set --package reef-board --why 'kelp fix (see #580) for [1] wave' --upstream https://github.com/ehmpathy/reef/issues/1 --mode apply",
             settings: { allow },
             clearNudges: true,
           });
@@ -1817,7 +1817,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
         then('commit runs with the why piped via --why @stdin', () => {
           const result = runHook({
             command:
-              "printf 'it is the reef fix' | rhx git.package.patch commit --package reef-board --why @stdin --upstream https://github.com/ehmpathy/reef/issues/1 --mode apply",
+              "printf 'it is the reef fix' | rhx git.package.patch set --package reef-board --why @stdin --upstream https://github.com/ehmpathy/reef/issues/1 --mode apply",
             settings: { allow },
             clearNudges: true,
           });

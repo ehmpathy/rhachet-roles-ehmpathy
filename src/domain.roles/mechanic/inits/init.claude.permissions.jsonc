@@ -563,8 +563,8 @@
       "Bash(npx rhachet run --skill git.package.patch:*)",
       "Bash(rhx git.package.patch:*)",
       // examples: open an edit dir, then seal it with a why + an upstream link
-      "Bash(rhx git.package.patch begin --package rhachet --mode apply)",
-      "Bash(rhx git.package.patch commit --package rhachet --why '<why>' --upstream https://github.com/ehmpathy/rhachet/issues/1 --mode apply)",
+      "Bash(rhx git.package.patch set --package rhachet --mode apply)",
+      "Bash(rhx git.package.patch set --package rhachet --why '<why>' --upstream https://github.com/ehmpathy/rhachet/issues/1 --mode apply)",
 
       // any skill, really
       "Bash(npx rhachet run:*)",

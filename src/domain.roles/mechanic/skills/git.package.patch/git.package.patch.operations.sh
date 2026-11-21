@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ######################################################################
-# .what = shared operations for git.package.patch begin + commit
+# .what = shared operations for git.package.patch set + commit
 #
 # .why  = the phase scripts read as narrative; every step that needs
 #         decode lives here under a name:
@@ -166,7 +166,7 @@ as_shell_arg() {
 # .note = why and upstream are optional: given, the hint carries the crew's own values, so a
 #         rerun is one paste; absent, it shows the placeholders
 ######################################################################
-as_commit_cmd() {
+as_seal_cmd() {
   local spec="$1"
   local edit_dir_arg="$2"
   local why="${3:-}"
@@ -175,7 +175,7 @@ as_commit_cmd() {
   local upstream_arg="'<issue-url>'"
   [[ -n "$why" ]] && why_arg=$(as_shell_arg "$why")
   [[ -n "$upstream" ]] && upstream_arg=$(as_shell_arg "$upstream")
-  local cmd="rhx git.package.patch commit --package $(as_shell_arg "$spec") --why $why_arg --upstream $upstream_arg"
+  local cmd="rhx git.package.patch set --package $(as_shell_arg "$spec") --why $why_arg --upstream $upstream_arg"
   [[ -n "$edit_dir_arg" ]] && cmd="$cmd --edit-dir $(as_shell_arg "$edit_dir_arg")"
   echo "$cmd"
 }
@@ -183,8 +183,8 @@ as_commit_cmd() {
 ######################################################################
 # .what = the commit command that seals an edit dir, with --mode apply
 ######################################################################
-as_commit_apply_cmd() {
-  echo "$(as_commit_cmd "$1" "$2" "${3:-}" "${4:-}") --mode apply"
+as_seal_apply_cmd() {
+  echo "$(as_seal_cmd "$1" "$2" "${3:-}" "${4:-}") --mode apply"
 }
 
 ######################################################################
@@ -216,10 +216,10 @@ is_dependency_declared() {
 # .what = the begin command that opens an edit dir, ready to paste
 # .note = --mode apply comes last, as in the commit hint, so both hints read alike
 ######################################################################
-as_begin_cmd() {
+as_open_cmd() {
   local spec="$1"
   local edit_dir_arg="$2"
-  local cmd="rhx git.package.patch begin --package $(as_shell_arg "$spec")"
+  local cmd="rhx git.package.patch set --package $(as_shell_arg "$spec")"
   [[ -n "$edit_dir_arg" ]] && cmd="$cmd --edit-dir $(as_shell_arg "$edit_dir_arg")"
   echo "$cmd --mode apply"
 }
@@ -619,9 +619,15 @@ get_edit_dir_state() {
 }
 
 ######################################################################
-# .what = open an edit dir for name@version via pnpm patch
+# .what = open a pristine edit dir for name@version via pnpm patch
 # .why  = stdin closed, so no pnpm prompt can ever wait; the dir is passed
 #         explicitly, so pnpm writes only where the bound allowed
+# .note = --ignore-existing: for a package with peer suffixes, pnpm copies the
+#         already-patched install and applies the extant patch again, which
+#         fails (ERR_PNPM_PATCH_FAILED). a pristine copy plus set_prior_patch_laid
+#         opens the same tree on every shape
+# .note = npm_config_confirm_modules_purge=false: with no tty, a reinstall that
+#         would purge node_modules aborts (ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY)
 # .note = prints pnpm's output; returns pnpm's status
 ######################################################################
 set_edit_dir_via_pnpm() {
@@ -630,17 +636,122 @@ set_edit_dir_via_pnpm() {
   local dir="$3"
   mkdir -p "$(dirname "$dir")" 2>&1 || return 2
   if [[ -d "$dir" ]]; then rmdir "$dir" 2>&1 || return 2; fi
-  (cd "$root" && pnpm patch "$spec" --edit-dir "$dir" </dev/null 2>&1)
+  (cd "$root" && npm_config_confirm_modules_purge=false \
+    pnpm patch "$spec" --edit-dir "$dir" --ignore-existing </dev/null 2>&1)
+}
+
+######################################################################
+# .what = lay a committed patch onto a pristine edit dir
+# .why  = the next edit stacks on the extant patch, so a reseal keeps its edits
+# .note = GIT_CEILING_DIRECTORIES keeps git apply off the outer repo, so the
+#         patch's a/ b/ paths read from the edit dir (see is_patch_fit)
+# .note = prints git's words; returns 2 on a hunk that does not fit
+######################################################################
+set_prior_patch_laid() {
+  local dir="$1" patch="$2"
+  (cd "$dir" && GIT_CEILING_DIRECTORIES="${dir%/*}" git apply -- "$patch" 2>&1) || return 2
 }
 
 ######################################################################
 # .what = seal an edit dir into a patch via pnpm patch-commit
+# .note = npm_config_confirm_modules_purge=false: patch-commit reinstalls, and
+#         with no tty a purge prompt aborts it (see set_edit_dir_via_pnpm)
 # .note = prints pnpm's output; returns pnpm's status
 ######################################################################
 set_patch_via_pnpm() {
   local root="$1"
   local dir="$2"
-  (cd "$root" && pnpm patch-commit "$dir" --patches-dir "$PATCHES_DIR_REL" </dev/null 2>&1)
+  (cd "$root" && npm_config_confirm_modules_purge=false \
+    pnpm patch-commit "$dir" --patches-dir "$PATCHES_DIR_REL" </dev/null 2>&1)
+}
+
+######################################################################
+# the gate: a package that grades or gates this tree
+######################################################################
+
+# the packages that grade or gate this tree: rhachet and the roles whose
+# review, route, commit, and dispatch tools judge a crew's work
+GATED_PACKAGES=(rhachet rhachet-roles-bhrain rhachet-roles-bhuild rhachet-roles-ehmpathy)
+
+######################################################################
+# .what = decide whether a package grades or gates this tree
+# .why  = a clone never loosens the gate that judges it; such a package
+#         opens and seals only on a human's grant (git.package.patch.uses)
+######################################################################
+is_package_gated() {
+  local name="$1" each
+  for each in "${GATED_PACKAGES[@]}"; do
+    [[ "$each" == "$name" ]] && return 0
+  done
+  return 1
+}
+
+######################################################################
+# .what = the meter file that holds a human's grants, per tree
+######################################################################
+get_patch_uses_meter_file() {
+  echo "$1/.meter/git.package.patch.uses.jsonc"
+}
+
+######################################################################
+# .what = print the why of a human's live grant for a package, or naught
+# .why  = a grant names a package, never a version: a bump keeps it
+# .note = a meter that jq cannot read prints the cause and returns 2,
+#         never "no grant", so a damaged meter is a malfunction
+######################################################################
+get_patch_grant_why() {
+  local root="$1" name="$2" meter
+  meter=$(get_patch_uses_meter_file "$root")
+  [[ -s "$meter" ]] || return 0
+  jq -r --arg p "$name" '(.packages // {})[$p] | select(. != null and .allowed == true) | .why // "no why on record"' "$meter" || return 2
+}
+
+######################################################################
+# .what = the gated packages, as one comma line for a render
+######################################################################
+as_gated_list_text() {
+  local joined
+  printf -v joined '%s, ' "${GATED_PACKAGES[@]}"
+  echo "${joined%, }"
+}
+
+######################################################################
+# .what = write a human's grant (allow) or its withdrawal (block)
+# .why  = one record per package; a block keeps the prior why for audit
+# .note = temp + mv, so a reader never sees a torn meter; the meter dir is
+#         gitignored, so a grant never rides into a commit
+# .note = a meter that jq cannot read prints the cause and returns 2
+# .note = findsert_gitignored_dir comes from git.commit.operations.sh, which
+#         the uses verb sources; no other verb writes a grant
+######################################################################
+set_patch_grant() {
+  local root="$1" name="$2" verb="$3" why="$4"
+  local meter at prior temp
+  meter=$(get_patch_uses_meter_file "$root")
+  findsert_gitignored_dir "$(dirname "$meter")" || return 2
+  [[ ! -e "$meter" || -f "$meter" ]] || { echo "$meter is not a file"; return 2; }
+  at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+  prior='{}'
+  if [[ -s "$meter" ]]; then prior=$(cat "$meter") || return 2; fi
+  temp="$meter.tmp.$$"
+  jq --arg p "$name" --arg verb "$verb" --arg why "$why" --arg at "$at" '
+    .packages = (.packages // {})
+    | .packages[$p] = (if $verb == "allow"
+        then { allowed: true, why: $why, at: $at }
+        else ((.packages[$p] // {}) + { allowed: false, at: $at }) end)
+  ' <<<"$prior" > "$temp" || { rm -f "$temp"; return 2; }
+  mv -f "$temp" "$meter" || return 2
+}
+
+######################################################################
+# .what = the refusal fix for a gated package with no grant
+######################################################################
+as_gated_fix() {
+  local name="$1"
+  echo "cure it upstream, where its own review judges it:"
+  echo "rhx radio.task.push --via gh.issues --into ehmpathy/$name --title '<title>' --description @stdin"
+  echo "or a human admits it to an in-tree patch, at their own terminal:"
+  echo "rhx git.package.patch.uses allow --package $name --why '<why>'"
 }
 
 ######################################################################
@@ -978,7 +1089,7 @@ as_patch_repair() {
       echo "pnpm install"
       ;;
     underapplied)
-      echo "$(as_begin_cmd "$name@$target" "")   # then redo the edits and commit"
+      echo "$(as_open_cmd "$name@$target" "")   # then redo the edits and seal"
       echo "$(as_del_apply_cmd "$spec")   # retire the stale patch, once the new one is sealed or if upstream fixed it"
       ;;
     obsolete|unused|unbacked|unrecorded)
