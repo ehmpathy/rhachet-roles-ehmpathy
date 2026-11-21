@@ -26,17 +26,14 @@
 #   - --from main, no --into: --into prod
 #
 # guarantee:
-#   - plan mode is default (safe preview)
-#   - --watch watches without automerge
-#   - apply mode enables automerge and watches
-#   - apply mode requires git.commit.uses permission (locally or globally)
+#   - plan mode is default (safe preview); --watch never enables automerge
+#   - apply enables automerge and watches; needs git.commit.uses permission
 #   - watches CI until complete or timeout (15 min)
 #   - surfaces errors with links and retry hints
-#   - --into prod is the default, safe path; --from main is special-circumstance only
+#   - apply refuses (exit 2) while a pr comment waits; no flag skips it
 #
 # note:
-#   - MUST run in FOREGROUND (never background)
-#   - watches CI interactively, requires TTY for spinner
+#   - MUST run in FOREGROUND (never background), with a TTY for the spinner
 ######################################################################
 set -euo pipefail
 
@@ -54,6 +51,7 @@ source "$SKILL_DIR/git.release.operations.sh"
 source "$SKILL_DIR/git.release._.get_one_goal_from_input.sh"
 source "$SKILL_DIR/git.release._.get_all_flags_from_input.sh"
 source "$SKILL_DIR/git.release._.get_one_transport_status.sh"
+source "$SKILL_DIR/git.release._.emit_comment_gate.sh"
 source "$SKILL_DIR/git.release._.emit_transport_status.sh"
 source "$SKILL_DIR/git.release._.emit_transport_watch.sh"
 source "$SKILL_DIR/git.release._.emit_one_transport_status_exitcode.sh"
@@ -62,6 +60,18 @@ source "$SKILL_DIR/git.release._.and_then_await.sh"
 ######################################################################
 # argument parse
 ######################################################################
+
+# refuse a bad argument: one shape for every argument error, on both streams
+# $1 = what was wrong; $2 = an optional note, printed as the first branch
+refuse_argument() {
+  local note_line=""
+  [[ -z "${2:-}" ]] || note_line="   ├─ note: $2"$'\n'
+  emit_both "✋ ConstraintError: $1
+${note_line}   ├─ usage: git.release [--into main|prod] [--watch] [--apply] [--mode plan|apply] [--retry] [--dirty block|allow]
+   └─ see every flag: rhx git.release --help"
+  exit 2
+}
+
 TO=""  # inferred by get_one_goal_from_input when not specified
 FROM=""  # --from main: skip feature branch requirement
 WHY=""  # --why: required articulation when a non-human uses --from main from a feature branch
@@ -115,24 +125,29 @@ while [[ $# -gt 0 ]]; do
       echo "usage: git.release [--into main|prod] [--watch] [--apply] [--mode plan|apply] [--retry] [--dirty block|allow]"
       echo "       git.release --from main --into prod   # special-circumstance only"
       echo ""
-      echo "  --into prod   full release to prod (the default, safe way to ship your work)"
-      echo "  --into main   merge feature branch to main only (stops before prod)"
-      echo "  --watch       watch CI without automerge"
-      echo "  --apply       enable automerge and watch (alias for --mode apply)"
-      echo "  --mode plan   show status only (default)"
-      echo "  --mode apply  enable automerge and watch"
-      echo "  --retry       rerun failed workflows before watch"
-      echo "  --dirty block fail fast if unstaged changes (default)"
-      echo "  --dirty allow allow release even with unstaged changes"
+      echo "  --into prod    full release to prod (the default, safe way to ship your work)"
+      echo "  --into main    merge feature branch to main only (stops before prod)"
+      echo "  --watch        watch CI without automerge"
+      echo "  --apply        enable automerge and watch (alias for --mode apply)"
+      echo "  --mode plan    show status only (default)"
+      echo "  --mode apply   enable automerge and watch"
+      echo "  --retry        rerun failed workflows before watch"
+      echo "  --dirty block  fail fast if unstaged changes (default)"
+      echo "  --dirty allow  allow release even with unstaged changes"
       echo ""
       echo "  special circumstances only (footgun — prefer --into prod):"
-      echo "  --from main   skip the feature branch, release whatever is on main"
+      echo "  --from main    skip the feature branch, release whatever is on main"
+      echo ""
+      echo "  comment gate: plan and --watch show each unanswered pr comment, one row each;"
+      echo "  --apply refuses (exit 2) while any is unanswered, and each row prints the"
+      echo "  rhx git.pull.comment set line that answers it. no flag skips the gate"
       exit 0
       ;;
     *)
-      echo "error: unknown argument: $1" >&2
-      echo "usage: git.release [--into main|prod] [--watch] [--apply] [--mode plan|apply] [--retry]" >&2
-      exit 2
+      # refuse an unknown flag: no bypass runs silently; a flag shaped like a
+      # bypass also learns that none exists, a typo gets the plain refusal
+      [[ "$1" =~ ^--(skip|force|no-|ignore|bypass) ]] && refuse_argument "unknown argument: $1" "no flag skips the comment gate: answer each unanswered comment, then rerun"
+      refuse_argument "unknown argument: $1"
       ;;
   esac
 done
@@ -143,20 +158,17 @@ done
 
 # validate --into value (only if specified)
 if [[ -n "$TO" && "$TO" != "main" && "$TO" != "prod" ]]; then
-  echo "error: --into must be 'main' or 'prod', got '$TO'" >&2
-  exit 2
+  refuse_argument "--into must be 'main' or 'prod', got '$TO'"
 fi
 
 # validate --mode value
 if [[ "$MODE" != "plan" && "$MODE" != "apply" ]]; then
-  echo "error: --mode must be 'plan' or 'apply', got '$MODE'" >&2
-  exit 2
+  refuse_argument "--mode must be 'plan' or 'apply', got '$MODE'"
 fi
 
 # validate --dirty value
 if [[ "$DIRTY" != "block" && "$DIRTY" != "allow" ]]; then
-  echo "error: --dirty must be 'block' or 'allow', got '$DIRTY'" >&2
-  exit 2
+  refuse_argument "--dirty must be 'block' or 'allow', got '$DIRTY'"
 fi
 
 # note: --from accepts "main" or any branch name (e.g., "turtle/feature-x")
@@ -166,7 +178,8 @@ fi
 
 # ensure in git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
-  echo "error: not in a git repository" >&2
+  emit_both "✋ ConstraintError: not in a git repository
+   └─ fix: run git.release from inside the repo to release"
   exit 2
 fi
 

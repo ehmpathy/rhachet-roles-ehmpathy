@@ -557,17 +557,22 @@ exports[`git.release given: [case6] boundary conditions when: [t0] keyrack locke
 `;
 
 exports[`git.release given: [case7] argument validation when: [t0] --into invalid value then: shows error and exits 2 1`] = `
-"error: --into must be 'main' or 'prod', got 'invalid'
+"✋ ConstraintError: --into must be 'main' or 'prod', got 'invalid'
+   ├─ usage: git.release [--into main|prod] [--watch] [--apply] [--mode plan|apply] [--retry] [--dirty block|allow]
+   └─ see every flag: rhx git.release --help
 "
 `;
 
 exports[`git.release given: [case7] argument validation when: [t1] --mode invalid value then: shows error and exits 2 1`] = `
-"error: --mode must be 'plan' or 'apply', got 'invalid'
+"✋ ConstraintError: --mode must be 'plan' or 'apply', got 'invalid'
+   ├─ usage: git.release [--into main|prod] [--watch] [--apply] [--mode plan|apply] [--retry] [--dirty block|allow]
+   └─ see every flag: rhx git.release --help
 "
 `;
 
 exports[`git.release given: [case7] argument validation when: [t2] not in git repo then: shows error and exits 2 1`] = `
-"error: not in a git repository
+"✋ ConstraintError: not in a git repository
+   └─ fix: run git.release from inside the repo to release
 "
 `;
 
@@ -587,18 +592,22 @@ exports[`git.release given: [case7] argument validation when: [t4] --help flag t
 "usage: git.release [--into main|prod] [--watch] [--apply] [--mode plan|apply] [--retry] [--dirty block|allow]
        git.release --from main --into prod   # special-circumstance only
 
-  --into prod   full release to prod (the default, safe way to ship your work)
-  --into main   merge feature branch to main only (stops before prod)
-  --watch       watch CI without automerge
-  --apply       enable automerge and watch (alias for --mode apply)
-  --mode plan   show status only (default)
-  --mode apply  enable automerge and watch
-  --retry       rerun failed workflows before watch
-  --dirty block fail fast if unstaged changes (default)
-  --dirty allow allow release even with unstaged changes
+  --into prod    full release to prod (the default, safe way to ship your work)
+  --into main    merge feature branch to main only (stops before prod)
+  --watch        watch CI without automerge
+  --apply        enable automerge and watch (alias for --mode apply)
+  --mode plan    show status only (default)
+  --mode apply   enable automerge and watch
+  --retry        rerun failed workflows before watch
+  --dirty block  fail fast if unstaged changes (default)
+  --dirty allow  allow release even with unstaged changes
 
   special circumstances only (footgun — prefer --into prod):
-  --from main   skip the feature branch, release whatever is on main
+  --from main    skip the feature branch, release whatever is on main
+
+  comment gate: plan and --watch show each unanswered pr comment, one row each;
+  --apply refuses (exit 2) while any is unanswered, and each row prints the
+  rhx git.pull.comment set line that answers it. no flag skips the gate
 "
 `;
 

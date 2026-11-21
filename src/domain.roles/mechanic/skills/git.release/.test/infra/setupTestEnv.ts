@@ -187,6 +187,7 @@ export const runOperation = (
     'git.release._.get_one_goal_from_input.sh',
     'git.release._.get_all_flags_from_input.sh',
     'git.release._.get_one_transport_status.sh',
+    'git.release._.emit_comment_gate.sh',
     'git.release._.emit_transport_status.sh',
     'git.release._.emit_transport_watch.sh',
     'git.release._.emit_one_transport_status_exitcode.sh',

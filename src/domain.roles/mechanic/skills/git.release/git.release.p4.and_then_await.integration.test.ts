@@ -7,6 +7,7 @@ import {
   asSkillExitStatus,
   SKILL_SPAWN_TIMEOUT_MS,
 } from './.test/infra/asSkillExitStatus';
+import { GH_MOCK_LINE_COMMENTS_ABSENT } from './.test/infra/mockGh';
 import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
 
 /**
@@ -152,7 +153,7 @@ if [[ "$1" == "run" && "$2" == "list" ]] && echo "$ALL_ARGS" | grep -q "release.
   exit 0
 fi
 
-echo "mock gh: unknown command: $*" >&2
+${GH_MOCK_LINE_COMMENTS_ABSENT}; echo "mock gh: unknown command: $*" >&2
 exit 1
 `;
   fs.writeFileSync(path.join(fakeBinDir, 'gh'), ghMock, { mode: 0o755 });

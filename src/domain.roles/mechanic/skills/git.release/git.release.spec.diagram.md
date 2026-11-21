@@ -340,11 +340,13 @@
 │   mode       readonly    automerge    poll    permission                    │
 │   ────       ────────    ─────────    ────    ──────────                    │
 │   plan       yes         no           no      no                            │
-│   watch      yes         no           yes     no                            │
+│   watch      no**        no           yes     no                            │
 │   apply      no          yes          yes     yes                           │
 │   retry      no*         no           opt     no                            │
 │                                                                              │
 │   * retry triggers workflow rerun but doesn't enable automerge              │
+│   ** watch never enables automerge; it disables an extant one when a        │
+│      comment waits on an answer, the safe direction                         │
 │                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -411,7 +413,7 @@
              │           │ │ allow     │ │           │
              └───────────┘ └───────────┘ └───────────┘
 
-note: plan and --watch skip this check (read-only modes)
+note: plan and --watch skip this check (neither enables automerge)
 ```
 
 ## merged PR fallback
