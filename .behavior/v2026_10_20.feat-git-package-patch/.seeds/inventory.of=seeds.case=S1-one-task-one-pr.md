@@ -13,7 +13,6 @@
 ## .landed
 
 - `src/domain.roles/mechanic/skills/git.package.patch/git.package.patch.get.sh`
-- `src/domain.roles/mechanic/skills/git.package.patch/git.package.patch.check.sh`
 - `src/domain.roles/mechanic/skills/git.package.patch/git.package.patch.del.sh`
 - `src/domain.roles/mechanic/inits/claude.hooks/stop.git-package-patch.sh`
 - `.behavior/v2026_10_20.feat-git-package-patch/appendix/pr.1020.body.md`
