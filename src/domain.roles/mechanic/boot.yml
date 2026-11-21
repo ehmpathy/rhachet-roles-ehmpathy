@@ -3,8 +3,10 @@
 #         (`repo introspect` halts the build; boot.budget.integration.test.ts fails)
 # .note = measure via `npx rhachet roles cost --all`; to add a say brief, condense or demote
 #         another first — raise this cap only as a deliberate, reviewed call
+# .note = 30.5k, not 30k: the whole-role boot lists each row subject.101 re-claims as one roster
+#         line (~14 tokens each); the rows of every other section stay at their 30k size
 budget:
-  tokens: 30_000
+  tokens: 30_500
 always:
   briefs:
     say:
@@ -148,6 +150,17 @@ always:
       - skills/git.branch.cutover/git.branch.cutover.output.sh
       - skills/git.branch.uses/git.branch.uses.local.sh
       - skills/git.branch.uses/git.branch.uses.operations.sh
+
+      # the pr-watch sub-files: the dispatcher in ref names get|set|del; the daemon, alert,
+      # github, token, and operations files run under the daemon, never by hand
+      - skills/git.pull.watch/git.pull.watch.alert.sh
+      - skills/git.pull.watch/git.pull.watch.daemon.sh
+      - skills/git.pull.watch/git.pull.watch.del.sh
+      - skills/git.pull.watch/git.pull.watch.get.sh
+      - skills/git.pull.watch/git.pull.watch.github.sh
+      - skills/git.pull.watch/git.pull.watch.operations.sh
+      - skills/git.pull.watch/git.pull.watch.set.sh
+      - skills/git.pull.watch/git.pull.watch.token.sh
 
 subject.code.prod:
   briefs:
@@ -356,3 +369,70 @@ subject.flow:
       - briefs/practices/work.flow/tools/rule.prefer.allowlist-examples.[lesson].md
       - briefs/practices/work.flow/tools/rule.prefer.jq.[demo].md
       - briefs/practices/work.flow/tools/rule.prefer.terraform.md.pt2.md
+
+# .what = the heart of the mechanic, in cue form: who it is, how it names, how its code reads to
+#         the 3am on-call engineer, how it fails, how it tests, how it works
+# .why  = a seat outside mechanic (e.g. a director) enrolls mechanic::101 for the hooks, plus the
+#         heart, without the full role's boot
+# .note = sheds `always`: a 101 seat boots this section alone. rhachet refuses a budget inside a
+#         section, so boot.budget.integration.test.ts caps it at 10k
+# .note = each say row is say in another section too, so the full role gains no brief body
+subject.101:
+  inherit:
+    always: false
+  briefs:
+    say:
+      # who — the seaturtle, and the voice it writes in
+      - briefs/practices/lang.tones/rule.im_an.ehmpathy_seaturtle.md
+      - briefs/practices/lang.prose/define.wick-dense.md
+
+      # names — one word per concept, verb then noun, no gerunds
+      - briefs/practices/lang.terms/rule.require.ubiqlang.md
+      - briefs/practices/lang.terms/rule.require.treestruct.md
+      - briefs/practices/lang.terms/rule.forbid.gerunds.md
+      - briefs/practices/code.prod/evolvable.domain.operations/rule.require.get-set-gen-verbs.md
+
+      # readable — code reads as narrative to the 3am on-call engineer
+      - briefs/practices/code.prod/readable.narrative/rule.require.narrative-flow.md
+      - briefs/practices/code.prod/readable.narrative/rule.forbid.else-branches.md
+      - briefs/practices/code.prod/readable.narrative/rule.forbid.inline-decode-friction.md
+      - briefs/practices/code.prod/readable.comments/rule.require.what-why-headers.md
+
+      # evolvable — (input, context), arrow functions, no mutation
+      - briefs/practices/code.prod/evolvable.procedures/rule.require.input-context-pattern.md.pt1.md
+      - briefs/practices/code.prod/evolvable.procedures/rule.require.arrow-only.md
+      - briefs/practices/code.prod/pitofsuccess.procedures/rule.require.immutable-vars.md
+
+      # errors — a cure that limps past bad state, or hides it, reports a false green
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.require.failfast.md
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.require.failloud.md
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.forbid.failhide.md.pt1.md
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.require.exit-code-semantics.md
+
+      # the PreToolUse exception — a malfunction in a hook still exits 2, else the gate fails open
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.require.qualified-error-headers.md
+
+      # mutation + types — a cure re-runs on every wake; a cast hides its defect from tsc
+      - briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.nonidempotent-mutations.md
+      - briefs/practices/code.prod/pitofsuccess.typedefs/rule.forbid.as-cast.md
+
+      # tests — given/when/then, and no mock where an integration must prove the real path
+      - briefs/practices/code.test/frames.behavior/rule.require.given-when-then.md
+      - briefs/practices/code.test/scope.integration/rule.forbid.integration.mocks.md
+
+      # work — verify before you act; a fix owes a clamp; leave it better than you found it
+      - briefs/practices/work.flow/rule.require.trust-but-verify.md
+      - briefs/practices/work.flow/diagnose/rule.require.clamp-edge-cases.md
+      - briefs/practices/work.flow/rule.prefer.scouts-honor.md
+
+    ref:
+      # the argument + demos behind each cue
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.forbid.failhide.md.pt2.md
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.require.failfast.[seed].md
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.require.failfast.[demo].shell.md
+      - briefs/practices/code.prod/pitofsuccess.procedures/rule.require.idempotent-procedures.md
+      - briefs/practices/code.prod/pitofsuccess.typedefs/rule.require.assure-via-type-checks.md
+
+      # at ref, not say: subject.flow holds it at ref, and a say here would upgrade it in the full
+      # role's boot too; clamp-edge-cases, at say, already demands the test it requires
+      - briefs/practices/work.flow/diagnose/rule.require.test-covered-repairs.md

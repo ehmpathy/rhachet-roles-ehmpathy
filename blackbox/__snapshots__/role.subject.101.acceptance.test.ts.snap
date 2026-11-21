@@ -1,0 +1,47 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`role subject.101 given: [case1] a repo with role=architect linked from the package when: [t0] a seat boots --subject 101 then: the paths a seat reads match the snapshot 1`] = `
+{
+  "ref": [
+    "briefs/practices/domain.discovery/howto.dimensional-decomposition.md",
+    "briefs/practices/domain.discovery/howto.domain-discovery.md",
+    "briefs/practices/domain.discovery/rule.require.persist-domain-term-evidence.md",
+    "briefs/practices/domain.operations/philosophy.transformer-orchestrator-separation.[philosophy].md",
+    "briefs/practices/domain.operations/rule.require.fewer-paths-via-idempotency.md",
+    "briefs/practices/domain.operations/rule.require.orchestrators-as-narrative.md",
+    "briefs/practices/lang.prose/define.simplified-technical-english.md",
+    "briefs/practices/philosophy.domain-as-a-garden.[philosophy].md",
+    "briefs/practices/repo.structure/rule.prefer.most-common-denominator.md",
+  ],
+  "say": [
+    "briefs/practices/domain.discovery/def.domain-discovery.md.min",
+    "briefs/practices/domain.discovery/rule.require.domain-discovery-for-term-proposals.md.min",
+    "briefs/practices/domain.operations/define.domain-operation-grains.md",
+    "briefs/practices/domain.operations/rule.forbid.decode-friction-in-orchestrators.md",
+    "briefs/practices/domain.operations/rule.require.idempotent-operations.md",
+    "briefs/practices/lang.prose/define.wick-dense.md.min",
+    "briefs/practices/lang.prose/rule.require.brevity.md.min",
+    "briefs/practices/rule.require.solve-at-cause.md",
+  ],
+}
+`;
+
+exports[`role subject.101 given: [case2] a repo with role=ergonomist linked from the package when: [t0] a seat boots --subject 101 then: the paths a seat reads match the snapshot 1`] = `
+{
+  "ref": [
+    "briefs/fundamentals/def.frictionless.md",
+    "briefs/fundamentals/ref.ergonomics.fundamentals.md",
+    "briefs/fundamentals/rule.forbid.ambiguous-labels.md",
+    "briefs/fundamentals/rule.prefer.defaults-match-common-case.md",
+    "briefs/fundamentals/rule.prefer.prevent-over-correct.md",
+    "briefs/fundamentals/rule.require.help-on-demand.md",
+  ],
+  "say": [
+    "briefs/fundamentals/def.ergonomic.md.min",
+    "briefs/fundamentals/rule.require.discoverability.md.min",
+    "briefs/fundamentals/rule.require.errors-name-the-fix.md",
+    "briefs/fundamentals/rule.require.safe-by-default.md",
+    "briefs/fundamentals/rule.require.status-feedback.md",
+  ],
+}
+`;

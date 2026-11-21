@@ -20,10 +20,13 @@ import { type BootYml, bootYmlTestKit } from '../.test/bootYml.testkit';
 const roleDirRel = '.agent/repo=ehmpathy/role=mechanic';
 const roleDir = resolve(__dirname, '../../..', roleDirRel);
 
+// rhachet 1.50.1 spends 20-40s per `roles boot` spawn under parallel load (a fail-fast call alone
+// takes ~22s), so each spawn keeps 120s, and a test that spawns two gets 300s
+jest.setTimeout(300_000);
 const execBoot = (input: { args: string; cwd?: string }): string =>
   execSync(
     `npx rhachet roles boot --repo ehmpathy --role mechanic ${input.args}`,
-    { encoding: 'utf-8', timeout: 30_000, cwd: input.cwd },
+    { encoding: 'utf-8', timeout: 120_000, cwd: input.cwd },
   );
 
 /**
@@ -106,6 +109,26 @@ describe('boot.yml integration', () => {
     when('[t2] the boot asks for an unrecognized --subject', () => {
       then('it fails fast', () => {
         expect(() => execBoot({ args: '--subject nonexistent' })).toThrow();
+      });
+    });
+
+    when('[t3] the boot asks for --subject 101', () => {
+      const boot = useThen('the boot succeeds', () => ({
+        output: execBoot({ args: '--subject 101' }),
+      }));
+
+      then('every 101 say row boots as a say block', () => {
+        // a declared row that rhachet drops (e.g. a `.md.min` path) boots naught and says naught,
+        // so each row is checked in the emitted boot, not only in boot.yml
+        const say101 =
+          bootYmlTestKit.parse({ path: bootYmlPath })['subject.101']?.briefs
+            ?.say ?? [];
+        const sayAbsent = say101.filter(
+          (row) =>
+            !boot.output.includes(`<brief.say path="${roleDirRel}/${row}`),
+        );
+        expect(say101.length).toBeGreaterThan(0);
+        expect(sayAbsent).toEqual([]);
       });
     });
   });
@@ -263,6 +286,130 @@ describe('boot.yml consistency', () => {
         expect(subjects).toContain('subject.code.test');
         expect(subjects).toContain('subject.arch');
         expect(subjects).toContain('subject.flow');
+        expect(subjects).toContain('subject.101');
+      });
+
+      then(
+        'pin subject.101 to the heart of the mechanic at say, their args at ref, no skills',
+        () => {
+          // 101 is a contract with director seats: a dropped cue, or an overlay that slips in, must fail here
+          const subject101 = bootYml['subject.101'];
+          expect(subject101?.briefs?.say).toEqual([
+            'briefs/practices/lang.tones/rule.im_an.ehmpathy_seaturtle.md',
+            'briefs/practices/lang.prose/define.wick-dense.md',
+            'briefs/practices/lang.terms/rule.require.ubiqlang.md',
+            'briefs/practices/lang.terms/rule.require.treestruct.md',
+            'briefs/practices/lang.terms/rule.forbid.gerunds.md',
+            'briefs/practices/code.prod/evolvable.domain.operations/rule.require.get-set-gen-verbs.md',
+            'briefs/practices/code.prod/readable.narrative/rule.require.narrative-flow.md',
+            'briefs/practices/code.prod/readable.narrative/rule.forbid.else-branches.md',
+            'briefs/practices/code.prod/readable.narrative/rule.forbid.inline-decode-friction.md',
+            'briefs/practices/code.prod/readable.comments/rule.require.what-why-headers.md',
+            'briefs/practices/code.prod/evolvable.procedures/rule.require.input-context-pattern.md.pt1.md',
+            'briefs/practices/code.prod/evolvable.procedures/rule.require.arrow-only.md',
+            'briefs/practices/code.prod/pitofsuccess.procedures/rule.require.immutable-vars.md',
+            'briefs/practices/code.prod/pitofsuccess.errors/rule.require.failfast.md',
+            'briefs/practices/code.prod/pitofsuccess.errors/rule.require.failloud.md',
+            'briefs/practices/code.prod/pitofsuccess.errors/rule.forbid.failhide.md.pt1.md',
+            'briefs/practices/code.prod/pitofsuccess.errors/rule.require.exit-code-semantics.md',
+            'briefs/practices/code.prod/pitofsuccess.errors/rule.require.qualified-error-headers.md',
+            'briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.nonidempotent-mutations.md',
+            'briefs/practices/code.prod/pitofsuccess.typedefs/rule.forbid.as-cast.md',
+            'briefs/practices/code.test/frames.behavior/rule.require.given-when-then.md',
+            'briefs/practices/code.test/scope.integration/rule.forbid.integration.mocks.md',
+            'briefs/practices/work.flow/rule.require.trust-but-verify.md',
+            'briefs/practices/work.flow/diagnose/rule.require.clamp-edge-cases.md',
+            'briefs/practices/work.flow/rule.prefer.scouts-honor.md',
+          ]);
+          expect(subject101?.briefs?.ref).toEqual([
+            'briefs/practices/code.prod/pitofsuccess.errors/rule.forbid.failhide.md.pt2.md',
+            'briefs/practices/code.prod/pitofsuccess.errors/rule.require.failfast.[seed].md',
+            'briefs/practices/code.prod/pitofsuccess.errors/rule.require.failfast.[demo].shell.md',
+            'briefs/practices/code.prod/pitofsuccess.procedures/rule.require.idempotent-procedures.md',
+            'briefs/practices/code.prod/pitofsuccess.typedefs/rule.require.assure-via-type-checks.md',
+            'briefs/practices/work.flow/diagnose/rule.require.test-covered-repairs.md',
+          ]);
+          expect(subject101?.skills).toBeUndefined();
+        },
+      );
+
+      then(
+        'shed always in subject.101 alone, so every other subject boots always as before',
+        () => {
+          // a 101 seat boots its section apart from `always`; a dropped opt-out would load ~19k
+          // of always into every director seat
+          expect(bootYml['subject.101']?.inherit).toEqual({ always: false });
+
+          // no other subject sheds always, so the full role and each other focus boot unchanged
+          const sectionsShed = Object.entries(bootYml)
+            .filter(
+              ([section, subject]) =>
+                section !== 'subject.101' && subject.inherit !== undefined,
+            )
+            .map(([section]) => section);
+          expect(sectionsShed).toEqual([]);
+        },
+      );
+
+      then(
+        'not say in subject.101 a brief another section holds at ref',
+        () => {
+          // a say claim upgrades a ref in the full role's boot, so 101 must not grow the full role
+          const say101 = bootYml['subject.101']?.briefs?.say ?? [];
+          const refElsewhere = Object.entries(bootYml)
+            .filter(([section]) => section !== 'subject.101')
+            .flatMap(([, subject]) => subject.briefs?.ref ?? []);
+          expect(say101.filter((path) => refElsewhere.includes(path))).toEqual(
+            [],
+          );
+        },
+      );
+
+      then(
+        'use only keys rhachet reads, in each section and each curation',
+        () => {
+          // rhachet strips an unknown key in silence: a typo'd `brief:` drops a section, and a typo'd `sya:` reads as "say all"
+          const keysForeign = Object.entries(bootYml)
+            .filter(([section]) => section !== 'budget')
+            .flatMap(([section, subject]) => [
+              ...Object.keys(subject)
+                .filter(
+                  (key) =>
+                    !['briefs', 'skills'].includes(key) &&
+                    !(key === 'inherit' && section.startsWith('subject.')),
+                )
+                .map(
+                  (key) =>
+                    `${section}.${key} — a section reads only briefs, skills (and a subject, inherit)`,
+                ),
+              ...(['briefs', 'skills'] as const).flatMap((kind) =>
+                Object.keys(subject[kind] ?? {})
+                  .filter((key) => !['say', 'ref', 'not'].includes(key))
+                  .map(
+                    (key) =>
+                      `${section}.${kind}.${key} — a curation reads only say, ref, not`,
+                  ),
+              ),
+            ]);
+          expect(keysForeign).toEqual([]);
+        },
+      );
+
+      then('declare no row by its .min path, in any section', () => {
+        // rhachet swaps in a `.min` twin itself; a row declared as `.md.min` boots naught, in silence
+        const rowsMin = Object.entries(bootYml)
+          .filter(([section]) => section !== 'budget')
+          .flatMap(([section, subject]) =>
+            (['briefs', 'skills'] as const).flatMap((kind) =>
+              [...(subject[kind]?.say ?? []), ...(subject[kind]?.ref ?? [])]
+                .filter((row) => row.endsWith('.min'))
+                .map(
+                  (row) =>
+                    `${section}.${kind}: ${row} — drop the .min; rhachet swaps in the twin`,
+                ),
+            ),
+          );
+        expect(rowsMin).toEqual([]);
       });
 
       then('have every brief path point to a file on disk', () => {

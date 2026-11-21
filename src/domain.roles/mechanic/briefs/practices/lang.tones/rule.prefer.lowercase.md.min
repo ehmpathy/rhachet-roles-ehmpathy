@@ -24,13 +24,8 @@
   .examples:
     .positive:
       - `// returns a new invoice if customer exists`
-      - `// handled in gitrepo.init()`
-      - `// fallback if no customer was found`
-      - `// pass into stitchstepimagine to generate`
       - `// openai prompt requires flattened string`
     .negative:
-      - `// returns a new invoice`       // 👎 capitalized sentence start
-      - `// this is handled in gitrepo`  // 👎 capitalized sentence + verb
-      - `// submit the job for approval` // 👎 capitalized imperative
-      - `// customer must exist first`   // 👎 capitalized domain noun
-      - `// github repository`           // 👎 capitalized generic noun
+      - `// Returns a new invoice`       // 👎 capitalized sentence start
+      - `// Submit the job for approval` // 👎 capitalized imperative
+      - `// customer must exist First`   // 👎 capitalized generic word

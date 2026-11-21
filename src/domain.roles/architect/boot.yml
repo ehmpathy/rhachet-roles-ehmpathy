@@ -51,3 +51,46 @@ always:
       - briefs/practices/domain.discovery/howto.dimensional-decomposition.md
       - briefs/practices/domain.discovery/rule.require.dimensional-decomposition.md
       - briefs/practices/domain.discovery/def.dimensional-decomposition.history.morphological-analysis.md
+
+# .what = the heart of the architect, in cue form: solve at the cause, the three operation grains,
+#         idempotent contracts, terms discovered from the domain, prose said in few words
+# .why  = a seat outside architect enrolls architect::101 for the heart, without the full role's boot
+# .note = sheds `always`: a 101 seat boots this section alone. rhachet refuses a budget inside a
+#         section, so boot.budget.integration.test.ts caps it at 6k
+# .note = each say row is say in `always` too, so the full role gains no brief body
+subject.101:
+  inherit:
+    always: false
+  briefs:
+    say:
+      # cause — diagnose the root, fix at the source
+      - briefs/practices/rule.require.solve-at-cause.md
+
+      # operations — transformers compute, communicators commute, orchestrators compose
+      - briefs/practices/domain.operations/define.domain-operation-grains.md
+      - briefs/practices/domain.operations/rule.forbid.decode-friction-in-orchestrators.md
+      - briefs/practices/domain.operations/rule.require.idempotent-operations.md
+
+      # terms — discovered from the domain, never invented at the keyboard
+      - briefs/practices/domain.discovery/def.domain-discovery.md
+      - briefs/practices/domain.discovery/rule.require.domain-discovery-for-term-proposals.md
+
+      # prose — few words, each loaded
+      - briefs/practices/lang.prose/define.wick-dense.md
+      - briefs/practices/lang.prose/rule.require.brevity.md
+
+    ref:
+      # the philosophy behind the grains and the garden of recomposable operations
+      - briefs/practices/philosophy.domain-as-a-garden.[philosophy].md
+      - briefs/practices/domain.operations/philosophy.transformer-orchestrator-separation.[philosophy].md
+      - briefs/practices/domain.operations/rule.require.orchestrators-as-narrative.md
+      - briefs/practices/domain.operations/rule.require.fewer-paths-via-idempotency.md
+      - briefs/practices/repo.structure/rule.prefer.most-common-denominator.md
+
+      # the discovery moves, and where their evidence persists
+      - briefs/practices/domain.discovery/howto.domain-discovery.md
+      - briefs/practices/domain.discovery/rule.require.persist-domain-term-evidence.md
+      - briefs/practices/domain.discovery/howto.dimensional-decomposition.md
+
+      # the full prose overlay
+      - briefs/practices/lang.prose/define.simplified-technical-english.md

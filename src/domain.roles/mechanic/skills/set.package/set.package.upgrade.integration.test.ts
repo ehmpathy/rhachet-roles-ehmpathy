@@ -206,12 +206,22 @@ exit 1
 
   /**
    * .what = strip dynamic content from output for stable snapshots
-   * .why = paths, dates, versions change between runs
+   * .why = paths and versions change between runs; the advisory list is the live npm
+   *        registry's, which adds and withdraws advisories, so its count and rows are masked
+   *        and the snapshot pins only the frame around them
    */
   const asStableOutput = (output: string): string => {
     return output
       .replace(/\/tmp\/[^\s]+/g, '/tmp/TEMP_DIR')
-      .replace(/\d+\.\d+\.\d+/g, 'X.Y.Z');
+      .replace(/\d+\.\d+\.\d+/g, 'X.Y.Z')
+      .replace(
+        /audit: FAILED \(\d+ vulnerabilities\)/g,
+        'audit: FAILED (N vulnerabilities)',
+      )
+      .replace(
+        /(?:^ +[├└]─ (?:low|moderate|high|critical): .*\n)+/gm,
+        '         └─ <severity>: <advisory> (the live list, masked)\n',
+      );
   };
 
   /**
