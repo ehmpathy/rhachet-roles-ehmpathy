@@ -290,11 +290,24 @@ describe('boot.yml consistency', () => {
       });
 
       then(
-        'pin subject.101 to the eight cure rules at say, their args at ref, no skills',
+        'pin subject.101 to the heart of the mechanic at say, their args at ref, no skills',
         () => {
           // 101 is a contract with director seats: a dropped cue, or an overlay that slips in, must fail here
           const subject101 = bootYml['subject.101'];
           expect(subject101?.briefs?.say).toEqual([
+            'briefs/practices/lang.tones/rule.im_an.ehmpathy_seaturtle.md',
+            'briefs/practices/lang.prose/define.wick-dense.md',
+            'briefs/practices/lang.terms/rule.require.ubiqlang.md',
+            'briefs/practices/lang.terms/rule.require.treestruct.md',
+            'briefs/practices/lang.terms/rule.forbid.gerunds.md',
+            'briefs/practices/code.prod/evolvable.domain.operations/rule.require.get-set-gen-verbs.md',
+            'briefs/practices/code.prod/readable.narrative/rule.require.narrative-flow.md',
+            'briefs/practices/code.prod/readable.narrative/rule.forbid.else-branches.md',
+            'briefs/practices/code.prod/readable.narrative/rule.forbid.inline-decode-friction.md',
+            'briefs/practices/code.prod/readable.comments/rule.require.what-why-headers.md',
+            'briefs/practices/code.prod/evolvable.procedures/rule.require.input-context-pattern.md.pt1.md',
+            'briefs/practices/code.prod/evolvable.procedures/rule.require.arrow-only.md',
+            'briefs/practices/code.prod/pitofsuccess.procedures/rule.require.immutable-vars.md',
             'briefs/practices/code.prod/pitofsuccess.errors/rule.require.failfast.md',
             'briefs/practices/code.prod/pitofsuccess.errors/rule.require.failloud.md',
             'briefs/practices/code.prod/pitofsuccess.errors/rule.forbid.failhide.md.pt1.md',
@@ -302,7 +315,11 @@ describe('boot.yml consistency', () => {
             'briefs/practices/code.prod/pitofsuccess.errors/rule.require.qualified-error-headers.md',
             'briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.nonidempotent-mutations.md',
             'briefs/practices/code.prod/pitofsuccess.typedefs/rule.forbid.as-cast.md',
+            'briefs/practices/code.test/frames.behavior/rule.require.given-when-then.md',
+            'briefs/practices/code.test/scope.integration/rule.forbid.integration.mocks.md',
+            'briefs/practices/work.flow/rule.require.trust-but-verify.md',
             'briefs/practices/work.flow/diagnose/rule.require.clamp-edge-cases.md',
+            'briefs/practices/work.flow/rule.prefer.scouts-honor.md',
           ]);
           expect(subject101?.briefs?.ref).toEqual([
             'briefs/practices/code.prod/pitofsuccess.errors/rule.forbid.failhide.md.pt2.md',

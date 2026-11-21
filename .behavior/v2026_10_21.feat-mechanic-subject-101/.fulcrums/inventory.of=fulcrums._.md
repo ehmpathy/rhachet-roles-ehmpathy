@@ -22,3 +22,6 @@
 | F19 | rhachet 1.50.1 spends 20-40s per boot/cost spawn under load (fail-fast ~22s); 7 spawn `ETIMEDOUT` in the full suite → each spawn gets 120s, the two files a 300s jest clock | clean | best-guessed: A, raise the clocks; startup fix dreamed to rhachet | 85% |
 | F22 | main + `subject.101` costs 30,012 / 30,000 (+155 roster text, F7); list main's 8 `git.pull.watch` sub-files under `skills.not` (−81) → 29,931 | clean | best-guessed: A; named to the reviewer | 85% |
 | F15 | i004 items held: the `roles cost` clock (split at i006: 120s alone, 40s paired), the regenerated `settings.of.repo.json` (kept out of the commit), extra negative cases at acceptance, case 5 through a 101 seat's settings | clean | best-guessed: B, hold | 85% |
+| F23 | heart-sized mechanic 101 grows the full role to 30,185 / 30,000 via roster lines (F7) → role budget 30,500 | clean | ruled A 2026-11-20 by the efficiency director; pr body names it beside 30,185 | 85% |
+| F24 | which rows are the heart of each role: the readme maximizes, in cue form, from rows the role already says | clean | stands as guessed, 2026-11-20, efficiency director | 75% |
+| F25 | architect and ergonomist 101 caps: 6k and 3.5k, each clears its heart (a third breaches) | clean | stands as guessed, 2026-11-20, efficiency director | 80% |

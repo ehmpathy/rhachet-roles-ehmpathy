@@ -17,14 +17,31 @@ exports[`mechanic subject.101 given: [case1] a repo with role=mechanic linked fr
 exports[`mechanic subject.101 given: [case1] a repo with role=mechanic linked from the package when: [t0] a seat boots --subject 101 then: the say paths a seat reads match the snapshot, by section 1`] = `
 {
   "from101": [
+    "briefs/practices/code.prod/evolvable.domain.operations/rule.require.get-set-gen-verbs.md.min",
+    "briefs/practices/code.prod/evolvable.procedures/rule.require.arrow-only.md.min",
+    "briefs/practices/code.prod/evolvable.procedures/rule.require.input-context-pattern.md.pt1.md.min",
     "briefs/practices/code.prod/pitofsuccess.errors/rule.forbid.failhide.md.pt1.md.min",
     "briefs/practices/code.prod/pitofsuccess.errors/rule.require.exit-code-semantics.md.min",
     "briefs/practices/code.prod/pitofsuccess.errors/rule.require.failfast.md.min",
     "briefs/practices/code.prod/pitofsuccess.errors/rule.require.failloud.md",
     "briefs/practices/code.prod/pitofsuccess.errors/rule.require.qualified-error-headers.md.min",
     "briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.nonidempotent-mutations.md.min",
+    "briefs/practices/code.prod/pitofsuccess.procedures/rule.require.immutable-vars.md.min",
     "briefs/practices/code.prod/pitofsuccess.typedefs/rule.forbid.as-cast.md.min",
+    "briefs/practices/code.prod/readable.comments/rule.require.what-why-headers.md.min",
+    "briefs/practices/code.prod/readable.narrative/rule.forbid.else-branches.md.min",
+    "briefs/practices/code.prod/readable.narrative/rule.forbid.inline-decode-friction.md.min",
+    "briefs/practices/code.prod/readable.narrative/rule.require.narrative-flow.md.min",
+    "briefs/practices/code.test/frames.behavior/rule.require.given-when-then.md.min",
+    "briefs/practices/code.test/scope.integration/rule.forbid.integration.mocks.md.min",
+    "briefs/practices/lang.prose/define.wick-dense.md.min",
+    "briefs/practices/lang.terms/rule.forbid.gerunds.md.min",
+    "briefs/practices/lang.terms/rule.require.treestruct.md.min",
+    "briefs/practices/lang.terms/rule.require.ubiqlang.md.min",
+    "briefs/practices/lang.tones/rule.im_an.ehmpathy_seaturtle.md.min",
     "briefs/practices/work.flow/diagnose/rule.require.clamp-edge-cases.md.min",
+    "briefs/practices/work.flow/rule.prefer.scouts-honor.md.min",
+    "briefs/practices/work.flow/rule.require.trust-but-verify.md.min",
   ],
   "fromAlways": [],
 }
@@ -40,8 +57,8 @@ exports[`mechanic subject.101 given: [case1] a repo with role=mechanic linked fr
 exports[`mechanic subject.101 given: [case1] a repo with role=mechanic linked from the package when: [t1] the maintainer costs --subject 101 then: the readout a maintainer reads matches the snapshot 1`] = `
 "🧢 roles cost --repo ehmpathy --role mechanic --subject 101
    ├─ tokens  = <n> (full emitted payload, o200k_base)
-   ├─ budget  = 30,000 tokens (<pct>% used)
-   ├─ batches = 9 say · 1 ref
+   ├─ budget  = 30,500 tokens (<pct>% used)
+   ├─ batches = 26 say · 1 ref
    ├─ chrome  = <n> tokens (<pct>%) — stats blocks, xml, join seams
    │
    └─ where the tokens go

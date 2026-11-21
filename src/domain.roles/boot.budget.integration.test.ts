@@ -118,10 +118,44 @@ const getOneBootCostInPlace = (input: {
  * .what = the subjects that carry their own cap, apart from the role's whole-boot budget
  * .why = rhachet refuses a `budget:` inside a section, so a subject's own cap cannot live in
  *        boot.yml; it lives here
+ * .note = each 101 cap clears the heart it says with headroom, at a third to a half of its role's
+ *         budget; `cue` names one say row whose
+ *         booted body a seat acts on, and words that body must carry, so a path alone never passes
  */
-const SUBJECT_BUDGETS = [
-  { slugRole: 'mechanic', slugSubject: '101', tokens: 10_000 },
-] as const;
+const SUBJECT_BUDGETS: {
+  slugRole: string;
+  slugSubject: string;
+  tokens: number;
+  cue: { path: string; words: string[] };
+}[] = [
+  {
+    slugRole: 'mechanic',
+    slugSubject: '101',
+    tokens: 10_000,
+    cue: {
+      path: 'rule.require.exit-code-semantics.md',
+      words: ['2 = constraint', '1 = malfunction'],
+    },
+  },
+  {
+    slugRole: 'architect',
+    slugSubject: '101',
+    tokens: 6_000,
+    cue: {
+      path: 'define.domain-operation-grains.md',
+      words: ['transformer', 'communicator', 'orchestrator'],
+    },
+  },
+  {
+    slugRole: 'ergonomist',
+    slugSubject: '101',
+    tokens: 3_500,
+    cue: {
+      path: 'def.ergonomic.md',
+      words: ['errors name the fix', 'zero surprises'],
+    },
+  },
+];
 
 /**
  * .what = a boot spec that holds one subject's section and an empty `always`
@@ -239,8 +273,8 @@ const TOKENS_PER_ROSTER_LINE_MAX = 30;
 /**
  * .what = the slugs of a capped role's other subjects, read at collection
  * .why = each gets its own then, so each spawn pair fits jest's per-test clock
- * .note = a stale role row reads [] here; `[t0]` and `[t3]` fail it loud, and `[t4]` asserts the
- *         list is not empty, so a stale row cannot pass the isolation walk as vacuous
+ * .note = a stale role row reads [] here; `[t0]` and `[t3]` fail it loud, and `[t4]` looks up the
+ *         role, so an empty list means a role with no other subject, never a stale row
  */
 const getAllOtherSubjectSlugs = (input: {
   roles: { slug: string; boot?: { uri: string } }[];
@@ -522,7 +556,7 @@ describe('boot.budget', () => {
             'the boot a seat reads sheds always, so it reads no more than the slice',
             () => {
               // the subject declares `inherit: { always: false }`; were `always` absorbed, the seat
-              // would read ~19k more than the slice, so a dropped opt-out fails here
+              // would read all of `always` more than the slice, so a dropped opt-out fails here
               const breach = asSubjectCapBreach({
                 slugRole: cap.slugRole,
                 slugSubject: cap.slugSubject,
@@ -586,16 +620,13 @@ describe('boot.budget', () => {
               );
             });
 
-            then('the booted exit-code cue names 2 for a constraint', () => {
-              // a cure reads this cue to pick its exit code; the path alone proves only that it boots
+            then('the booted cue carries the words a seat acts on', () => {
+              // a seat acts on the body; the path alone proves only that it boots
               const cue =
                 boot.output
                   .split('<brief.say path="')
-                  .find((block) =>
-                    block.includes('rule.require.exit-code-semantics.md'),
-                  ) ?? '';
-              expect(cue).toContain('2 = constraint');
-              expect(cue).toContain('1 = malfunction');
+                  .find((block) => block.includes(cap.cue.path)) ?? '';
+              for (const word of cap.cue.words) expect(cue).toContain(word);
             });
 
             then('its ref roster holds exactly the section ref rows', () => {
@@ -711,9 +742,37 @@ describe('boot.budget', () => {
               };
             });
 
-            then('the walk has other subjects to cost', () => {
-              expect(slugsOther.length).toBeGreaterThan(0);
+            then('the walk reads a role that exists', () => {
+              // a stale role row reads [] at collection; look it up here, so an empty walk means
+              // the role holds no other subject, never that the row went stale
+              expect(() =>
+                getOneCappedRoleSpecPath({ roles, slugRole: cap.slugRole }),
+              ).not.toThrow();
             });
+
+            then(
+              'each say row of the section is say in another section too',
+              () => {
+                // a say row new to the role adds its whole body to the full boot; a re-claim adds a line
+                const bootYml = bootYmlTestKit.parse({
+                  path: join(
+                    dirRepo,
+                    getOneCappedRoleSpecPath({ roles, slugRole: cap.slugRole }),
+                  ),
+                });
+                const sayOfSection =
+                  bootYml[`subject.${cap.slugSubject}`]?.briefs?.say ?? [];
+                const sayElsewhere = Object.entries(bootYml)
+                  .filter(
+                    ([section]) => section !== `subject.${cap.slugSubject}`,
+                  )
+                  .flatMap(([, subject]) => subject.briefs?.say ?? []);
+                expect(sayOfSection.length).toBeGreaterThan(0);
+                expect(
+                  sayOfSection.filter((path) => !sayElsewhere.includes(path)),
+                ).toEqual([]);
+              },
+            );
 
             slugsOther.forEach((slugOther) => {
               then(`subject.${slugOther} costs the same either way`, () => {

@@ -1,8 +1,140 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
+exports[`boot.budget given: [cap.architect.101] the architect subject.101 section alone, under its cap when: [t0] its section is costed alone, apart from always then: its slice fits within its cap 1`] = `
+{
+  "slice": "≈ 5k / ≈ 6k tokens (section alone)",
+}
+`;
+
+exports[`boot.budget given: [cap.architect.101] the architect subject.101 section alone, under its cap when: [t1] its slice is booted, as a seat focused on it would boot then: the paths a seat sees match the snapshot 1`] = `
+{
+  "ref": [
+    "briefs/practices/domain.discovery/howto.dimensional-decomposition.md",
+    "briefs/practices/domain.discovery/howto.domain-discovery.md",
+    "briefs/practices/domain.discovery/rule.require.persist-domain-term-evidence.md",
+    "briefs/practices/domain.operations/philosophy.transformer-orchestrator-separation.[philosophy].md",
+    "briefs/practices/domain.operations/rule.require.fewer-paths-via-idempotency.md",
+    "briefs/practices/domain.operations/rule.require.orchestrators-as-narrative.md",
+    "briefs/practices/lang.prose/define.simplified-technical-english.md",
+    "briefs/practices/philosophy.domain-as-a-garden.[philosophy].md",
+    "briefs/practices/repo.structure/rule.prefer.most-common-denominator.md",
+  ],
+  "say": [
+    "briefs/practices/domain.discovery/def.domain-discovery.md",
+    "briefs/practices/domain.discovery/rule.require.domain-discovery-for-term-proposals.md",
+    "briefs/practices/domain.operations/define.domain-operation-grains.md",
+    "briefs/practices/domain.operations/rule.forbid.decode-friction-in-orchestrators.md",
+    "briefs/practices/domain.operations/rule.require.idempotent-operations.md",
+    "briefs/practices/lang.prose/define.wick-dense.md",
+    "briefs/practices/lang.prose/rule.require.brevity.md",
+    "briefs/practices/rule.require.solve-at-cause.md",
+  ],
+  "skills": [],
+}
+`;
+
+exports[`boot.budget given: [cap.architect.101] the architect subject.101 section alone, under its cap when: [t2] a slice over its cap is judged then: it fails with the named breach 1`] = `
+"✋ ConstraintError: subject.101 boots past its cap
+slugRole:
+  architect
+tokens:
+  2,900
+cap:
+  2,899
+hint:
+  move a say row to ref, or condense it to a .min"
+`;
+
+exports[`boot.budget given: [cap.architect.101] the architect subject.101 section alone, under its cap when: [t3] its row goes stale then: an absent role fails loud, with the fix named 1`] = `
+"✋ ConstraintError: a capped subject names a role with no boot spec
+slugRole:
+  architect
+hint:
+  fix the slugRole in SUBJECT_BUDGETS"
+`;
+
+exports[`boot.budget given: [cap.architect.101] the architect subject.101 section alone, under its cap when: [t3] its row goes stale then: an absent subject fails loud, with the fix named 1`] = `
+"✋ ConstraintError: subject with a cap is absent from its boot.yml
+slugSubject:
+  101
+hint:
+  drop the row from SUBJECT_BUDGETS, or restore the subject"
+`;
+
+exports[`boot.budget given: [cap.architect.101] the architect subject.101 section alone, under its cap when: [t3] its row goes stale then: an emptied subject fails loud, with the fix named 1`] = `
+"✋ ConstraintError: subject with a cap says no brief
+slugSubject:
+  101
+hint:
+  restore its say rows, or drop the row from SUBJECT_BUDGETS"
+`;
+
+exports[`boot.budget given: [cap.ergonomist.101] the ergonomist subject.101 section alone, under its cap when: [t0] its section is costed alone, apart from always then: its slice fits within its cap 1`] = `
+{
+  "slice": "≈ 3k / ≈ 4k tokens (section alone)",
+}
+`;
+
+exports[`boot.budget given: [cap.ergonomist.101] the ergonomist subject.101 section alone, under its cap when: [t1] its slice is booted, as a seat focused on it would boot then: the paths a seat sees match the snapshot 1`] = `
+{
+  "ref": [
+    "briefs/fundamentals/def.frictionless.md",
+    "briefs/fundamentals/ref.ergonomics.fundamentals.md",
+    "briefs/fundamentals/rule.forbid.ambiguous-labels.md",
+    "briefs/fundamentals/rule.prefer.defaults-match-common-case.md",
+    "briefs/fundamentals/rule.prefer.prevent-over-correct.md",
+    "briefs/fundamentals/rule.require.help-on-demand.md",
+  ],
+  "say": [
+    "briefs/fundamentals/def.ergonomic.md",
+    "briefs/fundamentals/rule.require.discoverability.md",
+    "briefs/fundamentals/rule.require.errors-name-the-fix.md",
+    "briefs/fundamentals/rule.require.safe-by-default.md",
+    "briefs/fundamentals/rule.require.status-feedback.md",
+  ],
+  "skills": [],
+}
+`;
+
+exports[`boot.budget given: [cap.ergonomist.101] the ergonomist subject.101 section alone, under its cap when: [t2] a slice over its cap is judged then: it fails with the named breach 1`] = `
+"✋ ConstraintError: subject.101 boots past its cap
+slugRole:
+  ergonomist
+tokens:
+  2,900
+cap:
+  2,899
+hint:
+  move a say row to ref, or condense it to a .min"
+`;
+
+exports[`boot.budget given: [cap.ergonomist.101] the ergonomist subject.101 section alone, under its cap when: [t3] its row goes stale then: an absent role fails loud, with the fix named 1`] = `
+"✋ ConstraintError: a capped subject names a role with no boot spec
+slugRole:
+  ergonomist
+hint:
+  fix the slugRole in SUBJECT_BUDGETS"
+`;
+
+exports[`boot.budget given: [cap.ergonomist.101] the ergonomist subject.101 section alone, under its cap when: [t3] its row goes stale then: an absent subject fails loud, with the fix named 1`] = `
+"✋ ConstraintError: subject with a cap is absent from its boot.yml
+slugSubject:
+  101
+hint:
+  drop the row from SUBJECT_BUDGETS, or restore the subject"
+`;
+
+exports[`boot.budget given: [cap.ergonomist.101] the ergonomist subject.101 section alone, under its cap when: [t3] its row goes stale then: an emptied subject fails loud, with the fix named 1`] = `
+"✋ ConstraintError: subject with a cap says no brief
+slugSubject:
+  101
+hint:
+  restore its say rows, or drop the row from SUBJECT_BUDGETS"
+`;
+
 exports[`boot.budget given: [cap.mechanic.101] the mechanic subject.101 section alone, under its cap when: [t0] its section is costed alone, apart from always then: its slice fits within its cap 1`] = `
 {
-  "slice": "≈ 3k / ≈ 10k tokens (section alone)",
+  "slice": "≈ 9k / ≈ 10k tokens (section alone)",
 }
 `;
 
@@ -17,14 +149,31 @@ exports[`boot.budget given: [cap.mechanic.101] the mechanic subject.101 section 
     "briefs/practices/work.flow/diagnose/rule.require.test-covered-repairs.md",
   ],
   "say": [
+    "briefs/practices/code.prod/evolvable.domain.operations/rule.require.get-set-gen-verbs.md",
+    "briefs/practices/code.prod/evolvable.procedures/rule.require.arrow-only.md",
+    "briefs/practices/code.prod/evolvable.procedures/rule.require.input-context-pattern.md.pt1.md",
     "briefs/practices/code.prod/pitofsuccess.errors/rule.forbid.failhide.md.pt1.md",
     "briefs/practices/code.prod/pitofsuccess.errors/rule.require.exit-code-semantics.md",
     "briefs/practices/code.prod/pitofsuccess.errors/rule.require.failfast.md",
     "briefs/practices/code.prod/pitofsuccess.errors/rule.require.failloud.md",
     "briefs/practices/code.prod/pitofsuccess.errors/rule.require.qualified-error-headers.md",
     "briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.nonidempotent-mutations.md",
+    "briefs/practices/code.prod/pitofsuccess.procedures/rule.require.immutable-vars.md",
     "briefs/practices/code.prod/pitofsuccess.typedefs/rule.forbid.as-cast.md",
+    "briefs/practices/code.prod/readable.comments/rule.require.what-why-headers.md",
+    "briefs/practices/code.prod/readable.narrative/rule.forbid.else-branches.md",
+    "briefs/practices/code.prod/readable.narrative/rule.forbid.inline-decode-friction.md",
+    "briefs/practices/code.prod/readable.narrative/rule.require.narrative-flow.md",
+    "briefs/practices/code.test/frames.behavior/rule.require.given-when-then.md",
+    "briefs/practices/code.test/scope.integration/rule.forbid.integration.mocks.md",
+    "briefs/practices/lang.prose/define.wick-dense.md",
+    "briefs/practices/lang.terms/rule.forbid.gerunds.md",
+    "briefs/practices/lang.terms/rule.require.treestruct.md",
+    "briefs/practices/lang.terms/rule.require.ubiqlang.md",
+    "briefs/practices/lang.tones/rule.im_an.ehmpathy_seaturtle.md",
     "briefs/practices/work.flow/diagnose/rule.require.clamp-edge-cases.md",
+    "briefs/practices/work.flow/rule.prefer.scouts-honor.md",
+    "briefs/practices/work.flow/rule.require.trust-but-verify.md",
   ],
   "skills": [],
 }

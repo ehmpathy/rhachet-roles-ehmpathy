@@ -35,3 +35,32 @@ always:
       - briefs/rule.forbid.surprises.md
       - briefs/rule.prefer.symmetric-term-pairs.md
       - briefs/cli/rule.require.treestruct-output.md
+
+# .what = the heart of the ergonomist, in cue form: the ergonomic rubric, and the four rules a
+#         human meets first — find the next move, see status, recover from errors, stay safe
+# .why  = a seat outside ergonomist enrolls ergonomist::101 for the heart, without the full role's boot
+# .note = sheds `always`: a 101 seat boots this section alone. rhachet refuses a budget inside a
+#         section, so boot.budget.integration.test.ts caps it at 3.5k
+# .note = each say row is say in `always` too, so the full role gains no brief body
+subject.101:
+  inherit:
+    always: false
+  briefs:
+    say:
+      # the rubric — each line names the rule that backs it
+      - briefs/fundamentals/def.ergonomic.md
+
+      # the rules a human meets first
+      - briefs/fundamentals/rule.require.discoverability.md
+      - briefs/fundamentals/rule.require.status-feedback.md
+      - briefs/fundamentals/rule.require.errors-name-the-fix.md
+      - briefs/fundamentals/rule.require.safe-by-default.md
+
+    ref:
+      # the rest of the rubric's rules, and the canon each traces to
+      - briefs/fundamentals/def.frictionless.md
+      - briefs/fundamentals/rule.forbid.ambiguous-labels.md
+      - briefs/fundamentals/rule.prefer.defaults-match-common-case.md
+      - briefs/fundamentals/rule.prefer.prevent-over-correct.md
+      - briefs/fundamentals/rule.require.help-on-demand.md
+      - briefs/fundamentals/ref.ergonomics.fundamentals.md
