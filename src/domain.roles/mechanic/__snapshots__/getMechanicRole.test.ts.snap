@@ -29,6 +29,12 @@ exports[`getMechanicRole given: [case1] the mechanic role definition when: [t4] 
           "timeout": "PT30S",
         },
       ],
+      "onStop": [
+        {
+          "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/stop.git-package-patch.sh",
+          "timeout": "PT30S",
+        },
+      ],
       "onTalk": [
         {
           "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/userpromptsubmit.git-pull-watch.sh",
