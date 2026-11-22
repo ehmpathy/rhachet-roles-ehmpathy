@@ -197,7 +197,9 @@ ${input.content}`;
  */
 export const extractKernels = withSimpleCacheAsync(_extractKernels, {
   cache: kernelizeCache,
+  deserialize: { value: (cached: string) => JSON.parse(cached) },
   serialize: {
+    value: (output) => JSON.stringify(output),
     key: (input) =>
       genKernelizeCacheKey({
         content: input.content,

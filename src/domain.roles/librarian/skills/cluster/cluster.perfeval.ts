@@ -80,7 +80,9 @@ const clusterKernels = withSimpleCacheAsync(
   },
   {
     cache: perfevalCache,
+    deserialize: { value: (cached: string) => JSON.parse(cached) },
     serialize: {
+      value: (output) => JSON.stringify(output),
       key: (...forInput: any[]) => {
         const input = forInput[0];
         const kernelHash = createHash('sha256')

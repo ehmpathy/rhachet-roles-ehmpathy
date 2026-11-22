@@ -256,7 +256,9 @@ ${kernelList}`;
  */
 export const clusterKernels = withSimpleCacheAsync(_clusterKernels, {
   cache: clusterCache,
+  deserialize: { value: (cached: string) => JSON.parse(cached) },
   serialize: {
+    value: (output) => JSON.stringify(output),
     key: (input) =>
       genClusterCacheKey({
         kernels: input.kernels,

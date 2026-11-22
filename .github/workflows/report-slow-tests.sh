@@ -32,11 +32,19 @@ if [[ "$total" -eq 0 ]]; then
   exit 0
 fi
 
-# a non-empty testResults that yields zero real durations means the jest --json duration
-# schema changed again — the silent death this check exists to catch. fail loud, never silent-green.
+# a file whose tests were all skipped never ran, so it carries no duration. count only the files
+# where a test ran (passed or failed); a shard of skipped files alone is legitimate, like an empty one.
+ran=$(jq '[.testResults[] | select(any(.assertionResults[]?; .status == "passed" or .status == "failed"))] | length' "$results")
+if [[ "$ran" -eq 0 ]]; then
+  echo "slow-test report: no test ran in $total test files of $results (all skipped)" >> "$summary"
+  exit 0
+fi
+
+# files that ran yet yield zero real durations mean the jest --json duration schema changed
+# again — the silent death this check exists to catch. fail loud, never silent-green.
 nonzero=$(printf '%s\n' "$durations" | awk -F: '$1 > 0' | wc -l | tr -d ' ')
 if [[ "$nonzero" -eq 0 ]]; then
-  echo "::error::slow-test report parsed 0 durations from $total test files — the jest --json duration schema likely changed; read endTime/startTime from one entry of $results to see what moved"
+  echo "::error::slow-test report parsed 0 durations from $ran test files that ran — the jest --json duration schema likely changed; read endTime/startTime from one entry of $results to see what moved"
   exit 1
 fi
 

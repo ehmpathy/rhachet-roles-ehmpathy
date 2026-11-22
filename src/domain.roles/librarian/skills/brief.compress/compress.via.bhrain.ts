@@ -461,7 +461,9 @@ const genCacheKey = (input: {
  */
 export const compressViaBhrain = withSimpleCacheAsync(_compressViaBhrain, {
   cache: compressionCache,
+  deserialize: { value: (cached: string) => JSON.parse(cached) },
   serialize: {
+    value: (output) => JSON.stringify(output),
     key: (input) =>
       genCacheKey({
         content: input.content,
