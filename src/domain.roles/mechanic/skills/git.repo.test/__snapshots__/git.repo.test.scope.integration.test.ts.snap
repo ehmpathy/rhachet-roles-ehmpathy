@@ -24,7 +24,9 @@ options:
                         local = test against local server (test:acceptance:locally)
                         cloud = test against deployed service (test:acceptance)
                         note: --env test --against cloud is invalid
-  --timeout <secs>    max time in seconds before timeout
+  --timeout <secs>    bound in whole seconds for the whole call (default and max: 420)
+                        a call past it is cut short and exits 2: the slow suite is yours to root cause
+                        may only narrow the bound, e.g. --timeout 120
   --log <mode>        auto | always (default: auto)
                         auto = persist logs on failure only
                         always = persist logs on success and failure
@@ -93,6 +95,8 @@ exports[`git.repo.test.sh scope given: [case4] scope with --mode apply (executio
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/myfeature.test.js
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -216,7 +220,18 @@ exports[`git.repo.test.sh scope given: [case10] scope with special characters wh
 `;
 
 exports[`git.repo.test.sh scope given: [case11] scope with name:// that matches no tests at runtime when: [t0] --scope name://nonexistent --mode apply is used then: stderr matches snapshot 1`] = `
-"├─ status: constraint
+"🐢 bummer dude...
+
+🐚 git.repo.test --what unit --scope name://nonexistent --mode apply --thorough
+   ├─ scope: name://nonexistent
+   │  └─ matched: 2 files
+   ├─ files
+   │  ├─ src/myfeature.test.js
+   │  └─ src/other.test.js
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
+   │  └─ ✋ constraint
    └─ error: no tests matched scope 'name://nonexistent'
 
 hint: check the scope pattern or run without --scope to see all tests"
@@ -231,10 +246,12 @@ exports[`git.repo.test.sh scope given: [case11] scope with name:// that matches 
    ├─ files
    │  ├─ src/myfeature.test.js
    │  └─ src/other.test.js
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
-   ├─ status: constraint
+   │  └─ ✋ constraint
    └─ error: no tests matched scope 'name://nonexistent'
 
 hint: check the scope pattern or run without --scope to see all tests"
@@ -267,6 +284,8 @@ exports[`git.repo.test.sh scope given: [case13] scope with path:// matches multi
    ├─ files
    │  ├─ src/feature-a.test.js
    │  └─ src/feature-b.test.js
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -281,7 +300,18 @@ exports[`git.repo.test.sh scope given: [case13] scope with path:// matches multi
 `;
 
 exports[`git.repo.test.sh scope given: [case14] scope with name:// prefix --mode apply when: [t0] --scope name://passes --mode apply is used then: stderr matches snapshot 1`] = `
-"├─ status: constraint
+"🐢 bummer dude...
+
+🐚 git.repo.test --what unit --scope name://passes --mode apply --thorough
+   ├─ scope: name://passes
+   │  └─ matched: 2 files
+   ├─ files
+   │  ├─ src/myfeature.test.js
+   │  └─ src/other.test.js
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
+   │  └─ ✋ constraint
    └─ error: no tests matched scope 'name://passes'
 
 hint: check the scope pattern or run without --scope to see all tests"
@@ -296,10 +326,12 @@ exports[`git.repo.test.sh scope given: [case14] scope with name:// prefix --mode
    ├─ files
    │  ├─ src/myfeature.test.js
    │  └─ src/other.test.js
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
-   ├─ status: constraint
+   │  └─ ✋ constraint
    └─ error: no tests matched scope 'name://passes'
 
 hint: check the scope pattern or run without --scope to see all tests"
@@ -316,6 +348,8 @@ exports[`git.repo.test.sh scope given: [case15] scope with name:// prefix --mode
    ├─ files
    │  ├─ src/myfeature.test.js
    │  └─ src/other.test.js
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -330,7 +364,14 @@ exports[`git.repo.test.sh scope given: [case15] scope with name:// prefix --mode
 `;
 
 exports[`git.repo.test.sh scope given: [case16] scope with invalid:// prefix --mode apply when: [t0] --scope invalid://foo --mode apply is used then: stderr matches snapshot 1`] = `
-"├─ status: constraint
+"🐢 bummer dude...
+
+🐚 git.repo.test --what unit --scope invalid://foo --mode apply --thorough
+   ├─ scope: path://invalid://foo
+   │  └─ matched: 0 files
+   ├─ files
+   │  └─ (none)
+   ├─ status: constraint
    └─ error: no tests matched scope 'path://invalid://foo'
 
 hint: check the scope pattern or run without --scope to see all tests"
@@ -412,6 +453,8 @@ exports[`git.repo.test.sh scope given: [case19] stacked scopes: path + name in a
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/feature-a.test.js
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -426,7 +469,17 @@ exports[`git.repo.test.sh scope given: [case19] stacked scopes: path + name in a
 `;
 
 exports[`git.repo.test.sh scope given: [case20] stacked scopes: path matches but name matches no tests when: [t0] --scope feature --scope name://nonexistent --mode apply then: stderr matches snapshot 1`] = `
-"├─ status: constraint
+"🐢 bummer dude...
+
+🐚 git.repo.test --what unit --scope feature --scope name://nonexistent --mode apply --thorough
+   ├─ scope: path://feature, name://nonexistent
+   │  └─ matched: 1 files
+   ├─ files
+   │  └─ src/feature-a.test.js
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
+   │  └─ ✋ constraint
    └─ error: no tests matched scope 'path://feature, name://nonexistent'
 
 hint: check the scope pattern or run without --scope to see all tests"
@@ -440,10 +493,12 @@ exports[`git.repo.test.sh scope given: [case20] stacked scopes: path matches but
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/feature-a.test.js
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
-   ├─ status: constraint
+   │  └─ ✋ constraint
    └─ error: no tests matched scope 'path://feature, name://nonexistent'
 
 hint: check the scope pattern or run without --scope to see all tests"
@@ -488,7 +543,19 @@ exports[`git.repo.test.sh scope given: [case22] stacked scopes: two path scopes 
 `;
 
 exports[`git.repo.test.sh scope given: [case23] stacked scopes: two name scopes when: [t0] --scope name://feature-a --scope name://passes --mode apply then: stderr matches snapshot 1`] = `
-"├─ status: constraint
+"🐢 bummer dude...
+
+🐚 git.repo.test --what unit --scope name://feature-a --scope name://passes --mode apply --thorough
+   ├─ scope: name://feature-a, name://passes
+   │  └─ matched: 3 files
+   ├─ files
+   │  ├─ src/feature-a.test.js
+   │  ├─ src/feature-b.test.js
+   │  └─ src/other.test.js
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
+   │  └─ ✋ constraint
    └─ error: no tests matched scope 'name://feature-a, name://passes'
 
 hint: check the scope pattern or run without --scope to see all tests"
@@ -504,10 +571,12 @@ exports[`git.repo.test.sh scope given: [case23] stacked scopes: two name scopes 
    │  ├─ src/feature-a.test.js
    │  ├─ src/feature-b.test.js
    │  └─ src/other.test.js
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
-   ├─ status: constraint
+   │  └─ ✋ constraint
    └─ error: no tests matched scope 'name://feature-a, name://passes'
 
 hint: check the scope pattern or run without --scope to see all tests"

@@ -23,7 +23,7 @@ describe('git.repo.test.sh scope', () => {
   const sanitizeOutput = (output: string): string =>
     maskSpinnerTicks(output)
       .replace(/\(\d+m?s\)/g, '(Xs)') // time values
-      .replace(/\d+m?s/g, 'Xs') // time without parens
+      .replace(/(?<!(bound: |run past )\d*)\d+m?s/g, 'Xs') // time without parens; the bound and its clock figure are fixed, so they stay
       // collapse the keyrack refusal frame to one shape. one command can
       // render `✋ blocked: X` or `✋ ConstraintError: X` plus owner/ran rows,
       // per ambient keyrack state; the message is the signal

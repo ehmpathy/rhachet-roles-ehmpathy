@@ -24,13 +24,15 @@
 #   git.repo.test.sh --what unit --mode apply --resnap     # update snapshots
 #   git.repo.test.sh --what unit --mode apply --thorough   # run full suite
 #   git.repo.test.sh --what integration --mode apply --env prep  # unlock keyrack for prep, set CONFIG=prep
+#   git.repo.test.sh --what unit --mode apply --timeout 120  # narrow the bound
+#
+# bound: 420s for the whole call (also the max), or a lower --timeout <secs>;
+#   past it: "woah, too slow", exit 2
 #
 # acceptance requires --against local|cloud and --env test|prep|prod
 #   (cloud + prod = smoke test; cloud + test is invalid, test is not deployed)
 #
-# mode:
-#   plan   - preview matched files (default)
-#   apply  - execute tests
+# mode: plan (default) previews matched files; apply runs tests
 #
 # scope patterns:
 #   'foo'           - match file path (default)
@@ -38,11 +40,8 @@
 #   'name://foo'    - match test/describe name (jest --testNamePattern)
 #   (multiple --scope flags stack together)
 #
-# best practice: stack path + name for fastest feedback loops
-#   1. start narrow: --scope path://myfeature --scope name://case3
-#   2. widen path:   --scope path://myfeature (all tests in file)
-#   3. widen name:   --scope name://case3 (all files, one test)
-#   4. full suite:   (no --scope) only to verify no regressions
+# best practice: start narrow (--scope path://myfeature --scope name://case3),
+#   widen one scope at a time, and run the full suite (no --scope) last
 #
 # guarantee:
 #   - logs raw output to .log/role=mechanic/skill=git.repo.test/what=${WHAT}/
@@ -59,6 +58,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # source shared output operations
 CLAUDE_TOOLS_DIR="$SCRIPT_DIR/../claude.tools"
 source "$CLAUDE_TOOLS_DIR/output.sh"
+
+# source bound operations (run_bounded, stop_bounded_run, is_bound_valid, get_bound_label)
+source "$SCRIPT_DIR/git.repo.test.operations.sh"
 
 ######################################################################
 # helper: emit to both stdout and stderr
@@ -154,6 +156,75 @@ stop_timer() {
 
 # cleanup timer on exit
 trap 'stop_timer; rm -f "$TEMP_STDOUT" "$TEMP_STDERR"' EXIT
+
+# a caller's abort (ctrl-c, a harness kill) must reach the suite: the fuse runs it
+# in its own process group, out of reach of the signal sent to this skill
+MULTI_CHILD_PID=""  # the multi-mode child in flight; empty when none
+STDOUT_LOG=""       # set once the log paths are known; read by the abort
+STDERR_LOG=""
+
+######################################################################
+# .what = stop the run in flight on a caller's abort, and keep its logs
+# .why  = a stopped run must free the seat and core at once, and must leave
+#         its partial output where the caller can Read it
+######################################################################
+stop_run_on_abort() {
+  # forward to a multi-mode child, whose own trap stops its suite
+  if [[ -n "$MULTI_CHILD_PID" ]]; then
+    kill -TERM "$MULTI_CHILD_PID" 2>/dev/null || true
+    wait "$MULTI_CHILD_PID" 2>/dev/null || true
+  fi
+  # the status tree is open only while its timer runs; note that before it stops
+  local in_status=false
+  [[ -n "$TIMER_PID" ]] && in_status=true
+  stop_bounded_run
+  stop_timer
+
+  # keep what a single-type run wrote so far, and say where
+  # .note = a multi-mode parent runs no suite itself; each child keeps its own
+  [[ -z "$STDOUT_LOG" || "${MULTI_MODE:-false}" == "true" ]] && return 0
+  [[ -f "$TEMP_STDOUT" ]] && cp "$TEMP_STDOUT" "$STDOUT_LOG" 2>/dev/null
+  [[ -f "$TEMP_STDERR" ]] && cp "$TEMP_STDERR" "$STDERR_LOG" 2>/dev/null
+  # the run ends non-zero, so the notice goes to both streams: stdout continues
+  # its tree, stderr gets the whole frame
+  print_stop_on_abort "$in_status"
+  {
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.repo.test ${DISPLAY_ARGS:-}"
+    [[ -n "${KEYRACK_STATUS:-}" ]] && print_tree_branch "keyrack" "$KEYRACK_STATUS"
+    [[ -n "${SCOPE_PREVIEW_OUTPUT:-}" ]] && echo "$SCOPE_PREVIEW_OUTPUT"
+    if [[ "$in_status" == "true" ]]; then
+      print_bound_notice
+      echo "   ├─ status"
+    fi
+    print_stop_on_abort "$in_status"
+  } >&2
+  return 0
+}
+
+######################################################################
+# .what = say the run was stopped, and where its partial log is
+# .why  = mid-run, the stop closes the open status tree in place; before the
+#         status tree opens, it stands as its own tree
+######################################################################
+print_stop_on_abort() {
+  local rel_stdout="${STDOUT_LOG#"${REPO_ROOT:-}"/}"
+  local rel_stderr="${STDERR_LOG#"${REPO_ROOT:-}"/}"
+  if [[ "$1" == "true" ]]; then
+    echo "   │  └─ 🌙 stopped by the caller"
+    echo "   └─ log"
+    echo "      ├─ stdout: $rel_stdout"
+    echo "      └─ stderr: $rel_stderr"
+    return 0
+  fi
+  echo "   └─ 🌙 stopped by the caller, before the run began"
+  echo "      ├─ stdout: $rel_stdout"
+  echo "      └─ stderr: $rel_stderr"
+}
+
+trap 'stop_run_on_abort; exit 130' INT
+trap 'stop_run_on_abort; exit 143' TERM
+trap 'stop_run_on_abort; exit 129' HUP
 
 ######################################################################
 # validate jest config exists for unit/integration/acceptance
@@ -427,7 +498,8 @@ output_plan_mode() {
   local resnap="${6:-false}"
   local max_display=21
 
-  print_turtle_header "heres the wave..."
+  # a multi-mode child runs under its parent's header, as in apply mode
+  [[ "$MULTI_CHILD" != "true" ]] && print_turtle_header "heres the wave..."
   print_tree_start "git.repo.test $display_args"
 
   # show scope info
@@ -547,8 +619,11 @@ RESNAP=false
 THOROUGH=false
 LOG_MODE="auto"  # auto | always (auto = persist on failure; always = persist always)
 MULTI_CHILD=false  # internal flag: set when invoked as child of multi-mode
-TIMEOUT=""  # optional timeout in seconds (e.g., "30" for 30s)
+BOUND_SECONDS=""  # bound in seconds; empty = the default (GIT_REPO_TEST_BOUND_DEFAULT)
+BOUND_SOURCE="default"  # default | --timeout
+BOUND_LEFT=""  # internal: the seconds a multi-mode call has left; empty outside one
 ENV_NAME=""  # keyrack environment: test | prep | prod (default: test, required for acceptance)
+ENV_GIVEN=""  # the --env the caller passed, before any default; a rerun command echoes only this
 AGAINST=""  # test target: local | cloud (required for acceptance)
 REST_ARGS=()
 
@@ -585,6 +660,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     --env)
       ENV_NAME="$2"
+      ENV_GIVEN="$2"
       shift 2
       ;;
     --against)
@@ -617,9 +693,26 @@ while [[ $# -gt 0 ]]; do
       MULTI_CHILD=true
       shift
       ;;
-    --timeout)
-      TIMEOUT="$2"
+    --_bound-left)
+      BOUND_LEFT="$2"
       shift 2
+      ;;
+    --timeout)
+      # a value that is absent or another flag is no value: leave the flag to its own arm,
+      # so the guard below names the real fault, not an "unknown argument" one flag later
+      # a negative number (`-5`) is a bad value, not a flag: take it, so the guard names it
+      BOUND_SOURCE="--timeout"
+      BOUND_SECONDS=""
+      shift
+      if [[ $# -gt 0 ]] && { [[ "$1" != -* ]] || [[ "$1" =~ ^-[0-9] ]]; }; then
+        BOUND_SECONDS="$1"
+        shift
+      fi
+      ;;
+    --timeout=*)
+      BOUND_SOURCE="--timeout"
+      BOUND_SECONDS="${1#--timeout=}"
+      shift
       ;;
     --)
       shift
@@ -648,7 +741,9 @@ while [[ $# -gt 0 ]]; do
       echo "                        local = test against local server (test:acceptance:locally)"
       echo "                        cloud = test against deployed service (test:acceptance)"
       echo "                        note: --env test --against cloud is invalid"
-      echo "  --timeout <secs>    max time in seconds before timeout"
+      echo "  --timeout <secs>    bound in whole seconds for the whole call (default and max: ${GIT_REPO_TEST_BOUND_MAX})"
+      echo "                        a call past it is cut short and exits 2: the slow suite is yours to root cause"
+      echo "                        may only narrow the bound, e.g. --timeout 120"
       echo "  --log <mode>        auto | always (default: auto)"
       echo "                        auto = persist logs on failure only"
       echo "                        always = persist logs on success and failure"
@@ -661,6 +756,58 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+######################################################################
+# .what = this call, as a command to rerun under another bound
+# .why  = a coconut's last line is the command the human copies; it must carry
+#         every flag the type needs (acceptance needs --against and --env), or
+#         the copy stops at parse instead of a rerun
+# usage: get_rerun_command <seconds>
+######################################################################
+get_rerun_command() {
+  echo "rhx git.repo.test${WHAT:+ --what $WHAT}${AGAINST:+ --against $AGAINST}${ENV_GIVEN:+ --env $ENV_GIVEN}${MODE:+ --mode $MODE} --timeout $1"
+}
+
+######################################################################
+# validate --timeout, then apply the default bound
+# a bad value stops here, before plan or apply, so a typo never reads as a red suite
+######################################################################
+if [[ "$BOUND_SOURCE" == "--timeout" ]] && ! is_bound_valid "$BOUND_SECONDS"; then
+  {
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.repo.test${WHAT:+ --what $WHAT} --timeout ${BOUND_SECONDS:-(empty)}"
+    echo "   └─ ✋ ConstraintError: --timeout must be whole seconds, e.g. --timeout 120"
+    echo ""
+    echo "🥥 did you know?"
+    # a value in minutes (`5m`) is the likeliest slip: name its seconds form, and rerun with it
+    bound_fix="$GIT_REPO_TEST_BOUND_DEFAULT"
+    [[ "$BOUND_SECONDS" =~ ^([1-9][0-9]*)m$ ]] && bound_fix=$((BASH_REMATCH[1] * 60)) &&
+      echo "   ├─ in seconds, $BOUND_SECONDS is --timeout $bound_fix"
+    is_bound_above_max "$bound_fix" && bound_fix="$GIT_REPO_TEST_BOUND_MAX"
+    echo "   ├─ --timeout narrows the bound, up to the ${GIT_REPO_TEST_BOUND_MAX}s max; omit it for the ${GIT_REPO_TEST_BOUND_DEFAULT}s default"
+    echo "   └─ rerun: $(get_rerun_command "$bound_fix")"
+  } | emit_to_both
+  exit 2
+fi
+
+# a bound above the max is refused: no call may run past it
+if [[ "$BOUND_SOURCE" == "--timeout" ]] && is_bound_above_max "$BOUND_SECONDS"; then
+  {
+    print_turtle_header "woah, too slow..."
+    print_tree_start "git.repo.test${WHAT:+ --what $WHAT} --timeout $BOUND_SECONDS"
+    echo "   └─ ✋ ConstraintError: --timeout $BOUND_SECONDS is past the ${GIT_REPO_TEST_BOUND_MAX}s max for any call"
+    echo "      └─ a suite that needs more is too slow: fix its speed, never its bound"
+    echo ""
+    echo "🥥 did you know?"
+    echo "   ├─ the max holds for the whole call, every type and every scope"
+    echo "   └─ rerun under the max: $(get_rerun_command "$GIT_REPO_TEST_BOUND_MAX")"
+  } | emit_to_both
+  exit 2
+fi
+[[ -z "$BOUND_SECONDS" ]] && BOUND_SECONDS="$GIT_REPO_TEST_BOUND_DEFAULT"
+
+# the fuse for this run: the whole bound, or what a multi-mode call has left of it
+BOUND_FUSE_SECONDS="${BOUND_LEFT:-$BOUND_SECONDS}"
 
 ######################################################################
 # parse scope patterns: uri format (path://foo, name://foo)
@@ -1114,6 +1261,7 @@ done
 [[ "$THOROUGH" == "true" ]] && DISPLAY_ARGS="$DISPLAY_ARGS --thorough"
 [[ -n "$AGAINST" ]] && DISPLAY_ARGS="$DISPLAY_ARGS --against $AGAINST"
 [[ -n "$ENV_NAME" ]] && [[ "$WHAT" == "acceptance" || "$ENV_NAME" != "test" ]] && DISPLAY_ARGS="$DISPLAY_ARGS --env $ENV_NAME"
+[[ "$BOUND_SOURCE" == "--timeout" ]] && DISPLAY_ARGS="$DISPLAY_ARGS --timeout $BOUND_SECONDS"
 
 ######################################################################
 # parse lint output (for defect count)
@@ -1155,7 +1303,9 @@ parse_jest_output() {
   fi
 
   # detect no tests matched
-  if grep -qE "No tests found|testPathPattern.*matched 0 files" "$stdout_file"; then
+  # .note = anchored to line start: jest prints its own notice there, while a failed
+  #         test's code frame or received value prints the same words indented
+  if grep -qE "^(No tests found|testPathPattern.*matched 0 files)" "$stdout_file"; then
     JEST_NO_TESTS=true
     return
   fi
@@ -1248,22 +1398,19 @@ run_single_test() {
     env_vars+=("THOROUGH=true")
   fi
 
-  # run command (with optional timeout, at lower priority to avoid lockup)
+  # the npm argv: the target, then `-- <jest args>` only when there are any
+  local -a npm_args=("run" "$npm_target")
+  [[ ${#jest_args[@]} -gt 0 ]] && npm_args+=("--" "${jest_args[@]}")
+
+  # run command under the bound, at lower priority to avoid lockup
   # use env + array execution to avoid bash -c string issues
+  # .note = run_bounded sets BOUND_OUTCOME; the caller reads it after this returns,
+  #         so this call stays in the current shell
+  # .note = the suite's streams go to the temp logs via --stdout/--stderr, never a
+  #         redirect on this call: that would move the skill's own fd 1 for the whole
+  #         call, so an abort trap that fires mid-run would write into the suite's log
   local exit_code=0
-  if [[ -n "$TIMEOUT" ]]; then
-    if [[ ${#jest_args[@]} -gt 0 ]]; then
-      timeout "${TIMEOUT}s" nice -n 5 env "${env_vars[@]}" npm run "$npm_target" -- "${jest_args[@]}" > "$temp_stdout" 2> "$temp_stderr" || exit_code=$?
-    else
-      timeout "${TIMEOUT}s" nice -n 5 env "${env_vars[@]}" npm run "$npm_target" > "$temp_stdout" 2> "$temp_stderr" || exit_code=$?
-    fi
-  else
-    if [[ ${#jest_args[@]} -gt 0 ]]; then
-      nice -n 5 env "${env_vars[@]}" npm run "$npm_target" -- "${jest_args[@]}" > "$temp_stdout" 2> "$temp_stderr" || exit_code=$?
-    else
-      nice -n 5 env "${env_vars[@]}" npm run "$npm_target" > "$temp_stdout" 2> "$temp_stderr" || exit_code=$?
-    fi
-  fi
+  run_bounded --stdout "$temp_stdout" --stderr "$temp_stderr" "$BOUND_FUSE_SECONDS" nice -n 5 env "${env_vars[@]}" npm "${npm_args[@]}" || exit_code=$?
 
   return $exit_code
 }
@@ -1355,6 +1502,9 @@ output_failure() {
     fi
     echo "   └─ log: $rel_stderr"
     echo ""
+    # a broken fuse names its own cause in the `💥 MalfunctionError` tree that follows;
+    # any other malfunction is npm's, told in the raw stderr that follows
+    [[ "$BOUND_OUTCOME" == "broken" ]] && return 0
     echo "npm command failed. check the log for details."
   else
     if [[ "$progressive" == "true" ]]; then
@@ -1397,13 +1547,18 @@ output_failure() {
 
 ######################################################################
 # output no tests matched
-# note: header/tree start already printed progressively
+# usage: output_no_tests <progressive> <has_scope> <in_status>
+#   progressive = true  → continue the tree already on stdout
+#   progressive = false → the whole frame, header first (for stderr)
+#   in_status   = true  → the run's status tree is open: close it in place,
+#                         never a second `status` beside it
 ######################################################################
 output_no_tests() {
   local progressive="${1:-false}"
   local has_scope="${2:-false}"
+  local in_status="${3:-false}"
 
-  # only print header if not progressive
+  # the whole frame redraws what stdout already showed
   if [[ "$progressive" != "true" ]]; then
     if [[ "$has_scope" == "true" ]]; then
       print_turtle_header "bummer dude..."
@@ -1411,24 +1566,153 @@ output_no_tests() {
       print_turtle_header "all clear..."
     fi
     print_tree_start "git.repo.test $DISPLAY_ARGS"
+    [[ -n "$KEYRACK_STATUS" ]] && print_tree_branch "keyrack" "$KEYRACK_STATUS"
+    [[ -n "$SCOPE_PREVIEW_OUTPUT" ]] && echo "$SCOPE_PREVIEW_OUTPUT"
+    if [[ "$in_status" == "true" ]]; then
+      print_bound_notice
+      echo "   ├─ status"
+    fi
   fi
 
   if [[ "$has_scope" == "true" ]]; then
-    local scope_display
+    local scope_display status_line
     scope_display=$(format_scope_display "${SCOPES[@]}")
-    print_tree_branch "status" "constraint"
+    status_line=$(print_tree_branch "status" "constraint")
+    [[ "$in_status" == "true" ]] && status_line="   │  └─ ✋ constraint"
+    echo "$status_line"
     echo "   └─ error: no tests matched scope '$scope_display'"
     echo ""
     echo "hint: check the scope pattern or run without --scope to see all tests"
-  else
-    print_tree_branch "status" "skipped"
-    echo "   ├─ files: 0 (no test files changed since origin/main)"
-    echo "   └─ tests: 0 (no tests to run)"
-    echo ""
-    echo "🥥 did you know?"
-    echo "   ├─ jest --changedSince may miss some file changes"
-    echo "   └─ use --scope and --thorough to target tests directly"
+    return 0
   fi
+
+  local status_line
+  status_line=$(print_tree_branch "status" "skipped")
+  [[ "$in_status" == "true" ]] && status_line="   │  └─ 🌙 skipped"
+  echo "$status_line"
+  echo "   ├─ files: 0 (no test files changed since origin/main)"
+  echo "   └─ tests: 0 (no tests to run)"
+  echo ""
+  echo "🥥 did you know?"
+  echo "   ├─ jest --changedSince may miss some file changes"
+  echo "   └─ use --scope and --thorough to target tests directly"
+}
+
+######################################################################
+# .what = output a run cut short at its bound
+# .why  = the slow suite is the caller's defect: name the bound, the owner,
+#         and the next moves, so a cut teaches instead of a silent hold
+# usage: output_cut_at_bound <rel_stdout> <rel_stderr> <progressive>
+#   progressive = true  → continue the tree already on stdout
+#   progressive = false → the whole frame, header first (for stderr)
+######################################################################
+######################################################################
+# .what = the bound branch, and the caller's-clock line beneath it
+# .why  = one render for the bound wherever it shows, so the label and the
+#         clock figure cannot drift apart
+# .note = a multi-mode child prints the bound alone: its parent already gave
+#         the caller the run-wide clock figure, the sum over every type
+######################################################################
+print_bound_notice() {
+  print_tree_branch "bound" "$(get_bound_label "$BOUND_SECONDS" "$BOUND_SOURCE")"
+  [[ "$MULTI_CHILD" == "true" ]] && return 0
+  echo "   │  └─ let your shell call run past $(get_bound_shell_clock "$BOUND_SECONDS" 1)s, or its own clock ends this run first"
+}
+
+output_cut_at_bound() {
+  local rel_stdout="$1"
+  local rel_stderr="$2"
+  local progressive="$3"
+
+  # the whole frame opens with its own header and tree
+  if [[ "$progressive" != "true" ]]; then
+    print_turtle_header "woah, too slow..."
+    print_tree_start "git.repo.test $DISPLAY_ARGS"
+    [[ -n "$KEYRACK_STATUS" ]] && print_tree_branch "keyrack" "$KEYRACK_STATUS"
+    [[ -n "$SCOPE_PREVIEW_OUTPUT" ]] && echo "$SCOPE_PREVIEW_OUTPUT"
+    print_bound_notice
+    echo "   ├─ status"
+  fi
+
+  # the cut, the logs, the owner
+  echo "   │  └─ ⏱️ too slow (${TOTAL_ELAPSED}s)"
+  echo "   ├─ log"
+  echo "   │  ├─ stdout: $rel_stdout"
+  echo "   │  └─ stderr: $rel_stderr"
+  echo "   └─ ✋ ConstraintError: woah, too slow — past the ${BOUND_SECONDS}s bound (${BOUND_SOURCE})${BOUND_LEFT:+, for the whole call}"
+  echo "      ├─ this speed defect is yours to root cause"
+  get_cut_lessons_owner "$WHAT"
+
+  # the next moves
+  echo ""
+  echo "🥥 did you know?"
+  get_cut_lessons_next "$WHAT"
+  echo "   └─ no call may run past ${GIT_REPO_TEST_BOUND_MAX}s: make the suite fast, never the bound wide"
+}
+
+######################################################################
+# .what = the owner's lessons for a cut, shaped to the test type
+# .why  = jest suites (unit, integration, acceptance) slow down in setup and
+#         waits and skip their teardown on a cut; lint, types, and format are
+#         one tool run, with no suite files and no teardown
+######################################################################
+get_cut_lessons_owner() {
+  local test_type="$1"
+  if [[ "$test_type" == "lint" || "$test_type" == "types" || "$test_type" == "format" ]]; then
+    echo "      └─ find why the $test_type tool is slow: the files it scans, its config, its cache"
+    return
+  fi
+  echo "      ├─ fix why it is slow: shared setup, real waits, redundant calls"
+  echo "      └─ a cut skips jest teardown: a server the suite detached may still run"
+}
+
+######################################################################
+# .what = the next moves for a cut, shaped to the test type
+# .why  = only jest types take --scope and RESNAP; a lint run gets neither, so
+#         a bisect or resnap hint there would be advice that cannot work
+######################################################################
+get_cut_lessons_next() {
+  local test_type="$1"
+  if [[ "$test_type" == "lint" || "$test_type" == "types" || "$test_type" == "format" ]]; then
+    echo "   ├─ time the tool alone: npm run test:$test_type"
+    return
+  fi
+  echo "   ├─ find the slow suite: Read the log; a cut log lists only the files that finished, so the slow one never reported"
+  echo "   ├─ or bisect it: rerun with --scope over half the files, then half again"
+  [[ "$RESNAP" == "true" ]] && echo "   ├─ snapshots may be partly written: rerun --resnap once the suite is fast"
+  return 0
+}
+
+######################################################################
+# .what = how many of a multi-mode call's types run a suite under the bound
+# .why  = lint, types, and format always run; a jest type runs only in apply,
+#         and in plan mode only previews its files, under no bound
+######################################################################
+get_multi_bound_runs() {
+  local runs=0 test_type
+  for test_type in "${WHAT_TYPES[@]}"; do
+    if [[ "$MODE" == "apply" || "$test_type" == "lint" || "$test_type" == "types" || "$test_type" == "format" ]]; then
+      runs=$((runs + 1))
+    fi
+  done
+  echo "$runs"
+}
+
+######################################################################
+# .what = the cut a multi-mode call meets before a type starts
+# .why  = the types before it spent the whole bound; the type left over
+#         never runs, and the call ends as any cut does
+# usage: output_multi_cut_at_bound <test_type>
+######################################################################
+output_multi_cut_at_bound() {
+  print_tree_start "git.repo.test --what $1"
+  echo "   └─ ✋ ConstraintError: woah, too slow — past the ${BOUND_SECONDS}s bound (${BOUND_SOURCE}), for the whole call"
+  echo "      ├─ this speed defect is yours to root cause"
+  echo "      └─ the types before $1 spent the whole bound, so $1 never ran"
+  echo ""
+  echo "🥥 did you know?"
+  echo "   ├─ run one type at a time to see which one is slow"
+  echo "   └─ no call may run past ${GIT_REPO_TEST_BOUND_MAX}s: make the suite fast, never the bound wide"
 }
 
 ######################################################################
@@ -1442,6 +1726,17 @@ if [[ "$MULTI_MODE" == "true" ]]; then
   # emit turtle header once for multi-mode
   print_turtle_header "lets ride..."
 
+  # the bound holds for the whole call: the types share it, each gets what is left
+  # .note = only the types that run a suite count; a jest type in plan mode only previews
+  BOUND_RUNS=$(get_multi_bound_runs)
+  if [[ "$BOUND_RUNS" -gt 0 ]]; then
+    print_tree_start "git.repo.test $DISPLAY_ARGS"
+    echo "   └─ bound: $(get_bound_label "$BOUND_SECONDS" "$BOUND_SOURCE"), for the whole call, $BOUND_RUNS of ${#WHAT_TYPES[@]} types run"
+    echo "      └─ let your shell call run past $(get_bound_shell_clock "$BOUND_SECONDS" "$BOUND_RUNS")s, or its own clock ends this run first"
+    echo ""
+  fi
+  MULTI_STARTED_AT=$(date +%s)
+
   for test_type in "${WHAT_TYPES[@]}"; do
     # build args for this type
     type_args=("--what" "$test_type")
@@ -1453,6 +1748,15 @@ if [[ "$MULTI_MODE" == "true" ]]; then
     [[ "$THOROUGH" == "true" ]] && type_args+=("--thorough")
     [[ "$LOG_MODE" != "auto" ]] && type_args+=("--log" "$LOG_MODE")
     [[ -n "$WHEN" ]] && type_args+=("--when" "$WHEN")
+    # carry an explicit bound to each child; a child with none applies the default itself
+    [[ "$BOUND_SOURCE" == "--timeout" ]] && type_args+=("--timeout" "$BOUND_SECONDS")
+    # each child runs under what the call has left of its bound
+    bound_left=$(get_bound_left "$BOUND_SECONDS" "$MULTI_STARTED_AT")
+    if [[ "$bound_left" -le 0 ]]; then
+      output_multi_cut_at_bound "$test_type" | emit_to_both
+      exit 2
+    fi
+    type_args+=("--_bound-left" "$bound_left")
     # pass --against and --env for acceptance tests (required by acceptance)
     if [[ "$test_type" == "acceptance" ]]; then
       [[ -n "$AGAINST" ]] && type_args+=("--against" "$AGAINST")
@@ -1462,7 +1766,12 @@ if [[ "$MULTI_MODE" == "true" ]]; then
 
     # run this type (output goes directly to stdout/stderr)
     # pass --_multi-child to suppress turtle header in child
-    bash "$SCRIPT_PATH" "${type_args[@]}" --_multi-child || MULTI_EXIT_CODE=$?
+    # .note = the child runs in the background and is awaited, so this parent's
+    #         INT/TERM/HUP trap can fire mid-run and forward the abort to it
+    bash "$SCRIPT_PATH" "${type_args[@]}" --_multi-child &
+    MULTI_CHILD_PID=$!
+    wait "$MULTI_CHILD_PID" || MULTI_EXIT_CODE=$?
+    MULTI_CHILD_PID=""
 
     # stop on first failure
     if [[ $MULTI_EXIT_CODE -ne 0 ]]; then
@@ -1605,10 +1914,15 @@ if [[ ${#SCOPES[@]} -gt 0 ]] && [[ "$WHAT" != "lint" ]]; then
 
   # failfast if scope matched 0 files
   if [[ "$SCOPE_FILE_COUNT" == "0" ]]; then
-    output_no_tests "true" "true" | emit_to_both
+    output_no_tests "true" "true" "false"
+    output_no_tests "false" "true" "false" >&2
     exit 2
   fi
 fi
+
+# show the bound before the run, so the fuse is known before it fires; and tell the
+# caller its own clock must outlast it, or the caller's clock ends the run first
+print_bound_notice
 
 # capture start time for total elapsed
 RUN_START_TIME=$(date +%s)
@@ -1643,7 +1957,7 @@ if [[ "$WHAT" != "lint" ]]; then
   fi
 
   # also check stdout for "No tests found" (jest with --passWithNoTests exits 0)
-  if grep -qE "No tests found" "$TEMP_STDOUT"; then
+  if grep -qE "^No tests found" "$TEMP_STDOUT"; then
     JEST_NO_TESTS=true
   fi
 fi
@@ -1651,6 +1965,22 @@ fi
 # relative log paths for display
 REL_STDOUT_LOG="$LOG_DIR/${ISOTIME}.stdout.log"
 REL_STDERR_LOG="$LOG_DIR/${ISOTIME}.stderr.log"
+######################################################################
+# check for a cut at the bound
+# first of all checks: a cut-short run's partial output must not read as
+# "no tests" or a plain failure. the slow suite is the caller's to fix → exit 2
+######################################################################
+if [[ "$BOUND_OUTCOME" == "fired" ]]; then
+  # persist logs
+  cp "$TEMP_STDOUT" "$STDOUT_LOG"
+  cp "$TEMP_STDERR" "$STDERR_LOG"
+
+  # stdout continues the progressive tree; stderr gets the whole frame
+  output_cut_at_bound "$REL_STDOUT_LOG" "$REL_STDERR_LOG" "true"
+  output_cut_at_bound "$REL_STDOUT_LOG" "$REL_STDERR_LOG" "false" >&2
+
+  exit 2
+fi
 
 ######################################################################
 # check for no tests matched
@@ -1658,11 +1988,12 @@ REL_STDERR_LOG="$LOG_DIR/${ISOTIME}.stderr.log"
 if [[ "$JEST_NO_TESTS" == "true" ]]; then
   if [[ ${#SCOPES[@]} -gt 0 ]]; then
     # scope was specified but matched zero files = constraint error
-    output_no_tests "true" "true" | emit_to_both
+    output_no_tests "true" "true" "true"
+    output_no_tests "false" "true" "true" >&2
     exit 2
   else
-    # no scope, zero tests due to --changedSince = success
-    output_no_tests "true" "false" | emit_to_both
+    # no scope, zero tests due to --changedSince = success, so stdout alone
+    output_no_tests "true" "false" "true"
     exit 0
   fi
 fi
@@ -1675,46 +2006,10 @@ fi
 if [[ ${#NAME_PATTERNS[@]} -gt 0 ]] && [[ "$NPM_EXIT_CODE" -eq 0 ]]; then
   TESTS_RAN=$((${JEST_PASSED:-0} + ${JEST_FAILED:-0}))
   if [[ "$TESTS_RAN" -eq 0 ]]; then
-    output_no_tests "true" "true" | emit_to_both
+    output_no_tests "true" "true" "true"
+    output_no_tests "false" "true" "true" >&2
     exit 2
   fi
-fi
-
-######################################################################
-# check for timeout (exit code 124 from timeout command)
-######################################################################
-if [[ $NPM_EXIT_CODE -eq 124 ]]; then
-  # persist logs
-  cp "$TEMP_STDOUT" "$STDOUT_LOG"
-  cp "$TEMP_STDERR" "$STDERR_LOG"
-
-  # output timeout error
-  _output=$(
-    echo "   │  └─ ⏱️ timeout (${TOTAL_ELAPSED}s)"
-    print_tree_branch "status" "malfunction"
-    echo "   ├─ error: test exceeded ${TIMEOUT}s timeout"
-    echo "   └─ log"
-    echo "      ├─ stdout: $REL_STDOUT_LOG"
-    echo "      └─ stderr: $REL_STDERR_LOG"
-    echo ""
-    echo "hint: increase --timeout or check for slow tests"
-  )
-  echo "$_output"
-
-  # stderr gets full output
-  {
-    print_turtle_header "bummer dude..."
-    print_tree_start "git.repo.test $DISPLAY_ARGS"
-    if [[ -n "$KEYRACK_STATUS" ]]; then
-      print_tree_branch "keyrack" "$KEYRACK_STATUS"
-    fi
-    if [[ -n "$SCOPE_PREVIEW_OUTPUT" ]]; then
-      echo "$SCOPE_PREVIEW_OUTPUT"
-    fi
-    echo "$_output"
-  } >&2
-
-  exit 1
 fi
 
 ######################################################################
@@ -1726,8 +2021,8 @@ IS_MALFUNCTION=false
 # check for npm failure
 if [[ $NPM_EXIT_CODE -ne 0 ]]; then
   HAS_ERRORS=true
-  # check if malfunction (npm ERR!) vs test failure
-  if grep -q "npm ERR!" "$TEMP_STDERR"; then
+  # check if malfunction (npm ERR!, or a fuse that could not hold the run) vs test failure
+  if grep -q "npm ERR!" "$TEMP_STDERR" || [[ "$BOUND_OUTCOME" == "broken" ]]; then
     IS_MALFUNCTION=true
   fi
 fi
@@ -1775,6 +2070,9 @@ else
     if [[ -n "$SCOPE_PREVIEW_OUTPUT" ]]; then
       echo "$SCOPE_PREVIEW_OUTPUT"
     fi
+    # the same tree stdout drew: the bound, then the status branch the result closes
+    print_bound_notice
+    echo "   ├─ status"
     if [[ "$IS_MALFUNCTION" == "true" ]]; then
       output_failure "$WHAT" "$REL_STDOUT_LOG" "$REL_STDERR_LOG" "true" "true" "$TOTAL_ELAPSED"
       cat "$TEMP_STDERR"

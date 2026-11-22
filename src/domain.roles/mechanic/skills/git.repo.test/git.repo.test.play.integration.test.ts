@@ -8,6 +8,18 @@ import { maskSpinnerTicks } from '../../../../.test/maskSpinnerTicks';
 /**
  * .what = journey tests for git.repo.test skill
  * .why  = verifies all test types, flags, and edge cases work correctly
+ * .mock = PATH shims for `npm`/`pnpm` (canned stdout, stderr, exit), `rhx` (keyrack
+ *         unlock pass or fail), and `jest --listTests` (a fixed file list), written
+ *         into a `.fakebin` dir by setupFixture and by [case11] and [case22]
+ * .why  = these journeys pin the skill's own render and exit for exact jest and
+ *         keyrack outputs (a red suite of N tests, a locked key, a scope that matches
+ *         K files); a real jest run cannot be made to print one exact frame on
+ *         demand, and a real keyrack lock state cannot be summoned per case
+ * .real = git.repo.test.integration.test.ts runs real npm over real package.json
+ *         commands; git.repo.test.scope.integration.test.ts runs real jest through
+ *         symlinked node_modules; git.repo.test.bound.integration.test.ts runs the
+ *         real fuse; [case19] here runs real keyrack and real npm, on a dev box
+ *         only (it skips in CI, which may hold no ehmpath keyrack)
  */
 describe('git.repo.test', () => {
   const skillPath = path.join(__dirname, 'git.repo.test.sh');
@@ -2192,7 +2204,8 @@ Time:        0.1 s`,
       });
 
       then('output shows skipped status', () => {
-        expect(result.stdout).toContain('status: skipped');
+        // the skip closes the run's open status tree in place
+        expect(result.stdout).toContain('│  └─ 🌙 skipped');
       });
 
       then('output shows zero files message', () => {
@@ -2312,62 +2325,67 @@ Time:        0.1 s`,
   // ######################################################################
   // journey 18: real npm call (no mocks)
   // ######################################################################
-  // .note = skip in CI: real npm calls can hang due to npx install prompts
-  given.skipIf(!!process.env.CI)('[case18] real repo with real npm', () => {
-    when('[t0] --what unit --scope with real npm call', () => {
-      const result = useThen('skill executes', () => {
-        const { tempDir, env } = setupFixture({
-          packageJson: {
-            name: 'real-test-repo',
-            scripts: {
-              'test:unit': 'echo "no tests" && exit 0',
+  // .note = runs in CI too: scope matches 0 files, so the skill stops at its
+  //         preview before npm runs, and no npx install prompt can arise. it
+  //         proves the scope failfast with no npm shim on PATH, not a real npm run
+  given(
+    '[case18] a real repo whose scope matches no files, no npm shim',
+    () => {
+      when('[t0] --what unit --scope with real npm call', () => {
+        const result = useThen('skill executes', () => {
+          const { tempDir, env } = setupFixture({
+            packageJson: {
+              name: 'real-test-repo',
+              scripts: {
+                'test:unit': 'echo "no tests" && exit 0',
+              },
             },
-          },
-          jestConfigs: ['unit'],
-          // mockListTests returns empty array = scope matched 0 files
-          // this triggers constraint error before npm runs (per original behavior)
-          mockListTests: [],
-          // no mockNpm - uses real npm (if it were to run)
+            jestConfigs: ['unit'],
+            // mockListTests returns empty array = scope matched 0 files
+            // this triggers constraint error before npm runs (per original behavior)
+            mockListTests: [],
+            // no mockNpm - uses real npm (if it were to run)
+          });
+          return runGitRepoTest({
+            tempDir,
+            gitRepoTestArgs: ['--what', 'unit', '--scope', 'nonexistent'],
+            env,
+          });
         });
-        return runGitRepoTest({
-          tempDir,
-          gitRepoTestArgs: ['--what', 'unit', '--scope', 'nonexistent'],
-          env,
+
+        then('scope verification ran (exit code reflects constraint)', () => {
+          // scope 'nonexistent' matched 0 files, skill exits with constraint
+          expect(result.exitCode).toBe(2);
+        });
+
+        then('output shows constraint error', () => {
+          const output = result.stdout + result.stderr;
+          expect(output).toMatch(/constraint|no tests matched/i);
+        });
+
+        then('output has treestruct shape', () => {
+          // validate output follows treestruct format
+          const output = result.stdout + result.stderr;
+          expect(output).toMatch(/🐢|🐚|git\.repo\.test/);
+          expect(output).toMatch(/├─|└─|--what/);
+        });
+
+        then('output shows scope info', () => {
+          const output = result.stdout + result.stderr;
+          // skill output should show the scope
+          expect(output).toMatch(/scope.*nonexistent/i);
+          // should show matched: 0 files
+          expect(output).toMatch(/matched.*0/i);
+        });
+
+        then('output matches snapshot', () => {
+          expect(
+            sanitizeOutput(result.stdout || result.stderr),
+          ).toMatchSnapshot();
         });
       });
-
-      then('scope verification ran (exit code reflects constraint)', () => {
-        // scope 'nonexistent' matched 0 files, skill exits with constraint
-        expect(result.exitCode).toBe(2);
-      });
-
-      then('output shows constraint error', () => {
-        const output = result.stdout + result.stderr;
-        expect(output).toMatch(/constraint|no tests matched/i);
-      });
-
-      then('output has treestruct shape', () => {
-        // validate output follows treestruct format
-        const output = result.stdout + result.stderr;
-        expect(output).toMatch(/🐢|🐚|git\.repo\.test/);
-        expect(output).toMatch(/├─|└─|--what/);
-      });
-
-      then('output shows scope info', () => {
-        const output = result.stdout + result.stderr;
-        // skill output should show the scope
-        expect(output).toMatch(/scope.*nonexistent/i);
-        // should show matched: 0 files
-        expect(output).toMatch(/matched.*0/i);
-      });
-
-      then('output matches snapshot', () => {
-        expect(
-          sanitizeOutput(result.stdout || result.stderr),
-        ).toMatchSnapshot();
-      });
-    });
-  });
+    },
+  );
 
   // ######################################################################
   // journey 19: real keyrack call (no mocks)
