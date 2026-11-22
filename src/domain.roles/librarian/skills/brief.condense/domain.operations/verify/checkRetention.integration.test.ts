@@ -2,8 +2,9 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { given, then, useBeforeAll, useThen, when } from 'test-fns';
 
-import type { ConceptKernel } from '../../../../../../domain.operations/kernelize/extractKernels';
-import { compressViaBhrain } from '../../../brief.compress/compress.via.bhrain';
+import type { ConceptKernel } from '@src/domain.operations/kernelize/extractKernels';
+import { compressViaBhrain } from '@src/domain.roles/librarian/skills/brief.compress/compress.via.bhrain';
+
 import { checkRetention } from './checkRetention';
 
 // a hang guard for real brain calls: each ask may time out at 60s on a slow openrouter host and

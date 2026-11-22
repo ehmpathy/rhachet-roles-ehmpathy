@@ -1,6 +1,5 @@
 import * as fs from 'fs';
 import * as path from 'path';
-
 import { given, then, useThen, when } from 'test-fns';
 
 import { getAllGuardBorderBrainAtoms } from '@src/domain.operations/guardBorder/getAllGuardBorderBrainAtoms';
@@ -10,11 +9,7 @@ import {
 } from '@src/domain.operations/guardBorder/getOneGuardBorderBrainChoice';
 import { getOneGuardBorderBrainKeyName } from '@src/domain.operations/guardBorder/getOneGuardBorderBrainCreds';
 
-import {
-  genTestDir,
-  genWebfetchStdin,
-  invokeHook,
-} from './.test/invokeHook';
+import { genTestDir, genWebfetchStdin, invokeHook } from './.test/invokeHook';
 
 /**
  * .what = a char count that exceeds what the chosen brain can inspect
@@ -100,7 +95,9 @@ class User extends DomainEntity<User> {
       });
 
       then('quarantine directory does not exist', () => {
-        expect(fs.existsSync(path.join(res.tempDir, '.quarantine'))).toBe(false);
+        expect(fs.existsSync(path.join(res.tempDir, '.quarantine'))).toBe(
+          false,
+        );
       });
     });
   });
@@ -355,10 +352,13 @@ This is a helpful library.
       //        not hold it (rule.require.hermetic-tests). were the render to
       //        ever emit that path, this goes red BEFORE the raw snapshot
       //        starts churn on every run.
-      then('stderr holds no per-run path, so a raw snapshot is hermetic', () => {
-        expect(res.result.stderr).not.toContain(res.tempDir);
-        expect(res.result.stderr).not.toContain('border-guard-oversized');
-      });
+      then(
+        'stderr holds no per-run path, so a raw snapshot is hermetic',
+        () => {
+          expect(res.result.stderr).not.toContain(res.tempDir);
+          expect(res.result.stderr).not.toContain('border-guard-oversized');
+        },
+      );
 
       // .why = a contract endpoint owes every caller-faced variant a snapshot,
       //        and the rule is explicit that a volatile render is masked then

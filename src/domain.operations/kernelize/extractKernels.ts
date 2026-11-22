@@ -23,7 +23,8 @@ import { withSimpleCacheAsync } from 'with-simple-cache';
 import { withRetry, withTimeout } from 'wrapper-fns';
 import { z } from 'zod';
 
-import { getAllBrainAtoms } from '../brain/getAllBrainAtoms';
+import { getAllBrainAtoms } from '@src/domain.operations/brain/getAllBrainAtoms';
+
 import { clusterKernels } from './clusterKernels';
 
 /**

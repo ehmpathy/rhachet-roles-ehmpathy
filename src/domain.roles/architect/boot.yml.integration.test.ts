@@ -2,7 +2,7 @@ import fg from 'fast-glob';
 import { existsSync } from 'fs';
 import { resolve } from 'path';
 
-import { bootYmlTestKit } from '../.test/bootYml.testkit';
+import { bootYmlTestKit } from '@src/domain.roles/.test/bootYml.testkit';
 
 /**
  * .what = integration tests for the architect boot.yml

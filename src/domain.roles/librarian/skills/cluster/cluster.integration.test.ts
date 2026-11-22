@@ -1,7 +1,7 @@
 import { given, then, useThen, when } from 'test-fns';
 
-import { clusterKernels } from '../../../../domain.operations/kernelize/clusterKernels';
-import type { ConceptKernel } from '../../../../domain.operations/kernelize/extractKernels';
+import { clusterKernels } from '@src/domain.operations/kernelize/clusterKernels';
+import type { ConceptKernel } from '@src/domain.operations/kernelize/extractKernels';
 
 const BRAIN_SLUG = 'openrouter/deepseek/flash';
 

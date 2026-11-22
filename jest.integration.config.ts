@@ -14,13 +14,7 @@ const config: Config = {
   verbose: true,
   reporters: [
     ['default', { summaryThreshold: 0 }], // ensure we always get a failure summary at the bottom, to avoid the hunt
-    [
-      'test-fns/slowtest.reporter.jest',
-      {
-        slow: '10s', // threshold for integration tests
-        output: '.slowtest/integration.report.json', // json report for ci shard optimization
-      },
-    ],
+    ['test-fns/slowtest.reporter.jest', { slow: '10s', output: '.log/slowtest/integration.report.json' }],
   ],
   testEnvironment: 'node',
   moduleFileExtensions: ['js', 'ts'],
@@ -35,13 +29,13 @@ const config: Config = {
     // here's an example of how to ignore esm module transformation, when needed
     // 'node_modules/(?!(@octokit|universal-user-agent|before-after-hook)/)',
   ],
-  // .agent/ holds no tracked tests; it holds caches and each actor's brain dir,
-  // whose plugin caches ship their own foreign test suites
   testMatch: [
     '**/*.integration.test.ts',
+    '**/*._.intg.test.ts', // the `._.` kind seam; both suffix forms match
+    '!**/.agent/.actors/**', // rhachet host-local state; holds a scratch clone of this repo, whose suites are not ours
+    '!**/.agent/.cache/**',
     '!**/.yalc/**',
     '!**/.scratch/**',
-    '!**/.agent/**',
 
     // kernelization moves to rhachet-roles-bhrain, which owns its tests from there on; its
     // brain-graded suites run no more here, so their flakes cannot gate this repo's release.
@@ -61,16 +55,31 @@ const config: Config = {
     '!**/src/domain.roles/mechanic/skills/git.pull/git.pull.real.integration.test.ts',
 
     // the set.package real-registry block cases post to the live npm advisory api, whose
-    // count and titles drift; they run only by hand, so drift cannot redden ci (fulcrum F25):
+    // count and titles drift; they run only by hand, so drift cannot redden ci:
     //   npx jest -c jest.integration.config.ts --testMatch '<rootDir>/src/domain.roles/mechanic/skills/set.package/set.package.*.real.integration.test.ts'
     '!**/src/domain.roles/mechanic/skills/set.package/set.package.install.real.integration.test.ts',
     '!**/src/domain.roles/mechanic/skills/set.package/set.package.upgrade.real.integration.test.ts',
+
+    // the live-brain suites need an OPENROUTER_API_KEY and call a paid, nondeterministic brain;
+    // they are gated off by default so the keyless tiers run green on any host. run by hand:
+    //   npx jest -c jest.integration.config.ts --testMatch '<rootDir>/src/domain.operations/guardBorder/imagineIsContentAdmissible.integration.test.ts'
+    //   npx jest -c jest.integration.config.ts --testMatch '<rootDir>/src/domain.roles/librarian/skills/brief.condense/domain.operations/press/pressViaPipeline.integration.test.ts'
+    '!**/src/domain.operations/guardBorder/imagineIsContentAdmissible.integration.test.ts',
+    '!**/src/domain.roles/librarian/skills/brief.condense/domain.operations/press/pressViaPipeline.integration.test.ts',
   ],
-  // testMatch hides .agent/ tests, but the haste map still sees its files: a
-  // .snap there (e.g. one rmsafe sent to .agent/.cache/ trash) reads as an
-  // obsolete snapshot and fails the run. keep .agent/ out of the haste map too
+  // skip all of `.agent/`: rhachet roles, host-local clones, and the rmsafe trash live there. a test
+  // there would run as ours, and a snapshot there would read as obsolete (the haste map scans it)
+  testPathIgnorePatterns: ['/node_modules/', '/.agent/'],
   modulePathIgnorePatterns: ['<rootDir>/.agent/'],
   setupFilesAfterEnv: ['./jest.integration.env.ts'],
+
+  // reclaim every temp dir genTempDir made this run (test-fns autoprune). jest needs BOTH keys;
+  // one without the other stamps and never reclaims. the globalSetup COMPOSES the livedb wake
+  // (resume the shared aurora-serverless cluster before the first query) with autoprune's setup,
+  // and forwards globalConfig to it — a bare 'test-fns/autoprune.setup.jest' would leave the db
+  // un-woken.
+  globalSetup: './jest.integration.prepare.ts',
+  globalTeardown: 'test-fns/autoprune.teardown.jest',
 
   // use 50% of threads to leave headroom for other processes
   maxWorkers: '50%', // https://stackoverflow.com/questions/71287710/why-does-jest-run-faster-with-maxworkers-50

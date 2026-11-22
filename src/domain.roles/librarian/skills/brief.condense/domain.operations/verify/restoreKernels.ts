@@ -9,8 +9,8 @@
  * so the brain weaves them naturally into the prose
  */
 
-import type { ConceptKernel } from '../../../../../../domain.operations/kernelize/extractKernels';
-import { compressViaBhrain } from '../../../brief.compress/compress.via.bhrain';
+import type { ConceptKernel } from '@src/domain.operations/kernelize/extractKernels';
+import { compressViaBhrain } from '@src/domain.roles/librarian/skills/brief.compress/compress.via.bhrain';
 
 /**
  * .what = restore lost kernels via brain-driven recompression

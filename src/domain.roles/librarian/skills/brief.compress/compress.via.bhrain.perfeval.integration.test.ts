@@ -12,7 +12,8 @@ import {
   checkKernelRetention as checkKernelRetentionRaw,
   compareKernels as compareKernelsRaw,
   extractKernels as extractKernelsRaw,
-} from '../../../../domain.operations/kernelize/extractKernels';
+} from '@src/domain.operations/kernelize/extractKernels';
+
 import { TEST_BRIEFS } from './.test/fixtures/briefs';
 import {
   compressViaBhrain as compressViaBhrainRaw,

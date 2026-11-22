@@ -1,9 +1,16 @@
-import { existsSync, readFileSync } from 'fs';
-import { join } from 'path';
-import util from 'util';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import util from 'node:util';
 
-// eslint-disable-next-line no-undef
+import { jest } from '@jest/globals';
+import { ConstraintError } from 'helpful-errors';
+
+import { useTestdbPortOverride } from './src/.test/assets/database/useTestdbPortOverride';
+
 jest.setTimeout(90000); // we're calling downstream apis
+
+// set console.log to not truncate nested objects
+util.inspect.defaultOptions.depth = 5;
 
 /**
  * .what = isolate git config to prevent tests from polluted global or repo config
@@ -18,30 +25,35 @@ process.env.GIT_CONFIG_SYSTEM = '/dev/null';
  */
 process.env.GIT_TERMINAL_PROMPT = '0';
 
-// set console.log to not truncate nested objects
-util.inspect.defaultOptions.depth = 5;
-
 /**
  * .what = verify that we're running from a valid project directory; otherwise, fail fast
  * .why = prevent confusion and hard-to-debug errors from running tests in the wrong directory
  */
 if (!existsSync(join(process.cwd(), 'package.json')))
-  throw new Error('no package.json found in cwd. are you @gitroot?');
+  throw new ConstraintError(
+    'no package.json found in cwd — run the acceptance suite from the git root',
+    { cwd: process.cwd() },
+  );
 
 /**
- * .what = verify that the env has sufficient auth to run the tests if aws is used; otherwise, fail fast
+ * .what = align CONFIG with ACCESS, before any test imports the environment.
  * .why =
- *   - prevent time wasted waiting on tests to fail due to lack of credentials
- *   - prevent time wasted debugging tests which are failing due to hard-to-read missed credential errors
+ *   - jest forces NODE_ENV=test, and sdk-environment derives config from NODE_ENV before access.
+ *     so a cloud run with ACCESS=prep still read config/test.json, and a request built from config
+ *     (e.g. a twilio signature) failed with prep access.
+ *   - `envStatic` caches at first import, so the alignment must land here, per worker, before the
+ *     first test imports `src/utils/environment`.
+ *   - an in-process run (LOCALLY=true) holds no ACCESS, so it stays on `test`. a cloud run with no
+ *     ACCESS never reaches here: jest.acceptance.prepare.ts stops it first.
+ * .note = keyrack is sourced once per run in jest.acceptance.prepare.ts, not here.
  */
-const declapractUsePath = join(process.cwd(), 'declapract.use.yml');
-const requiresAwsAuth =
-  existsSync(declapractUsePath) &&
-  readFileSync(declapractUsePath, 'utf8').includes('awsAccountId');
-if (
-  requiresAwsAuth &&
-  !(process.env.AWS_PROFILE || process.env.AWS_ACCESS_KEY_ID)
-)
-  throw new Error(
-    'no aws credentials present. please authenticate with aws to run acceptance tests',
-  );
+const access = process.env.ACCESS ?? 'test';
+process.env.ACCESS = access;
+process.env.CONFIG = access;
+
+/**
+ * .what = declare this checkout's testdb port as TESTDB_PORT, for an in-process run with test access.
+ * .why = an in-process run opens the local testdb from this worker; a worktree's testdb binds a port
+ *        of its own, which the app dials only under test access. prep and prod access never read it.
+ */
+if (access === 'test') useTestdbPortOverride();

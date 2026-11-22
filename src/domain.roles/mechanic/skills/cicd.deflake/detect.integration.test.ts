@@ -4,9 +4,9 @@ import * as os from 'os';
 import * as path from 'path';
 import { given, then, when } from 'test-fns';
 
-import { asMaskedOutput } from './__test_utils__/asMaskedOutput';
-import { createTempRepo } from './__test_utils__/createTempRepo';
-import { runSkill } from './__test_utils__/runSkill';
+import { asMaskedOutput } from './.test.utils/asMaskedOutput';
+import { createTempRepo } from './.test.utils/createTempRepo';
+import { runSkill } from './.test.utils/runSkill';
 
 describe('cicd.deflake detect', () => {
   given('[case1] requires --into argument', () => {

@@ -12,16 +12,16 @@ import * as path from 'path';
 import { createCache } from 'simple-on-disk-cache';
 import { withSimpleCacheAsync } from 'with-simple-cache';
 
-import { clusterKernels as clusterKernelsBrain } from '../../../../domain.operations/kernelize/clusterKernels';
+import { clusterKernels as clusterKernelsBrain } from '@src/domain.operations/kernelize/clusterKernels';
 import {
   type ConceptKernel,
   extractKernels as extractKernelsRaw,
   extractKernelsWithConsensus,
-} from '../../../../domain.operations/kernelize/extractKernels';
+} from '@src/domain.operations/kernelize/extractKernels';
 import {
   loadAllTestBriefs,
   type TestBrief,
-} from '../brief.compress/.test/fixtures/briefs';
+} from '@src/domain.roles/librarian/skills/brief.compress/.test/fixtures/briefs';
 
 /**
  * .what = rate limiter for parallel brain calls

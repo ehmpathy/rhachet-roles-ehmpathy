@@ -1,5 +1,4 @@
 import { spawnSync } from 'child_process';
-
 import { given, then, useBeforeAll, useThen, when } from 'test-fns';
 
 import { genTestDir } from './.test/invokeHook';
