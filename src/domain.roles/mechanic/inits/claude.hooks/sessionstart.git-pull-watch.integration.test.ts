@@ -272,6 +272,307 @@ describe('sessionstart.git-pull-watch.sh', () => {
     );
   });
 
+  given(
+    '[case4] older-key records that no daemon of this key would serve (the respawn loop)',
+    () => {
+      const scene = genWatchTestScene({
+        slug: 'watch-boot-orphans',
+        repos: ['surf-demo', 'tide-chart'],
+        store: {},
+      });
+      scene.setStore((store) => {
+        store.clones[scene.roots['surf-demo']!] = [
+          { serial: SERIAL, slug: 'mechanic', reachState: 'LIVE' },
+        ];
+        store.github.prs['ehmpathy/surf-demo#1220'] = {
+          state: 'open',
+          merged: false,
+          headSha: 'sha-1220',
+          closedBy: null,
+        };
+      });
+      afterAll(() => scene.stopAllDaemons());
+      const runHook = () =>
+        scene.runScript({
+          path: HOOK,
+          args: [],
+          root: scene.roots['surf-demo']!,
+          serial: SERIAL,
+        });
+      const getBootLines = () =>
+        fs.existsSync(scene.getStateRoot())
+          ? fs
+              .readdirSync(scene.getStateRoot())
+              .filter((name) => name.startsWith('v='))
+              .map((name) =>
+                path.join(scene.getStateRoot(), name, 'daemon.log'),
+              )
+              .filter((log) => fs.existsSync(log))
+              .flatMap((log) =>
+                fs
+                  .readFileSync(log, 'utf-8')
+                  .split('\n')
+                  .filter((line) => line.includes(' boot: daemon pid ')),
+              )
+          : [];
+
+      when(
+        '[t0] under v5.5.5: an ended watch of a root not yet on this key, a watch whose root is gone, a watch of a root on another key',
+        () => {
+          const result = useThen('the hook runs', async () => {
+            const older = genWatchSkillCopy({
+              slug: 'watch-boot-orphans',
+              version: '5.5.5',
+            });
+            scene.runSkill({
+              verb: 'set',
+              args: ['--which', '1220', '--mode', 'apply'],
+              root: scene.roots['surf-demo']!,
+              serial: SERIAL,
+              skillDir: older.skillDir,
+            });
+            const [killed] = getAllWatchDaemonPids({ home: scene.home });
+            scene.stopAllDaemons();
+            await waitForWatch({
+              label: 'older daemon stopped',
+              check: () => !isPidAlive(killed!),
+            });
+
+            // the ended watch: merged, its closure note still held in the outbox
+            const ended = scene.getAllWatchRecords()[0]!;
+            const record = JSON.parse(fs.readFileSync(ended.path, 'utf-8'));
+            fs.writeFileSync(
+              ended.path,
+              JSON.stringify({ ...record, ended: 'merged' }),
+            );
+            const keyDir = path.dirname(path.dirname(ended.path));
+            const stem = path.basename(ended.path, '.json');
+            fs.mkdirSync(path.join(keyDir, 'outbox'), { recursive: true });
+            fs.writeFileSync(
+              path.join(keyDir, 'outbox', `${stem}.1700000000.1.1.json`),
+              JSON.stringify({
+                text: '🐢 cowabunga!\n\n🐚 git.pull.watch — #1220 merged; watch ended',
+                tries: 0,
+                heldAt: '2026-11-21T00:00:00Z',
+              }),
+            );
+
+            // a watch whose repo root was a worktree, since removed
+            fs.writeFileSync(
+              path.join(
+                path.dirname(ended.path),
+                `ehmpathy.surf-demo.pr=1221.clone=${SERIAL}.json`,
+              ),
+              JSON.stringify({
+                ...record,
+                pr: 1221,
+                watchId: 'gone.1.1',
+                repoRoot: path.join(scene.home, 'worktree-removed'),
+              }),
+            );
+
+            // a watch whose repo root runs no link to this key
+            fs.writeFileSync(
+              path.join(
+                path.dirname(ended.path),
+                `ehmpathy.tide-chart.pr=312.clone=${SERIAL}.json`,
+              ),
+              JSON.stringify({
+                ...record,
+                repo: 'ehmpathy/tide-chart',
+                pr: 312,
+                watchId: 'other.1.1',
+                repoRoot: scene.roots['tide-chart'],
+              }),
+            );
+
+            const bootsBefore = getBootLines().length;
+            const hook = runHook();
+            return {
+              hook,
+              pids: getAllWatchDaemonPids({ home: scene.home }),
+              bootsNew: getBootLines().length - bootsBefore,
+            };
+          });
+          then('it exits 0 and says naught', () => {
+            expect(result.hook.status).toEqual(0);
+            expect(result.hook.stdout).toEqual('');
+          });
+          then('it spawns no daemon: none would serve these records', () => {
+            expect(result.pids).toEqual([]);
+            expect(result.bootsNew).toEqual(0);
+          });
+        },
+      );
+
+      when(
+        '[t1] the ended watch root moves onto this key, and a session starts',
+        () => {
+          const result = useThen('the hook runs', async () => {
+            const link = path.join(
+              scene.roots['surf-demo']!,
+              '.agent',
+              'repo=ehmpathy',
+              'role=mechanic',
+              'skills',
+              'git.pull.watch',
+            );
+            fs.mkdirSync(path.dirname(link), { recursive: true });
+            fs.symlinkSync(
+              path.join(__dirname, '../../skills/git.pull.watch'),
+              link,
+            );
+            const hook = runHook();
+            await waitForWatch({
+              label: 'the ended watch leaves, and the gone root is reaped',
+              check: () =>
+                scene
+                  .getAllWatchRecords()
+                  .every((one) => one.record.pr === 312),
+              scene,
+            });
+            await waitForWatch({
+              label: 'the daemon exits at zero watches',
+              check: () =>
+                getAllWatchDaemonPids({ home: scene.home }).length === 0,
+              scene,
+            });
+            return { hook, says: scene.getSays() };
+          });
+          then('it spawns one daemon, for the one servable record', () => {
+            expect(result.hook.stdout).toContain(
+              'for 1 watch(es), 1 under an older key, taken at its first tick',
+            );
+            expect(scene.asMasked(result.hook.stdout)).toMatchSnapshot();
+          });
+          then(
+            'the held closure note of the ended watch reaches the clone',
+            () => {
+              expect(
+                result.says.filter((say) =>
+                  say.text.includes('#1220 merged; watch ended'),
+                ),
+              ).toHaveLength(1);
+            },
+          );
+          then('the watch of the other key stays, for that key', () => {
+            const left = scene.getAllWatchRecords();
+            expect(left).toHaveLength(1);
+            expect(left[0]!.key).toMatch(/^5\.5\.5\+/);
+            expect(left[0]!.record.pr).toEqual(312);
+          });
+        },
+      );
+
+      when('[t2] another session starts', () => {
+        const result = useThen('the hook runs', async () => {
+          const bootsBefore = getBootLines().length;
+          const hook = runHook();
+          return {
+            hook,
+            pids: getAllWatchDaemonPids({ home: scene.home }),
+            bootsNew: getBootLines().length - bootsBefore,
+          };
+        });
+        then('it spawns no daemon and says naught: the loop is closed', () => {
+          expect(result.hook.stdout).toEqual('');
+          expect(result.pids).toEqual([]);
+          expect(result.bootsNew).toEqual(0);
+        });
+      });
+
+      when(
+        '[t3] under v5.5.5: a record that will not parse, and one that names no repo root; a daemon of this key ticks',
+        () => {
+          const result = useThen('the steal passes run', async () => {
+            const olderDir = fs
+              .readdirSync(scene.getStateRoot())
+              .find((name) => name.startsWith('v=5.5.5'));
+            const watchesDir = path.join(
+              scene.getStateRoot(),
+              olderDir!,
+              'watches',
+            );
+            const corrupt = path.join(
+              watchesDir,
+              `ehmpathy.surf-demo.pr=1222.clone=${SERIAL}.json`,
+            );
+            const rootless = path.join(
+              watchesDir,
+              `ehmpathy.surf-demo.pr=1223.clone=${SERIAL}.json`,
+            );
+            fs.writeFileSync(corrupt, '{ "repo": "ehmpathy/surf-demo", "pr": ');
+            fs.writeFileSync(
+              rootless,
+              JSON.stringify({
+                repo: 'ehmpathy/surf-demo',
+                pr: 1223,
+                cloneSerial: SERIAL,
+                cloneSlug: 'mechanic',
+                watchId: 'rootless.1.1',
+              }),
+            );
+            // a live watch under this key, so a daemon of this key ticks and steals
+            scene.runSkill({
+              verb: 'set',
+              args: ['--which', '1220', '--mode', 'apply'],
+              root: scene.roots['surf-demo']!,
+              serial: SERIAL,
+            });
+            // the steal pass that meets both records, then more ticks (the killed v5.5.5
+            // daemon keeps its pid file, so a tick wait would wait on a dead key)
+            const getLeftLines = () =>
+              fs
+                .readdirSync(scene.getStateRoot())
+                .filter((name) => !name.startsWith('v=5.5.5'))
+                .map((name) =>
+                  path.join(scene.getStateRoot(), name, 'daemon.log'),
+                )
+                .filter((log) => fs.existsSync(log))
+                .flatMap((log) =>
+                  fs
+                    .readFileSync(log, 'utf-8')
+                    .split('\n')
+                    .filter((line) =>
+                      line.includes(
+                        'names no repo root; ehmpathy.surf-demo.pr=1223',
+                      ),
+                    ),
+                );
+            await waitForWatch({
+              label: 'the steal pass leaves the rootless record',
+              check: () => getLeftLines().length >= 1,
+              scene,
+            });
+            const getPullReads = () =>
+              scene
+                .getGhCalls()
+                .filter((call) =>
+                  call.argv.some((a) => a.endsWith('/pulls/1220')),
+                ).length;
+            const readsAtPass = getPullReads();
+            await waitForWatch({
+              label: 'three more ticks read #1220',
+              check: () => getPullReads() >= readsAtPass + 3,
+              scene,
+            });
+            return {
+              corrupt: fs.existsSync(corrupt),
+              rootless: fs.existsSync(rootless),
+            };
+          });
+          then(
+            'neither is reaped: a record the steal cannot read is no proof its root is gone',
+            () => {
+              expect(result.corrupt).toEqual(true);
+              expect(result.rootless).toEqual(true);
+            },
+          );
+        },
+      );
+    },
+  );
+
   given('[case2] a hook that cannot serve its watches', () => {
     const scene = genWatchTestScene({
       slug: 'watch-boot-faults',
@@ -409,4 +710,220 @@ describe('sessionstart.git-pull-watch.sh', () => {
       });
     });
   });
+
+  given(
+    '[case5] a day on one seat: upgrade, a 404, the seaturtle-to-grove swap, a keyrack lock, a merge (vision case=8)',
+    () => {
+      const scene = genWatchTestScene({
+        slug: 'watch-boot-journey',
+        repos: ['surf-demo'],
+        store: { keyrackAmbient: 'granted' },
+      });
+      scene.setStore((store) => {
+        store.clones[scene.roots['surf-demo']!] = [
+          { serial: SERIAL, slug: 'mechanic', reachState: 'LIVE' },
+        ];
+        ['1260', '1261'].forEach((pr) => {
+          store.github.prs[`ehmpathy/surf-demo#${pr}`] = {
+            state: 'open',
+            merged: false,
+            headSha: `sha-${pr}`,
+            closedBy: null,
+          };
+        });
+      });
+      afterAll(() => scene.stopAllDaemons());
+      const runHook = () =>
+        scene.runScript({
+          path: HOOK,
+          args: [],
+          root: scene.roots['surf-demo']!,
+          serial: SERIAL,
+        });
+      const setWatch = (pr: string) =>
+        scene.runSkill({
+          verb: 'set',
+          args: ['--which', pr, '--mode', 'apply'],
+          root: scene.roots['surf-demo']!,
+          serial: SERIAL,
+        });
+      const getSaysOf = (needle: string) =>
+        scene.getSays().filter((say) => say.text.includes(needle));
+      const getPrs = () =>
+        scene
+          .getAllWatchRecords()
+          .map((one) => one.record.pr)
+          .sort();
+
+      when(
+        '[t0] two watches set under v5.5.5; the box reboots onto this key and a session starts',
+        () => {
+          const result = useThen('the watches move to this key', async () => {
+            const older = genWatchSkillCopy({
+              slug: 'watch-boot-journey',
+              version: '5.5.5',
+            });
+            ['1260', '1261'].forEach((pr) =>
+              scene.runSkill({
+                verb: 'set',
+                args: ['--which', pr, '--mode', 'apply'],
+                root: scene.roots['surf-demo']!,
+                serial: SERIAL,
+                skillDir: older.skillDir,
+              }),
+            );
+            const [killed] = getAllWatchDaemonPids({ home: scene.home });
+            scene.stopAllDaemons();
+            await waitForWatch({
+              label: 'older daemon stopped',
+              check: () => !isPidAlive(killed!),
+            });
+            const link = path.join(
+              scene.roots['surf-demo']!,
+              '.agent',
+              'repo=ehmpathy',
+              'role=mechanic',
+              'skills',
+              'git.pull.watch',
+            );
+            fs.mkdirSync(path.dirname(link), { recursive: true });
+            fs.symlinkSync(
+              path.join(__dirname, '../../skills/git.pull.watch'),
+              link,
+            );
+            const hook = runHook();
+            await waitForWatch({
+              label: 'both watches on this key, primed',
+              check: () => {
+                const found = scene.getAllWatchRecords();
+                return (
+                  found.length === 2 &&
+                  found.every(
+                    (one) => !one.key.startsWith('5.5.5+') && one.record.primed,
+                  )
+                );
+              },
+              scene,
+            });
+            return { hook };
+          });
+          then('one daemon is spawned, and takes both watches', () => {
+            expect(result.hook.stdout).toContain(', spawned');
+            expect(result.hook.stdout).toContain('2 under an older key');
+          });
+        },
+      );
+
+      when('[t1] #1261 answers 404', () => {
+        const result = useThen('its watch ends', async () => {
+          scene.setStore((store) => {
+            store.github.faultByPr = { 'ehmpathy/surf-demo#1261': 'notfound' };
+          });
+          await waitForWatch({
+            label: 'the #1261 watch leaves',
+            check: () => !getPrs().includes(1261),
+            scene,
+          });
+          return { gone: getSaysOf('#1261 answers 404'), prs: getPrs() };
+        });
+        then('one 404 note, and #1260 still watched', () => {
+          expect(result.gone).toHaveLength(1);
+          expect(result.prs).toEqual([1260]);
+        });
+      });
+
+      when(
+        '[t2] the seaturtle token dies at its hour; keyrack grants only the grove token',
+        () => {
+          const result = useThen('the next read', async () => {
+            scene.setStore((store) => {
+              store.github.token = 'ghs_fake_ehmpath_token_next_hour';
+              store.keyrack = 'locked';
+            });
+            setWatch('1260');
+            await waitForWatch({
+              label: 'a grove read of #1260',
+              check: () =>
+                scene
+                  .getGhCalls()
+                  .some(
+                    (call) =>
+                      call.token === 'ghs_fake_grove_token' &&
+                      call.argv.some((a) => a.endsWith('/pulls/1260')) &&
+                      (call.status === 200 || call.status === 304),
+                  ),
+              scene,
+            });
+            return { paused: getSaysOf('paused'), prs: getPrs() };
+          });
+          then('the grove token serves on: no pause, the watch stands', () => {
+            expect(result.paused).toHaveLength(0);
+            expect(result.prs).toEqual([1260]);
+          });
+        },
+      );
+
+      when('[t3] keyrack locks the grove token too, while it is held', () => {
+        const result = useThen('ticks pass', async () => {
+          const keyrackBefore = scene.getKeyrackCalls().length;
+          const ghBefore = scene.getGhCalls().length;
+          scene.setStore((store) => {
+            store.keyrackAmbient = 'locked';
+          });
+          await scene.waitForDaemonTicks({ ticks: 4 });
+          return {
+            keyrackNew: scene.getKeyrackCalls().length - keyrackBefore,
+            ghNew: scene.getGhCalls().length - ghBefore,
+            paused: getSaysOf('paused'),
+          };
+        });
+        then('the held token serves on: no keyrack read, no pause', () => {
+          expect(result.keyrackNew).toEqual(0);
+          expect(result.ghNew).toBeGreaterThan(0);
+          expect(result.paused).toHaveLength(0);
+        });
+      });
+
+      when('[t4] #1260 merges', () => {
+        const result = useThen('its watch ends', async () => {
+          scene.setStore((store) => {
+            store.github.prs['ehmpathy/surf-demo#1260']!.state = 'closed';
+            store.github.prs['ehmpathy/surf-demo#1260']!.merged = true;
+          });
+          await waitForWatch({
+            label: 'no watch left',
+            check: () => getPrs().length === 0,
+            scene,
+          });
+          await waitForWatch({
+            label: 'the daemon exits at zero watches',
+            check: () =>
+              getAllWatchDaemonPids({ home: scene.home }).length === 0,
+            scene,
+          });
+          return { merged: getSaysOf('#1260 merged; watch ended') };
+        });
+        then('one merged note, and the daemon exits', () => {
+          expect(result.merged).toHaveLength(1);
+        });
+      });
+
+      when('[t5] the next session starts', () => {
+        const result = useThen('the hook runs', async () => ({
+          hook: runHook(),
+          pids: getAllWatchDaemonPids({ home: scene.home }),
+        }));
+        then('it spawns naught and says naught: the day ends quiet', () => {
+          expect(result.hook.status).toEqual(0);
+          expect(result.hook.stdout).toEqual('');
+          expect(result.pids).toEqual([]);
+        });
+        then('each note the clone heard reads as it was sent', () => {
+          expect(
+            scene.getSays().map((say) => scene.asMasked(say.text)),
+          ).toMatchSnapshot();
+        });
+      });
+    },
+  );
 });

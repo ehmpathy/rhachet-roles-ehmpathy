@@ -6,7 +6,7 @@ the pr watch tells a clone, on its own, when its pr's ci fails, a new comment la
 
 - armed by `rhx git.commit.push --mode apply` (and `git.commit.set --push`), or by hand: `rhx git.pull.watch set --which <n> --mode apply`
 - one daemon per machine per version key serves every clone on the box; a second `set` finds it, never spawns a twin
-- the session-start hook brings a dead daemon back for each watch this clone holds, under any key
+- the session-start hook brings a dead daemon back when this clone holds a watch it can serve: one under this key, or one under an older key whose repo root now runs this key. a record no daemon of this key would serve spawns naught
 
 ## .each alert → its act
 
@@ -19,16 +19,20 @@ the pr watch tells a clone, on its own, when its pr's ci fails, a new comment la
 | `approved #<n>`, ci not done | `rhx git.release --watch` | watch ci to its end |
 | `#<n> merged; watch ended` | — | naught; the watch ends itself |
 | `#<n> closed without merge; watch ended` | — | ask the human why, if unclear |
+| `#<n> answers 404 …; watch ended` | `rhx git.pull.watch set --which <n> --mode apply` | the pr is gone, or the token cannot see it. under the grove token, unlock the seaturtle token first, then rewatch |
+| `#<n> quiet for <t>; watch ended` | `rhx git.pull.watch set --which <n> --mode apply` | no change past the idle ttl. rewatch if the pr still matters |
+| `#<n> unreadable for <t>; watch ended` | `last fault: …`, then the rewatch | every read faulted past the idle ttl. fix the named fault, then rewatch |
 
 ## .the token
 
 - the daemon reads github with keyrack `ehmpathy.prep.EHMPATHY_SEATURTLE_GITHUB_TOKEN`
 - where that key is absent, locked, or blocked, it reads the grove token `@all.prep.GITHUB_TOKEN`
 - never the human gh login
+- the daemon reads keyrack once and holds the token until github refuses it (a 401), or until the held grove token gets a 404; then one fresh read, which prefers the seaturtle token, and one retry
 - neither granted → the watch is `paused`; the alert names the fix:
   - `rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN`
   - or, for the whole grove: `rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN`
-- cursors hold while paused; alerts resume at the next tick after the unlock
+- cursors hold while paused. the paused daemon re-reads keyrack on the pr's poll gap, which doubles up to its cap, so alerts resume within that cap (30 min) after the fix. a push, or `rhx git.pull.watch set --which <n> --mode apply`, resumes them at the next tick
 
 ## .held and outage
 

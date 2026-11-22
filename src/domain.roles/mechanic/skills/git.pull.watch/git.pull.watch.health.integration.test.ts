@@ -140,38 +140,406 @@ describe('git.pull.watch read health', () => {
       });
     });
 
-    when('[t2] #1221 answers 404 each tick', () => {
-      const result = useThen('the ticks pass', async () => {
+    when('[t2] #1221 answers 404', () => {
+      const result = useThen('its watch ends', async () => {
         const saysBefore = scene.getSays().length;
         scene.setStore((store) => {
           store.github.faultByPr = { [`${REPO}#1221`]: 'notfound' };
         });
-        await scene.waitForDaemonTicks({ ticks: 6 });
-        const listed = JSON.parse(
-          scene.runSkill({
-            verb: 'get',
-            args: ['--output', 'json'],
-            root: scene.roots['surf-demo']!,
-            serial: null,
-          }).stdout,
-        );
+        await waitForWatch({
+          label: 'the #1221 watch leaves',
+          check: () =>
+            !scene.getAllWatchRecords().some((one) => one.record.pr === 1221),
+          scene,
+        });
+        const saysAtEnd = scene.getSays().slice(saysBefore);
+        const readsAtEnd = scene
+          .getGhCalls()
+          .filter((call) => call.argv.some((a) => a.includes('/1221'))).length;
+        await scene.waitForDaemonTicks({ ticks: 4 });
+        const readsAfter = scene
+          .getGhCalls()
+          .filter((call) => call.argv.some((a) => a.includes('/1221'))).length;
         scene.setStore((store) => {
           store.github.faultByPr = {};
         });
-        return { listed, saysNew: scene.getSays().length - saysBefore };
+        return {
+          saysGone: saysAtEnd.filter((say) => say.text.includes('404')),
+          saysNewAfter: scene.getSays().length - saysBefore - saysAtEnd.length,
+          readsAtEnd,
+          readsAfter,
+        };
       });
-      then('get shows the 404 on its row', () => {
-        const rows = result.listed.daemons[0].watches;
-        const gone = rows.find((row: { pr: number }) => row.pr === 1221);
-        expect(gone.readFault.rc).toEqual(1);
-        expect(gone.readFault.cause).toContain('404');
+      then('one note reaches the clone of #1221, with the rewatch', () => {
+        expect(result.saysGone).toHaveLength(1);
+        expect(result.saysGone[0]!.serial).toEqual(SERIAL_B);
+        expect(result.saysGone[0]!.text).toContain(
+          '#1221 answers 404 to the seaturtle token (gone, or out of its reach); watch ended',
+        );
+        expect(result.saysGone[0]!.text).toContain(
+          'rewatch: rhx git.pull.watch set --which 1221 --mode apply',
+        );
+        expect(scene.asMasked(result.saysGone[0]!.text)).toMatchSnapshot();
+      });
+      then('the watch stays ended: no read of #1221 and no note after', () => {
+        expect(result.readsAfter).toEqual(result.readsAtEnd);
+        expect(result.saysNewAfter).toEqual(0);
+      });
+    });
+  });
+
+  given('[case3] a pr whose every read faults, from the first', () => {
+    const scene = genWatchTestScene({
+      slug: 'watch-health-dark',
+      repos: ['surf-demo'],
+      store: {},
+      // a short idle ttl, and a gap that can grow, so the end and the wait are both seen
+      env: {
+        GIT_PULL_WATCH_IDLE_TTL_SECONDS: '8',
+        GIT_PULL_WATCH_POLL_MAX_SECONDS: '4',
+      },
+    });
+    scene.setStore((store) => {
+      store.clones[scene.roots['surf-demo']!] = [
+        { serial: SERIAL_A, slug: 'mechanic', reachState: 'LIVE' },
+      ];
+      store.github.prs[`${REPO}#1240`] = {
+        state: 'open',
+        merged: false,
+        headSha: 'sha-1240',
+        closedBy: null,
+      };
+      store.github.faultByPr = { [`${REPO}#1240`]: 'forbidden' };
+    });
+    afterAll(() => scene.stopAllDaemons());
+
+    when('[t0] the watch is set and the idle ttl passes', () => {
+      const result = useThen('its watch ends', async () => {
+        scene.runSkill({
+          verb: 'set',
+          args: ['--which', '1240', '--mode', 'apply'],
+          root: scene.roots['surf-demo']!,
+          serial: SERIAL_A,
+        });
+        await waitForWatch({
+          label: 'the dark watch leaves',
+          check: () => scene.getAllWatchRecords().length === 0,
+          timeoutMs: 120_000,
+          scene,
+        });
+        return {
+          says: scene.getSays().filter((say) => say.text.includes('#1240')),
+          reads: scene
+            .getGhCalls()
+            .filter((call) => call.argv.some((a) => a.endsWith('/pulls/1240')))
+            .length,
+        };
+      });
+      then('one idle note names the rewatch', () => {
+        expect(result.says).toHaveLength(1);
+        expect(result.says[0]!.text).toContain('#1240 unreadable for');
+        expect(result.says[0]!.text).toContain(
+          'rewatch: rhx git.pull.watch set --which 1240 --mode apply',
+        );
+        expect(scene.asMasked(result.says[0]!.text)).toMatchSnapshot();
       });
       then(
-        'no note is sent for it; what it should say waits on the commander',
+        'the gap grew on each failed read: far fewer reads than the ttl has ticks',
         () => {
-          expect(result.saysNew).toEqual(0);
+          expect(result.reads).toBeLessThanOrEqual(5);
         },
       );
     });
   });
+
+  given('[case3b] a pr whose every read gets no reply, from the first', () => {
+    const scene = genWatchTestScene({
+      slug: 'watch-health-dark-down',
+      repos: ['surf-demo'],
+      store: {},
+      env: {
+        GIT_PULL_WATCH_IDLE_TTL_SECONDS: '8',
+        GIT_PULL_WATCH_POLL_MAX_SECONDS: '4',
+      },
+    });
+    scene.setStore((store) => {
+      store.clones[scene.roots['surf-demo']!] = [
+        { serial: SERIAL_A, slug: 'mechanic', reachState: 'LIVE' },
+      ];
+      store.github.prs[`${REPO}#1241`] = {
+        state: 'open',
+        merged: false,
+        headSha: 'sha-1241',
+        closedBy: null,
+      };
+      store.github.faultByPr = { [`${REPO}#1241`]: 'down' };
+    });
+    afterAll(() => scene.stopAllDaemons());
+
+    when('[t0] the watch is set and the idle ttl passes', () => {
+      const result = useThen('its watch ends', async () => {
+        scene.runSkill({
+          verb: 'set',
+          args: ['--which', '1241', '--mode', 'apply'],
+          root: scene.roots['surf-demo']!,
+          serial: SERIAL_A,
+        });
+        await waitForWatch({
+          label: 'the unreachable watch leaves',
+          check: () => scene.getAllWatchRecords().length === 0,
+          timeoutMs: 120_000,
+          scene,
+        });
+        return {
+          idle: scene
+            .getSays()
+            .filter((say) => say.text.includes('#1241 unreadable for')),
+          reads: scene
+            .getGhCalls()
+            .filter((call) => call.argv.some((a) => a.endsWith('/pulls/1241')))
+            .length,
+        };
+      });
+      then('one idle note names the rewatch', () => {
+        expect(result.idle).toHaveLength(1);
+        expect(result.idle[0]!.text).toContain(
+          'rewatch: rhx git.pull.watch set --which 1241 --mode apply',
+        );
+        expect(scene.asMasked(result.idle[0]!.text)).toMatchSnapshot();
+      });
+      then(
+        'the gap grew on each read with no reply: far fewer reads than the ttl has ticks',
+        () => {
+          expect(result.reads).toBeLessThanOrEqual(5);
+        },
+      );
+    });
+  });
+
+  given('[case3c] a second set on a pr whose every read faults', () => {
+    const scene = genWatchTestScene({
+      slug: 'watch-health-dark-reset',
+      repos: ['surf-demo'],
+      store: {},
+      env: {
+        GIT_PULL_WATCH_IDLE_TTL_SECONDS: '10',
+        GIT_PULL_WATCH_POLL_MAX_SECONDS: '2',
+      },
+    });
+    scene.setStore((store) => {
+      store.clones[scene.roots['surf-demo']!] = [
+        { serial: SERIAL_A, slug: 'mechanic', reachState: 'LIVE' },
+      ];
+      store.github.prs[`${REPO}#1242`] = {
+        state: 'open',
+        merged: false,
+        headSha: 'sha-1242',
+        closedBy: null,
+      };
+      store.github.faultByPr = { [`${REPO}#1242`]: 'forbidden' };
+    });
+    afterAll(() => scene.stopAllDaemons());
+    const setWatch = () =>
+      scene.runSkill({
+        verb: 'set',
+        args: ['--which', '1242', '--mode', 'apply'],
+        root: scene.roots['surf-demo']!,
+        serial: SERIAL_A,
+      });
+    const sleep = (ms: number) => new Promise((done) => setTimeout(done, ms));
+
+    when(
+      '[t0] the watch is set, faults for 6s, is set again, and the first ttl passes',
+      () => {
+        const result = useThen('the first deadline passes', async () => {
+          // fixed waits hold under load: `set` clears the idle clock before it returns,
+          // so a slow daemon tick can only push the deadline later, never pull it earlier
+          setWatch();
+          await sleep(6_000);
+          setWatch();
+          // the first set's idle deadline sits at ~10s; wait well past it
+          await sleep(7_000);
+          return { records: scene.getAllWatchRecords() };
+        });
+        then(
+          'the watch still stands: the second set restarted its idle clock',
+          () => {
+            expect(result.records).toHaveLength(1);
+            expect(result.records[0]!.record.ended ?? null).toEqual(null);
+          },
+        );
+      },
+    );
+
+    when('[t1] the restarted ttl passes', () => {
+      const result = useThen('its watch ends', async () => {
+        await waitForWatch({
+          label: 'the dark watch leaves',
+          check: () => scene.getAllWatchRecords().length === 0,
+          timeoutMs: 60_000,
+          scene,
+        });
+        return {
+          idle: scene
+            .getSays()
+            .filter((say) => say.text.includes('#1242 unreadable for')),
+        };
+      });
+      then('one idle note, once', () => {
+        expect(result.idle).toHaveLength(1);
+        expect(scene.asMasked(result.idle[0]!.text)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given(
+    '[case4] a live pr whose head is gone: its pull reads fine, its check-runs answer 404',
+    () => {
+      const scene = genWatchTestScene({
+        slug: 'watch-health-subread',
+        repos: ['surf-demo'],
+        store: {},
+      });
+      scene.setStore((store) => {
+        store.clones[scene.roots['surf-demo']!] = [
+          { serial: SERIAL_A, slug: 'mechanic', reachState: 'LIVE' },
+        ];
+        store.github.prs[`${REPO}#1250`] = {
+          state: 'open',
+          merged: false,
+          headSha: 'sha-1250-forcepushed',
+          closedBy: null,
+        };
+        store.github.headsNotFound = ['sha-1250-forcepushed'];
+      });
+      afterAll(() => scene.stopAllDaemons());
+
+      when('[t0] the watch is set and ticks pass', () => {
+        const result = useThen('the ticks pass', async () => {
+          scene.runSkill({
+            verb: 'set',
+            args: ['--which', '1250', '--mode', 'apply'],
+            root: scene.roots['surf-demo']!,
+            serial: SERIAL_A,
+          });
+          await waitForWatch({
+            label: 'a check-runs 404',
+            check: () =>
+              scene
+                .getGhCalls()
+                .some(
+                  (call) =>
+                    call.status === 404 &&
+                    call.argv.some((a) => a.includes('/check-runs')),
+                ),
+            scene,
+          });
+          await scene.waitForDaemonTicks({ ticks: 3 });
+          return {
+            records: scene.getAllWatchRecords(),
+            gone: scene.getSays().filter((say) => say.text.includes('404')),
+            listed: JSON.parse(
+              scene.runSkill({
+                verb: 'get',
+                args: ['--output', 'json'],
+                root: scene.roots['surf-demo']!,
+                serial: null,
+              }).stdout,
+            ),
+            tree: scene.runSkill({
+              verb: 'get',
+              args: [],
+              root: scene.roots['surf-demo']!,
+              serial: null,
+            }).stdout,
+          };
+        });
+        then('the get tree names the 404 on the row of #1250', () => {
+          expect(result.tree).toContain(`${REPO}#1250 → @:mechanic`);
+          expect(result.tree).toContain('· read fault ');
+          expect(result.tree).toContain('(status: 404)');
+          expect(
+            scene
+              .asMasked(result.tree)
+              .replace(/read fault \d+ min/g, 'read fault <n> min'),
+          ).toMatchSnapshot();
+        });
+        then(
+          'the watch stays: only the pull itself can say a pr is gone',
+          () => {
+            expect(result.records).toHaveLength(1);
+            expect(result.records[0]!.record.ended ?? null).toEqual(null);
+          },
+        );
+        then('no 404 note is sent', () => {
+          expect(result.gone).toHaveLength(0);
+        });
+        then('get shows the 404 as a read fault on the row', () => {
+          const row = result.listed.daemons[0].watches[0];
+          expect(row.readFault.rc).toEqual(1);
+          expect(row.readFault.cause).toContain('404');
+        });
+      });
+    },
+  );
+
+  given(
+    '[case2] a pr that answers 404 to the grove token, the seaturtle token not granted',
+    () => {
+      const scene = genWatchTestScene({
+        slug: 'watch-health-grove',
+        repos: ['surf-demo'],
+        store: { keyrack: 'locked', keyrackAmbient: 'granted' },
+      });
+      scene.setStore((store) => {
+        store.clones[scene.roots['surf-demo']!] = [
+          { serial: SERIAL_A, slug: 'mechanic', reachState: 'LIVE' },
+        ];
+        store.github.prs[`${REPO}#1230`] = {
+          state: 'open',
+          merged: false,
+          headSha: 'sha-1230',
+          closedBy: null,
+        };
+        store.github.faultByPr = { [`${REPO}#1230`]: 'notfound' };
+      });
+      afterAll(() => scene.stopAllDaemons());
+
+      when('[t0] the first due read', () => {
+        const result = useThen('its watch ends', async () => {
+          scene.runSkill({
+            verb: 'set',
+            args: ['--which', '1230', '--mode', 'apply'],
+            root: scene.roots['surf-demo']!,
+            serial: SERIAL_A,
+          });
+          await waitForWatch({
+            label: 'the #1230 watch leaves',
+            check: () => scene.getAllWatchRecords().length === 0,
+            scene,
+          });
+          return {
+            says: scene.getSays().filter((say) => say.text.includes('404')),
+          };
+        });
+        then(
+          'the note names the grove token and puts the seaturtle unlock before the rewatch',
+          () => {
+            expect(result.says).toHaveLength(1);
+            const text = result.says[0]!.text;
+            expect(text).toContain(
+              '#1230 answers 404 to the grove token (@all.prep.GITHUB_TOKEN); watch ended',
+            );
+            expect(text).toContain(
+              "the pr may be gone, or out of the grove token's reach; the seaturtle token was not granted",
+            );
+            expect(text).toContain(
+              'rewatch, once the seaturtle token is unlocked: rhx git.pull.watch set --which 1230 --mode apply',
+            );
+            expect(scene.asMasked(text)).toMatchSnapshot();
+          },
+        );
+      });
+    },
+  );
 });

@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.pull.watch token given: [case3] a private pr the grove token cannot see; the seaturtle token lapses, then is unlocked again when: [t0] the seaturtle token lapses mid-life, and the grove token takes over then: one note names the grove token and puts the seaturtle unlock before the rewatch 1`] = `
+"🐢 bummer dude...
+
+🐚 git.pull.watch — #1230 answers 404 to the grove token (@all.prep.GITHUB_TOKEN); watch ended
+   ├─ the pr may be gone, or out of the grove token's reach; the seaturtle token was not granted
+   └─ rewatch, once the seaturtle token is unlocked: rhx git.pull.watch set --which 1230 --mode apply"
+`;

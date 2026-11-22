@@ -538,6 +538,74 @@ get_watch_record_counts_of_clone() {
   echo "$count $unreadable"
 }
 
+# .what = print some fields of a watch record on one line, joined by the unit separator
+# .why  = a tab is IFS whitespace, so `@tsv` under IFS=$'\t' collapses an empty field and
+#         shifts each one after it (a record with no repoRoot would hand its serial to
+#         $root); the unit separator is no whitespace, so an empty field holds its place
+# usage: IFS=$'\x1f' read -r a b < <(get_watch_record_fields <record> <jq path> [<jq path>...])
+# .note = an absent field prints empty; a record that will not parse prints naught
+get_watch_record_fields() {
+  local record="$1" one paths=()
+  shift
+  for one in "$@"; do paths+=("(($one) // \"\" | @text)"); done
+  jq -r "[$(IFS=,; echo "${paths[*]}")] | join(\"\\u001f\")" "$record" 2>/dev/null
+}
+
+# .what = would a daemon of this key serve this record?
+# .why  = the SessionStart hook spawns a daemon only for records it would serve, and
+#         the daemon's steal acts on the same rule, so the two cannot drift apart:
+#         a record no daemon of this key would take must never spawn one (the
+#         respawn loop: spawn, steal naught, exit, at every session start)
+# usage: is_watch_record_servable_by_key <record> <key>
+# returns: 0 servable · 1 not this key's to serve
+# .note = a record under this key is always served, ended or live: an ended one
+#         holds its closure note, which a daemon must still deliver. a record under
+#         another key is served only where its repo root stands and runs this key
+is_watch_record_servable_by_key() {
+  local record="$1" key="$2" root
+  [[ "$(as_watch_key_of_record "$record")" == "$key" ]] && return 0
+  root="$(jq -r '.repoRoot // empty' "$record" 2>/dev/null)" || return 1
+  [[ -n "$root" && -d "$root" ]] || return 1
+  is_watch_root_on_key "$root" "$key"
+}
+
+# .what = does this repo root's mechanic install map to this key? asked once per root per pass
+# .why  = the key of a root rehashes the skill's files (~15 process births); a clone's
+#         records share one root, so one pass pays it per root, never per record
+# .note = the memo lives in WATCH_ROOT_KEY_MEMO (one `root<tab>key` row each); a caller
+#         that starts a fresh pass clears it, so an upgrade mid-life is seen at the next
+#         pass. never call this through $( ): the subshell would drop the row it writes
+# usage: is_watch_root_on_key <root> <key>
+WATCH_ROOT_KEY_MEMO=""
+is_watch_root_on_key() {
+  local root="$1" key="$2" row found="" hit=false
+  while IFS= read -r row; do
+    [[ -n "$row" && "${row%%$'\t'*}" == "$root" ]] || continue
+    found="${row#*$'\t'}"
+    hit=true
+    break
+  done <<<"$WATCH_ROOT_KEY_MEMO"
+  if [[ "$hit" == false ]]; then
+    found="$(get_watch_key_of_root "$root")"
+    WATCH_ROOT_KEY_MEMO+="$root"$'\t'"$found"$'\n'
+  fi
+  [[ "$found" == "$key" ]]
+}
+
+# .what = how many records of one clone, in one key dir, a daemon of this key would serve
+# .why  = the SessionStart hook spawns a daemon only for a count above zero, so the count
+#         must read the same rule the steal acts on (is_watch_record_servable_by_key)
+# usage: get_watch_record_count_servable_of_clone <key_dir> <serial> <key>
+get_watch_record_count_servable_of_clone() {
+  local key_dir="$1" serial="$2" key="$3" record count=0
+  while IFS= read -r record; do
+    [[ -n "$record" ]] || continue
+    [[ "$(jq -r '.cloneSerial' "$record" 2>/dev/null)" == "$serial" ]] || continue
+    is_watch_record_servable_by_key "$record" "$key" && count=$((count + 1))
+  done < <(get_all_watch_records "$key_dir" 2>/dev/null)
+  echo "$count"
+}
+
 # .what = write a file whole: temp file, then mv
 # .why  = the daemon and the verbs read each other's records at any moment; mv
 #         is atomic, so a reader sees the prior file or the next, never half
@@ -987,6 +1055,16 @@ as_watch_record_moved() {
     '$template * . | .schema = $template.schema | .repoRoot = $root | .cloneSlug = $slug | .watchId = $id | del(.ended)' "$record"
 }
 
+# .what = a watch record carried to a new key by the steal: as a move, with its end mark kept
+# .why  = a `set` move asks for a live watch, so it drops the mark (as_watch_record_moved);
+#         a steal carries an ended record whose closure note may still be held, so the
+#         new key's daemon must see it ended, deliver the note, and delete it, as its own
+as_watch_record_stolen() {
+  local record="$1" root="$2" slug="$3"
+  as_watch_record_moved "$record" "$root" "$slug" \
+    | jq --arg ended "$(jq -r '.ended // empty' "$record")" 'if $ended != "" then .ended = $ended else . end'
+}
+
 ######################################################################
 # poll cadence: a quiet pr is read less often; a pr idle past the ttl ends
 ######################################################################
@@ -1048,16 +1126,68 @@ set_watch_pr_cadence() {
   now="$(get_watch_epoch_now)"
   print="$(as_watch_pr_state_print "$4")" || return 0
   prior="$(cat "$dir/poll.print" 2>/dev/null || echo "")"
-  quiet="$(cat "$dir/poll.quiet" 2>/dev/null || echo 0)"
-  [[ "$quiet" =~ ^[0-9]+$ ]] || quiet=0
-  quiet=$((quiet + 1))
+  quiet="$(get_watch_pr_quiet_next "$dir")"
   [[ "$print" != "$prior" ]] && quiet=0
   # the idle clock starts at the first read, and restarts on each change
   [[ "$print" != "$prior" || ! -f "$dir/poll.changed" ]] && printf '%s' "$now" | set_watch_file_atomic "$dir/poll.changed"
   printf '%s' "$print" | set_watch_file_atomic "$dir/poll.print"
+  set_watch_pr_poll_next "$dir" "$quiet"
+}
+
+# .what = the quiet count of a pr after one more quiet read: its prior count, plus one
+# .why  = a quiet read and a held tick both grow the gap from this one count, so they
+#         can never disagree on how long a pr waits
+get_watch_pr_quiet_next() {
+  local dir="$1" quiet
+  quiet="$(cat "$dir/poll.quiet" 2>/dev/null || echo 0)"
+  [[ "$quiet" =~ ^[0-9]+$ ]] || quiet=0
+  echo $((quiet + 1))
+}
+
+# .what = write a pr's quiet count and its next read, one gap out from now
+# .why  = the gap math (doubled per quiet count, capped) lives once, for every caller
+#         that moves a pr's next read
+# usage: set_watch_pr_poll_next <cadence_dir> <quiet>
+set_watch_pr_poll_next() {
+  local dir="$1" quiet="$2"
   printf '%s' "$quiet" | set_watch_file_atomic "$dir/poll.quiet"
-  printf '%s' "$((now + $(as_watch_poll_gap_seconds "$quiet" "$WATCH_TICK_SECONDS" "$WATCH_POLL_MAX_SECONDS")))" \
+  printf '%s' "$(( $(get_watch_epoch_now) + $(as_watch_poll_gap_seconds "$quiet" "$WATCH_TICK_SECONDS" "$WATCH_POLL_MAX_SECONDS") ))" \
     | set_watch_file_atomic "$dir/poll.next"
+}
+
+# .what = a tick that could not read a due pr: its gap doubles, as on a quiet read
+# .why  = a paused daemon or a pr whose reads fault would else ask keyrack and
+#         github each tick; the gap bounds that cost. naught changed, so the
+#         fingerprint and the idle clock stay as they were
+# usage: set_watch_pr_cadence_held <key_dir> <repo> <pr>
+set_watch_pr_cadence_held() {
+  local dir
+  dir="$(as_watch_pr_cadence_dir "$1" "$2" "$3")"
+  mkdir -p "$dir"
+  set_watch_pr_poll_next "$dir" "$(get_watch_pr_quiet_next "$dir")"
+}
+
+# .what = a read of a pr that faulted: hold its gap, and start its idle clock if absent
+# .why  = a pr that never reads ok would else never reach the idle ttl, and read
+#         every tick forever; its clock starts at its first failed read, which a
+#         `set` restarts (del_watch_pr_cadence), so a fresh watch is never ended by
+#         an older watcher's age
+# usage: set_watch_pr_cadence_faulted <key_dir> <repo> <pr>
+set_watch_pr_cadence_faulted() {
+  local dir
+  dir="$(as_watch_pr_cadence_dir "$1" "$2" "$3")"
+  set_watch_pr_cadence_held "$1" "$2" "$3"
+  [[ -f "$dir/poll.changed" ]] || get_watch_epoch_now | set_watch_file_atomic "$dir/poll.changed"
+}
+
+# .what = make a pr due at the next tick; its idle clock stays as it was
+# .why  = a gap that grew while the daemon could not read (a pause) says naught of
+#         the pr's own quiet, so once reads resume the pr reads at once
+# usage: set_watch_pr_due <key_dir> <repo> <pr>
+set_watch_pr_due() {
+  local dir
+  dir="$(as_watch_pr_cadence_dir "$1" "$2" "$3")"
+  rm -f "$dir/poll.next" "$dir/poll.quiet"
 }
 
 # .what = make a pr due at the next tick, its idle clock restarted

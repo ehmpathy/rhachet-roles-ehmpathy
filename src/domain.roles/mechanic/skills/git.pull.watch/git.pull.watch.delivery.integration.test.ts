@@ -493,6 +493,7 @@ describe('git.pull.watch delivery', () => {
             id: 91,
             name: 'test-unit',
           });
+          const ghAtReturn = scene.getGhCalls().length;
           scene.setStore((store) => {
             store.github.auth = 'ok';
           });
@@ -503,8 +504,24 @@ describe('git.pull.watch delivery', () => {
             scene,
           });
           await scene.waitForDaemonTicks({ ticks: 2 });
-          return { says: scene.getSays() };
+          return {
+            says: scene.getSays(),
+            readsOkOfOtherPr: scene
+              .getGhCalls()
+              .slice(ghAtReturn)
+              .filter(
+                (call) =>
+                  call.argv.some((a) => a.endsWith('/pulls/1221')) &&
+                  (call.status === 200 || call.status === 304),
+              ).length,
+          };
         });
+        then(
+          'the other pr reads too: the lift makes each watched pr due at once',
+          () => {
+            expect(result.readsOkOfOtherPr).toBeGreaterThan(0);
+          },
+        );
         then('the event from the pause alerts once', () => {
           expect(
             result.says.filter((say) => say.text.includes('ci failed')),
@@ -518,71 +535,101 @@ describe('git.pull.watch delivery', () => {
       },
     );
 
-    when('[t2] keyrack reads the token locked', () => {
-      const result = useThen('a fresh paused alert', async () => {
-        scene.setStore((store) => {
-          store.keyrack = 'locked';
+    when(
+      '[t2] keyrack locks while the daemon holds a token github accepts',
+      () => {
+        const result = useThen('the ticks pass', async () => {
+          const keyrackBefore = scene.getKeyrackCalls().length;
+          const ghBefore = scene.getGhCalls().length;
+          const pausedBefore = getSaysPaused().length;
+          scene.setStore((store) => {
+            store.keyrack = 'locked';
+          });
+          await scene.waitForDaemonTicks({ ticks: 4 });
+          return {
+            keyrackNew: scene.getKeyrackCalls().length - keyrackBefore,
+            ghNew: scene.getGhCalls().length - ghBefore,
+            pausedNew: getSaysPaused().length - pausedBefore,
+          };
         });
-        await waitForWatch({
-          label: 'locked alert',
-          check: () => getSaysPaused().length >= 2,
-          scene,
+        then('keyrack is not read: the held token serves on', () => {
+          expect(result.keyrackNew).toEqual(0);
         });
-        const ghCallsBefore = scene.getGhCalls().length;
-        await scene.waitForDaemonTicks({ ticks: 2 });
-        const ghCallsAfter = scene.getGhCalls().length;
-        const listedTree = scene.runSkill({
-          verb: 'get',
-          args: [],
-          root: scene.roots['surf-demo']!,
-          serial: null,
+        then('github reads go on, and no paused alert is sent', () => {
+          expect(result.ghNew).toBeGreaterThan(0);
+          expect(result.pausedNew).toEqual(0);
         });
-        const listedJson = scene.runSkill({
-          verb: 'get',
-          args: ['--output', 'json'],
-          root: scene.roots['surf-demo']!,
-          serial: null,
+      },
+    );
+
+    when(
+      '[t2b] github then refuses the held token, and keyrack reads locked',
+      () => {
+        const result = useThen('a fresh paused alert', async () => {
+          scene.setStore((store) => {
+            store.github.auth = '401';
+          });
+          await waitForWatch({
+            label: 'locked alert',
+            check: () => getSaysPaused().length >= 2,
+            scene,
+          });
+          const ghCallsBefore = scene.getGhCalls().length;
+          await scene.waitForDaemonTicks({ ticks: 2 });
+          const ghCallsAfter = scene.getGhCalls().length;
+          const listedTree = scene.runSkill({
+            verb: 'get',
+            args: [],
+            root: scene.roots['surf-demo']!,
+            serial: null,
+          });
+          const listedJson = scene.runSkill({
+            verb: 'get',
+            args: ['--output', 'json'],
+            root: scene.roots['surf-demo']!,
+            serial: null,
+          });
+          return {
+            says: getSaysPaused(),
+            ghCallsBefore,
+            ghCallsAfter,
+            listedTree,
+            listedJson,
+          };
         });
-        return {
-          says: getSaysPaused(),
-          ghCallsBefore,
-          ghCallsAfter,
-          listedTree,
-          listedJson,
-        };
-      });
-      then('get marks the daemon paused locked, and names the unlock', () => {
-        expect(result.listedTree.stdout).toContain('paused (token locked)');
-        expect(result.listedTree.stdout).toContain(
-          'a paused daemon reads naught; the github token is locked',
-        );
-        expect(result.listedTree.stdout).toContain(
-          'rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN',
-        );
-        expect(JSON.parse(result.listedJson.stdout).daemons[0].paused).toEqual(
-          'locked',
-        );
-        expect(scene.asMasked(result.listedTree.stdout)).toMatchSnapshot();
-        // a read fault's clock is an epoch; it differs per run
-        expect(
-          scene
-            .asMasked(result.listedJson.stdout)
-            .replace(/"since": \d+/g, '"since": "<epoch>"'),
-        ).toMatchSnapshot();
-      });
-      then('the alert says locked and names the unlock', () => {
-        expect(result.says[1]!.text).toContain('github token locked');
-        expect(result.says[1]!.text).toContain('fix: rhx keyrack unlock');
-        expect(scene.asMasked(result.says[1]!.text)).toMatchSnapshot();
-      });
-      then('no github call is made while paused', () => {
-        expect(result.ghCallsAfter).toEqual(result.ghCallsBefore);
-      });
-      then('the token is read with cwd at the watch repo root', () => {
-        const cwds = new Set(scene.getKeyrackCalls().map((call) => call.cwd));
-        expect([...cwds]).toEqual([scene.roots['surf-demo']]);
-      });
-    });
+        then('get marks the daemon paused locked, and names the unlock', () => {
+          expect(result.listedTree.stdout).toContain('paused (token locked)');
+          expect(result.listedTree.stdout).toContain(
+            'a paused daemon reads naught; the github token is locked',
+          );
+          expect(result.listedTree.stdout).toContain(
+            'rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN',
+          );
+          expect(
+            JSON.parse(result.listedJson.stdout).daemons[0].paused,
+          ).toEqual('locked');
+          expect(scene.asMasked(result.listedTree.stdout)).toMatchSnapshot();
+          // a read fault's clock is an epoch; it differs per run
+          expect(
+            scene
+              .asMasked(result.listedJson.stdout)
+              .replace(/"since": \d+/g, '"since": "<epoch>"'),
+          ).toMatchSnapshot();
+        });
+        then('the alert says locked and names the unlock', () => {
+          expect(result.says[1]!.text).toContain('github token locked');
+          expect(result.says[1]!.text).toContain('fix: rhx keyrack unlock');
+          expect(scene.asMasked(result.says[1]!.text)).toMatchSnapshot();
+        });
+        then('no github call is made while paused', () => {
+          expect(result.ghCallsAfter).toEqual(result.ghCallsBefore);
+        });
+        then('the token is read with cwd at the watch repo root', () => {
+          const cwds = new Set(scene.getKeyrackCalls().map((call) => call.cwd));
+          expect([...cwds]).toEqual([scene.roots['surf-demo']]);
+        });
+      },
+    );
 
     when(
       '[t3] the unlock lands, but github refuses the token (401) while still paused',
@@ -1266,9 +1313,9 @@ describe('git.pull.watch delivery', () => {
         .filter((say) => say.text.includes('cannot read its github token'));
 
     when(
-      '[t0] the clone watches the pr; then every keyrack read faults',
+      '[t0] the clone watches the pr; then keyrack faults while the daemon holds a token',
       () => {
-        const result = useThen('one token-fault note', async () => {
+        const result = useThen('the ticks pass', async () => {
           scene.runSkill({
             verb: 'set',
             args: ['--which', '1220', '--mode', 'apply'],
@@ -1276,8 +1323,29 @@ describe('git.pull.watch delivery', () => {
             serial: SERIAL_A,
           });
           await scene.waitForPrimed();
+          const keyrackBefore = scene.getKeyrackCalls().length;
           scene.setStore((store) => {
             store.keyrack = 'fault';
+          });
+          await scene.waitForDaemonTicks({ ticks: 6 });
+          return {
+            keyrackNew: scene.getKeyrackCalls().length - keyrackBefore,
+            says: getSaysTokenFault(),
+          };
+        });
+        then('keyrack is not read, and no fault note is sent', () => {
+          expect(result.keyrackNew).toEqual(0);
+          expect(result.says).toHaveLength(0);
+        });
+      },
+    );
+
+    when(
+      '[t0b] github then refuses the held token, and every keyrack read faults',
+      () => {
+        const result = useThen('one token-fault note', async () => {
+          scene.setStore((store) => {
+            store.github.auth = '401';
           });
           await waitForWatch({
             label: 'token-fault note',
@@ -1343,6 +1411,7 @@ describe('git.pull.watch delivery', () => {
         });
         scene.setStore((store) => {
           store.keyrack = 'granted';
+          store.github.auth = 'ok';
         });
         await waitForWatch({
           label: 'catch-up alert',

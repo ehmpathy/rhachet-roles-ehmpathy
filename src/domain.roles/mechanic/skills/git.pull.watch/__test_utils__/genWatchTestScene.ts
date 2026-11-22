@@ -5,6 +5,7 @@ import * as path from 'path';
 import { genTempDir } from 'test-fns';
 
 import { getAllWatchDaemonPids } from './getAllWatchDaemonPids';
+import { isPidAlive } from './isPidAlive';
 import { waitForWatch } from './waitForWatch';
 
 /**
@@ -68,8 +69,15 @@ export interface WatchStore {
      * a secondary one (403, lifts retryAfter seconds out), no reply, or a 502
      */
     fault?: 'ratelimit' | 'secondary' | 'down' | 'badgateway' | null;
-    /** a fault only the reads of one pr meet, keyed `owner/name#pr`: no reply, or a 404 */
-    faultByPr?: Record<string, 'down' | 'notfound'>;
+    /**
+     * a fault only the reads of one pr meet, keyed `owner/name#pr`: no reply, a 404,
+     * or a 403 that is no rate limit (a fault the daemon has no path for: dark)
+     */
+    faultByPr?: Record<string, 'down' | 'notfound' | 'forbidden'>;
+    /** head shas whose check-runs read answers 404, as a head force-pushed away does */
+    headsNotFound?: string[];
+    /** prs, keyed `owner/name#pr`, that answer 404 to the grove token alone, as a private repo out of its reach does */
+    prsHiddenFromAmbient?: string[];
     rateLimitReset?: number;
     retryAfter?: number;
     prs: Record<
@@ -125,6 +133,7 @@ const prOfRead = (endpoint.match(/^repos\/([^/]+\/[^/]+)\/(?:pulls|issues)\/(\d+
 const faultOfPr = (state.github.faultByPr || {})[prOfRead] || null;
 if (faultOfPr === 'down') { log('down'); process.stderr.write('dial tcp: lookup api.github.com: no such host\n'); process.exit(1); }
 if (faultOfPr === 'notfound') notFound();
+if (faultOfPr === 'forbidden') { log(403); if (withHeaders) process.stdout.write('HTTP/2.0 403 Forbidden\n\n{"message":"Resource not accessible by integration"}'); process.stderr.write('gh: Resource not accessible by integration (HTTP 403)\n'); process.exit(1); }
 if (state.github.fault === 'down') { log('down'); process.stderr.write('dial tcp: lookup api.github.com: no such host\n'); process.exit(1); }
 if (state.github.fault === 'ratelimit') {
   log(403);
@@ -151,6 +160,7 @@ if (state.github.auth === '401' || !tokensAccepted.includes(process.env.GH_TOKEN
   process.stderr.write('gh: Bad credentials (HTTP 401)\n');
   process.exit(1);
 }
+if ((state.github.prsHiddenFromAmbient || []).includes(prOfRead) && process.env.GH_TOKEN === state.github.tokenAmbient) notFound();
 const [route] = endpoint.split('?');
 const m = route.match(/^repos\/([^/]+\/[^/]+)\/(.*)$/);
 if (!m) notFound();
@@ -160,7 +170,7 @@ const key = (n) => repo + '#' + n;
 const prOf = (n) => { const pr = state.github.prs[key(n)]; if (!pr) notFound(); return pr; };
 let body;
 if (parts[0] === 'pulls' && parts.length === 2) { const pr = prOf(parts[1]); body = { number: Number(parts[1]), state: pr.state, merged: pr.merged, head: { sha: pr.headSha } }; }
-else if (parts[0] === 'commits' && parts[2] === 'check-runs') { const runs = state.github.checks[parts[1]] || []; body = { total_count: runs.length, check_runs: runs }; }
+else if (parts[0] === 'commits' && parts[2] === 'check-runs') { if ((state.github.headsNotFound || []).includes(parts[1])) notFound(); const runs = state.github.checks[parts[1]] || []; body = { total_count: runs.length, check_runs: runs }; }
 else if (parts[0] === 'issues' && parts[2] === 'comments') { prOf(parts[1]); body = state.github.issueComments[key(parts[1])] || []; }
 else if (parts[0] === 'pulls' && parts[2] === 'comments') { prOf(parts[1]); body = state.github.reviewComments[key(parts[1])] || []; }
 else if (parts[0] === 'pulls' && parts[2] === 'reviews') { prOf(parts[1]); body = state.github.reviews[key(parts[1])] || []; }
@@ -170,7 +180,9 @@ else notFound();
 // check-runs pages its object's check_runs list, as github does
 const pagedRuns = !Array.isArray(body) && Array.isArray(body.check_runs) && body.check_runs.length > 100;
 const paged = (Array.isArray(body) && body.length > 100) || pagedRuns;
-if (paged && rest.includes('--paginate')) { log('paginate'); process.stdout.write(JSON.stringify(body)); process.exit(0); }
+// .note = exit from the write's callback: a bare exit after a large write to a pipe can
+//         cut the body at the pipe buffer (8 KiB), and the reader then meets half a json
+if (paged && rest.includes('--paginate')) { log('paginate'); process.stdout.write(JSON.stringify(body), () => process.exit(0)); return; }
 const linkNext = paged ? 'Link: <https://api.github.com/' + route + '?per_page=100&page=2>; rel="next"\n' : '';
 if (paged) body = pagedRuns ? { ...body, check_runs: body.check_runs.slice(0, 100) } : body.slice(0, 100);
 const text = JSON.stringify(body);
@@ -183,8 +195,7 @@ if (ifNone && ifNone === etag) {
 }
 log(200);
 if (withHeaders) process.stdout.write('HTTP/2.0 200 OK\nContent-Type: application/json\nEtag: ' + etag + '\n' + linkNext + '\n');
-process.stdout.write(text);
-process.exit(0);
+process.stdout.write(text, () => process.exit(0));
 `;
 
 /**
@@ -198,23 +209,26 @@ const state = JSON.parse(fs.readFileSync(process.env.FAKE_WATCH_STATE, 'utf-8'))
 const argv = process.argv.slice(2);
 const cwd = fs.realpathSync(process.cwd());
 const clones = state.clones[cwd] || [];
-const out = (v, code) => { process.stdout.write(JSON.stringify(v, null, 2) + '\n'); process.exit(code); };
-const err = (v, code) => { process.stderr.write(JSON.stringify(v, null, 2) + '\n'); process.exit(code); };
+// .note = exit from the write's callback, and return at each call site: a bare exit after a
+//         large write to a pipe can cut the body at the pipe buffer (8 KiB), and the return
+//         keeps the next branch from a second answer while the write drains
+const out = (v, code) => process.stdout.write(JSON.stringify(v, null, 2) + '\n', () => process.exit(code));
+const err = (v, code) => process.stderr.write(JSON.stringify(v, null, 2) + '\n', () => process.exit(code));
 if (argv[0] === 'clone' && argv[1] === 'list' && state.cloneListDelayMs) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, state.cloneListDelayMs);
 if (argv[0] === 'clone' && argv[1] === 'list' && (state.registryFaults || []).includes(cwd)) { process.stderr.write('stub rhachet: registry unreadable\n'); process.exit(1); }
-if (argv[0] === 'clone' && argv[1] === 'list' && (state.registryShapeOdd || []).includes(cwd)) out({}, 0);
-if (argv[0] === 'clone' && argv[1] === 'list') out({ actors: [{ exid: 'repo=ambient', clones: clones.map((c) => ({ serial: c.serial, slug: c.slug, reachState: c.reachState })) }] }, 0);
+if (argv[0] === 'clone' && argv[1] === 'list' && (state.registryShapeOdd || []).includes(cwd)) return out({}, 0);
+if (argv[0] === 'clone' && argv[1] === 'list') return out({ actors: [{ exid: 'repo=ambient', clones: clones.map((c) => ({ serial: c.serial, slug: c.slug, reachState: c.reachState })) }] }, 0);
 if (argv[0] === 'clone' && argv[1] === 'say') {
   const serial = argv[2].replace(/^@:/, '');
   const text = fs.readFileSync(0, 'utf-8');
   const clone = clones.find((c) => c.serial === serial);
   const verdict = !clone ? 'unknown' : clone.reachState === 'DEAD' ? 'dead' : (clone.say || 'released');
   fs.appendFileSync(process.env.FAKE_WATCH_SAY_LOG, JSON.stringify({ serial, cwd, text, verdict, force: argv.includes('--force') }) + '\n');
-  if (verdict === 'released' || verdict === 'enqueued') out({ delivered: true, verdict, reason: null, probe: 'full', serial, slug: clone.slug }, 0);
-  if (verdict === 'dead') err({ class: 'ConstraintError', message: 'the clone is dead', hint: 'enroll a fresh clone', reachState: 'DEAD', reachCause: 'DEAD-same-host', metadata: {} }, 2);
-  if (verdict === 'unknown') err({ class: 'ConstraintError', message: 'no clone at @:' + serial, hint: null, reachState: null, reachCause: null, metadata: {} }, 2);
+  if (verdict === 'released' || verdict === 'enqueued') return out({ delivered: true, verdict, reason: null, probe: 'full', serial, slug: clone.slug }, 0);
+  if (verdict === 'dead') return err({ class: 'ConstraintError', message: 'the clone is dead', hint: 'enroll a fresh clone', reachState: 'DEAD', reachCause: 'DEAD-same-host', metadata: {} }, 2);
+  if (verdict === 'unknown') return err({ class: 'ConstraintError', message: 'no clone at @:' + serial, hint: null, reachState: null, reachCause: null, metadata: {} }, 2);
   const klass = verdict === 'withheld' ? 'ConstraintError' : 'MalfunctionError';
-  err({ class: klass, message: 'the say was ' + verdict, hint: null, reachState: null, reachCause: null, metadata: { delivered: false, verdict, reason: verdict === 'withheld' ? 'modal-holds-focus' : 'feed-faulted' } }, verdict === 'withheld' ? 2 : 1);
+  return err({ class: klass, message: 'the say was ' + verdict, hint: null, reachState: null, reachCause: null, metadata: { delivered: false, verdict, reason: verdict === 'withheld' ? 'modal-holds-focus' : 'feed-faulted' } }, verdict === 'withheld' ? 2 : 1);
 }
 if (argv[0] === 'keyrack' && argv[1] === 'get') {
   fs.appendFileSync(process.env.FAKE_WATCH_KEYRACK_LOG, JSON.stringify({ argv, cwd }) + '\n');
@@ -223,8 +237,8 @@ if (argv[0] === 'keyrack' && argv[1] === 'get') {
   const keyrack = ambient ? (state.keyrackAmbient || 'absent') : ((state.keyrackByRoot || {})[cwd] || state.keyrack);
   const secret = ambient ? state.github.tokenAmbient : state.github.token;
   if (keyrack === 'fault') { process.stderr.write('stub keyrack: daemon socket refused\n'); process.exit(1); }
-  if (keyrack === 'granted') out({ status: 'granted', grant: { slug, key: { secret } } }, 0);
-  out({ status: keyrack, slug }, 2);
+  if (keyrack === 'granted') return out({ status: 'granted', grant: { slug, key: { secret } } }, 0);
+  return out({ status: keyrack, slug }, 2);
 }
 process.stderr.write('stub rhachet: unknown command ' + argv.join(' ') + '\n');
 process.exit(1);
@@ -522,9 +536,21 @@ export const genWatchTestScene = (input: {
         fs.existsSync(log) ? fs.readFileSync(log, 'utf-8') : '(absent)',
       ].join('\n');
     });
+    // .note = a record that will not parse is shown as raw text, so the dump never hides the cause it should show
+    const records = keys.flatMap((name) => {
+      const dir = path.join(root, name, 'watches');
+      if (!fs.existsSync(dir)) return [];
+      return fs
+        .readdirSync(dir)
+        .filter((file) => file.endsWith('.json'))
+        .map(
+          (file) =>
+            `${name}/${file}: ${fs.readFileSync(path.join(dir, file), 'utf-8')}`,
+        );
+    });
     return [
       ...perKey,
-      `== records\n${JSON.stringify(getAllWatchRecords(), null, 2)}`,
+      `== records\n${records.join('\n')}`,
       `== says\n${fs.readFileSync(sayLog, 'utf-8')}`,
       `== gh (last 10)\n${fs.readFileSync(ghLog, 'utf-8').split('\n').slice(-11).join('\n')}`,
       `== daemons\n${getAllWatchDaemonPids({ home }).join(', ')}`,
@@ -549,9 +575,18 @@ export const genWatchTestScene = (input: {
     );
   };
 
-  // a key whose daemon lives (its pid record is present)
-  const isKeyLive = (name: string): boolean =>
-    fs.existsSync(path.join(getStateRoot(), name, 'daemon.pid'));
+  // a key whose daemon lives: its pid record is present, and names a live pid
+  // .note = a killed daemon leaves its pid record behind, so the record alone is no proof
+  const isKeyLive = (name: string): boolean => {
+    const file = path.join(getStateRoot(), name, 'daemon.pid');
+    if (!fs.existsSync(file)) return false;
+    // the daemon writes this record whole (temp file, then mv), so a pid that will not
+    // parse reads as no live daemon; a fault of the liveness probe itself is thrown
+    const pid = Number(
+      (fs.readFileSync(file, 'utf-8').match(/"pid":\s*(\d+)/) ?? [])[1],
+    );
+    return Number.isInteger(pid) && pid > 0 && isPidAlive(pid);
+  };
 
   // wait until each live daemon has done n more whole ticks
   // .why = a claim of absence ("no second alert") needs ticks to pass first
@@ -586,13 +621,24 @@ export const genWatchTestScene = (input: {
   };
 
   // stop every daemon this scene spawned, by its pid record
+  // .note = the daemon leads a session of its own (setsid), so its group is killed
+  //         whole: a child it forked mid-tick would else outlive it and still write
+  //         its heartbeat. where no group of that id stands (no setsid), the pid alone
   const stopAllDaemons = (): void => {
     getAllWatchDaemonPids({ home }).forEach((pid) => {
+      const isGone = (error: unknown) =>
+        (error as NodeJS.ErrnoException).code === 'ESRCH';
+      try {
+        process.kill(-pid, 'SIGKILL');
+        return;
+      } catch (error) {
+        if (!isGone(error)) throw error;
+      }
       try {
         process.kill(pid, 'SIGKILL');
       } catch (error) {
         // a daemon that already left needs no stop
-        if ((error as NodeJS.ErrnoException).code !== 'ESRCH') throw error;
+        if (!isGone(error)) throw error;
       }
     });
   };

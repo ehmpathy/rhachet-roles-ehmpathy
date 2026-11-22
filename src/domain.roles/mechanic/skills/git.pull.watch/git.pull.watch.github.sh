@@ -15,6 +15,7 @@
 #   - `gh api` exits 1 on a 304; that reads as unchanged, never as a fault
 #   - a 401 returns 3, so the caller pauses rather than retries blind
 #   - a rate limit returns 4 and an outage 5, so the caller backs off
+#   - a 404 returns 6; of a pr's reads, only the pull's own 404 passes as 6
 #   - a reply whose quota left sits below the yield floor (10% of the limit)
 #     returns 4 too, so the poll never spends the clones' last calls
 #   - the cached etag is stored verbatim, a weak `W/` prefix included
@@ -110,12 +111,6 @@ set_watch_read_ledger() {
     "$endpoint" >>"$GIT_PULL_WATCH_READS_LOG"
 }
 
-# .what = read one endpoint with an etag; print its body (the cached one on a 304)
-# .why  = a quiet pr then costs no rate limit; the return code tells the tick
-#         whether to pause, back off, hold, or read on
-# returns: 0 = body printed · 3 = auth refused (401) · 4 = rate limited (the
-#          lift epoch in $cache_dir/ratelimit.until) · 5 = github unreachable ·
-#          1 = any other fault (stderr names it)
 # .what = may this cached list span pages? a bare array or a check_runs list of
 #         a full page (100) or more
 # .why  = page one's etag never sees a change on a later page, so such a list
@@ -126,6 +121,12 @@ is_watch_list_multipage() {
   [[ "$count" =~ ^[0-9]+$ && "$count" -ge 100 ]]
 }
 
+# .what = read one endpoint with an etag; print its body (the cached one on a 304)
+# .why  = a quiet pr then costs no rate limit; the return code tells the tick
+#         whether to pause, back off, hold, or read on
+# returns: 0 = body printed · 3 = auth refused (401) · 4 = rate limited (the
+#          lift epoch in $cache_dir/ratelimit.until) · 5 = github unreachable ·
+#          6 = not found (404) · 1 = any other fault (stderr names it)
 # .note = a list endpoint with a next page is read whole via --paginate, so a
 #         long pr never hides its newest comments past page one
 get_watch_github_resource() {
@@ -190,6 +191,12 @@ get_watch_github_resource() {
     return 5
   fi
 
+  # not found: the resource is gone, or this token cannot see it
+  if [[ "$status" == "404" ]]; then
+    echo "github read not found: $endpoint (status: 404)" >&2
+    return 6
+  fi
+
   # any other fault: name it, hold the cursors
   if [[ $rc -ne 0 || "$status" != "200" ]]; then
     echo "github read failed: $endpoint (status: ${status:-none}) ${err}" >&2
@@ -228,7 +235,20 @@ get_watch_github_resource() {
 
 # .what = read one endpoint into the pr cache; print the path of its body file
 # .why  = bodies can outgrow one argv slot (128k), so jq reads them as files
+# .note = a 404 here is a plain fault (rc 1): only the pull itself answers "is this pr
+#         gone?" (get_watch_pr_pull_file); a list that 404s (check-runs of a head sha
+#         force-pushed away) never ends a watch, and a new sub-read is safe by default
 get_watch_pr_resource_file() {
+  local file rc=0
+  file="$(get_watch_pr_pull_file "$@")" || rc=$?
+  [[ $rc -eq 6 ]] && return 1
+  [[ $rc -eq 0 ]] || return $rc
+  echo "$file"
+}
+
+# .what = read the pull of one pr into the pr cache; print the path of its body file
+# .why  = the one read whose 404 (rc 6) means the pr is gone, or hidden from this token
+get_watch_pr_pull_file() {
   local cache="$1" endpoint="$2" rc=0
   get_watch_github_resource "$cache" "$endpoint" "$WATCH_TOKEN" >/dev/null || rc=$?
   [[ $rc -eq 0 ]] || return $rc
@@ -249,12 +269,13 @@ is_watch_pr_closed_unmerged() {
 
 # .what = read the github state of one pr into a json file
 # .why  = one read per pr per tick, shared by every watch on it
-# returns: 0 ok · 3 auth refused · 4 rate limited · 5 unreachable · 1 other fault
+# returns: 0 ok · 3 auth refused · 4 rate limited · 5 unreachable · 6 the pull is
+#          not found (gone, or hidden from this token) · 1 other fault
 get_watch_pr_state() {
   local repo="$1" pr="$2" out="$3" cache base pull head checks issues reviews_c reviews closed_by="" issue
   cache="$(get_watch_pr_cache_dir "$repo" "$pr")"
   base="repos/$repo"
-  pull="$(get_watch_pr_resource_file "$cache" "$base/pulls/$pr")" || return $?
+  pull="$(get_watch_pr_pull_file "$cache" "$base/pulls/$pr")" || return $?
   head="$(jq -r '.head.sha // empty' "$pull")"
   checks="$cache/checks.none.json"
   echo '{"check_runs":[]}' >"$checks"

@@ -221,7 +221,7 @@ fi
 
 # a pr whose reads fail keeps its cursors; name where the cause is logged
 if [[ "$(jq 'any(.[].watches[]; (.readFault // null) != null)' <<<"$DAEMONS")" == "true" ]]; then
-  CURES+=("a read fault holds the cursors of that pr; alerts resume once a read succeeds"$'\n'"each fault line is in the daemon log: cat $(jq -r '[.[] | select(any(.watches[]; (.readFault // null) != null))][0].home | sub("/bin$"; "/daemon.log")' <<<"$DAEMONS")")
+  CURES+=("a read fault holds the cursors of that pr; alerts resume at its next good read, within $(as_watch_minutes_ceil "${WATCH_POLL_MAX_SECONDS:-1800}") min, and a pr unread past the idle ttl ends its watch"$'\n'"each fault line is in the daemon log: cat $(jq -r '[.[] | select(any(.watches[]; (.readFault // null) != null))][0].home | sub("/bin$"; "/daemon.log")' <<<"$DAEMONS")")
 fi
 
 # a record that does not parse holds its watch; name the file and the cure

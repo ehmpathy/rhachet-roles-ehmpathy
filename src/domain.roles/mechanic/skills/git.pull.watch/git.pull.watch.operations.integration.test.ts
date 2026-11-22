@@ -857,4 +857,38 @@ describe('git.pull.watch.operations', () => {
       });
     });
   });
+
+  given('[case10] a record whose first field is absent', () => {
+    when('[t0] its fields are read for a split', () => {
+      const result = useThen('the fields are read', async () => {
+        const home = genTempDir({ slug: 'watch-ops-fields', git: false });
+        const rootless = path.join(home, 'rootless.json');
+        const corrupt = path.join(home, 'corrupt.json');
+        fs.writeFileSync(
+          rootless,
+          JSON.stringify({ cloneSerial: 'serial-a1', watchId: 'w-1', pr: 7 }),
+        );
+        fs.writeFileSync(corrupt, '{ "repoRoot": "/x", ');
+        const split = (record: string) =>
+          runOps({
+            home,
+            snippet: [
+              'root="" serial="" watch_id=""',
+              `IFS=$'\\x1f' read -r root serial watch_id < <(get_watch_record_fields "${record}" .repoRoot .cloneSerial .watchId)`,
+              'echo "[$root][$serial][$watch_id]"',
+            ].join('\n'),
+          }).stdout.trim();
+        return { rootless: split(rootless), corrupt: split(corrupt) };
+      });
+      then(
+        'each field holds its place: the empty root does not take the serial',
+        () => {
+          expect(result.rootless).toEqual('[][serial-a1][w-1]');
+        },
+      );
+      then('a record that will not parse reads as all empty', () => {
+        expect(result.corrupt).toEqual('[][][]');
+      });
+    });
+  });
 });
