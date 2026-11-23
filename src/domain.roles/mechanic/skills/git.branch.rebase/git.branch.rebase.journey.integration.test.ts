@@ -772,7 +772,7 @@ describe('git.branch.rebase journey', () => {
           runRebase(workDir, ['begin', '--mode', 'apply']),
         );
 
-        then('it refuses as a constraint and names the pull', () => {
+        then('it refuses as a constraint and names only paved moves', () => {
           expect(result.status).toBe(2);
           expect(result.stdout).toContain('✋ ConstraintError');
           expect(result.stderr).toContain('holds commits this tree lacks');
@@ -780,8 +780,9 @@ describe('git.branch.rebase journey', () => {
             'origin/feature/remote-ahead holds commits this tree lacks: 1',
           );
           expect(result.stdout).toContain(
-            'git pull --ff-only origin feature/remote-ahead',
+            'ask your sponsor to pull them into this tree',
           );
+          expect(result.stdout).not.toContain('git pull');
           expect(result.stdout).toMatchSnapshot();
         });
 

@@ -31,11 +31,10 @@ exports[`git.branch.uses (acceptance) given: [case1] a linked repo of the ehmpat
 
 🐚 git.branch.uses set
    ├─ ✋ ConstraintError: no terminal on this command
-   ├─ only a human at a real terminal may run this
-   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+   └─ only a sponsor at a real terminal may run this
 
 🥥 did you know?
-   ├─ a human runs it from their own terminal
+   ├─ a sponsor runs it from their own terminal
    └─ rhx git.branch.uses set
 "
 `;

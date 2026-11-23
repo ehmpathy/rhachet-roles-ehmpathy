@@ -286,8 +286,8 @@ if ! BEHIND_COUNT=$(get_behind_count "origin/$DEFAULT_BRANCH"); then
     print_turtle_header "bummer dude..."
     print_tree_start "git.branch.rebase begin"
     print_tree_malfunction "could not count commits behind origin/$DEFAULT_BRANCH"
-    print_coconut_hint "the count reads origin/$DEFAULT_BRANCH; fetch it, then retry" \
-      "git fetch origin $DEFAULT_BRANCH"
+    print_coconut_hint "the count reads origin/$DEFAULT_BRANCH; a retry fetches it again" \
+      "rhx git.branch.rebase begin --mode $MODE${UNSTAGED:+ --unstaged $UNSTAGED}"
   )"
   exit 1
 fi
@@ -325,8 +325,8 @@ if [[ "$COMMIT_COUNT" -eq 0 ]]; then
       print_turtle_header "bummer dude..."
       print_tree_start "git.branch.rebase begin"
       print_tree_malfunction "could not read origin/$CURRENT_BRANCH"
-      print_coconut_hint "a fast-forward needs proof it orphans no remote commit; check the remote, then retry" \
-        "git fetch origin $CURRENT_BRANCH"
+      print_coconut_hint "a fast-forward needs proof it orphans no remote commit; a retry fetches the remote again" \
+        "rhx git.branch.rebase begin --mode $MODE${UNSTAGED:+ --unstaged $UNSTAGED}"
     )"
     exit 1
   fi
@@ -336,8 +336,8 @@ if [[ "$COMMIT_COUNT" -eq 0 ]]; then
       print_turtle_header "hold up dude..."
       print_tree_start "git.branch.rebase begin"
       print_tree_constraint "origin/$CURRENT_BRANCH holds commits this tree lacks: $REMOTE_AHEAD_COUNT"
-      print_coconut_hint "a fast-forward onto main would orphan them; pull them in first" \
-        "git pull --ff-only origin $CURRENT_BRANCH"
+      print_coconut_hint "a fast-forward onto main would orphan them; ask your sponsor to pull them into this tree, then retry" \
+        "rhx git.branch.rebase begin --mode $MODE${UNSTAGED:+ --unstaged $UNSTAGED}"
     )"
     exit 2
   fi

@@ -2547,7 +2547,7 @@ exec "$(dirname "$0")/gh.scene" "$@"
                 expect(JSON.parse(fs.readFileSync(stampPath, 'utf-8'))).toEqual(
                   { uses: 0 },
                 );
-                expect(result.stdout).toContain('a human changed it');
+                expect(result.stdout).toContain('a sponsor changed it');
                 expect(
                   asSnapshotReadyWithAnsi(result.stdout),
                 ).toMatchSnapshot();
@@ -2609,7 +2609,7 @@ exec "$(dirname "$0")/gh.scene" "$@"
                   expect(result.stderr).toContain(
                     '💥 MalfunctionError: could not refund the release use',
                   );
-                  expect(result.stdout).not.toContain('a human changed it');
+                  expect(result.stdout).not.toContain('a sponsor changed it');
                   // jq's cause rides inside the 💥 line, never as a raw stray line
                   expect(result.stderr).toContain('could not be read (jq: ');
                   expect(result.stderr).not.toMatch(/^parse error/m);
@@ -2806,8 +2806,9 @@ exec "$(dirname "$0")/gh.scene" "$@"
                 'MalfunctionError: could not count unpushed commits on turtle/feature-x',
               );
               expect(result.stdout).toContain(
-                'git fetch origin turtle/feature-x',
+                'rhx git.commit.push --mode apply',
               );
+              expect(result.stdout).not.toContain('git fetch');
               expect(result.stderr).toContain(
                 'MalfunctionError: could not count unpushed commits',
               );

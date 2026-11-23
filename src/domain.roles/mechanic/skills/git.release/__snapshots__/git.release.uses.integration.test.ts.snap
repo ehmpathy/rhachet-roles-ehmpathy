@@ -10,7 +10,7 @@ exports[`git.release.uses.sh given: [case1] a fresh tree with no release grant a
    └─ verdict: blocked by local + org
 
 🥥 did you know?
-   ├─ a human lifts a level from their own terminal; one command per level that blocks
+   ├─ a sponsor lifts a level from their own terminal; one command per level that blocks
    ├─ rhx git.release.uses set --quant 1
    └─ rhx git.release.uses allow --org ehmpathy
 "
@@ -39,7 +39,7 @@ exports[`git.release.uses.sh given: [case2] a human grants releases on the tree 
    └─ verdict: blocked by org
 
 🥥 did you know?
-   ├─ a human lifts a level from their own terminal; one command per level that blocks
+   ├─ a sponsor lifts a level from their own terminal; one command per level that blocks
    └─ rhx git.release.uses allow --org ehmpathy
 "
 `;
@@ -56,7 +56,7 @@ exports[`git.release.uses.sh given: [case2] a human grants releases on the tree 
    └─ rhx git.release.uses get
 
 🥥 did you know?
-   ├─ once the other levels allow, every release from this tree goes unmetered, until a human takes it back
+   ├─ once the other levels allow, every release from this tree goes unmetered, until a sponsor takes it back
    └─ rhx git.release.uses block
 "
 `;
@@ -106,11 +106,10 @@ exports[`git.release.uses.sh given: [case3] a robot tries each write form when: 
 
 🐚 git.release.uses set --quant 1
    ├─ ✋ ConstraintError: no terminal on this command
-   ├─ only a human at a real terminal may run this
-   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+   └─ only a sponsor at a real terminal may run this
 
 🥥 did you know?
-   ├─ a human runs it from their own terminal
+   ├─ a sponsor runs it from their own terminal
    └─ rhx git.release.uses set --quant 1
 "
 `;
@@ -120,11 +119,10 @@ exports[`git.release.uses.sh given: [case3] a robot tries each write form when: 
 
 🐚 git.release.uses allow
    ├─ ✋ ConstraintError: no terminal on this command
-   ├─ only a human at a real terminal may run this
-   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+   └─ only a sponsor at a real terminal may run this
 
 🥥 did you know?
-   ├─ a human runs it from their own terminal
+   ├─ a sponsor runs it from their own terminal
    └─ rhx git.release.uses allow
 "
 `;
@@ -134,11 +132,10 @@ exports[`git.release.uses.sh given: [case3] a robot tries each write form when: 
 
 🐚 git.release.uses block
    ├─ ✋ ConstraintError: no terminal on this command
-   ├─ only a human at a real terminal may run this
-   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+   └─ only a sponsor at a real terminal may run this
 
 🥥 did you know?
-   ├─ a human runs it from their own terminal
+   ├─ a sponsor runs it from their own terminal
    └─ rhx git.release.uses block
 "
 `;
@@ -148,11 +145,10 @@ exports[`git.release.uses.sh given: [case3] a robot tries each write form when: 
 
 🐚 git.release.uses del
    ├─ ✋ ConstraintError: no terminal on this command
-   ├─ only a human at a real terminal may run this
-   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+   └─ only a sponsor at a real terminal may run this
 
 🥥 did you know?
-   ├─ a human runs it from their own terminal
+   ├─ a sponsor runs it from their own terminal
    └─ rhx git.release.uses del
 "
 `;
@@ -162,11 +158,10 @@ exports[`git.release.uses.sh given: [case3] a robot tries each write form when: 
 
 🐚 git.release.uses allow --global
    ├─ ✋ ConstraintError: no terminal on this command
-   ├─ only a human at a real terminal may run this
-   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+   └─ only a sponsor at a real terminal may run this
 
 🥥 did you know?
-   ├─ a human runs it from their own terminal
+   ├─ a sponsor runs it from their own terminal
    └─ rhx git.release.uses allow --global
 "
 `;
@@ -176,11 +171,10 @@ exports[`git.release.uses.sh given: [case3] a robot tries each write form when: 
 
 🐚 git.release.uses block --global
    ├─ ✋ ConstraintError: no terminal on this command
-   ├─ only a human at a real terminal may run this
-   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+   └─ only a sponsor at a real terminal may run this
 
 🥥 did you know?
-   ├─ a human runs it from their own terminal
+   ├─ a sponsor runs it from their own terminal
    └─ rhx git.release.uses block --global
 "
 `;
@@ -190,11 +184,10 @@ exports[`git.release.uses.sh given: [case3] a robot tries each write form when: 
 
 🐚 git.release.uses allow --org ehmpathy
    ├─ ✋ ConstraintError: no terminal on this command
-   ├─ only a human at a real terminal may run this
-   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+   └─ only a sponsor at a real terminal may run this
 
 🥥 did you know?
-   ├─ a human runs it from their own terminal
+   ├─ a sponsor runs it from their own terminal
    └─ rhx git.release.uses allow --org ehmpathy
 "
 `;
@@ -204,11 +197,10 @@ exports[`git.release.uses.sh given: [case3] a robot tries each write form when: 
 
 🐚 git.release.uses block --org @all
    ├─ ✋ ConstraintError: no terminal on this command
-   ├─ only a human at a real terminal may run this
-   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+   └─ only a sponsor at a real terminal may run this
 
 🥥 did you know?
-   ├─ a human runs it from their own terminal
+   ├─ a sponsor runs it from their own terminal
    └─ rhx git.release.uses block --org @all
 "
 `;
@@ -299,7 +291,7 @@ exports[`git.release.uses.sh given: [case5] the global release blocker when: [t1
    └─ verdict: blocked by local + org + global
 
 🥥 did you know?
-   ├─ a human lifts a level from their own terminal; one command per level that blocks
+   ├─ a sponsor lifts a level from their own terminal; one command per level that blocks
    ├─ rhx git.release.uses set --quant 1
    ├─ rhx git.release.uses allow --org ehmpathy
    └─ rhx git.release.uses allow --global
@@ -349,9 +341,10 @@ exports[`git.release.uses.sh given: [case6] a damaged global release blocker whe
    └─ verdict: blocked by org + global
 
 🥥 did you know?
-   ├─ the global blocker file cannot be read, so every release is blocked; a human may read it, then clear it
-   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.jsonc
-   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.jsonc
+   ├─ the global blocker file cannot be read, so every release is blocked: ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.jsonc
+   ├─ a sponsor rewrites it, to keep the halt or to lift it
+   ├─ rhx git.release.uses block --global
+   └─ rhx git.release.uses allow --global
 "
 `;
 
@@ -362,9 +355,10 @@ exports[`git.release.uses.sh given: [case6] a damaged global release blocker whe
    └─ global: blocked (file corrupt)
 
 🥥 did you know?
-   ├─ the global blocker file cannot be read, so every release is blocked; a human may read it, then clear it
-   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.jsonc
-   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.jsonc
+   ├─ the global blocker file cannot be read, so every release is blocked: ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.jsonc
+   ├─ a sponsor rewrites it, to keep the halt or to lift it
+   ├─ rhx git.release.uses block --global
+   └─ rhx git.release.uses allow --global
 "
 `;
 
@@ -406,7 +400,7 @@ exports[`git.release.uses.sh given: [case7] the org release permission when: [t1
    └─ verdict: blocked by local
 
 🥥 did you know?
-   ├─ a human lifts a level from their own terminal; one command per level that blocks
+   ├─ a sponsor lifts a level from their own terminal; one command per level that blocks
    └─ rhx git.release.uses set --quant 1
 "
 `;
@@ -471,7 +465,7 @@ exports[`git.release.uses.sh given: [case7] the org release permission when: [t4
    └─ verdict: blocked by local + org
 
 🥥 did you know?
-   ├─ a human lifts a level from their own terminal; one command per level that blocks
+   ├─ a sponsor lifts a level from their own terminal; one command per level that blocks
    ├─ rhx git.release.uses set --quant 1
    └─ rhx git.release.uses allow --org ehmpathy
 "
@@ -542,7 +536,7 @@ exports[`git.release.uses.sh given: [case8] a human types a commit-meter field w
    └─ ✋ ConstraintError: --push is not a release field
 
 🥥 did you know?
-   ├─ push and stage ride the commit meter; ask your human for a commit grant
+   ├─ push and stage ride the commit meter; ask your sponsor for a commit grant
    └─ git.commit.uses set --quant N
 "
 `;
@@ -554,7 +548,7 @@ exports[`git.release.uses.sh given: [case8] a human types a commit-meter field w
    └─ ✋ ConstraintError: --stage is not a release field
 
 🥥 did you know?
-   ├─ push and stage ride the commit meter; ask your human for a commit grant
+   ├─ push and stage ride the commit meter; ask your sponsor for a commit grant
    └─ git.commit.uses set --quant N
 "
 `;
@@ -617,7 +611,7 @@ exports[`git.release.uses.sh given: [case8c] a tree with no keyrack.yml to name 
    └─ verdict: blocked by org
 
 🥥 did you know?
-   ├─ a human lifts a level from their own terminal; one command per level that blocks
+   ├─ a sponsor lifts a level from their own terminal; one command per level that blocks
    └─ rhx git.release.uses allow --org <org>
 "
 `;
@@ -629,8 +623,8 @@ exports[`git.release.uses.sh given: [case9] any actor asks for help when: [t0] -
        git.release.uses allow | block | del | get --org <org>
 
 commands:
-  set    grant N releases on this tree (human only)
-  allow  grant unlimited releases on this tree (human only)
+  set    grant N releases on this tree (sponsor only)
+  allow  grant unlimited releases on this tree (sponsor only)
   block  revoke (alias for del)
   del    revoke
   get    check this tree's release grant, all three levels
@@ -648,5 +642,8 @@ examples:
 
 a release = git.release --mode apply. commit, stage, rebase, and push
 ride git.commit.uses; no commit grant can ship.
+
+a sponsor grants a release the way it grants commits: a human or a
+director, from a real terminal.
 "
 `;

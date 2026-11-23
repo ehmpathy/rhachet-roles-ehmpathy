@@ -101,6 +101,8 @@
       "Bash(npx rhachet run --skill git.commit.sponsor:*)",
       "Bash(npx rhachet run --skill git.commit.uses get)",
       "Bash(npx rhachet run --skill git.commit.uses:*)",
+      "Bash(npx rhachet run --skill git.release.uses get)",
+      "Bash(npx rhachet run --skill git.release.uses:*)",
       "Bash(npx rhachet run --skill git.release:*)",
       "Bash(npx rhachet run --skill git.repo.get:*)",
       "Bash(npx rhachet run --skill git.repo.test:*)",
@@ -305,6 +307,13 @@
       "Bash(npx rhachet run --skill git.commit.uses --org * del:*)",
       "Bash(npx rhachet run --skill git.commit.uses allow:*)",
       "Bash(npx rhachet run --skill git.commit.uses set:*)",
+      "Bash(npx rhachet run --skill git.release.uses -- allow:*)",
+      "Bash(npx rhachet run --skill git.release.uses -- set:*)",
+      "Bash(npx rhachet run --skill git.release.uses --global allow:*)",
+      "Bash(npx rhachet run --skill git.release.uses --org * allow:*)",
+      "Bash(npx rhachet run --skill git.release.uses --org * del:*)",
+      "Bash(npx rhachet run --skill git.release.uses allow:*)",
+      "Bash(npx rhachet run --skill git.release.uses set:*)",
       "Bash(rhx git.branch.uses -- allow:*)",
       "Bash(rhx git.branch.uses -- set:*)",
       "Bash(rhx git.branch.uses --global allow:*)",
@@ -327,6 +336,13 @@
       "Bash(rhx git.commit.uses --org * del:*)",
       "Bash(rhx git.commit.uses allow:*)",
       "Bash(rhx git.commit.uses set:*)",
+      "Bash(rhx git.release.uses -- allow:*)",
+      "Bash(rhx git.release.uses -- set:*)",
+      "Bash(rhx git.release.uses --global allow:*)",
+      "Bash(rhx git.release.uses --org * allow:*)",
+      "Bash(rhx git.release.uses --org * del:*)",
+      "Bash(rhx git.release.uses allow:*)",
+      "Bash(rhx git.release.uses set:*)",
       "Bash(sed:*)",
       "Bash(tee:*)",
       "Edit(.branch/.bind/*)",
@@ -362,6 +378,12 @@
             "type": "command",
             "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/sessionstart.notify-permissions.sh",
             "timeout": 10,
+            "author": "repo=ehmpathy/role=mechanic"
+          },
+          {
+            "type": "command",
+            "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/sessionstart.git-pull-watch.sh",
+            "timeout": 45,
             "author": "repo=ehmpathy/role=mechanic"
           }
         ]
@@ -542,7 +564,19 @@
           {
             "type": "command",
             "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/permissionrequest.decide-permissions.sh",
-            "timeout": 5,
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/userpromptsubmit.git-pull-watch.sh",
+            "timeout": 15,
             "author": "repo=ehmpathy/role=mechanic"
           }
         ]

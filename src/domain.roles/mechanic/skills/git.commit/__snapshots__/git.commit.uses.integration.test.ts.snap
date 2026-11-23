@@ -146,73 +146,53 @@ exports[`git.commit.uses.sh given: [case6] get at 0 left: depleted vs revoked (F
 "
 `;
 
-exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when: [t0] a legacy file: uses 2, push allow then: reads push held, and names the split once 1`] = `
+exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when: [t0] a legacy file: uses 2, push allow then: reads push held, with no history note 1`] = `
 "🐢 let's check the meter...
 
 🐚 git.commit.uses get
    └─ meter
       ├─ left: 2
       └─ push: held
-
-🥥 did you know?
-   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
-   └─ git.release.uses set --quant 1   # ask your human, to ship
 "
 `;
 
-exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when: [t1] a legacy file: uses 2, push block then: reads push held, and names the split once 1`] = `
+exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when: [t1] a legacy file: uses 2, push block then: reads push held, with no history note 1`] = `
 "🐢 let's check the meter...
 
 🐚 git.commit.uses get
    └─ meter
       ├─ left: 2
       └─ push: held
-
-🥥 did you know?
-   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
-   └─ git.release.uses set --quant 1   # ask your human, to ship
 "
 `;
 
-exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when: [t2] a legacy file: uses 0, push allow then: reads push held, and names the split once 1`] = `
+exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when: [t2] a legacy file: uses 0, push allow then: reads push held, with no history note 1`] = `
 "🐢 let's check the meter...
 
 🐚 git.commit.uses get
    └─ meter
       ├─ left: 0
       └─ push: held
-
-🥥 did you know?
-   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
-   └─ git.release.uses set --quant 1   # ask your human, to ship
 "
 `;
 
-exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when: [t3] a legacy file: uses 0, push block (the old revoke) then: reads push revoked, and names the split once 1`] = `
+exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when: [t3] a legacy file: uses 0, push block (the old revoke) then: reads push revoked, with no history note 1`] = `
 "🐢 let's check the meter...
 
 🐚 git.commit.uses get
    └─ meter
       ├─ left: 0
       └─ push: revoked
-
-🥥 did you know?
-   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
-   └─ git.release.uses set --quant 1   # ask your human, to ship
 "
 `;
 
-exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when: [t4] a legacy file: unlimited, push + stage allow then: reads push held, and names the split once 1`] = `
+exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when: [t4] a legacy file: unlimited, push + stage allow then: reads push held, with no history note 1`] = `
 "🐢 let's check the meter...
 
 🐚 git.commit.uses get
    └─ meter
       ├─ left: unlimited
       └─ push: held
-
-🥥 did you know?
-   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
-   └─ git.release.uses set --quant 1   # ask your human, to ship
 "
 `;
 
@@ -312,9 +292,10 @@ exports[`git.commit.uses.sh given: [case10] get --global when: [t2] the global b
    └─ global: blocked (file corrupt)
 
 🥥 did you know?
-   ├─ the global blocker file cannot be read, so every commit is blocked; a human may read it, then clear it
-   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
-   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+   ├─ the global blocker file cannot be read, so every commit is blocked: ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+   ├─ a sponsor rewrites it, to keep the halt or to lift it
+   ├─ rhx git.commit.uses block --global
+   └─ rhx git.commit.uses allow --global
 "
 `;
 
@@ -339,16 +320,12 @@ exports[`git.commit.uses.sh given: [case12] allow (local) when: [t0] no quota pr
 "
 `;
 
-exports[`git.commit.uses.sh given: [case17b] set over a legacy grant when: [t0] set --quant 3 after a legacy push block grant then: the grant names the retired fields and the release stamp, once 1`] = `
+exports[`git.commit.uses.sh given: [case17b] set over a legacy grant when: [t0] set --quant 3 after a legacy push block grant then: the grant lands as a plain grant, with no history note 1`] = `
 "🐢 radical! let's ride!
 
 🐚 git.commit.uses set
    ├─ granted: 3
    └─ covers: commit, stage, rebase, push
-
-🥥 did you know?
-   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
-   └─ git.release.uses set --quant 1   # ask your human, to ship
 
 🥥 did you know?
    ├─ commits will name test-fns <test-fns@test.local>, from git config
@@ -390,9 +367,10 @@ exports[`git.commit.uses.sh given: [case19] get shows local + global state when:
       └─ global: blocked (file corrupt)
 
 🥥 did you know?
-   ├─ the global blocker file cannot be read, so every commit is blocked; a human may read it, then clear it
-   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
-   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+   ├─ the global blocker file cannot be read, so every commit is blocked: ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+   ├─ a sponsor rewrites it, to keep the halt or to lift it
+   ├─ rhx git.commit.uses block --global
+   └─ rhx git.commit.uses allow --global
 "
 `;
 
@@ -404,9 +382,10 @@ exports[`git.commit.uses.sh given: [case19] get shows local + global state when:
    └─ global: blocked (file corrupt)
 
 🥥 did you know?
-   ├─ the global blocker file cannot be read, so every commit is blocked; a human may read it, then clear it
-   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
-   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+   ├─ the global blocker file cannot be read, so every commit is blocked: ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+   ├─ a sponsor rewrites it, to keep the halt or to lift it
+   ├─ rhx git.commit.uses block --global
+   └─ rhx git.commit.uses allow --global
 
 🥥 did you know?
    ├─ no quota is granted on this tree, so commits will refuse
@@ -419,11 +398,10 @@ exports[`git.commit.uses.sh given: [case20] TTY guard for local mutations when: 
 
 🐚 git.commit.uses set --quant 3
    ├─ ✋ ConstraintError: no terminal on this command
-   ├─ only a human at a real terminal may run this
-   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+   └─ only a sponsor at a real terminal may run this
 
 🥥 did you know?
-   ├─ a human runs it from their own terminal
+   ├─ a sponsor runs it from their own terminal
    └─ rhx git.commit.uses set --quant 3
 "
 `;
@@ -433,11 +411,10 @@ exports[`git.commit.uses.sh given: [case20] TTY guard for local mutations when: 
 
 🐚 git.commit.uses del
    ├─ ✋ ConstraintError: no terminal on this command
-   ├─ only a human at a real terminal may run this
-   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+   └─ only a sponsor at a real terminal may run this
 
 🥥 did you know?
-   ├─ a human runs it from their own terminal
+   ├─ a sponsor runs it from their own terminal
    └─ rhx git.commit.uses del
 "
 `;
@@ -447,11 +424,10 @@ exports[`git.commit.uses.sh given: [case20] TTY guard for local mutations when: 
 
 🐚 git.commit.uses block
    ├─ ✋ ConstraintError: no terminal on this command
-   ├─ only a human at a real terminal may run this
-   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+   └─ only a sponsor at a real terminal may run this
 
 🥥 did you know?
-   ├─ a human runs it from their own terminal
+   ├─ a sponsor runs it from their own terminal
    └─ rhx git.commit.uses block
 "
 `;
@@ -461,11 +437,10 @@ exports[`git.commit.uses.sh given: [case20] TTY guard for local mutations when: 
 
 🐚 git.commit.uses allow
    ├─ ✋ ConstraintError: no terminal on this command
-   ├─ only a human at a real terminal may run this
-   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+   └─ only a sponsor at a real terminal may run this
 
 🥥 did you know?
-   ├─ a human runs it from their own terminal
+   ├─ a sponsor runs it from their own terminal
    └─ rhx git.commit.uses allow
 "
 `;
@@ -475,11 +450,10 @@ exports[`git.commit.uses.sh given: [case21] TTY guard for global mutations when:
 
 🐚 git.commit.uses block --global
    ├─ ✋ ConstraintError: no terminal on this command
-   ├─ only a human at a real terminal may run this
-   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+   └─ only a sponsor at a real terminal may run this
 
 🥥 did you know?
-   ├─ a human runs it from their own terminal
+   ├─ a sponsor runs it from their own terminal
    └─ rhx git.commit.uses block --global
 "
 `;
@@ -489,11 +463,10 @@ exports[`git.commit.uses.sh given: [case21] TTY guard for global mutations when:
 
 🐚 git.commit.uses allow --global
    ├─ ✋ ConstraintError: no terminal on this command
-   ├─ only a human at a real terminal may run this
-   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+   └─ only a sponsor at a real terminal may run this
 
 🥥 did you know?
-   ├─ a human runs it from their own terminal
+   ├─ a sponsor runs it from their own terminal
    └─ rhx git.commit.uses allow --global
 "
 `;
@@ -630,11 +603,10 @@ exports[`git.commit.uses.sh given: [case30] TTY guard for org mutations when: [t
 
 🐚 git.commit.uses allow --org ehmpathy
    ├─ ✋ ConstraintError: no terminal on this command
-   ├─ only a human at a real terminal may run this
-   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+   └─ only a sponsor at a real terminal may run this
 
 🥥 did you know?
-   ├─ a human runs it from their own terminal
+   ├─ a sponsor runs it from their own terminal
    └─ rhx git.commit.uses allow --org ehmpathy
 "
 `;
@@ -644,11 +616,10 @@ exports[`git.commit.uses.sh given: [case30] TTY guard for org mutations when: [t
 
 🐚 git.commit.uses block --org ehmpathy
    ├─ ✋ ConstraintError: no terminal on this command
-   ├─ only a human at a real terminal may run this
-   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+   └─ only a sponsor at a real terminal may run this
 
 🥥 did you know?
-   ├─ a human runs it from their own terminal
+   ├─ a sponsor runs it from their own terminal
    └─ rhx git.commit.uses block --org ehmpathy
 "
 `;
@@ -658,11 +629,10 @@ exports[`git.commit.uses.sh given: [case30] TTY guard for org mutations when: [t
 
 🐚 git.commit.uses del --org ehmpathy
    ├─ ✋ ConstraintError: no terminal on this command
-   ├─ only a human at a real terminal may run this
-   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+   └─ only a sponsor at a real terminal may run this
 
 🥥 did you know?
-   ├─ a human runs it from their own terminal
+   ├─ a sponsor runs it from their own terminal
    └─ rhx git.commit.uses del --org ehmpathy
 "
 `;

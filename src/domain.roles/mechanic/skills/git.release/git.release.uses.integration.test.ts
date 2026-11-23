@@ -157,7 +157,7 @@ describe('git.release.uses.sh', () => {
 
       then('it names the unmetered scope and the way back', () => {
         expect(res.stdout).toContain(
-          'every release from this tree goes unmetered, until a human takes it back',
+          'every release from this tree goes unmetered, until a sponsor takes it back',
         );
         expect(res.stdout).toContain('└─ rhx git.release.uses block');
       });
@@ -289,6 +289,16 @@ describe('git.release.uses.sh', () => {
           expect(res.stderr).toContain(
             '✋ ConstraintError: no terminal on this command',
           );
+        });
+
+        then('the refusal names a sponsor, never "a human"', () => {
+          expect(res.stdout).toContain(
+            'only a sponsor at a real terminal may run this',
+          );
+          expect(res.stdout).toContain(
+            'a sponsor runs it from their own terminal',
+          );
+          expect(res.stdout).not.toContain('a human');
         });
       });
     });

@@ -118,7 +118,7 @@ print_org_refusal_hint() {
       "$(get_one_org_refusal_command)"
     return 0
   fi
-  print_coconut_hint "ask your human to allow releases for this org" \
+  print_coconut_hint "ask your sponsor to allow releases for this org" \
     "$(get_one_org_refusal_command)"
 }
 
@@ -172,7 +172,7 @@ refuse_blocked_levels() {
       reason="${BLOCKED_REASONS[$index]}"
       echo "      $branch $reason"
     done
-    print_coconut_hint "each level must allow a release; ask your human to grant each" \
+    print_coconut_hint "each level must allow a release; ask your sponsor to grant each" \
       "${BLOCKED_COMMANDS[@]}"
   )"
   exit 2
@@ -193,7 +193,7 @@ if is_blocker_corrupt status="$GLOBAL_STATUS" corrupt="$GLOBAL_BLOCK_CORRUPT"; t
 fi
 if is_blocker_set status="$GLOBAL_STATUS"; then
   BLOCKED_REASONS+=("releases blocked globally")
-  BLOCKED_HINTS+=("$(print_coconut_hint "ask your human to lift the global release blocker" \
+  BLOCKED_HINTS+=("$(print_coconut_hint "ask your sponsor to lift the global release blocker" \
     "git.release.uses allow --global")")
   BLOCKED_COMMANDS+=("git.release.uses allow --global")
 fi
@@ -220,13 +220,13 @@ if [[ "$LOCAL_STATUS" -eq 1 ]]; then
 fi
 if [[ "$LOCAL_STATUS" -eq 2 ]]; then
   BLOCKED_REASONS+=("no release grant on this tree")
-  BLOCKED_HINTS+=("$(print_coconut_hint "a commit grant never ships; a release needs its own stamp, which only your human can grant" \
+  BLOCKED_HINTS+=("$(print_coconut_hint "a commit grant never ships; a release needs its own stamp, which only a sponsor can grant" \
     "git.release.uses set --quant 1")")
   BLOCKED_COMMANDS+=("git.release.uses set --quant 1")
 fi
 if [[ "$LOCAL_STATUS" -eq 0 && "$RELEASE_USES" != "infinite" && "$RELEASE_USES" -le 0 ]]; then
   BLOCKED_REASONS+=("no release uses left")
-  BLOCKED_HINTS+=("$(print_coconut_hint "the stamp is spent; ask your human to grant another" \
+  BLOCKED_HINTS+=("$(print_coconut_hint "the stamp is spent; ask your sponsor to grant another" \
     "git.release.uses set --quant 1")")
   BLOCKED_COMMANDS+=("git.release.uses set --quant 1")
 fi

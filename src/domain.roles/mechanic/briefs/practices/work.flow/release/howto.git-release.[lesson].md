@@ -110,7 +110,7 @@ when you might need them (rare, human-prescribed only):
 - `--mode apply` reads `git.release.uses` alone; a bare plan previews it, read only; `--watch` and `--retry` read no meter
 - a commit grant never ships, and a release grant needs no commit quota
 - unpushed commits on the release branch refuse the release (exit 2): push first, via `rhx git.commit.push --mode apply`
-- only a human at a terminal grants either meter
+- only a sponsor at a terminal grants either meter: a human, or a director, which grants releases as it grants commits
 - apply checks the stamp first and spends its use at the arm of the merge, then says so
   - a refusal before the arm (no pr, unpushed, behind, red checks) spends none; a failed arm refunds
   - a red ci or a watch timeout after the arm does not refund; `--watch` and `--retry` spend none
@@ -125,14 +125,14 @@ a tree granted before the split keeps its commit grant and loses release, loudly
 |-----|-----|
 | `git.commit.uses set --quant N --push allow` | `git.commit.uses set --quant N` — push rides it; `--push` refuses (exit 2) |
 | `--stage allow` | retired; stage rides the live commit grant |
-| a commit grant that also shipped | no release until a human restamps it |
+| a commit grant that also shipped | no release until a sponsor restamps it |
 | `git.commit.uses set --quant 0` revoked commit + push | commit no more; push stays held. to revoke both: `git.commit.uses del` |
 | `{ uses: 2, push: "block" }` (commit, never push) | reads as held: push proceeds. to stop push: `git.commit.uses del` |
 | `git.commit.uses block --global` halted commits and releases | halts commits only. to halt releases too: `git.release.uses block --global` |
 | a rebase needed `--push allow` and a use left | rides the held commit grant, even at 0 left; spends no use |
 | `git.commit.push --output json` carried `push_revoked` | field retired; push reads the held grant |
 
-the regrant a human owes:
+the regrant a sponsor owes:
 - per machine: `git.release.uses allow --org <org>` (or `--org @all`); an unset org refuses the release
 - per tree: `git.release.uses set --quant 1`
 - an old meter file reads as held; the next `git.commit.set` rewrites it to `{ uses, held }`

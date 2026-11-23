@@ -18,7 +18,7 @@ import { setGitBranchPushed } from './.test/infra/setGitBranchPushed';
 import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
 
 /**
- * .what = p6 timing accuracy tests
+ * .what = p6 elapsed-time accuracy tests
  *
  * .why = verify "in action" shows actual CI duration (completedAt - startedAt),
  *        not elapsed wall-clock time (now - startedAt)
@@ -130,7 +130,7 @@ const runScript = (input: {
   };
 };
 
-describe('git.release.p6.timing', () => {
+describe('git.release.p6.elapsed', () => {
   describe('positive: accurate duration from timestamps', () => {
     given('[case1] PR inflight then merges with known timestamps', () => {
       when('[t0] --watch is called', () => {
@@ -144,7 +144,7 @@ describe('git.release.p6.timing', () => {
                 priorReleaseTitle: 'chore(release): v1.2.3',
                 transitions: true,
               },
-              slug: 'p6-timing-positive-pr',
+              slug: 'p6-elapsed-positive-pr',
             });
 
             try {
@@ -179,7 +179,7 @@ describe('git.release.p6.timing', () => {
               tagWorkflows: 'passed',
               priorReleaseTitle: 'chore(release): v1.2.3',
             },
-            slug: 'p6-timing-positive-tag',
+            slug: 'p6-elapsed-positive-tag',
           });
 
           try {
@@ -214,7 +214,7 @@ describe('git.release.p6.timing', () => {
               featPr: 'passed:wout-automerge',
               priorReleaseTitle: 'chore(release): v1.2.3',
             },
-            slug: 'p6-timing-positive-noam',
+            slug: 'p6-elapsed-positive-noam',
           });
 
           try {
@@ -247,7 +247,7 @@ describe('git.release.p6.timing', () => {
               featPr: 'merged',
               priorReleaseTitle: 'chore(release): v1.2.3',
             },
-            slug: 'p6-timing-negative-merged',
+            slug: 'p6-elapsed-negative-merged',
           });
 
           try {
@@ -284,7 +284,7 @@ describe('git.release.p6.timing', () => {
                   priorReleaseTitle: 'chore(release): v1.2.3',
                   transitions: true,
                 },
-                slug: 'p6-timing-negative-grace',
+                slug: 'p6-elapsed-negative-grace',
               });
 
               try {

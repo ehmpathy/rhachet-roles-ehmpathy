@@ -456,7 +456,7 @@ describe('git.commit.uses.sh', () => {
 
     legacyCases.forEach((legacy, index) => {
       when(`[t${index}] a legacy file: ${legacy.slug}`, () => {
-        then(`reads push ${legacy.push}, and names the split once`, () => {
+        then(`reads push ${legacy.push}, with no history note`, () => {
           const result = runWithGlobalStorage({
             args: ['get'],
             meterState: legacy.state,
@@ -464,8 +464,7 @@ describe('git.commit.uses.sh', () => {
 
           expect(result.exitCode).toBe(0);
           expect(result.stdout).toContain(`push: ${legacy.push}`);
-          expect(result.stdout).toContain('retired push / stage fields');
-          expect(result.stdout).toContain('git.release.uses set --quant 1');
+          expect(result.stdout).not.toContain('retired');
           expect(result.stdout).toMatchSnapshot();
         });
       });
@@ -691,19 +690,17 @@ describe('git.commit.uses.sh', () => {
         expect(result.stdout).toContain(
           '~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc',
         );
-        expect(result.stdout).toContain('├─ cat ');
-
-        // 🔴 .why `rm -r` and NOT `git.commit.uses allow --global` = the corrupt
-        //        state this note renders spans three shapes, and one of them is
-        //        a DIRECTORY at the path. `allow --global` runs `rm -f`, which
-        //        cannot remove a directory, so it REFUSES on that shape — the
-        //        printed fix would hand the human a second refusal.
-        //
-        // ⇒ `rm -r` is the one command that holds for every shape the gate
-        //   classifies, and it is what the ORG twin already printed for the
-        //   identical job. the two notes now agree (rule.require.ubiqlang).
-        expect(result.stdout).toContain('└─ rm -r ');
-        expect(result.stdout).not.toContain('allow --global');
+        // 🔴 .why the meter's own verbs, never `cat` / `rm` = a hint names paved
+        //        commands only. a directory at the path makes both verbs refuse
+        //        and name `rm -r` themselves (the [t5] / [t5b] rows clamp that)
+        expect(result.stdout).toContain(
+          '├─ rhx git.commit.uses block --global',
+        );
+        expect(result.stdout).toContain(
+          '└─ rhx git.commit.uses allow --global',
+        );
+        expect(result.stdout).not.toContain('cat ');
+        expect(result.stdout).not.toContain('rm -r');
       });
 
       then('🔴 it renders BYTE-IDENTICALLY to its twin surface', () => {
@@ -817,23 +814,17 @@ describe('git.commit.uses.sh', () => {
 
   given('[case17b] set over a legacy grant', () => {
     when('[t0] set --quant 3 after a legacy push block grant', () => {
-      then(
-        'the grant names the retired fields and the release stamp, once',
-        () => {
-          const result = runInTempGitRepo({
-            args: ['set', '--quant', '3'],
-            meterState: { uses: 5, push: 'block' },
-          });
+      then('the grant lands as a plain grant, with no history note', () => {
+        const result = runInTempGitRepo({
+          args: ['set', '--quant', '3'],
+          meterState: { uses: 5, push: 'block' },
+        });
 
-          expect(result.exitCode).toBe(0);
-          expect(result.stdout).toContain('retired push / stage fields');
-          expect(result.stdout).toContain('git.release.uses set --quant 1');
-          expect(
-            result.stdout.split('retired push / stage fields').length - 1,
-          ).toBe(1);
-          expect(result.stdout).toMatchSnapshot();
-        },
-      );
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('granted: 3');
+        expect(result.stdout).not.toContain('retired');
+        expect(result.stdout).toMatchSnapshot();
+      });
     });
 
     when('[t1] set --quant 3 over a current-shape grant', () => {
@@ -844,7 +835,7 @@ describe('git.commit.uses.sh', () => {
         });
 
         expect(result.exitCode).toBe(0);
-        expect(result.stdout).not.toContain('retired push / stage fields');
+        expect(result.stdout).not.toContain('retired');
       });
     });
   });
@@ -1726,6 +1717,35 @@ describe('git.commit.uses.sh', () => {
           //    (rule.require.snapshots, rule.require.snap-review-on-skill-change)
           expect(result.stdout).toMatchSnapshot();
         });
+      },
+    );
+
+    when(
+      '[t5b] a DIRECTORY at the path, and a human runs block --global',
+      () => {
+        then(
+          '🔴 it REFUSES — a temp+mv into the directory is no rewrite',
+          () => {
+            // the corrupt note names `block --global` as a repair; a `mv` onto a
+            // directory lands the file inside it and would report success
+            const result = getAgainstDamaged({
+              args: ['block', '--global'],
+              damage: asDirectory,
+            });
+
+            expect(result.exitCode).toBe(1);
+            expect(result.stdout).not.toContain('commits blocked globally');
+            expect(result.stdout).toContain(
+              'the global blocker path is not a file',
+            );
+            expect(result.stdout).toContain('rm -r');
+            expect(result.stderr).toContain(
+              'the global blocker path is not a file',
+            );
+            expect(fs.statSync(result.meterFile).isDirectory()).toBe(true);
+            expect(fs.readdirSync(result.meterFile)).toEqual([]);
+          },
+        );
       },
     );
 

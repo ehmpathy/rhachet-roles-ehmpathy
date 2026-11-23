@@ -126,7 +126,7 @@ while [[ $# -gt 0 ]]; do
       echo "  --from main   skip the feature branch, release whatever is on main"
       echo ""
       echo "  the release stamp (git.release.uses):"
-      echo "  apply needs the human's stamp — git.release.uses set --quant 1 — and spends"
+      echo "  apply needs a sponsor's stamp — git.release.uses set --quant 1 — and spends"
       echo "  one use at the arm of the merge; --into prod arms both prs on that one use."
       echo "  a commit grant never ships. see the stamp: rhx git.release.uses get"
       exit 0
@@ -638,12 +638,10 @@ print_release_plan_preview() {
   # the preview says only that a meter file is damaged
   local reason="$RELEASE_PLAN_PREVIEW_REASON"
   [[ "$RELEASE_PLAN_PREVIEW_STATUS" -ne 2 ]] && reason="a release meter file is damaged"
-  echo ""
-  echo "🐚 release stamp"
-  echo "   └─ apply would refuse: $reason"
+  # one coconut, no extra tree: the refusal reason is the hint's lead line
   echo ""
   echo "🥥 did you know?"
-  echo "   ├─ see each level, and what blocks"
+  echo "   ├─ apply would refuse: $reason; see each level, and what blocks"
   echo "   └─ rhx git.release.uses get"
 }
 

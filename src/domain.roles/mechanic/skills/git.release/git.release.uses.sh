@@ -24,7 +24,8 @@
 #   - levels compose by AND: global ∧ org ∧ local; unset at any level blocks
 #   - local state stored in .meter/git.release.uses.jsonc
 #   - global + org state stored at ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/
-#   - every write needs a human at a tty; any actor may get
+#   - every write needs a sponsor at a tty (a human or a director, as for
+#     commits); any actor may get
 ######################################################################
 set -euo pipefail
 

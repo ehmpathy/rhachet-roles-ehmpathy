@@ -157,9 +157,8 @@ emit_transport_status() {
     local post_status
     post_status=$(get_pr_status "$transport_ref")
     if [[ $(is_pr_merged "$post_status") == "true" ]]; then
-      # same renderer as every other automerge line: two leaves, no ad-hoc arrow
-      print_automerge_status "enabled" "added" "false"
-      print_automerge_status "merged"
+      # one leaf: the arm and the instant merge are one event
+      echo "   └─ 🌴 automerge enabled [added] -> and merged already"
       return 3  # 3 = already merged, caller should skip watch
     fi
 

@@ -491,9 +491,10 @@ exports[`git.commit.set.sh given: [case26] commit with corrupt global blocker fi
    └─ 💥 MalfunctionError: global blocker file corrupt
 
 🥥 did you know?
-   ├─ the global blocker file cannot be read, so every commit is blocked; a human may read it, then clear it
-   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
-   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+   ├─ the global blocker file cannot be read, so every commit is blocked: ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+   ├─ a sponsor rewrites it, to keep the halt or to lift it
+   ├─ rhx git.commit.uses block --global
+   └─ rhx git.commit.uses allow --global
 "
 `;
 
@@ -861,7 +862,7 @@ exports[`git.commit.set.sh given: [case32] the vision day-in-the-life: guide, th
    ├─ opened: as-human (gh cli login, fallback)
    ├─ watch: skipped (not an enrolled clone)
    └─ meter
-      └─ push: held
+      └─ push: held → held (a push spends no use, revokes naught)
 
 🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors

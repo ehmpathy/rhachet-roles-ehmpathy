@@ -10,7 +10,7 @@ exports[`git.commit.push.sh given: [case1] plan mode on feature branch when: [t0
    │  ├─ action: findsert
    │  └─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
-      └─ push: held
+      └─ push: held → held (a push spends no use, revokes naught)
 
 run with --mode apply to execute
 "
@@ -62,7 +62,7 @@ exports[`git.commit.push.sh given: [case9] stacked branch pr title when: [t0] br
    │  ├─ action: findsert
    │  └─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
-      └─ push: held
+      └─ push: held → held (a push spends no use, revokes naught)
 
 run with --mode apply to execute
 "
@@ -104,7 +104,7 @@ exports[`git.commit.push.sh given: [case14] a depleted grant stays held for push
    │  ├─ action: findsert
    │  └─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
-      └─ push: held
+      └─ push: held → held (a push spends no use, revokes naught)
 
 run with --mode apply to execute
 "
@@ -119,7 +119,7 @@ exports[`git.commit.push.sh given: [case14b] a depleted grant stays held for pus
    ├─ opened: as-ehmpath (ehmpath keyrack)
    ├─ watch: skipped (not an enrolled clone)
    └─ meter
-      └─ push: held
+      └─ push: held → held (a push spends no use, revokes naught)
 
 🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
@@ -168,7 +168,7 @@ exports[`git.commit.push.sh given: [case14d] a value flag is the last arg, with 
 "
 `;
 
-exports[`git.commit.push.sh given: [case14e] a legacy push block grant (F6, F20) when: [t0] uses 5, push block; the push ships then: the tree names the retired fields and the release stamp 1`] = `
+exports[`git.commit.push.sh given: [case14e] a legacy push block grant (F6, F20) when: [t0] uses 5, push block; the push ships then: the tree reads the grant as held, with no history note 1`] = `
 "🐢 cowabunga!
 
 🐚 git.commit.push
@@ -177,14 +177,10 @@ exports[`git.commit.push.sh given: [case14e] a legacy push block grant (F6, F20)
    ├─ opened: as-ehmpath (ehmpath keyrack)
    ├─ watch: skipped (not an enrolled clone)
    └─ meter
-      └─ push: held
+      └─ push: held → held (a push spends no use, revokes naught)
 
 🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
-
-🥥 did you know?
-   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
-   └─ git.release.uses set --quant 1   # ask your human, to ship
 "
 `;
 
@@ -285,7 +281,7 @@ exports[`git.commit.push.sh given: [case18] CI watch reminder after successful p
    ├─ opened: as-ehmpath (ehmpath keyrack)
    ├─ watch: skipped (not an enrolled clone)
    └─ meter
-      └─ push: held
+      └─ push: held → held (a push spends no use, revokes naught)
 
 🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
@@ -301,14 +297,10 @@ exports[`git.commit.push.sh given: [case18b] an enrolled clone whose pr watch re
    ├─ opened: as-ehmpath (ehmpath keyrack)
    ├─ watch: ✋ ConstraintError: no repo: --in <owner/name> absent, and the cwd has no github origin; rerun: rhx git.pull.watch set --which 42 --mode apply
    └─ meter
-      └─ push: held
+      └─ push: held → held (a push spends no use, revokes naught)
 
 🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
-
-🥥 did you know?
-   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
-   └─ git.release.uses set --quant 1   # ask your human, to ship
 "
 `;
 
@@ -323,14 +315,10 @@ exports[`git.commit.push.sh given: [case18c] an enrolled clone whose pr watch re
    ├─ opened: as-ehmpath (ehmpath keyrack)
    ├─ watch: set → @:mechanic (daemon v1.40.0+abcd1234 pid 4242, spawned)
    └─ meter
-      └─ push: held
+      └─ push: held → held (a push spends no use, revokes naught)
 
 🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
-
-🥥 did you know?
-   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
-   └─ git.release.uses set --quant 1   # ask your human, to ship
 "
 `;
 
@@ -345,14 +333,10 @@ exports[`git.commit.push.sh given: [case18c] an enrolled clone whose pr watch re
    ├─ opened: as-ehmpath (ehmpath keyrack)
    ├─ watch: ✋ ConstraintError: the watch said naught (exit 2); stderr: git.pull.watch.set.sh: line 9: syntax error near unexpected token; rerun: rhx git.pull.watch set --which 42 --mode apply
    └─ meter
-      └─ push: held
+      └─ push: held → held (a push spends no use, revokes naught)
 
 🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
-
-🥥 did you know?
-   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
-   └─ git.release.uses set --quant 1   # ask your human, to ship
 "
 `;
 
@@ -367,14 +351,10 @@ exports[`git.commit.push.sh given: [case18c] an enrolled clone whose pr watch re
    ├─ opened: as-ehmpath (ehmpath keyrack)
    ├─ watch: 💥 MalfunctionError: the clone registry is unreadable; no watch was set; rerun: rhx git.pull.watch set --which 42 --mode apply
    └─ meter
-      └─ push: held
+      └─ push: held → held (a push spends no use, revokes naught)
 
 🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
-
-🥥 did you know?
-   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
-   └─ git.release.uses set --quant 1   # ask your human, to ship
 "
 `;
 
@@ -398,14 +378,10 @@ exports[`git.commit.push.sh given: [case18c] an enrolled clone whose pr watch re
    ├─ opened: as-ehmpath (ehmpath keyrack)
    ├─ watch: set → @:mechanic (daemon v1.40.0+abcd1234 pid 4242, spawned)
    └─ meter
-      └─ push: held
+      └─ push: held → held (a push spends no use, revokes naught)
 
 🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
-
-🥥 did you know?
-   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
-   └─ git.release.uses set --quant 1   # ask your human, to ship
 "
 `;
 
@@ -421,7 +397,7 @@ exports[`git.commit.push.sh given: [case19] local main behind origin/main (PR #2
    │  ├─ action: findsert
    │  └─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
-      └─ push: held
+      └─ push: held → held (a push spends no use, revokes naught)
 
 run with --mode apply to execute
 "
@@ -488,7 +464,7 @@ exports[`git.commit.push.sh given: [case23] --auth as-human apply opens the pr v
    ├─ opened: as-human (gh cli login, fallback)
    ├─ watch: skipped (not an enrolled clone)
    └─ meter
-      └─ push: held
+      └─ push: held → held (a push spends no use, revokes naught)
 
 🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
@@ -593,7 +569,7 @@ exports[`git.commit.push.sh given: [case27] a non-auth gh failure does NOT fire 
    ├─ pr: pr creation failed: GraphQL: Changes must be made through a pull request; required status checks are expected (createPullRequest)
    ├─ opened: as-human (gh cli login, fallback)
    └─ meter
-      └─ push: held
+      └─ push: held → held (a push spends no use, revokes naught)
 "
 `;
 
@@ -605,7 +581,7 @@ exports[`git.commit.push.sh given: [case27] a non-auth gh failure does NOT fire 
    ├─ pr: pr creation failed: GraphQL: Changes must be made through a pull request; required status checks are expected (createPullRequest)
    ├─ opened: as-human (gh cli login, fallback)
    └─ meter
-      └─ push: held
+      └─ push: held → held (a push spends no use, revokes naught)
 "
 `;
 
@@ -618,7 +594,7 @@ exports[`git.commit.push.sh given: [case28] --auth as-human, the pr already exis
    ├─ opened: as-human (gh cli login, fallback)
    ├─ watch: skipped (not an enrolled clone)
    └─ meter
-      └─ push: held
+      └─ push: held → held (a push spends no use, revokes naught)
 
 🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
@@ -682,7 +658,7 @@ exports[`git.commit.push.sh given: [case30] --auth plan mode reflects the pr-ope
    │  ├─ action: findsert
    │  └─ opened: as-human (gh cli login, fallback)
    └─ meter
-      └─ push: held
+      └─ push: held → held (a push spends no use, revokes naught)
 
 run with --mode apply to execute
 "
@@ -700,7 +676,7 @@ exports[`git.commit.push.sh given: [case30] --auth plan mode reflects the pr-ope
    │  ├─ action: findsert
    │  └─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
-      └─ push: held
+      └─ push: held → held (a push spends no use, revokes naught)
 
 run with --mode apply to execute
 "
@@ -771,7 +747,7 @@ exports[`git.commit.push.sh given: [case33] a threaded (prefetched) token is reu
    ├─ opened: as-ehmpath (ehmpath keyrack)
    ├─ watch: skipped (not an enrolled clone)
    └─ meter
-      └─ push: held
+      └─ push: held → held (a push spends no use, revokes naught)
 
 🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
@@ -979,7 +955,7 @@ exports[`git.commit.push.sh given: [case41] a published branch, rewritten by a r
    ├─ opened: as-human (gh cli login, fallback)
    ├─ watch: skipped (not an enrolled clone)
    └─ meter
-      └─ push: held
+      └─ push: held → held (a push spends no use, revokes naught)
 
 🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors

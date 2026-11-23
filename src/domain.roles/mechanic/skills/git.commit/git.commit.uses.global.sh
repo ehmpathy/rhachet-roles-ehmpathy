@@ -115,6 +115,29 @@ case "$COMMAND" in
     ;;
 esac
 
+######################################################################
+# guard: a non-file at the blocker path refuses every write
+# .why = the corrupt note names `block --global` and `allow --global` as the
+#        repair. a temp+mv onto a DIRECTORY moves the file inside it and
+#        reports success while the wreck stays; so both arms refuse that shape
+#        and name the one command that clears it (rule.forbid.failhide)
+######################################################################
+if [[ ( "$COMMAND" == "block" || "$COMMAND" == "allow" ) && -e "$GLOBAL_METER_FILE" && ! -f "$GLOBAL_METER_FILE" ]]; then
+  emit_both "$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "$METER_SKILL $COMMAND --global"
+    print_tree_malfunction "the global blocker path is not a file"
+    echo ""
+    echo "   $METER_NOUN_PLURAL stay blocked until this path is cleared by hand:"
+    echo "     $GLOBAL_METER_FILE_SHOWN"
+    print_coconut_hint "inspect the path, then remove it" \
+      "ls -la $GLOBAL_METER_FILE_SHOWN" \
+      "rm -r $GLOBAL_METER_FILE_SHOWN"
+  )"
+  # a damaged host path is a MALFUNCTION, not bad caller input
+  exit 1
+fi
+
 case "$COMMAND" in
   block)
     # create global blocker file
@@ -174,36 +197,8 @@ EOF
     ;;
 
   allow)
-    # 🔴 .why this arm REFUSES rather than reports success = `rm -f` removes a
-    #        regular file and cannot remove a DIRECTORY. the `-f` guard let a
-    #        directory at this path fall straight past the delete to the
-    #        render, which announced `commits resumed globally` while the
-    #        blocker that halts every commit in the fleet sat untouched
-    #        (rule.forbid.failhide).
-    #
-    # 🔴 .why it is the SHARPEST instance of that class here = this command is
-    #        what the corrupt-file refusals PRINT as their remedy. a human who
-    #        is told to run it, runs it, and is told it worked, has been handed
-    #        a green light by the very path that refused them — and their next
-    #        commit refuses again, for the reason they were told was cleared.
-    if [[ -e "$GLOBAL_METER_FILE" && ! -f "$GLOBAL_METER_FILE" ]]; then
-      emit_both "$(
-        print_turtle_header "bummer dude..."
-        print_tree_start "$METER_SKILL allow --global"
-        print_tree_malfunction "the global blocker path is not a file"
-        echo ""
-        echo "   $METER_NOUN_PLURAL stay blocked until this path is cleared by hand:"
-        echo "     $GLOBAL_METER_FILE_SHOWN"
-        print_coconut_hint "inspect the path, then remove it" \
-          "ls -la $GLOBAL_METER_FILE_SHOWN" \
-          "rm -r $GLOBAL_METER_FILE_SHOWN"
-      )"
-      # a damaged host path is a MALFUNCTION, not bad caller input — the same
-      # class `guard_org_meter_is_readable` and `refuse_set_state_damaged`
-      # both exit 1 for. exit 2 here would read as a fixable caller mistake.
-      exit 1
-    fi
-
+    # a non-file at the path already refused above, so `rm -f` here always
+    # removes the file it names
     # delete global blocker file (no-op if absent)
     if [[ -f "$GLOBAL_METER_FILE" ]]; then
       rm -f "$GLOBAL_METER_FILE"

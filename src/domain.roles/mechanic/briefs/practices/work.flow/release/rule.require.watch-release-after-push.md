@@ -36,7 +36,7 @@ rhx git.release --watch || rhx show.gh.test.errors
 rhx git.release --into prod --mode apply --watch
 ```
 
-`--watch` reads no meter and spends naught. `--mode apply` spends one use of the human's release
+`--watch` reads no meter and spends naught. `--mode apply` spends one use of a sponsor's release
 stamp (`git.release.uses`); a push rides the commit grant, never the stamp.
 
 ## .enforcement

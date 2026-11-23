@@ -5704,19 +5704,13 @@ exec /usr/bin/git "$@"
         expect(result.stdout).toContain('global blocker file corrupt');
         expect(result.stderr).toContain('global blocker file corrupt');
 
-        // 🔴 .why THIS row carries the remedy hardest = the note used to print
-        //        `git.commit.uses allow --global`, which runs `rm -f` and
-        //        cannot remove a DIRECTORY. so on this exact shape the printed
-        //        fix handed the human a second refusal.
+        // the note names the meter's own repair verbs; on this directory shape
+        // both refuse and name `rm -r` themselves (git.commit.uses [t5], [t5b])
         expect(result.stdout).toContain(
           'the global blocker file cannot be read',
         );
-
-        // 🔴 the clamp for that. `rm -r` is the one command that holds for
-        //    every shape this gate classifies, and it is the same command its
-        //    org twin prints for the identical job
-        expect(result.stdout).toContain('rm -r');
-        expect(result.stdout).not.toContain('allow --global');
+        expect(result.stdout).toContain('rhx git.commit.uses block --global');
+        expect(result.stdout).not.toContain('cat ');
       });
     });
 

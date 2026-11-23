@@ -218,7 +218,6 @@ case "$COMMAND" in
       echo "   └─ push: held (push what you have, commit no more)"
       print_coconut_hint "to stop push too, revoke the grant" \
         "git.commit.uses del"
-      print_commit_legacy_note
       exit 0
     fi
 
@@ -227,7 +226,6 @@ case "$COMMAND" in
     print_tree_start "git.commit.uses $COMMAND"
     echo "   ├─ granted: $(as_meter_uses_display uses="$QUANT")"
     echo "   └─ covers: commit, stage, rebase, push"
-    print_commit_legacy_note
 
     ##################################################################
     # nudge: a quota with no sponsor bound buys no commits
@@ -300,9 +298,6 @@ case "$COMMAND" in
       echo "      └─ push: $PUSH_DISPLAY"
     fi
     print_global_corrupt_note
-
-    # a legacy grant carries retired fields: say so once, with the split
-    print_commit_legacy_note
     ;;
 
   *)

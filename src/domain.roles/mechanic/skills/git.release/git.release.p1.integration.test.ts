@@ -445,7 +445,9 @@ exit 1
           // stdout shows success
           expect(result.stdout).toContain('cowabunga');
           expect(result.stdout).toContain('all checks passed');
-          expect(result.stdout).toContain('└─ 🌴 already merged');
+          expect(result.stdout).toContain(
+            '└─ 🌴 automerge enabled [added] -> and merged already',
+          );
 
           // snapshot output
           expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
@@ -1720,7 +1722,9 @@ exit 1
             );
             // should show release PR with instant merge
             expect(result.stdout).toContain('chore(release)');
-            expect(result.stdout).toContain('└─ 🌴 already merged');
+            expect(result.stdout).toContain(
+              '└─ 🌴 automerge enabled [added] -> and merged already',
+            );
             expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
 

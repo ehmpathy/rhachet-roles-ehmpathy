@@ -202,8 +202,8 @@ exports[`git.branch.rebase.begin given: [case11] zero commits ahead, main moved 
    └─ 💥 MalfunctionError: could not read origin/feature/test-branch
 
 🥥 did you know?
-   ├─ a fast-forward needs proof it orphans no remote commit; check the remote, then retry
-   └─ git fetch origin feature/test-branch
+   ├─ a fast-forward needs proof it orphans no remote commit; a retry fetches the remote again
+   └─ rhx git.branch.rebase begin --mode plan
 "
 `;
 
@@ -214,8 +214,8 @@ exports[`git.branch.rebase.begin given: [case11] zero commits ahead, main moved 
    └─ ✋ ConstraintError: origin/feature/test-branch holds commits this tree lacks: 1
 
 🥥 did you know?
-   ├─ a fast-forward onto main would orphan them; pull them in first
-   └─ git pull --ff-only origin feature/test-branch
+   ├─ a fast-forward onto main would orphan them; ask your sponsor to pull them into this tree, then retry
+   └─ rhx git.branch.rebase begin --mode plan
 "
 `;
 
@@ -226,9 +226,10 @@ exports[`git.branch.rebase.begin given: [case12] the skill hits a malfunction pa
    └─ 💥 MalfunctionError: global blocker file corrupt
 
 🥥 did you know?
-   ├─ the global blocker file cannot be read, so every commit is blocked; a human may read it, then clear it
-   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
-   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+   ├─ the global blocker file cannot be read, so every commit is blocked: ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+   ├─ a sponsor rewrites it, to keep the halt or to lift it
+   ├─ rhx git.commit.uses block --global
+   └─ rhx git.commit.uses allow --global
 "
 `;
 
@@ -239,9 +240,10 @@ exports[`git.branch.rebase.begin given: [case12] the skill hits a malfunction pa
    └─ 💥 MalfunctionError: global blocker file corrupt
 
 🥥 did you know?
-   ├─ the global blocker file cannot be read, so every commit is blocked; a human may read it, then clear it
-   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
-   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+   ├─ the global blocker file cannot be read, so every commit is blocked: ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+   ├─ a sponsor rewrites it, to keep the halt or to lift it
+   ├─ rhx git.commit.uses block --global
+   └─ rhx git.commit.uses allow --global
 "
 `;
 
@@ -268,8 +270,8 @@ exports[`git.branch.rebase.begin given: [case12] the skill hits a malfunction pa
    └─ 💥 MalfunctionError: could not count commits behind origin/main
 
 🥥 did you know?
-   ├─ the count reads origin/main; fetch it, then retry
-   └─ git fetch origin main
+   ├─ the count reads origin/main; a retry fetches it again
+   └─ rhx git.branch.rebase begin --mode plan
 "
 `;
 
@@ -280,8 +282,8 @@ exports[`git.branch.rebase.begin given: [case12] the skill hits a malfunction pa
    └─ 💥 MalfunctionError: could not count commits behind origin/main
 
 🥥 did you know?
-   ├─ the count reads origin/main; fetch it, then retry
-   └─ git fetch origin main
+   ├─ the count reads origin/main; a retry fetches it again
+   └─ rhx git.branch.rebase begin --mode plan
 "
 `;
 

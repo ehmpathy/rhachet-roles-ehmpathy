@@ -477,7 +477,7 @@ refund_release_use() {
   if [[ "$(jq -r '.ours' <<< "$stamp_read")" != "true" ]]; then
     RELEASE_USE_SPENT="false"
     RELEASE_USES_LEFT="$(jq -r '.uses' <<< "$stamp_read")"
-    echo "   ├─ release stamp not refunded: a human changed it since the spend; it stands as written"
+    echo "   ├─ release stamp not refunded: a sponsor changed it since the spend; it stands as written"
     return 0
   fi
 
@@ -823,8 +823,8 @@ emit_unpushed_unreadable_refusal() {
     echo "   └─ 💥 MalfunctionError: could not count unpushed commits on $branch"
     echo ""
     echo "🥥 did you know?"
-    echo "   ├─ the count reads origin/$branch, which this tree lacks or cannot read; fetch it, then release"
-    echo "   └─ git fetch origin $branch"
+    echo "   ├─ the count reads origin/$branch, which this tree lacks or cannot read; push the branch, then release"
+    echo "   └─ rhx git.commit.push --mode apply"
   )
   echo "$refusal"
   echo "$refusal" >&2
@@ -847,7 +847,7 @@ emit_unpushed_refusal() {
     echo ""
     echo "🥥 did you know?"
     echo "   ├─ the pr holds only what was pushed; push first, then release"
-    echo "   ├─ a push rides the commit grant, not the release stamp; if push refuses, ask your human for git.commit.uses set --quant N"
+    echo "   ├─ a push rides the commit grant, not the release stamp; if push refuses, ask your sponsor for git.commit.uses set --quant N"
     echo "   └─ rhx git.commit.push --mode apply"
   )
   echo "$refusal"

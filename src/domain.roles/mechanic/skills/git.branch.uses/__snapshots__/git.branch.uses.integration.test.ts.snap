@@ -50,11 +50,10 @@ exports[`git.branch.uses given: [case3] a robot tries to grant itself a quota wh
 
 🐚 git.branch.uses set
    ├─ ✋ ConstraintError: no terminal on this command
-   ├─ only a human at a real terminal may run this
-   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+   └─ only a sponsor at a real terminal may run this
 
 🥥 did you know?
-   ├─ a human runs it from their own terminal
+   ├─ a sponsor runs it from their own terminal
    └─ rhx git.branch.uses set
 "
 `;
@@ -263,9 +262,10 @@ exports[`git.branch.uses given: [case8] the gate a cutover apply passes through 
    └─ 💥 MalfunctionError: global blocker file corrupt
 
 🥥 did you know?
-   ├─ the global blocker file cannot be read, so every cutover is blocked; a human may read it, then clear it
-   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.branch.uses.jsonc
-   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.branch.uses.jsonc
+   ├─ the global blocker file cannot be read, so every cutover is blocked: ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.branch.uses.jsonc
+   ├─ a sponsor rewrites it, to keep the halt or to lift it
+   ├─ rhx git.branch.uses block --global
+   └─ rhx git.branch.uses allow --global
 "
 `;
 

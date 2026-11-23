@@ -31,8 +31,7 @@ exports[`git.release.p2 --from main behavior given: [case-from-main-on-feat] on 
 
 🌊 release: chore(release): v1.33.0 🎉
    ├─ 👌 all checks passed
-   ├─ 🌴 automerge enabled [added]
-   └─ 🌴 already merged
+   └─ 🌴 automerge enabled [added] -> and merged already
 
 🫧 and then...
 
@@ -63,8 +62,7 @@ exports[`git.release.p2 --from main behavior given: [case-from-main-on-main] on 
 
 🌊 release: chore(release): v1.33.0 🎉
    ├─ 👌 all checks passed
-   ├─ 🌴 automerge enabled [added]
-   └─ 🌴 already merged
+   └─ 🌴 automerge enabled [added] -> and merged already
 
 🫧 and then...
 
@@ -316,7 +314,7 @@ exports[`git.release.p2 argument validation given: [case-arg-help] --help flag w
   --from main   skip the feature branch, release whatever is on main
 
   the release stamp (git.release.uses):
-  apply needs the human's stamp — git.release.uses set --quant 1 — and spends
+  apply needs a sponsor's stamp — git.release.uses set --quant 1 — and spends
   one use at the arm of the merge; --into prod arms both prs on that one use.
   a commit grant never ships. see the stamp: rhx git.release.uses get
 "
@@ -397,7 +395,7 @@ exports[`git.release.p2 permission requirements given: [case-perm-commit-only] a
    └─ ✋ ConstraintError: no release grant on this tree
 
 🥥 did you know?
-   ├─ a commit grant never ships; a release needs its own stamp, which only your human can grant
+   ├─ a commit grant never ships; a release needs its own stamp, which only a sponsor can grant
    └─ git.release.uses set --quant 1
 "
 `;
@@ -409,7 +407,7 @@ exports[`git.release.p2 permission requirements given: [case-perm-depleted] the 
    └─ ✋ ConstraintError: no release uses left
 
 🥥 did you know?
-   ├─ the stamp is spent; ask your human to grant another
+   ├─ the stamp is spent; ask your sponsor to grant another
    └─ git.release.uses set --quant 1
 "
 `;
@@ -421,7 +419,7 @@ exports[`git.release.p2 permission requirements given: [case-perm-global-blocked
    └─ ✋ ConstraintError: releases blocked globally
 
 🥥 did you know?
-   ├─ ask your human to lift the global release blocker
+   ├─ ask your sponsor to lift the global release blocker
    └─ git.release.uses allow --global
 "
 `;
@@ -435,7 +433,7 @@ exports[`git.release.p2 permission requirements given: [case-perm-global-blocked
       └─ no release grant on this tree
 
 🥥 did you know?
-   ├─ each level must allow a release; ask your human to grant each
+   ├─ each level must allow a release; ask your sponsor to grant each
    ├─ git.release.uses allow --global
    └─ git.release.uses set --quant 1
 "
@@ -448,9 +446,10 @@ exports[`git.release.p2 permission requirements given: [case-perm-global-damaged
    └─ 💥 MalfunctionError: release blocker file corrupt
 
 🥥 did you know?
-   ├─ the global blocker file cannot be read, so every release is blocked; a human may read it, then clear it
-   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.jsonc
-   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.jsonc
+   ├─ the global blocker file cannot be read, so every release is blocked: ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.jsonc
+   ├─ a sponsor rewrites it, to keep the halt or to lift it
+   ├─ rhx git.release.uses block --global
+   └─ rhx git.release.uses allow --global
 "
 `;
 
@@ -477,7 +476,7 @@ exports[`git.release.p2 permission requirements given: [case-perm-no-local] appl
    └─ ✋ ConstraintError: no release grant on this tree
 
 🥥 did you know?
-   ├─ a commit grant never ships; a release needs its own stamp, which only your human can grant
+   ├─ a commit grant never ships; a release needs its own stamp, which only a sponsor can grant
    └─ git.release.uses set --quant 1
 "
 `;
@@ -514,7 +513,7 @@ exports[`git.release.p2 permission requirements given: [case-perm-org-unset] the
    └─ ✋ ConstraintError: no org config for ehmpathy
 
 🥥 did you know?
-   ├─ ask your human to allow releases for this org
+   ├─ ask your sponsor to allow releases for this org
    └─ git.release.uses allow --org ehmpathy
 "
 `;
@@ -529,11 +528,8 @@ exports[`git.release.p2 permission requirements given: [case-perm-plan-no-check]
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 
-🐚 release stamp
-   └─ apply would refuse: no release grant on this tree
-
 🥥 did you know?
-   ├─ see each level, and what blocks
+   ├─ apply would refuse: no release grant on this tree; see each level, and what blocks
    └─ rhx git.release.uses get
 "
 `;
@@ -548,11 +544,8 @@ exports[`git.release.p2 permission requirements given: [case-perm-plan-no-check]
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 
-🐚 release stamp
-   └─ apply would refuse: releases blocked globally
-
 🥥 did you know?
-   ├─ see each level, and what blocks
+   ├─ apply would refuse: releases blocked globally; see each level, and what blocks
    └─ rhx git.release.uses get
 "
 `;
@@ -567,11 +560,8 @@ exports[`git.release.p2 permission requirements given: [case-perm-plan-no-check]
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 
-🐚 release stamp
-   └─ apply would refuse: a release meter file is damaged
-
 🥥 did you know?
-   ├─ see each level, and what blocks
+   ├─ apply would refuse: a release meter file is damaged; see each level, and what blocks
    └─ rhx git.release.uses get
 "
 `;
@@ -583,8 +573,7 @@ exports[`git.release.p2 permission requirements given: [case-perm-release-only] 
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
-   ├─ 🌴 automerge enabled [added]
-   └─ 🌴 already merged
+   └─ 🌴 automerge enabled [added] -> and merged already
 
 [dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
 [dim]   └─ it spends another release use; 0 left[/dim]
@@ -613,7 +602,7 @@ exports[`git.release.p2 permission requirements given: [case-perm-release-only] 
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
-   ├─ release stamp not refunded: a human changed it since the spend; it stands as written
+   ├─ release stamp not refunded: a sponsor changed it since the spend; it stands as written
    └─ 💥 MalfunctionError: could not arm the merge of pr #42; gh printed the cause on stderr
 "
 `;
@@ -661,7 +650,7 @@ exports[`git.release.p2 permission requirements given: [case-perm-unpushed] the 
 
 🥥 did you know?
    ├─ the pr holds only what was pushed; push first, then release
-   ├─ a push rides the commit grant, not the release stamp; if push refuses, ask your human for git.commit.uses set --quant N
+   ├─ a push rides the commit grant, not the release stamp; if push refuses, ask your sponsor for git.commit.uses set --quant N
    └─ rhx git.commit.push --mode apply
 "
 `;
@@ -673,8 +662,8 @@ exports[`git.release.p2 permission requirements given: [case-perm-unpushed] the 
    └─ 💥 MalfunctionError: could not count unpushed commits on turtle/feature-x
 
 🥥 did you know?
-   ├─ the count reads origin/turtle/feature-x, which this tree lacks or cannot read; fetch it, then release
-   └─ git fetch origin turtle/feature-x
+   ├─ the count reads origin/turtle/feature-x, which this tree lacks or cannot read; push the branch, then release
+   └─ rhx git.commit.push --mode apply
 "
 `;
 
@@ -832,8 +821,7 @@ exports[`git.release.p2 to main, from feat given: [case-feat-passed-wout-automer
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
-   ├─ 🌴 automerge enabled [added]
-   └─ 🌴 already merged
+   └─ 🌴 automerge enabled [added] -> and merged already
 
 [dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
 "
@@ -1190,8 +1178,7 @@ exports[`git.release.p2 to prod, from main given: [case-main-passed-wout-automer
 
 🌊 release: chore(release): v1.33.0 🎉
    ├─ 👌 all checks passed
-   ├─ 🌴 automerge enabled [added]
-   └─ 🌴 already merged
+   └─ 🌴 automerge enabled [added] -> and merged already
 
 🫧 and then...
 

@@ -188,22 +188,13 @@ assure_meter_scope() {
 #        label — a match on "(file corrupt)" would silently stop the day the
 #        prose moved (rule.forbid.magic-values).
 ######################################################################
-# 🔴 .why the clear is `rm -r` and NOT `git.commit.uses allow --global` = the
-#        corrupt state this note renders spans three shapes — an unparseable
-#        file, a 0-byte file, and a DIRECTORY at the path. `allow --global`
-#        clears the first two and **refuses** on the third, since `rm -f`
-#        cannot remove a directory. so for one of the shapes this very gate
-#        classifies, the printed fix hands the human a second refusal.
-#
-# ⚠️ .note = the refusal it hands them is honest and names `rm -r`, so the path
-#         terminated correctly — in two steps, for a state the note could have
-#         answered in one. `rm -r` is the one command that holds for **every**
-#         shape named here (case=3: a refusal prints the command that works).
-#
-# ⇒ .and it makes the two notes AGREE. `print_org_corrupt_note` clears its
-#   wreck with `rm -r`; this one used a different command for the identical
-#   job, so a human who met both learned two answers to one question
-#   (rule.require.ubiqlang).
+# 🔴 .why the clear is the meter's own verbs, never `cat` / `rm` = a hint names
+#        paved commands only. `block --global` rewrites the file atomically
+#        (keep the halt); `allow --global` removes it (lift the halt). the
+#        corrupt state spans three shapes — unparseable, 0-byte, and a
+#        DIRECTORY at the path. both verbs repair the first two; on a directory
+#        both REFUSE, and that refusal names `rm -r` itself, so no shape gets a
+#        fix that silently does not fix.
 print_global_corrupt_note() {
   if [[ "${GLOBAL_BLOCK_CORRUPT:-false}" != "true" ]]; then
     return 0
@@ -220,9 +211,10 @@ print_global_corrupt_note() {
   #    ⇒ the shape is matched by hand; no new dependency is made.
   echo ""
   echo "🥥 did you know?"
-  echo "   ├─ the global blocker file cannot be read, so every $METER_NOUN is blocked; a human may read it, then clear it"
-  echo "   ├─ cat $GLOBAL_METER_FILE_SHOWN"
-  echo "   └─ rm -r $GLOBAL_METER_FILE_SHOWN"
+  echo "   ├─ the global blocker file cannot be read, so every $METER_NOUN is blocked: $GLOBAL_METER_FILE_SHOWN"
+  echo "   ├─ a sponsor rewrites it, to keep the halt or to lift it"
+  echo "   ├─ rhx $METER_SKILL block --global"
+  echo "   └─ rhx $METER_SKILL allow --global"
 }
 
 ######################################################################
@@ -1100,10 +1092,11 @@ guard_actor_is_human_via_stdin() {
   #        with no file to reopen and no pipeline to fail
   #        (rule.forbid.bare-host-deps — `/dev/stderr` is a host-provided path,
   #        and its availability is not ours to assume).
-  # 🔴 .why the refusal names the CHANNEL, never the reader = a claude `!`
-  #        command has no terminal either, so "only humans can run this"
-  #        told a human at that prompt they were not one. the same words as
-  #        `git.commit.sponsor`'s actor refusal, so the family speaks once.
+  # 🔴 .why the refusal names the CHANNEL and the SPONSOR, never "a human" =
+  #        a claude `!` command has no terminal either, so "only humans can
+  #        run this" told a human at that prompt they were not one; and a
+  #        director grants commits and releases as a sponsor, through this
+  #        same terminal gate.
   # .why the body rides tree branches and a 🥥 hint = one refusal shape for
   #        the family: no prose hangs below a tree that already closed
   #        (rule.forbid.snapshot-visual-blemishes, rule.require.coconut-hints)
@@ -1111,10 +1104,9 @@ guard_actor_is_human_via_stdin() {
     print_turtle_header "bummer dude..."
     print_tree_start "$1"
     print_tree_branch "✋ ConstraintError: no terminal on this command"
-    print_tree_branch "only a human at a real terminal may run this"
-    print_tree_branch "a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart" true
+    print_tree_branch "only a sponsor at a real terminal may run this" true
     print_coconut_hint \
-      "a human runs it from their own terminal" \
+      "a sponsor runs it from their own terminal" \
       "rhx $1"
   )"
   exit 2
@@ -2579,23 +2571,6 @@ get_one_commit_local_grant() {
   ')
   read -r COMMIT_USES COMMIT_HELD COMMIT_LIVE COMMIT_LEGACY <<< "$facts"
   return 0
-}
-
-######################################################################
-# .what = the note a legacy grant owes, once per render that reads it
-#
-# .why  = a legacy `{ uses, push, stage? }` grant changes sense under the
-#         split: push rides the commit grant, and a release needs its own
-#         stamp. get, set, and push each read such a file; one leaf keeps
-#         the three notes word for word alike, so no gain or loss is silent
-#
-# usage: print_commit_legacy_note   # after get_one_commit_local_grant
-######################################################################
-print_commit_legacy_note() {
-  [[ "${COMMIT_LEGACY:-false}" == "true" ]] || return 0
-  print_coconut_hint \
-    "this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own" \
-    "git.release.uses set --quant 1   # ask your human, to ship"
 }
 
 ######################################################################

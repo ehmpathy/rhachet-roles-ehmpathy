@@ -2,7 +2,7 @@
 ######################################################################
 # .what = manage this tree's release quota
 #
-# .why  = the human's release stamp: how many times this tree may run
+# .why  = the sponsor's release stamp: how many times this tree may run
 #         `git.release --mode apply`. it holds a quota and naught else —
 #         commit, stage, rebase, and push ride git.commit.uses
 #
@@ -16,7 +16,7 @@
 #
 # guarantee:
 #   - state stored in .meter/git.release.uses.jsonc as { "uses": N | "infinite" }
-#   - set / allow / block / del need a human at a tty; get does not
+#   - set / allow / block / del need a sponsor at a tty; get does not
 #   - a damaged file is named, never read as a grant (exit 1)
 ######################################################################
 set -euo pipefail
@@ -90,7 +90,7 @@ while [[ $# -gt 0 ]]; do
         print_turtle_header "bummer dude..."
         print_tree_start "git.release.uses"
         print_tree_constraint "$1 is not a release field"
-        print_coconut_hint "push and stage ride the commit meter; ask your human for a commit grant" \
+        print_coconut_hint "push and stage ride the commit meter; ask your sponsor for a commit grant" \
           "git.commit.uses set --quant N"
       )"
       exit 2
@@ -99,8 +99,8 @@ while [[ $# -gt 0 ]]; do
       echo "$USAGE"
       echo ""
       echo "commands:"
-      echo "  set    grant N releases on this tree (human only)"
-      echo "  allow  grant unlimited releases on this tree (human only)"
+      echo "  set    grant N releases on this tree (sponsor only)"
+      echo "  allow  grant unlimited releases on this tree (sponsor only)"
       echo "  block  revoke (alias for del)"
       echo "  del    revoke"
       echo "  get    check this tree's release grant, all three levels"
@@ -118,6 +118,9 @@ while [[ $# -gt 0 ]]; do
       echo ""
       echo "a release = git.release --mode apply. commit, stage, rebase, and push"
       echo "ride git.commit.uses; no commit grant can ship."
+      echo ""
+      echo "a sponsor grants a release the way it grants commits: a human or a"
+      echo "director, from a real terminal."
       exit 0
       ;;
     --repo|--role|--skill)
@@ -149,7 +152,7 @@ if [[ -z "$COMMAND" ]]; then
 fi
 
 ######################################################################
-# guard: every write needs a human at a tty
+# guard: every write needs a sponsor at a tty
 # note: __I_AM_HUMAN=true allows integration tests to run mutations
 ######################################################################
 case "$COMMAND" in
@@ -237,7 +240,7 @@ case "$COMMAND" in
       fi
       # an unlimited stamp: every release from this tree goes unmetered; name the way back
       if [[ "$QUANT" == "infinite" ]]; then
-        print_coconut_hint "every release from this tree is now unmetered, until a human takes it back" \
+        print_coconut_hint "every release from this tree is now unmetered, until a sponsor takes it back" \
           "rhx git.release.uses block"
       fi
       exit 0
@@ -251,7 +254,7 @@ case "$COMMAND" in
     print_coconut_hint "a release needs every level to allow it; see all three" \
       "rhx git.release.uses get"
     if [[ "$QUANT" == "infinite" ]]; then
-      print_coconut_hint "once the other levels allow, every release from this tree goes unmetered, until a human takes it back" \
+      print_coconut_hint "once the other levels allow, every release from this tree goes unmetered, until a sponsor takes it back" \
         "rhx git.release.uses block"
     fi
     ;;
@@ -315,7 +318,7 @@ case "$COMMAND" in
       [[ "$VERDICT_LOCAL" -ne 0 ]] && LIFT_COMMANDS+=("rhx git.release.uses set --quant 1")
       [[ "$ORG_STATUS" -ne 0 ]] && LIFT_COMMANDS+=("rhx git.release.uses allow --org ${ORG_VALUE:-<org>}")
       [[ "$GLOBAL_STATUS" -ne 0 ]] && LIFT_COMMANDS+=("rhx git.release.uses allow --global")
-      print_coconut_hint "a human lifts a level from their own terminal; one command per level that blocks" \
+      print_coconut_hint "a sponsor lifts a level from their own terminal; one command per level that blocks" \
         "${LIFT_COMMANDS[@]}"
     fi
     ;;

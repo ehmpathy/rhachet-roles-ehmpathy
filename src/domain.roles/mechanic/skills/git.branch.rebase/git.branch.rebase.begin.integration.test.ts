@@ -845,7 +845,8 @@ describe('git.branch.rebase.begin', () => {
           expect(result.stderr).toContain(
             '💥 MalfunctionError: could not count commits behind origin/main',
           );
-          expect(result.stdout).toContain('git fetch origin main');
+          expect(result.stdout).toContain('rhx git.branch.rebase begin');
+          expect(result.stdout).not.toContain('git fetch');
           expect(result.stdout).toMatchSnapshot();
           expect(result.stderr).toMatchSnapshot();
         } finally {

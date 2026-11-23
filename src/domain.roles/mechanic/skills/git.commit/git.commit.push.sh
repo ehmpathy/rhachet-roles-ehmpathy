@@ -458,7 +458,7 @@ if [[ "$MODE" == "plan" ]]; then
     echo "   │  ├─ action: findsert"
     echo "   │  └─ opened: $AUTH_WHO"
     echo "   └─ meter"
-    echo "      └─ push: held"
+    echo "      └─ push: held → held (a push spends no use, revokes naught)"
     echo ""
     echo "run with --mode apply to execute"
   fi
@@ -805,7 +805,7 @@ fi
 # sensible default (no else), then build the tree once and route it by outcome
 PR_HEADER="bummer dude, pushed but the pr didn't open"
 [[ "$PR_OK" == true ]] && PR_HEADER="cowabunga!"
-METER_LINE="      └─ push: held"
+METER_LINE="      └─ push: held → held (a push spends no use, revokes naught)"
 
 TREE_OUTPUT=$(
   print_turtle_header "$PR_HEADER"
@@ -823,8 +823,6 @@ TREE_OUTPUT=$(
     echo "🌊 now let's ride the release wave and catch any wipeouts"
     echo "   └─ rhx git.release --watch || rhx show.gh.test.errors"
   fi
-  # a legacy grant changed sense under the split: say so on the push it rode
-  print_commit_legacy_note
 )
 # always to stdout; on a pr-open failure also to stderr, so a stderr-only
 # consumer (a ci log scan) still sees why exit 2 happened — parity with every

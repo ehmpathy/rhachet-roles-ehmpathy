@@ -893,9 +893,9 @@ exec /usr/bin/git "$@"
         expect(result.exitCode).toBe(0);
       });
 
-      then('the tree names the retired fields and the release stamp', () => {
-        expect(result.stdout).toContain('retired push / stage fields');
-        expect(result.stdout).toContain('git.release.uses set --quant 1');
+      then('the tree reads the grant as held, with no history note', () => {
+        expect(result.stdout).toContain('push: held');
+        expect(result.stdout).not.toContain('retired');
         expect(result.stdout).toMatchSnapshot();
       });
     });

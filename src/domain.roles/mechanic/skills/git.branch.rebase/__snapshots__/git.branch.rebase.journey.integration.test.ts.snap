@@ -308,15 +308,15 @@ exports[`git.branch.rebase journey given: [journey5] zero-commit branch behind m
 "
 `;
 
-exports[`git.branch.rebase journey given: [journey6] zero-commit branch whose remote holds a commit this tree lacks when: [t0] git.branch.rebase begin --mode apply then: it refuses as a constraint and names the pull 1`] = `
+exports[`git.branch.rebase journey given: [journey6] zero-commit branch whose remote holds a commit this tree lacks when: [t0] git.branch.rebase begin --mode apply then: it refuses as a constraint and names only paved moves 1`] = `
 "🐢 hold up dude...
 
 🐚 git.branch.rebase begin
    └─ ✋ ConstraintError: origin/feature/remote-ahead holds commits this tree lacks: 1
 
 🥥 did you know?
-   ├─ a fast-forward onto main would orphan them; pull them in first
-   └─ git pull --ff-only origin feature/remote-ahead
+   ├─ a fast-forward onto main would orphan them; ask your sponsor to pull them into this tree, then retry
+   └─ rhx git.branch.rebase begin --mode apply
 "
 `;
 

@@ -97,8 +97,7 @@ exports[`git.release given: [case2] release to main (apply mode) when: [t3] auto
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
-   ├─ 🌴 automerge enabled [added]
-   └─ 🌴 already merged
+   └─ 🌴 automerge enabled [added] -> and merged already
 
 [dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
 "
@@ -204,11 +203,8 @@ exports[`git.release given: [case3b] release to prod from feat (plan mode) when:
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 
-🐚 release stamp
-   └─ apply would refuse: .agent/keyrack.yml not found; no release grant on this tree
-
 🥥 did you know?
-   ├─ see each level, and what blocks
+   ├─ apply would refuse: .agent/keyrack.yml not found; no release grant on this tree; see each level, and what blocks
    └─ rhx git.release.uses get
 "
 `;
@@ -233,11 +229,8 @@ exports[`git.release given: [case3b] release to prod from feat (plan mode) when:
 🌊 release: v1.33.0
    └─ 👌 all checks passed
 
-🐚 release stamp
-   └─ apply would refuse: .agent/keyrack.yml not found; no release grant on this tree
-
 🥥 did you know?
-   ├─ see each level, and what blocks
+   ├─ apply would refuse: .agent/keyrack.yml not found; no release grant on this tree; see each level, and what blocks
    └─ rhx git.release.uses get
 "
 `;
@@ -318,8 +311,7 @@ exports[`git.release given: [case4a] release to prod from main (apply mode) when
 
 🌊 release: chore(release): v1.32.0 🎉
    ├─ 🐢 1 check(s) in progress
-   ├─ 🌴 automerge enabled [added]
-   └─ 🌴 already merged
+   └─ 🌴 automerge enabled [added] -> and merged already
 
 🫧 and then...
 
@@ -440,8 +432,7 @@ exports[`git.release given: [case4b] release to prod from feat (apply mode) when
 
 🌊 release: chore(release): v1.32.0
    ├─ 👌 all checks passed
-   ├─ 🌴 automerge enabled [added]
-   └─ 🌴 already merged
+   └─ 🌴 automerge enabled [added] -> and merged already
 
 🫧 and then...
 
@@ -630,7 +621,7 @@ exports[`git.release given: [case7] argument validation when: [t4] --help flag t
   --from main   skip the feature branch, release whatever is on main
 
   the release stamp (git.release.uses):
-  apply needs the human's stamp — git.release.uses set --quant 1 — and spends
+  apply needs a sponsor's stamp — git.release.uses set --quant 1 — and spends
   one use at the arm of the merge; --into prod arms both prs on that one use.
   a commit grant never ships. see the stamp: rhx git.release.uses get
 "

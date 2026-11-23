@@ -10,7 +10,7 @@ exports[`git.release.uses (acceptance) given: [case1] a linked repo that names i
    └─ verdict: blocked by local + org
 
 🥥 did you know?
-   ├─ a human lifts a level from their own terminal; one command per level that blocks
+   ├─ a sponsor lifts a level from their own terminal; one command per level that blocks
    ├─ rhx git.release.uses set --quant 1
    └─ rhx git.release.uses allow --org ehmpathy
 "
@@ -21,11 +21,10 @@ exports[`git.release.uses (acceptance) given: [case1] a linked repo that names i
 
 🐚 git.release.uses set --quant 1
    ├─ ✋ ConstraintError: no terminal on this command
-   ├─ only a human at a real terminal may run this
-   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+   └─ only a sponsor at a real terminal may run this
 
 🥥 did you know?
-   ├─ a human runs it from their own terminal
+   ├─ a sponsor runs it from their own terminal
    └─ rhx git.release.uses set --quant 1
 "
 `;
@@ -72,7 +71,7 @@ exports[`git.release.uses (acceptance) given: [case2] a human walks the release 
    └─ local: unlimited
 
 🥥 did you know?
-   ├─ every release from this tree is now unmetered, until a human takes it back
+   ├─ every release from this tree is now unmetered, until a sponsor takes it back
    └─ rhx git.release.uses block
 "
 `;
@@ -99,7 +98,7 @@ exports[`git.release.uses (acceptance) given: [case2] a human walks the release 
    └─ verdict: blocked by global
 
 🥥 did you know?
-   ├─ a human lifts a level from their own terminal; one command per level that blocks
+   ├─ a sponsor lifts a level from their own terminal; one command per level that blocks
    └─ rhx git.release.uses allow --global
 "
 `;
@@ -142,7 +141,7 @@ exports[`git.release.uses (acceptance) given: [case2] a human walks the release 
    └─ verdict: blocked by local
 
 🥥 did you know?
-   ├─ a human lifts a level from their own terminal; one command per level that blocks
+   ├─ a sponsor lifts a level from their own terminal; one command per level that blocks
    └─ rhx git.release.uses set --quant 1
 "
 `;
