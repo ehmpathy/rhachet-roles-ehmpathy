@@ -192,7 +192,8 @@ const FAULT_TEXT_CASES = [
       'github read not found: repos/ehmpathy/surf-demo/commits/sha-1250/check-runs (status: 404)',
   },
   {
-    description: 'names an absent status as none, with the first line of gh',
+    description:
+      'names an absent status as none, and keeps the first line of gh',
     given: {
       kind: 'github unreachable',
       endpoint: 'repos/ehmpathy/surf-demo/pulls/1220',
@@ -202,27 +203,42 @@ const FAULT_TEXT_CASES = [
     expect:
       'github unreachable: repos/ehmpathy/surf-demo/pulls/1220 (status: none) dial tcp: lookup api.github.com: no such host',
   },
+  {
+    description: 'names a rate limit with its status and the bare path',
+    given: {
+      kind: 'github rate limited',
+      endpoint: 'repos/ehmpathy/surf-demo/issues/1220/comments?per_page=100',
+      status: '429',
+      err: '',
+    },
+    expect:
+      'github rate limited: repos/ehmpathy/surf-demo/issues/1220/comments (status: 429)',
+  },
 ];
 
 describe('git.pull.watch.github fault text', () => {
-  FAULT_TEXT_CASES.map((thisCase) =>
-    test(thisCase.description, () => {
-      const result = spawnSync(
-        'bash',
-        [
-          '-c',
-          'source "$1" && as_watch_fault_text "$2" "$3" "$4" "$5"',
-          '_',
-          GITHUB_SH,
-          thisCase.given.kind,
-          thisCase.given.endpoint,
-          thisCase.given.status,
-          thisCase.given.err,
-        ],
-        { encoding: 'utf-8' },
-      );
-      expect(result.status).toEqual(0);
-      expect(result.stdout.trim()).toEqual(thisCase.expect);
+  FAULT_TEXT_CASES.forEach((thisCase, index) =>
+    given(`[case${index + 1}] the fault line ${thisCase.description}`, () => {
+      when('[t0] the fault line is built', () => {
+        then('it reads one way: kind, path, one status, words', () => {
+          const result = spawnSync(
+            'bash',
+            [
+              '-c',
+              'source "$1" && as_watch_fault_text "$2" "$3" "$4" "$5"',
+              '_',
+              GITHUB_SH,
+              thisCase.given.kind,
+              thisCase.given.endpoint,
+              thisCase.given.status,
+              thisCase.given.err,
+            ],
+            { encoding: 'utf-8' },
+          );
+          expect(result.status).toEqual(0);
+          expect(result.stdout.trim()).toEqual(thisCase.expect);
+        });
+      });
     }),
   );
 });

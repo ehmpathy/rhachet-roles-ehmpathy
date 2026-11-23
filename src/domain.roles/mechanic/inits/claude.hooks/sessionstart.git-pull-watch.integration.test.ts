@@ -912,16 +912,22 @@ describe('sessionstart.git-pull-watch.sh', () => {
         const result = useThen('the hook runs', async () => ({
           hook: runHook(),
           pids: getAllWatchDaemonPids({ home: scene.home }),
+          says: scene.getSays().map((say) => scene.asMasked(say.text)),
         }));
         then('it spawns naught and says naught: the day ends quiet', () => {
           expect(result.hook.status).toEqual(0);
           expect(result.hook.stdout).toEqual('');
           expect(result.pids).toEqual([]);
         });
+        then('the day held two notes: the 404 end, then the merge', () => {
+          expect(result.says).toHaveLength(2);
+          expect(result.says[0]).toContain(
+            '#1261 answers 404 to the seaturtle token',
+          );
+          expect(result.says[1]).toContain('#1260 merged; watch ended');
+        });
         then('each note the clone heard reads as it was sent', () => {
-          expect(
-            scene.getSays().map((say) => scene.asMasked(say.text)),
-          ).toMatchSnapshot();
+          expect(result.says).toMatchSnapshot();
         });
       });
     },

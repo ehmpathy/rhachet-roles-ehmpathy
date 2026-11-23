@@ -251,6 +251,114 @@ describe('git.pull.watch token', () => {
   });
 
   given(
+    '[case2b] a daemon paused long at the production poll cap; keyrack unlocks',
+    () => {
+      /**
+       * .why = the paused note promises two resumes: within the cap on its own, and
+       *        at once via the `set` it names. at the scene's 1s cap both look the same;
+       *        at the production cap (30 min) only the `set` is prompt, so this case
+       *        proves the command the note gives a human who will not wait
+       */
+      const scene = genWatchTestScene({
+        slug: 'watch-token-locked-prodcap',
+        repos: ['surf-demo'],
+        store: { keyrack: 'locked' },
+        env: { GIT_PULL_WATCH_POLL_MAX_SECONDS: '1800' },
+      });
+      scene.setStore((store) => {
+        store.clones[scene.roots['surf-demo']!] = [
+          { serial: SERIAL, slug: 'mechanic', reachState: 'LIVE' },
+        ];
+        store.github.prs[`${REPO}#1220`] = {
+          state: 'open',
+          merged: false,
+          headSha: 'sha-1220',
+          closedBy: null,
+        };
+      });
+      afterAll(() => scene.stopAllDaemons());
+      const setWatch = () =>
+        scene.runSkill({
+          verb: 'set',
+          args: ['--which', '1220', '--mode', 'apply'],
+          root: scene.roots['surf-demo']!,
+          serial: SERIAL,
+        });
+      const getSeaturtleReads = () =>
+        scene
+          .getKeyrackCalls()
+          .filter((call) => call.argv.includes(SLUG_SEATURTLE)).length;
+      const getSeaturtleGhReads = () =>
+        scene
+          .getGhCalls()
+          .filter((call) => call.token === 'ghs_fake_ehmpath_token').length;
+
+      when(
+        '[t0] the pause lasts until its gap has doubled four times, then keyrack unlocks',
+        () => {
+          const result = useThen('ticks pass after the unlock', async () => {
+            setWatch();
+            await waitForWatch({
+              label: 'five paused keyrack reads, so the gap has grown',
+              check: () => getSeaturtleReads() >= 5,
+              timeoutMs: 120_000,
+              scene,
+            });
+            scene.setStore((store) => {
+              store.keyrack = 'granted';
+            });
+            await scene.waitForDaemonTicks({ ticks: 3 });
+            return { ghReads: getSeaturtleGhReads() };
+          });
+          then(
+            'the grown gap holds: three ticks pass with no read, as the note bounds it by the cap',
+            () => {
+              expect(result.ghReads).toEqual(0);
+            },
+          );
+        },
+      );
+
+      when('[t1] the human runs the set the paused note names', () => {
+        const result = useThen('the set runs', async () => {
+          const ticksBefore = Number(
+            fs.readFileSync(
+              path.join(
+                scene.getAllWatchRecords()[0]!.path,
+                '..',
+                '..',
+                'daemon.ticks',
+              ),
+              'utf-8',
+            ),
+          );
+          setWatch();
+          await waitForWatch({
+            label: 'a read with the seaturtle token',
+            check: () => getSeaturtleGhReads() > 0,
+            scene,
+          });
+          const ticksAfter = Number(
+            fs.readFileSync(
+              path.join(
+                scene.getAllWatchRecords()[0]!.path,
+                '..',
+                '..',
+                'daemon.ticks',
+              ),
+              'utf-8',
+            ),
+          );
+          return { ticks: ticksAfter - ticksBefore };
+        });
+        then('the read lands within two ticks, not at the 30 min cap', () => {
+          expect(result.ticks).toBeLessThanOrEqual(2);
+        });
+      });
+    },
+  );
+
+  given(
     '[case3] a private pr the grove token cannot see; the seaturtle token lapses, then is unlocked again',
     () => {
       const scene = genWatchTestScene({

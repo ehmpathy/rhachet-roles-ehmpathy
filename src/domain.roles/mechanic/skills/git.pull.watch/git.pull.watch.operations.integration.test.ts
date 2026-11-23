@@ -915,4 +915,43 @@ describe('git.pull.watch.operations', () => {
       });
     },
   );
+
+  given('[case12] paused and outage notes at the production poll cap', () => {
+    when('[t0] the notes render with no cap override', () => {
+      const result = useThen('the render runs', async () =>
+        runOps({
+          home: genTempDir({ slug: 'watch-ops-cap', git: false }),
+          snippet: [
+            'unset WATCH_POLL_MAX_SECONDS GIT_PULL_WATCH_POLL_MAX_SECONDS',
+            `source "${path.join(__dirname, 'git.pull.watch.alert.sh')}"`,
+            'echo "--- one paused pr"',
+            'as_watch_paused_resume_line "#1220"',
+            'echo "--- two paused prs"',
+            'as_watch_paused_resume_line "#1220, #1221"',
+            'echo "--- outage"',
+            'as_watch_unreachable_text 6 "#1220"',
+          ].join('\n'),
+        }),
+      );
+      then('each names the 30 min default cap', () => {
+        expect(result.stdout).toContain(
+          '├─ after the fix: alerts resume within 30 min',
+        );
+        expect(result.stdout).toContain(
+          'alerts resume within 30 min of github',
+        );
+      });
+      then('the set is named "every paused watch" only for two or more', () => {
+        expect(result.stdout).toContain(
+          '└─ to resume now: rhx git.pull.watch set --which 1220 --mode apply',
+        );
+        expect(result.stdout).toContain(
+          '└─ to resume every paused watch now, one set: rhx git.pull.watch set --which 1220 --mode apply',
+        );
+      });
+      then('the notes read as rendered', () => {
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
 });

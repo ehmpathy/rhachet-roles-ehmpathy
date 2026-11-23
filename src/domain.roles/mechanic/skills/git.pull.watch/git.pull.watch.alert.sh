@@ -285,10 +285,12 @@ as_watch_alert_text() {
 #         first paused pr resumes them all at the next tick
 # usage: as_watch_paused_resume_line <prs, as "#1220, #1221">
 as_watch_paused_resume_line() {
-  local prs="$1" first
+  local prs="$1" first label="to resume now"
   first="${prs%%,*}"
   first="${first#\#}"
-  echo "   └─ after the fix: alerts resume within $(as_watch_minutes_ceil "${WATCH_POLL_MAX_SECONDS:-1800}") min; to resume them now: rhx git.pull.watch set --which $first --mode apply"
+  [[ "$prs" == *,* ]] && label="to resume every paused watch now, one set"
+  echo "   ├─ after the fix: alerts resume within $(as_watch_minutes_ceil "${WATCH_POLL_MAX_SECONDS:-1800}") min"
+  echo "   └─ $label: rhx git.pull.watch set --which $first --mode apply"
 }
 
 # .what = the paused alert: the token is out, so the watches wait
@@ -330,7 +332,7 @@ as_watch_unreachable_text() {
   print_watch_alert_header "bummer dude..." "cannot reach github"
   echo "   ├─ 💥 MalfunctionError: github unreachable for $minutes min"
   echo "   ├─ watches held: $prs"
-  echo "   └─ next: naught to do; cursors hold, and reads retry at most $(as_watch_minutes_ceil "${WATCH_POLL_MAX_SECONDS:-1800}") min apart, so alerts resume within that span of github's return"
+  echo "   └─ next: naught to do; no event is lost, and alerts resume within $(as_watch_minutes_ceil "${WATCH_POLL_MAX_SECONDS:-1800}") min of github's return"
 }
 
 # .what = the token-fault note: keyrack itself has not answered for a while

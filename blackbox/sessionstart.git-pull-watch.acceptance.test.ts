@@ -109,12 +109,15 @@ describe('sessionstart.git-pull-watch, via the linked role', () => {
         expect(result.stdout).toContain('rhx git.pull.watch get');
         expect(result.stderr).toContain('are unreadable');
       });
+      then('stderr carries the same block as stdout, word for word', () => {
+        expect(result.stderr).toEqual(result.stdout);
+      });
       then('the fault tree reads the same on each run', () => {
         expect(
           result.stdout
             .split(scene.home)
             .join('<home>')
-            .replace(/v=?[0-9][^\s/;]*\+[0-9a-f]{8}/g, 'v<key>'),
+            .replace(/(v=?)[0-9][^\s/;]*\+[0-9a-f]{8}/g, '$1<key>'),
         ).toMatchSnapshot();
       });
     });
