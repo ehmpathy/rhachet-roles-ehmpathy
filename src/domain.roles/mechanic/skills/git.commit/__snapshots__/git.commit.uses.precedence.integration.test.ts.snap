@@ -34,7 +34,7 @@ exports[`git.commit.uses precedence matrix given: [global=unset, org=allowed, lo
    │  ├─ action: findsert
    │  └─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
-      └─ push: held
+      └─ push: held → held (a push spends no use, revokes naught)
 
 run with --mode apply to execute
 "

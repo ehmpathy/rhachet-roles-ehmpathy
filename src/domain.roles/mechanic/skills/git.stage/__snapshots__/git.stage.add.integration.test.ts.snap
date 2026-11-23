@@ -86,9 +86,18 @@ exports[`git.stage.add.sh given: [case8] global blocker when: [t1] the global bl
    └─ 💥 MalfunctionError: global blocker file corrupt
 
 🥥 did you know?
-   ├─ the global blocker file cannot be read, so every commit is blocked; a human may read it, then clear it
-   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
-   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+   ├─ the global blocker file cannot be read, so every commit is blocked: ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+   ├─ a sponsor rewrites it, to keep the halt or to lift it
+   ├─ rhx git.commit.uses block --global
+   └─ rhx git.commit.uses allow --global
+"
+`;
+
+exports[`git.stage.add.sh given: [case9] a modify/delete conflict settled by removal of the file when: [t0] the removed path is staged then: the delete is staged and the conflict clears 1`] = `
+"🐢 gnarly!
+
+🐚 git.stage.add
+   └─ staged: wave.ts
 "
 `;
 
@@ -128,13 +137,5 @@ constraints:
   - out of a rebase, requires a live commit grant (git.commit.uses set --quant N)
   - mid-rebase, reads no meter
   - paths must be within repo
-"
-`;
-
-exports[`git.stage.add.sh given: [case9] a modify/delete conflict settled by removal of the file when: [t0] the removed path is staged then: the delete is staged and the conflict clears 1`] = `
-"🐢 gnarly!
-
-🐚 git.stage.add
-   └─ staged: wave.ts
 "
 `;
