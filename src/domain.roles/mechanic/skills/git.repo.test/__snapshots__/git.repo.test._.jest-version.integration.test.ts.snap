@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.repo.test.sh jest version given: [case1] a repo on jest 29 when: [t0] plan mode runs with --scope then: stdout matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.repo.test --what unit --scope example --thorough
+   ├─ scope: path://example
+   │  └─ matched: 1 files
+   └─ files
+      └─ src/example.test.js
+
+🥥 did you know?
+   └─ run with \`--mode apply\` to execute"
+`;
+
+exports[`git.repo.test.sh jest version given: [case2] a repo on jest 30 when: [t0] plan mode runs with --scope then: stdout matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.repo.test --what unit --scope example --thorough
+   ├─ scope: path://example
+   │  └─ matched: 1 files
+   └─ files
+      └─ src/example.test.js
+
+🥥 did you know?
+   └─ run with \`--mode apply\` to execute"
+`;

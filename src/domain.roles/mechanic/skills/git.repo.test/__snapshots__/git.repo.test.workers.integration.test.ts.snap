@@ -1,0 +1,315 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.repo.test.sh workers given: [case1] a shared box, a config above the cap when: [t0] --what unit runs with CI unset then: stderr carries no worker note (no new output) 1`] = `""`;
+
+exports[`git.repo.test.sh workers given: [case1] a shared box, a config above the cap when: [t0] --what unit runs with CI unset then: stdout matches snapshot (the tree matches an uncapped run) 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --mode apply --thorough
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   ├─ stats
+   │  ├─ suites: 1 files
+   │  ├─ tests: 1 passed, 0 failed, 0 skipped
+   │  └─ time: Xs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired"
+`;
+
+exports[`git.repo.test.sh workers given: [case2] a shared box, a config at or below the cap when: [t0] --what integration runs with a maxWorkers: 1 config then: stdout matches snapshot (the tree matches an uncapped run) 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what integration --mode apply --thorough
+   ├─ keyrack: unlocked ehmpath/test
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   ├─ stats
+   │  ├─ suites: 1 files
+   │  ├─ tests: 1 passed, 0 failed, 0 skipped
+   │  └─ time: Xs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired"
+`;
+
+exports[`git.repo.test.sh workers given: [case3] a ci runner when: [t0] --what unit runs with CI=true then: stdout matches snapshot (the tree matches an uncapped run) 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --mode apply --thorough
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   ├─ stats
+   │  ├─ suites: 1 files
+   │  ├─ tests: 1 passed, 0 failed, 0 skipped
+   │  └─ time: Xs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired"
+`;
+
+exports[`git.repo.test.sh workers given: [case4] a caller that passes its own worker flag when: [t0] the caller passes -- --maxWorkers=16 then: stdout matches snapshot (the tree matches an uncapped run) 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --mode apply --thorough
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   ├─ stats
+   │  ├─ suites: 1 files
+   │  ├─ tests: 1 passed, 0 failed, 0 skipped
+   │  └─ time: Xs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired"
+`;
+
+exports[`git.repo.test.sh workers given: [case5] a shared box where the count is unknown when: [t1] jest --showConfig exits 0 with no integer count then: stdout matches snapshot (the workers branch in the tree) 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --mode apply --thorough
+   ├─ workers: 💥 MalfunctionError: worker cap skipped; the suite runs uncapped
+   │  ├─ why: jest --showConfig gave no integer globalConfig.maxWorkers (found: none)
+   │  └─ fix: pass -- --maxWorkers=4 to cap this run
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   ├─ stats
+   │  ├─ suites: 1 files
+   │  ├─ tests: 1 passed, 0 failed, 0 skipped
+   │  └─ time: Xs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired"
+`;
+
+exports[`git.repo.test.sh workers given: [case5] a shared box where the count is unknown when: [t1] jest --showConfig exits 0 with no integer count then: the note matches snapshot 1`] = `
+"💥 MalfunctionError: worker cap skipped; the suite runs uncapped
+   ├─ why: jest --showConfig gave no integer globalConfig.maxWorkers (found: none)
+   └─ fix: pass -- --maxWorkers=4 to cap this run"
+`;
+
+exports[`git.repo.test.sh workers given: [case5] a shared box where the count is unknown when: [t4] the --showConfig lookup hangs past the --timeout then: stdout matches snapshot (the workers branch in the tree) 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --mode apply --thorough
+   ├─ workers: 💥 MalfunctionError: worker cap skipped; the suite runs uncapped
+   │  ├─ why: jest --showConfig lookup timed out after 1s (the smaller of --timeout and 30s)
+   │  └─ fix: pass -- --maxWorkers=4 to cap this run
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   ├─ stats
+   │  ├─ suites: 1 files
+   │  ├─ tests: 1 passed, 0 failed, 0 skipped
+   │  └─ time: Xs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired"
+`;
+
+exports[`git.repo.test.sh workers given: [case5] a shared box where the count is unknown when: [t4] the --showConfig lookup hangs past the --timeout then: the note matches snapshot 1`] = `
+"💥 MalfunctionError: worker cap skipped; the suite runs uncapped
+   ├─ why: jest --showConfig lookup timed out after 1s (the smaller of --timeout and 30s)
+   └─ fix: pass -- --maxWorkers=4 to cap this run"
+`;
+
+exports[`git.repo.test.sh workers given: [case5] a shared box where the count is unknown when: [t5] a multi-mode run where each jest lookup yields no count then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --mode apply --thorough
+   ├─ workers: 💥 MalfunctionError: worker cap skipped; the suite runs uncapped
+   │  ├─ why: jest --showConfig gave no integer globalConfig.maxWorkers (found: none)
+   │  └─ fix: pass -- --maxWorkers=4 to cap this run
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   ├─ stats
+   │  ├─ suites: 1 files
+   │  ├─ tests: 1 passed, 0 failed, 0 skipped
+   │  └─ time: Xs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+
+🐚 git.repo.test --what integration --mode apply --thorough
+   ├─ keyrack: unlocked ehmpath/test
+   ├─ workers: 💥 MalfunctionError: worker cap skipped; the suite runs uncapped
+   │  ├─ why: jest --showConfig gave no integer globalConfig.maxWorkers (found: none)
+   │  └─ fix: pass -- --maxWorkers=4 to cap this run
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   ├─ stats
+   │  ├─ suites: 1 files
+   │  ├─ tests: 1 passed, 0 failed, 0 skipped
+   │  └─ time: Xs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired"
+`;
+
+exports[`git.repo.test.sh workers given: [case10] a jest worker flag after -- reaches a non-jest kind when: [t0] --what types,unit -- --maxWorkers=16 --pretty then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what types --mode apply --thorough
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+
+🐚 git.repo.test --what unit --mode apply --thorough
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   ├─ stats
+   │  ├─ suites: 1 files
+   │  ├─ tests: 1 passed, 0 failed, 0 skipped
+   │  └─ time: Xs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired"
+`;
+
+exports[`git.repo.test.sh workers given: [case11] multi-mode across configs above and below the cap when: [t1] --what all runs every type in order then: stderr matches snapshot (each child adds no line) 1`] = `""`;
+
+exports[`git.repo.test.sh workers given: [case11] multi-mode across configs above and below the cap when: [t1] --what all runs every type in order then: stdout matches snapshot (the tree matches an uncapped run) 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what lint --mode apply --thorough
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+
+🐚 git.repo.test --what unit --mode apply --thorough
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   ├─ stats
+   │  ├─ suites: 1 files
+   │  ├─ tests: 1 passed, 0 failed, 0 skipped
+   │  └─ time: Xs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+
+🐚 git.repo.test --what integration --mode apply --thorough
+   ├─ keyrack: unlocked ehmpath/test
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   ├─ stats
+   │  ├─ suites: 1 files
+   │  ├─ tests: 1 passed, 0 failed, 0 skipped
+   │  └─ time: Xs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+
+🐚 git.repo.test --what acceptance --mode apply --thorough --against local --env test
+   ├─ keyrack: unlocked ehmpath/test
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   ├─ stats
+   │  ├─ suites: 1 files
+   │  ├─ tests: 1 passed, 0 failed, 0 skipped
+   │  └─ time: Xs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired"
+`;
+
+exports[`git.repo.test.sh workers given: [case12] a run that exceeds its --timeout when: [t0] the run was capped then: stderr carries the same hint, and matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what unit --mode apply --thorough
+   │  └─ ⏱️ timeout (Xs)
+   ├─ status: malfunction
+   ├─ error: test exceeded 1s timeout
+   └─ log
+      ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=unit/__isotime__.stdout.log
+      └─ stderr: .log/role=mechanic/skill=git.repo.test/what=unit/__isotime__.stderr.log
+
+hint: increase --timeout or check for slow tests
+
+🥥 did you know?
+   ├─ this run was capped at 4 jest workers (shared box)
+   └─ on an idle box, widen it
+      └─ rhx git.repo.test --what unit --mode apply --thorough -- --maxWorkers=8"
+`;
+
+exports[`git.repo.test.sh workers given: [case12] a run that exceeds its --timeout when: [t0] the run was capped then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --mode apply --thorough
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ ⏱️ timeout (Xs)
+   ├─ status: malfunction
+   ├─ error: test exceeded 1s timeout
+   └─ log
+      ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=unit/__isotime__.stdout.log
+      └─ stderr: .log/role=mechanic/skill=git.repo.test/what=unit/__isotime__.stderr.log
+
+hint: increase --timeout or check for slow tests
+
+🥥 did you know?
+   ├─ this run was capped at 4 jest workers (shared box)
+   └─ on an idle box, widen it
+      └─ rhx git.repo.test --what unit --mode apply --thorough -- --maxWorkers=8"
+`;
+
+exports[`git.repo.test.sh workers given: [case12] a run that exceeds its --timeout when: [t1] the run was not capped then: stderr matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what unit --mode apply --thorough
+   │  └─ ⏱️ timeout (Xs)
+   ├─ status: malfunction
+   ├─ error: test exceeded 1s timeout
+   └─ log
+      ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=unit/__isotime__.stdout.log
+      └─ stderr: .log/role=mechanic/skill=git.repo.test/what=unit/__isotime__.stderr.log
+
+hint: increase --timeout or check for slow tests"
+`;
+
+exports[`git.repo.test.sh workers given: [case12] a run that exceeds its --timeout when: [t1] the run was not capped then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --mode apply --thorough
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ ⏱️ timeout (Xs)
+   ├─ status: malfunction
+   ├─ error: test exceeded 1s timeout
+   └─ log
+      ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=unit/__isotime__.stdout.log
+      └─ stderr: .log/role=mechanic/skill=git.repo.test/what=unit/__isotime__.stderr.log
+
+hint: increase --timeout or check for slow tests"
+`;

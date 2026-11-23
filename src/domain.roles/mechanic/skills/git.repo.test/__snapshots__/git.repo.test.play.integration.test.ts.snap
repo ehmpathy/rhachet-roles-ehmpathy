@@ -252,6 +252,7 @@ exports[`git.repo.test given: [case9] repo with lint command when: [t0] --what l
 "🐢 lets ride...
 
 🐚 git.repo.test --what lint --scope src --mode apply --resnap
+   ├─ scope: skipped; lint runs whole (only unit, integration, acceptance take a scope)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -620,6 +621,7 @@ options:
                         'path://foo'    match file path (explicit)
                         'name://foo'    match test/describe name
                         (use multiple --scope flags to combine filters)
+                        (unit, integration, acceptance only; types, format, lint run whole)
   --resnap            update snapshots (sets RESNAP=true, requires --mode apply)
   --thorough          run full suite (sets THOROUGH=true)
   --env <name>        keyrack environment: test | prep | prod (required for acceptance)
@@ -631,7 +633,18 @@ options:
   --log <mode>        auto | always (default: auto)
                         auto = persist logs on failure only
                         always = persist logs on success and failure
+  -- <jest args>      pass args through to jest (e.g. -- --maxWorkers=8)
   --help, -h          show this help
+
+workers:
+  on any box without CI (a laptop or grove), jest runs at most 4 workers,
+  so one suite cannot take a shared box from its neighbors. the cap only
+  lowers jest's own count, never raises it; when the count is unknown, no
+  cap applies. on ci (CI set and not 'false') no cap applies.
+  a worker flag after -- (--maxWorkers, -w, --runInBand, -i) always wins,
+  as does one inside the npm command itself (e.g. --runInBand).
+  in a multi-mode run (--what types,unit), types, format and lint drop
+  those worker flags; unit, integration and acceptance keep them.
 "
 `;
 
