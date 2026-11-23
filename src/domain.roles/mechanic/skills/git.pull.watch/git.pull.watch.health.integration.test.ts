@@ -534,7 +534,10 @@ describe('git.pull.watch read health', () => {
               "the pr may be gone, or out of the grove token's reach; the seaturtle token was not granted",
             );
             expect(text).toContain(
-              'rewatch, once the seaturtle token is unlocked: rhx git.pull.watch set --which 1230 --mode apply',
+              '1. unlock: rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN',
+            );
+            expect(text).toContain(
+              '2. rewatch: rhx git.pull.watch set --which 1230 --mode apply',
             );
             expect(scene.asMasked(text)).toMatchSnapshot();
           },

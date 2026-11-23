@@ -222,7 +222,8 @@ as_watch_gone_text() {
   if [[ "$source" == "ambient" ]]; then
     print_watch_alert_header "bummer dude..." "#$pr answers 404 to the grove token (${WATCH_TOKEN_SLUG_AMBIENT:-@all.prep.GITHUB_TOKEN}); watch ended"
     echo "   ├─ the pr may be gone, or out of the grove token's reach; the seaturtle token was not granted"
-    echo "   └─ rewatch, once the seaturtle token is unlocked: rhx git.pull.watch set --which $pr --mode apply"
+    echo "   ├─ 1. unlock: rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN"
+    echo "   └─ 2. rewatch: rhx git.pull.watch set --which $pr --mode apply"
     return 0
   fi
   print_watch_alert_header "bummer dude..." "#$pr answers 404 to the seaturtle token (gone, or out of its reach); watch ended"
@@ -277,11 +278,17 @@ as_watch_alert_text() {
   return 0
 }
 
-# .what = the last line of every paused alert: when the watches resume, and how to resume one now
+# .what = the last line of every paused alert: when the watches resume, and how to resume them now
 # .why  = a paused daemon re-reads keyrack on each pr's poll gap, which doubles up to its cap;
-#         a human who fixed the token would otherwise wait out that gap with no word of it
+#         a human who fixed the token would otherwise wait out that gap with no word of it.
+#         one good read lifts the pause and makes every watched pr due, so a set on the
+#         first paused pr resumes them all at the next tick
+# usage: as_watch_paused_resume_line <prs, as "#1220, #1221">
 as_watch_paused_resume_line() {
-  echo "   └─ then: alerts resume within $(as_watch_minutes_ceil "${WATCH_POLL_MAX_SECONDS:-1800}") min of the fix; a push, or \`rhx git.pull.watch set --which <n> --mode apply\` on a pr above, resumes them at the next tick"
+  local prs="$1" first
+  first="${prs%%,*}"
+  first="${first#\#}"
+  echo "   └─ after the fix: alerts resume within $(as_watch_minutes_ceil "${WATCH_POLL_MAX_SECONDS:-1800}") min; to resume them now: rhx git.pull.watch set --which $first --mode apply"
 }
 
 # .what = the paused alert: the token is out, so the watches wait
@@ -295,7 +302,7 @@ as_watch_paused_text() {
     echo "   ├─ fix: a human runs \`rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN\`, then"
     echo "   │  ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN"
     echo "   │  └─ or, for the whole grove: \`rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN\`"
-    as_watch_paused_resume_line
+    as_watch_paused_resume_line "$prs"
     return 0
   fi
   # github refused the token: an unlock cannot clear it; a human sets one github accepts
@@ -304,7 +311,7 @@ as_watch_paused_text() {
     echo "   ├─ watches paused: $prs"
     echo "   ├─ fix: a human runs \`rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN --refresh\`"
     echo "   │  └─ or, where the grove token served: \`rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN\`"
-    as_watch_paused_resume_line
+    as_watch_paused_resume_line "$prs"
     return 0
   fi
   local cause="github token locked"
@@ -313,7 +320,7 @@ as_watch_paused_text() {
   echo "   ├─ watches paused: $prs"
   echo "   ├─ fix: rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN"
   echo "   │  └─ or, for the whole grove: \`rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN\`"
-  as_watch_paused_resume_line
+  as_watch_paused_resume_line "$prs"
 }
 
 # .what = the outage note: github has not answered for a while; cursors hold
@@ -323,7 +330,7 @@ as_watch_unreachable_text() {
   print_watch_alert_header "bummer dude..." "cannot reach github"
   echo "   ├─ 💥 MalfunctionError: github unreachable for $minutes min"
   echo "   ├─ watches held: $prs"
-  echo "   └─ next: naught to do; cursors hold, and alerts resume once github answers, within $(as_watch_minutes_ceil "${WATCH_POLL_MAX_SECONDS:-1800}") min"
+  echo "   └─ next: naught to do; cursors hold, and reads retry at most $(as_watch_minutes_ceil "${WATCH_POLL_MAX_SECONDS:-1800}") min apart, so alerts resume within that span of github's return"
 }
 
 # .what = the token-fault note: keyrack itself has not answered for a while

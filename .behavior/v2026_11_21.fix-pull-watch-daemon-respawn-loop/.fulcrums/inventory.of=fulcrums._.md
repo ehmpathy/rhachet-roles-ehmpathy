@@ -15,3 +15,4 @@
 | F11 | the daemon tick's restructures wait for their own change | clean | best-guessed: defer, caught as a dream | 85% |
 | F12 | the pr opens at the route's end, not at the execution stone | clean | best-guessed: at the end, per the commit rule | 95% |
 | F13 | the case=8 journey test lands at 5.3 verification | clean | best-guessed: at 5.3, the stage that owes each critipath its test | 90% |
+| F14 | the idle note for a fault that began after the last change waits for its own change | clean | best-guessed: defer, caught as a dream | 85% |

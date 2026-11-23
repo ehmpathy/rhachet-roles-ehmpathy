@@ -11,7 +11,8 @@ exports[`git.pull.watch read health given: [case1] two clones, each on its own p
          └─ ehmpathy/surf-demo#1221 → @:mechanic-b (root: <root:surf-demo>)
 
 🥥 did you know?
-   └─ a read fault holds the cursors of that pr; alerts resume at its next good read, within 1 min, and a pr unread past the idle ttl ends its watch
+   └─ a read fault holds the cursors of that pr; alerts resume at its next good read, within 1 min
+      ├─ a pr with no good read for the idle ttl ends its watch, with a note that names its last fault
       └─ each fault line is in the daemon log: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/daemon.log
 "
 `;
@@ -28,14 +29,15 @@ exports[`git.pull.watch read health given: [case2] a pr that answers 404 to the 
 
 🐚 git.pull.watch — #1230 answers 404 to the grove token (@all.prep.GITHUB_TOKEN); watch ended
    ├─ the pr may be gone, or out of the grove token's reach; the seaturtle token was not granted
-   └─ rewatch, once the seaturtle token is unlocked: rhx git.pull.watch set --which 1230 --mode apply"
+   ├─ 1. unlock: rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   └─ 2. rewatch: rhx git.pull.watch set --which 1230 --mode apply"
 `;
 
 exports[`git.pull.watch read health given: [case3] a pr whose every read faults, from the first when: [t0] the watch is set and the idle ttl passes then: one idle note names the rewatch 1`] = `
 "🐢 heads up dude...
 
 🐚 git.pull.watch — #1240 unreadable for 1 min; watch ended
-   ├─ last fault: github read failed: repos/ehmpathy/surf-demo/pulls/1240 (status: 403) gh: Resource not accessible by integration (HTTP 403)
+   ├─ last fault: github read failed: repos/ehmpathy/surf-demo/pulls/1240 (status: 403) Resource not accessible by integration
    └─ rewatch: rhx git.pull.watch set --which 1240 --mode apply"
 `;
 
@@ -51,7 +53,7 @@ exports[`git.pull.watch read health given: [case3c] a second set on a pr whose e
 "🐢 heads up dude...
 
 🐚 git.pull.watch — #1242 unreadable for 1 min; watch ended
-   ├─ last fault: github read failed: repos/ehmpathy/surf-demo/pulls/1242 (status: 403) gh: Resource not accessible by integration (HTTP 403)
+   ├─ last fault: github read failed: repos/ehmpathy/surf-demo/pulls/1242 (status: 403) Resource not accessible by integration
    └─ rewatch: rhx git.pull.watch set --which 1242 --mode apply"
 `;
 
@@ -62,10 +64,11 @@ exports[`git.pull.watch read health given: [case4] a live pr whose head is gone:
    └─ daemon v<key> · live · pid <pid> · last tick <n>s ago
       ├─ home: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/bin
       └─ watches
-         └─ ehmpathy/surf-demo#1250 → @:mechanic (root: <root:surf-demo>) · read fault <n> min: github read not found: repos/ehmpathy/surf-demo/commits/sha-1250-forcepushed/check-runs?per_page=100 (status: 404) · not yet primed
+         └─ ehmpathy/surf-demo#1250 → @:mechanic (root: <root:surf-demo>) · read fault <n> min: github read not found: repos/ehmpathy/surf-demo/commits/sha-1250-forcepushed/check-runs (status: 404) · not yet primed
 
 🥥 did you know?
-   └─ a read fault holds the cursors of that pr; alerts resume at its next good read, within 1 min, and a pr unread past the idle ttl ends its watch
+   └─ a read fault holds the cursors of that pr; alerts resume at its next good read, within 1 min
+      ├─ a pr with no good read for the idle ttl ends its watch, with a note that names its last fault
       └─ each fault line is in the daemon log: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/daemon.log
 "
 `;

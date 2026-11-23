@@ -32,7 +32,7 @@ the pr watch tells a clone, on its own, when its pr's ci fails, a new comment la
 - neither granted → the watch is `paused`; the alert names the fix:
   - `rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN`
   - or, for the whole grove: `rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN`
-- cursors hold while paused. the paused daemon re-reads keyrack on the pr's poll gap, which doubles up to its cap, so alerts resume within that cap (30 min) after the fix. a push, or `rhx git.pull.watch set --which <n> --mode apply`, resumes them at the next tick
+- cursors hold while paused. the paused daemon re-reads keyrack on the pr's poll gap, which doubles up to its cap, so alerts resume within that cap (30 min) after the fix. `rhx git.pull.watch set --which <n> --mode apply` on any paused pr resumes them all at the next tick: one good read lifts the pause and makes every watched pr due
 
 ## .held and outage
 

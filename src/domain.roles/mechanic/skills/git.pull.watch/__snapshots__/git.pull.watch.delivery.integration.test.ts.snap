@@ -131,7 +131,7 @@ exports[`git.pull.watch delivery given: [case8] a live daemon whose token goes l
    ├─ watches paused: #1220, #1221
    ├─ fix: a human runs \`rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN --refresh\`
    │  └─ or, where the grove token served: \`rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN\`
-   └─ then: alerts resume within 1 min of the fix; a push, or \`rhx git.pull.watch set --which <n> --mode apply\` on a pr above, resumes them at the next tick"
+   └─ after the fix: alerts resume within 1 min; to resume them now: rhx git.pull.watch set --which 1220 --mode apply"
 `;
 
 exports[`git.pull.watch delivery given: [case8] a live daemon whose token goes locked, then returns when: [t2b] github then refuses the held token, and keyrack reads locked then: get marks the daemon paused locked, and names the unlock 1`] = `
@@ -208,7 +208,7 @@ exports[`git.pull.watch delivery given: [case8] a live daemon whose token goes l
    ├─ watches paused: #1220, #1221
    ├─ fix: rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │  └─ or, for the whole grove: \`rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN\`
-   └─ then: alerts resume within 1 min of the fix; a push, or \`rhx git.pull.watch set --which <n> --mode apply\` on a pr above, resumes them at the next tick"
+   └─ after the fix: alerts resume within 1 min; to resume them now: rhx git.pull.watch set --which 1220 --mode apply"
 `;
 
 exports[`git.pull.watch delivery given: [case8] a live daemon whose token goes locked, then returns when: [t3] the unlock lands, but github refuses the token (401) while still paused then: get shows the new cause 1`] = `
@@ -320,7 +320,7 @@ exports[`git.pull.watch delivery given: [case8b] a box whose keyrack lacks the g
    ├─ fix: a human runs \`rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN\`, then
    │  ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │  └─ or, for the whole grove: \`rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN\`
-   └─ then: alerts resume within 1 min of the fix; a push, or \`rhx git.pull.watch set --which <n> --mode apply\` on a pr above, resumes them at the next tick"
+   └─ after the fix: alerts resume within 1 min; to resume them now: rhx git.pull.watch set --which 1220 --mode apply"
 `;
 
 exports[`git.pull.watch delivery given: [case8b] a box whose keyrack lacks the github key when: [t1] a second clone sets its first watch while the pause holds then: the late clone gets one paused alert, for its own pr 1`] = `
@@ -332,7 +332,7 @@ exports[`git.pull.watch delivery given: [case8b] a box whose keyrack lacks the g
    ├─ fix: a human runs \`rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN\`, then
    │  ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │  └─ or, for the whole grove: \`rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN\`
-   └─ then: alerts resume within 1 min of the fix; a push, or \`rhx git.pull.watch set --which <n> --mode apply\` on a pr above, resumes them at the next tick"
+   └─ after the fix: alerts resume within 1 min; to resume them now: rhx git.pull.watch set --which 1222 --mode apply"
 `;
 
 exports[`git.pull.watch delivery given: [case8c] github rate-limits the token, then the limit lifts when: [t0] the clone watches the pr; then github answers 403 with a reset 25s out then: get names the backoff mark, in tree and json 1`] = `
@@ -392,7 +392,8 @@ exports[`git.pull.watch delivery given: [case8d] github stops answers past the n
          └─ ehmpathy/surf-demo#1220 → @:mechanic (root: <root:surf-demo>) · read fault 1 min: github unreachable: repos/ehmpathy/surf-demo/pulls/1220 (status: none) dial tcp: lookup api.github.com: no such host
 
 🥥 did you know?
-   └─ a read fault holds the cursors of that pr; alerts resume at its next good read, within 1 min, and a pr unread past the idle ttl ends its watch
+   └─ a read fault holds the cursors of that pr; alerts resume at its next good read, within 1 min
+      ├─ a pr with no good read for the idle ttl ends its watch, with a note that names its last fault
       └─ each fault line is in the daemon log: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/daemon.log
 "
 `;
@@ -443,7 +444,7 @@ exports[`git.pull.watch delivery given: [case8d] github stops answers past the n
 🐚 git.pull.watch — cannot reach github
    ├─ 💥 MalfunctionError: github unreachable for 1 min
    ├─ watches held: #1220
-   └─ next: naught to do; cursors hold, and alerts resume once github answers, within 1 min"
+   └─ next: naught to do; cursors hold, and reads retry at most 1 min apart, so alerts resume within that span of github's return"
 `;
 
 exports[`git.pull.watch delivery given: [case8e] keyrack itself faults past the note bound when: [t0b] github then refuses the held token, and every keyrack read faults then: get names the token-fault mark, in tree and json 1`] = `
@@ -561,7 +562,7 @@ exports[`git.pull.watch delivery given: [case8f] a box whose keyrack blocks the 
    ├─ watches paused: #1220
    ├─ fix: rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │  └─ or, for the whole grove: \`rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN\`
-   └─ then: alerts resume within 1 min of the fix; a push, or \`rhx git.pull.watch set --which <n> --mode apply\` on a pr above, resumes them at the next tick"
+   └─ after the fix: alerts resume within 1 min; to resume them now: rhx git.pull.watch set --which 1220 --mode apply"
 `;
 
 exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t0] a session with no clone serial sets a watch then: it exits 2, a constraint, on both streams 1`] = `

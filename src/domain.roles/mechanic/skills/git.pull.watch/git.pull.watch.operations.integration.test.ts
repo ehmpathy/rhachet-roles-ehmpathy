@@ -891,4 +891,28 @@ describe('git.pull.watch.operations', () => {
       });
     });
   });
+
+  given(
+    '[case11] a closure note asked for an end reason it does not know',
+    () => {
+      when('[t0] the note is rendered', () => {
+        const result = useThen('the render runs', async () =>
+          runOps({
+            home: genTempDir({ slug: 'watch-ops-closure', git: false }),
+            snippet: [
+              `source "${path.join(__dirname, 'git.pull.watch.alert.sh')}"`,
+              'as_watch_closure_text 1220 vanished ""; echo "rc=$?"',
+            ].join('\n'),
+          }),
+        );
+        then('it fails loud, never reads as a close', () => {
+          expect(result.stdout).toContain('rc=1');
+          expect(result.stdout).not.toContain('watch ended');
+          expect(result.stderr).toContain(
+            "💥 MalfunctionError: as_watch_closure_text got an unknown end reason 'vanished' for #1220",
+          );
+        });
+      });
+    },
+  );
 });

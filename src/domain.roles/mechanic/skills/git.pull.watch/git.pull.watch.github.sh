@@ -121,6 +121,18 @@ is_watch_list_multipage() {
   [[ "$count" =~ ^[0-9]+$ && "$count" -ge 100 ]]
 }
 
+# .what = one fault line of a github read: the kind, the path, one status, gh's own words
+# .why  = the line reaches a human in `get` and in the dark note; a query knob
+#         (`?per_page=100`) and gh's echo of the status (`gh: … (HTTP 403)`) are noise there
+# usage: as_watch_fault_text <kind> <endpoint> <status> <gh stderr>
+as_watch_fault_text() {
+  local kind="$1" endpoint="$2" status="$3" err="$4" said
+  said="$(printf '%s\n' "$err" | head -n 1)"
+  said="${said#gh: }"
+  said="${said% (HTTP [0-9][0-9][0-9])}"
+  echo "$kind: ${endpoint%%\?*} (status: ${status:-none})${said:+ $said}"
+}
+
 # .what = read one endpoint with an etag; print its body (the cached one on a 304)
 # .why  = a quiet pr then costs no rate limit; the return code tells the tick
 #         whether to pause, back off, hold, or read on
@@ -181,25 +193,25 @@ get_watch_github_resource() {
   # every read until then (A29)
   if is_watch_http_rate_limited "$status" "$raw" "$err"; then
     as_watch_rate_limit_until "$raw" >"$cache_dir/ratelimit.until"
-    echo "github rate limited: $endpoint (status: $status)" >&2
+    as_watch_fault_text "github rate limited" "$endpoint" "$status" "" >&2
     return 4
   fi
 
   # unreachable: no reply at all, or github itself faulted (A30)
   if [[ $rc -ne 0 && ( -z "$status" || "$status" == 5* ) ]]; then
-    echo "github unreachable: $endpoint (status: ${status:-none}) ${err}" >&2
+    as_watch_fault_text "github unreachable" "$endpoint" "$status" "$err" >&2
     return 5
   fi
 
   # not found: the resource is gone, or this token cannot see it
   if [[ "$status" == "404" ]]; then
-    echo "github read not found: $endpoint (status: 404)" >&2
+    as_watch_fault_text "github read not found" "$endpoint" "$status" "" >&2
     return 6
   fi
 
   # any other fault: name it, hold the cursors
   if [[ $rc -ne 0 || "$status" != "200" ]]; then
-    echo "github read failed: $endpoint (status: ${status:-none}) ${err}" >&2
+    as_watch_fault_text "github read failed" "$endpoint" "$status" "$err" >&2
     return 1
   fi
 

@@ -308,7 +308,10 @@ describe('git.pull.watch token', () => {
                 'answers 404 to the grove token',
               );
               expect(result.gone[0]!.text).toContain(
-                'rewatch, once the seaturtle token is unlocked',
+                '1. unlock: rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN',
+              );
+              expect(result.gone[0]!.text).toContain(
+                '2. rewatch: rhx git.pull.watch set --which 1230 --mode apply',
               );
               expect(scene.asMasked(result.gone[0]!.text)).toMatchSnapshot();
             },

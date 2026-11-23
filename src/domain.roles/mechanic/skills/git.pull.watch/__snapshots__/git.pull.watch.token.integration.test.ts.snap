@@ -5,5 +5,6 @@ exports[`git.pull.watch token given: [case3] a private pr the grove token cannot
 
 🐚 git.pull.watch — #1230 answers 404 to the grove token (@all.prep.GITHUB_TOKEN); watch ended
    ├─ the pr may be gone, or out of the grove token's reach; the seaturtle token was not granted
-   └─ rewatch, once the seaturtle token is unlocked: rhx git.pull.watch set --which 1230 --mode apply"
+   ├─ 1. unlock: rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   └─ 2. rewatch: rhx git.pull.watch set --which 1230 --mode apply"
 `;

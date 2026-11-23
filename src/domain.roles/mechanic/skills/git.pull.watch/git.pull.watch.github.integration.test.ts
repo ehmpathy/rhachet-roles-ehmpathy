@@ -161,3 +161,68 @@ describe('git.pull.watch.github yield floor', () => {
     });
   });
 });
+
+/**
+ * .what = the fault line a failed read writes: kind, path, one status, gh's words
+ * .why  = the line reaches a human in `get` and in the dark note, so a query knob
+ *         and gh's own echo of the status must not ride along
+ */
+const FAULT_TEXT_CASES = [
+  {
+    description: 'drops the echoed (HTTP nnn) and the gh prefix of a 403',
+    given: {
+      kind: 'github read failed',
+      endpoint: 'repos/ehmpathy/surf-demo/pulls/1240',
+      status: '403',
+      err: 'gh: Resource not accessible by integration (HTTP 403)',
+    },
+    expect:
+      'github read failed: repos/ehmpathy/surf-demo/pulls/1240 (status: 403) Resource not accessible by integration',
+  },
+  {
+    description: 'drops the per_page knob of a check-runs 404',
+    given: {
+      kind: 'github read not found',
+      endpoint:
+        'repos/ehmpathy/surf-demo/commits/sha-1250/check-runs?per_page=100',
+      status: '404',
+      err: '',
+    },
+    expect:
+      'github read not found: repos/ehmpathy/surf-demo/commits/sha-1250/check-runs (status: 404)',
+  },
+  {
+    description: 'names an absent status as none, with the first line of gh',
+    given: {
+      kind: 'github unreachable',
+      endpoint: 'repos/ehmpathy/surf-demo/pulls/1220',
+      status: '',
+      err: 'dial tcp: lookup api.github.com: no such host\ncheck your network',
+    },
+    expect:
+      'github unreachable: repos/ehmpathy/surf-demo/pulls/1220 (status: none) dial tcp: lookup api.github.com: no such host',
+  },
+];
+
+describe('git.pull.watch.github fault text', () => {
+  FAULT_TEXT_CASES.map((thisCase) =>
+    test(thisCase.description, () => {
+      const result = spawnSync(
+        'bash',
+        [
+          '-c',
+          'source "$1" && as_watch_fault_text "$2" "$3" "$4" "$5"',
+          '_',
+          GITHUB_SH,
+          thisCase.given.kind,
+          thisCase.given.endpoint,
+          thisCase.given.status,
+          thisCase.given.err,
+        ],
+        { encoding: 'utf-8' },
+      );
+      expect(result.status).toEqual(0);
+      expect(result.stdout.trim()).toEqual(thisCase.expect);
+    }),
+  );
+});

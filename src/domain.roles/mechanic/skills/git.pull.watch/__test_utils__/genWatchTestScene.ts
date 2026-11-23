@@ -575,33 +575,58 @@ export const genWatchTestScene = (input: {
     );
   };
 
-  // a key whose daemon lives: its pid record is present, and names a live pid
-  // .note = a killed daemon leaves its pid record behind, so the record alone is no proof
-  const isKeyLive = (name: string): boolean => {
+  // the pids this scene's stopAllDaemons killed on purpose
+  const pidsStopped = new Set<number>();
+
+  // the pid a key's record names; null where no record stands
+  // .note = the daemon writes this record whole (temp file, then mv), so a pid that
+  //         will not parse reads as null, as no record
+  const getPidOfKey = (name: string): number | null => {
     const file = path.join(getStateRoot(), name, 'daemon.pid');
-    if (!fs.existsSync(file)) return false;
-    // the daemon writes this record whole (temp file, then mv), so a pid that will not
-    // parse reads as no live daemon; a fault of the liveness probe itself is thrown
+    if (!fs.existsSync(file)) return null;
     const pid = Number(
       (fs.readFileSync(file, 'utf-8').match(/"pid":\s*(\d+)/) ?? [])[1],
     );
-    return Number.isInteger(pid) && pid > 0 && isPidAlive(pid);
+    return Number.isInteger(pid) && pid > 0 ? pid : null;
+  };
+
+  // a key whose daemon died, not by this scene's hand: its record names a dead pid
+  // .why = a crash must fail the wait, never let an absence claim pass with no tick seen
+  const failIfKeyCrashed = (name: string): void => {
+    const pid = getPidOfKey(name);
+    if (pid === null || pidsStopped.has(pid) || isPidAlive(pid)) return;
+    throw new MalfunctionError(
+      'a watch daemon died mid-test; no tick can pass',
+      {
+        key: name,
+        pid,
+        diagnostics: getDiagnostics(),
+      },
+    );
   };
 
   // wait until each live daemon has done n more whole ticks
   // .why = a claim of absence ("no second alert") needs ticks to pass first
+  // .note = a key whose record left (a clean exit) is done; a key this scene stopped
+  //         is skipped; a key whose daemon crashed fails the wait
   const waitForDaemonTicks = async (call: { ticks: number }): Promise<void> => {
     const before = getTicksByKey();
-    const keys = Object.keys(before).filter(isKeyLive);
+    const keys = Object.keys(before).filter((key) => {
+      failIfKeyCrashed(key);
+      const pid = getPidOfKey(key);
+      return pid !== null && !pidsStopped.has(pid);
+    });
     await waitForWatch({
       label: `${call.ticks} daemon ticks`,
       check: () => {
         const now = getTicksByKey();
-        return keys.every(
-          (key) =>
-            !isKeyLive(key) ||
-            (now[key] ?? 0) >= (before[key] ?? 0) + call.ticks,
-        );
+        return keys.every((key) => {
+          failIfKeyCrashed(key);
+          return (
+            getPidOfKey(key) === null ||
+            (now[key] ?? 0) >= (before[key] ?? 0) + call.ticks
+          );
+        });
       },
       timeoutMs: 60_000 + call.ticks * 20_000,
       scene: self,
@@ -626,6 +651,7 @@ export const genWatchTestScene = (input: {
   //         its heartbeat. where no group of that id stands (no setsid), the pid alone
   const stopAllDaemons = (): void => {
     getAllWatchDaemonPids({ home }).forEach((pid) => {
+      pidsStopped.add(pid);
       const isGone = (error: unknown) =>
         (error as NodeJS.ErrnoException).code === 'ESRCH';
       try {

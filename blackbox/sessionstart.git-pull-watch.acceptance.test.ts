@@ -119,4 +119,75 @@ describe('sessionstart.git-pull-watch, via the linked role', () => {
       });
     });
   });
+
+  given('[case2] a clone whose only watch sits under an older key, its repo root gone', () => {
+    /**
+     * .why = the respawn loop: a hook that counted this record spawned a daemon each
+     *        session, which found naught to serve and exited. no daemon may serve it,
+     *        so the hook must spawn naught and say naught
+     */
+    const serial = 'a1a1a1a1-0000-4000-8000-0000000000ad';
+    const scene = useBeforeAll(async () => {
+      const dir = await genTestDir({
+        slug: 'sessionstart-git-pull-watch-acceptance-orphan',
+      });
+      const home = genTempDir({
+        slug: 'sessionstart-git-pull-watch-home-orphan',
+        git: false,
+      });
+
+      // the state root of the linked skill, as its own operations name it
+      const ops = path.join(
+        dir,
+        '.agent/repo=ehmpathy/role=mechanic/skills/git.pull.watch/git.pull.watch.operations.sh',
+      );
+      const stateRoot = path.dirname(
+        spawnSync(
+          'bash',
+          ['-c', 'source "$1" && get_watch_key_dir "$(get_watch_key)"', '_', ops],
+          { encoding: 'utf-8', env: { ...process.env, HOME: home } },
+        ).stdout.trim(),
+      );
+
+      // a watch under an older key, whose repo root was a worktree since removed
+      const watches = path.join(stateRoot, 'v=0.0.1+00000000', 'watches');
+      fs.mkdirSync(watches, { recursive: true });
+      fs.writeFileSync(
+        path.join(watches, `ehmpathy.surf-demo.pr=1221.clone=${serial}.json`),
+        JSON.stringify({
+          repo: 'ehmpathy/surf-demo',
+          pr: 1221,
+          cloneSerial: serial,
+          cloneSlug: 'mechanic',
+          watchId: 'gone.1.1',
+          repoRoot: path.join(home, 'worktree-removed'),
+          primed: true,
+          cursors: {},
+        }),
+      );
+      return { dir, home, stateRoot };
+    });
+
+    when('[t0] a session of that clone starts', () => {
+      const result = useThen('the hook runs', async () =>
+        invokeHook({
+          hookName: 'sessionstart.git-pull-watch.sh',
+          stdin: '{}',
+          cwd: scene.dir,
+          env: { HOME: scene.home, RHACHET_CLONE_SERIAL: serial },
+        }),
+      );
+      then('it exits 0 and says naught', () => {
+        expect(result.code).toBe(0);
+        expect(result.stdout).toEqual('');
+      });
+      then('it spawns no daemon', () => {
+        const pids = fs
+          .readdirSync(scene.stateRoot, { recursive: true })
+          .map(String)
+          .filter((name) => name.endsWith('daemon.pid'));
+        expect(pids).toEqual([]);
+      });
+    });
+  });
 });
