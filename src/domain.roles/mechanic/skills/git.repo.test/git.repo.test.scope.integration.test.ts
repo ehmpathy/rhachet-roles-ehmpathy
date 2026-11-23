@@ -87,7 +87,7 @@ describe('git.repo.test.sh scope', () => {
     testFiles: Array<{ type: 'unit' | 'integration'; name: string }>;
     scope?: string;
     scopes?: string[];
-    what?: 'unit' | 'integration';
+    what?: 'unit' | 'integration' | 'types' | 'types,unit';
     mode?: 'plan' | 'apply';
     thorough?: boolean;
     keyrack?: 'absent';
@@ -106,6 +106,9 @@ describe('git.repo.test.sh scope', () => {
           type: 'commonjs',
           devDependencies: { jest: '30.2.0' },
           scripts: {
+            // test:types exits 1 if a jest scope flag reaches it, as tsc would
+            'test:types':
+              "node -e \"process.exit(process.argv.some((a) => a.startsWith('--testPathPattern') || a === '--testNamePattern') ? 1 : 0)\"",
             'test:unit': 'jest --config jest.unit.config.js --verbose',
             'test:integration':
               'jest --config jest.integration.config.js --verbose',
@@ -1041,5 +1044,89 @@ describe('git.repo.test.sh scope', () => {
         });
       },
     );
+  });
+
+  given('[case24] a scope reaches a non-jest kind', () => {
+    when('[t0] --what types --scope myfeature --mode apply', () => {
+      const result = useThen('skill executes', () =>
+        runWithScope({
+          testFiles: [{ type: 'unit', name: 'myfeature' }],
+          scope: 'myfeature',
+          what: 'types',
+          mode: 'apply',
+          thorough: true,
+        }),
+      );
+
+      then('the types run passes; a scope is no malfunction', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).not.toContain('cannot verify scope');
+      });
+
+      then(
+        'tsc receives no jest scope flag (test:types exits 1 on one)',
+        () => {
+          // the fixture's test:types exits 1 on any jest scope flag, so a
+          // pass proves none reached it
+          expect(result.stdout).toContain('🎉 passed');
+        },
+      );
+
+      then('the tree says the scope was skipped for types', () => {
+        expect(result.stdout).toContain(
+          '├─ scope: skipped; types runs whole (only unit, integration, acceptance take a scope)',
+        );
+      });
+
+      then('stdout matches snapshot', () => {
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      then('stderr matches snapshot', () => {
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] --what types,unit --scope myfeature --mode apply', () => {
+      const result = useThen('skill executes', () =>
+        runWithScope({
+          testFiles: [
+            { type: 'unit', name: 'myfeature' },
+            { type: 'unit', name: 'other' },
+          ],
+          scope: 'myfeature',
+          what: 'types,unit',
+          mode: 'apply',
+          thorough: true,
+        }),
+      );
+
+      then('both kinds run, and exit 0', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('git.repo.test --what types');
+        expect(result.stdout).toContain('git.repo.test --what unit');
+      });
+
+      then('the unit kind still applies the scope', () => {
+        expect(result.stdout).toContain('matched: 1 files');
+        expect(result.stdout).toContain('myfeature.test.js');
+        expect(result.stdout).not.toContain('other.test.js');
+      });
+
+      then('only the types child says the scope was skipped', () => {
+        expect(
+          result.stdout.split('scope: skipped; types runs whole').length - 1,
+        ).toBe(1);
+        expect(result.stdout).not.toContain('scope: skipped; unit');
+      });
+
+      then('stdout matches snapshot', () => {
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      then('stderr matches snapshot', () => {
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+      });
+    });
   });
 });

@@ -17,6 +17,7 @@ options:
                         'path://foo'    match file path (explicit)
                         'name://foo'    match test/describe name
                         (use multiple --scope flags to combine filters)
+                        (unit, integration, acceptance only; types, format, lint run whole)
   --resnap            update snapshots (sets RESNAP=true, requires --mode apply)
   --thorough          run full suite (sets THOROUGH=true)
   --env <name>        keyrack environment: test | prep | prod (required for acceptance)
@@ -28,7 +29,18 @@ options:
   --log <mode>        auto | always (default: auto)
                         auto = persist logs on failure only
                         always = persist logs on success and failure
-  --help, -h          show this help"
+  -- <jest args>      pass args through to jest (e.g. -- --maxWorkers=8)
+  --help, -h          show this help
+
+workers:
+  on any box without CI (a laptop or grove), jest runs at most 4 workers,
+  so one suite cannot take a shared box from its neighbors. the cap only
+  lowers jest's own count, never raises it; when the count is unknown, no
+  cap applies. on ci (CI set and not 'false') no cap applies.
+  a worker flag after -- (--maxWorkers, -w, --runInBand, -i) always wins,
+  as does one inside the npm command itself (e.g. --runInBand).
+  in a multi-mode run (--what types,unit), types, format and lint drop
+  those worker flags; unit, integration and acceptance keep them."
 `;
 
 exports[`git.repo.test.sh scope given: [case1] scope with path:// prefix when: [t0] --scope path://myfeature is used then: stderr matches snapshot 1`] = `""`;
@@ -511,4 +523,53 @@ exports[`git.repo.test.sh scope given: [case23] stacked scopes: two name scopes 
    └─ error: no tests matched scope 'name://feature-a, name://passes'
 
 hint: check the scope pattern or run without --scope to see all tests"
+`;
+
+exports[`git.repo.test.sh scope given: [case24] a scope reaches a non-jest kind when: [t0] --what types --scope myfeature --mode apply then: stderr matches snapshot 1`] = `""`;
+
+exports[`git.repo.test.sh scope given: [case24] a scope reaches a non-jest kind when: [t0] --what types --scope myfeature --mode apply then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what types --scope myfeature --mode apply --thorough
+   ├─ scope: skipped; types runs whole (only unit, integration, acceptance take a scope)
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired"
+`;
+
+exports[`git.repo.test.sh scope given: [case24] a scope reaches a non-jest kind when: [t1] --what types,unit --scope myfeature --mode apply then: stderr matches snapshot 1`] = `""`;
+
+exports[`git.repo.test.sh scope given: [case24] a scope reaches a non-jest kind when: [t1] --what types,unit --scope myfeature --mode apply then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what types --scope myfeature --mode apply --thorough
+   ├─ scope: skipped; types runs whole (only unit, integration, acceptance take a scope)
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+
+🐚 git.repo.test --what unit --scope myfeature --mode apply --thorough
+   ├─ scope: path://myfeature
+   │  └─ matched: 1 files
+   ├─ files
+   │  └─ src/myfeature.test.js
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   ├─ stats
+   │  ├─ suites: N files
+   │  ├─ tests: 1 passed, 0 failed, 0 skipped
+   │  └─ time: Xs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired"
 `;

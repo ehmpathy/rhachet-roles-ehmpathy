@@ -38,15 +38,13 @@
 #   'name://foo'    - match test/describe name (jest --testNamePattern)
 #   (multiple --scope flags stack together)
 #
-# best practice: stack path + name for fastest feedback loops
-#   1. start narrow: --scope path://myfeature --scope name://case3
-#   2. widen path:   --scope path://myfeature (all tests in file)
-#   3. widen name:   --scope name://case3 (all files, one test)
-#   4. full suite:   (no --scope) only to verify no regressions
+# best practice: start narrow (path + name), widen one scope at a time,
+#   full suite (no --scope) last, only to verify no regressions
 #
 # guarantee:
 #   - logs raw output to .log/role=mechanic/skill=git.repo.test/what=${WHAT}/
 #   - auto keyrack unlock for integration/acceptance
+#   - off ci, caps jest at 4 workers (never raises); -- --maxWorkers=N wins
 #   - exit 0 = passed, exit 1 = malfunction, exit 2 = constraint
 ######################################################################
 set -euo pipefail
@@ -167,26 +165,11 @@ validate_jest_config() {
     return 0
   fi
 
-  # determine expected config files based on test type (.js preferred, .ts fallback)
-  local config_file_js=""
-  local config_file_ts=""
-  case "$test_type" in
-    unit)
-      config_file_js="jest.unit.config.js"
-      config_file_ts="jest.unit.config.ts"
-      ;;
-    integration)
-      config_file_js="jest.integration.config.js"
-      config_file_ts="jest.integration.config.ts"
-      ;;
-    acceptance)
-      config_file_js="jest.acceptance.config.js"
-      config_file_ts="jest.acceptance.config.ts"
-      ;;
-  esac
+  # the ehmpathy convention names the .ts config in the hint
+  local config_file_ts="jest.${test_type}.config.ts"
 
-  # check if either config file exists
-  if [[ -n "$config_file_js" ]] && [[ ! -f "$REPO_ROOT/$config_file_js" ]] && [[ ! -f "$REPO_ROOT/$config_file_ts" ]]; then
+  # check if either config file exists (.js preferred, .ts fallback)
+  if [[ -z "$(get_jest_config_flag "$test_type")" ]]; then
     local _output
     _output=$(
       print_turtle_header "bummer dude..."
@@ -255,6 +238,259 @@ get_changed_since_ref() {
 }
 
 ######################################################################
+# get the jest config flag for a test type
+# .js preferred, .ts fallback; empty when neither file is found
+######################################################################
+get_jest_config_flag() {
+  local test_type="$1"
+  if [[ -f "$REPO_ROOT/jest.${test_type}.config.js" ]]; then
+    echo "-c ./jest.${test_type}.config.js"
+    return
+  fi
+  if [[ -f "$REPO_ROOT/jest.${test_type}.config.ts" ]]; then
+    echo "-c ./jest.${test_type}.config.ts"
+    return
+  fi
+  echo ""
+}
+
+######################################################################
+# worker cap: on a shared box, hold jest to at most JEST_WORKER_CAP
+# workers so one crew's suite cannot take the box from its neighbors.
+# the cap only lowers jest's own count, never raises it: a config of
+# maxWorkers: 1 (suites that share a database) stays at 1.
+######################################################################
+JEST_WORKER_CAP=4
+JEST_LOOKUP_TIMEOUT_SECONDS=30  # upper bound on the --showConfig lookup
+WORKER_CAP_ARG=""  # set once, before the timed run, by get_worker_cap_arg
+
+# the npm command name for a test type
+get_npm_target() {
+  local test_type="$1"
+  if [[ "$test_type" == "acceptance" ]] && [[ "$AGAINST" == "local" ]]; then
+    echo "test:acceptance:locally"
+    return
+  fi
+  echo "test:${test_type}"
+}
+
+# the text of the npm command the run will execute (empty if absent)
+get_npm_command_text() {
+  local target
+  target=$(get_npm_target "$1")
+  jq -r --arg target "$target" '.scripts[$target] // ""' "$REPO_ROOT/package.json" 2>/dev/null || true
+}
+
+# the jest bin the skill's lookups use
+get_jest_bin() {
+  echo "$REPO_ROOT/node_modules/.bin/jest"
+}
+
+# true for the test kinds that run on jest (and so run jest workers)
+is_jest_test_kind() {
+  case "$1" in
+    unit|integration|acceptance) return 0 ;;
+  esac
+  return 1
+}
+
+# true when both jest.<type>.config.js and .ts are present
+is_jest_config_ambiguous() {
+  [[ -f "$REPO_ROOT/jest.${1}.config.js" ]] && [[ -f "$REPO_ROOT/jest.${1}.config.ts" ]]
+}
+
+# true on a ci runner: CI set and not "false" (same rule as ci-info)
+is_ci_box() {
+  [[ -n "${CI:-}" ]] && [[ "${CI}" != "false" ]]
+}
+
+# the one grammar of jest worker flags: how many words a flag spans
+#   0 = not a worker flag · 1 = a worker flag alone · 2 = flag + its value
+get_worker_flag_arity() {
+  case "$1" in
+    --maxWorkers|--max-workers|-w) echo 2 ;;
+    --maxWorkers=*|--max-workers=*|-w=*|-w[0-9]*) echo 1 ;;
+    --runInBand|--run-in-band|-i) echo 1 ;;
+    *) echo 0 ;;
+  esac
+}
+
+# true when any of the given args is a jest worker flag
+is_worker_flag_among() {
+  local arg
+  for arg in "$@"; do
+    [[ "$(get_worker_flag_arity "$arg")" != "0" ]] && return 0
+  done
+  return 1
+}
+
+# true when the caller passed a worker flag after `--`
+is_caller_worker_flag_present() {
+  is_worker_flag_among "${REST_ARGS[@]}"
+}
+
+# the segment of the npm command that runs jest (empty if none)
+# .why = a chain like `tsc -i && jest -c x` holds flags meant for other
+#        tools; only the jest segment's flags are jest's
+get_npm_jest_segment() {
+  local text
+  text=$(get_npm_command_text "$1")
+  text=${text//&&/$'\n'}
+  text=${text//||/$'\n'}
+  text=${text//;/$'\n'}
+  text=${text//|/$'\n'}
+  local segment word
+  local -a words
+  while IFS= read -r segment; do
+    read -ra words <<< "$segment"  # read -ra splits without glob expansion
+    for word in "${words[@]}"; do
+      if [[ "$word" == "jest" ]] || [[ "$word" == */jest ]]; then
+        echo "$segment"
+        return 0
+      fi
+    done
+  done <<< "$text"
+  return 0
+}
+
+# the config flag a jest segment names (-c X, --config X, --config=X)
+# empty when it names none, or names a file that is absent
+get_jest_config_flag_from_segment() {
+  local -a words
+  read -ra words <<< "$1"
+  local i config_path=""
+  for i in "${!words[@]}"; do
+    case "${words[$i]}" in
+      -c|--config) config_path="${words[$((i + 1))]:-}" ;;
+      --config=*) config_path="${words[$i]#--config=}" ;;
+    esac
+  done
+  [[ -n "$config_path" ]] && [[ -f "$REPO_ROOT/$config_path" ]] && echo "-c $config_path"
+  return 0
+}
+
+# print each arg except jest worker flags (and their values), nul-delimited
+# .why = in a multi-mode run, a non-jest kind (types, format) must not
+#        receive a jest flag the caller meant for the jest kinds
+print_args_without_worker_flags() {
+  local arg arity skip_next=false
+  for arg in "$@"; do
+    if [[ "$skip_next" == "true" ]]; then
+      skip_next=false
+      continue
+    fi
+    arity=$(get_worker_flag_arity "$arg")
+    [[ "$arity" == "2" ]] && skip_next=true
+    [[ "$arity" != "0" ]] && continue
+    printf '%s\0' "$arg"
+  done
+}
+
+# print a skipped-cap note to stderr: headline, then why, then fix, one per
+# line; the caller renders the three lines as a tree
+print_worker_cap_note() {
+  local why="$1"
+  printf '%s\n' \
+    "💥 MalfunctionError: worker cap skipped; the suite runs uncapped" \
+    "why: $why" \
+    "fix: pass -- --maxWorkers=${JEST_WORKER_CAP} to cap this run" >&2
+}
+
+# the worker count jest would use with no cli flag, via --showConfig
+# empty when unknown. failure kinds, handled apart:
+#   - expected: no jest bin, or jest cannot load the config. silent; the
+#     real run that follows reports a broken config loud, as it always has
+#   - the lookup ran past its bound, or jest loaded the config but yielded
+#     no integer maxWorkers: a note to stderr, so a cap that silently
+#     stopped is observable
+# .note = the lookup loads (so executes) the repo's jest config once more
+get_jest_derived_worker_count() {
+  local test_type="$1"
+  local jest_segment="$2"
+  local jest_bin
+  jest_bin=$(get_jest_bin)
+  [[ -x "$jest_bin" ]] || return 0
+
+  # read the config the npm command's jest segment names; else guess
+  local jest_config
+  jest_config=$(get_jest_config_flag_from_segment "$jest_segment")
+  if [[ -z "$jest_config" ]]; then
+    # both config files present: the npm command may run either, so the
+    # count is unknown; a guess could raise a serial config (maxWorkers: 1)
+    is_jest_config_ambiguous "$test_type" && return 0
+    jest_config=$(get_jest_config_flag "$test_type")
+  fi
+
+  # bound the lookup, so a config load that hangs cannot hang the run:
+  # the smaller of the caller's --timeout and JEST_LOOKUP_TIMEOUT_SECONDS.
+  # a lookup that times out reads as unknown. hosts without `timeout`
+  # (stock macos) run it unbounded, as the extant --timeout path does
+  local -a lookup_bound=()
+  local bound_seconds="$JEST_LOOKUP_TIMEOUT_SECONDS"
+  if [[ -n "$TIMEOUT" ]] && [[ "$TIMEOUT" -lt "$bound_seconds" ]]; then
+    bound_seconds="$TIMEOUT"
+  fi
+  if command -v timeout > /dev/null 2>&1; then
+    lookup_bound=(timeout "${bound_seconds}s")
+  fi
+
+  # run the lookup; keep its exit code to tell a timeout from a load error
+  local config_json lookup_exit=0
+  # shellcheck disable=SC2086
+  config_json=$("${lookup_bound[@]}" nice -n 5 "$jest_bin" $jest_config --showConfig 2>/dev/null) || lookup_exit=$?
+
+  # the lookup ran past its bound: note it, since a slow config load on a
+  # busy box is the very case where the cap matters
+  if [[ "$lookup_exit" -eq 124 ]]; then
+    print_worker_cap_note "jest --showConfig lookup timed out after ${bound_seconds}s (the smaller of --timeout and ${JEST_LOOKUP_TIMEOUT_SECONDS}s)"
+    return 0
+  fi
+
+  # expected failure: jest could not load the config
+  [[ "$lookup_exit" -eq 0 ]] || return 0
+
+  # unexpected failure: config loaded, but no integer count to read
+  local count
+  count=$(printf '%s' "$config_json" | jq -r '.globalConfig.maxWorkers // empty' 2>/dev/null || true)
+  if [[ ! "$count" =~ ^[0-9]+$ ]]; then
+    print_worker_cap_note "jest --showConfig gave no integer globalConfig.maxWorkers (found: ${count:-none})"
+    return 0
+  fi
+
+  echo "$count"
+}
+
+# the worker flag to append for this run, or naught
+get_worker_cap_arg() {
+  local test_type="$1"
+
+  # only jest kinds run workers
+  is_jest_test_kind "$test_type" || return 0
+
+  # the caller already chose; never send jest a second count
+  is_caller_worker_flag_present && return 0
+
+  # the npm command's jest call already chose (e.g. --runInBand); a cap
+  # there is moot. read once, then passed on to the lookup
+  local jest_segment
+  local -a jest_segment_words
+  jest_segment=$(get_npm_jest_segment "$test_type")
+  read -ra jest_segment_words <<< "$jest_segment"
+  is_worker_flag_among "${jest_segment_words[@]}" && return 0
+
+  # a ci runner is dedicated to one suite; the repo config governs
+  is_ci_box && return 0
+
+  # cap only when jest's own count is above the cap; unknown → naught
+  local count
+  count=$(get_jest_derived_worker_count "$test_type" "$jest_segment")
+  [[ -n "$count" ]] || return 0
+  [[ "$count" -gt "$JEST_WORKER_CAP" ]] || return 0
+
+  echo "--maxWorkers=$JEST_WORKER_CAP"
+}
+
+######################################################################
 # scope check: count matched files for scope
 # returns count via stdout
 ######################################################################
@@ -269,30 +505,8 @@ get_scope_file_count() {
   fi
 
   # determine jest config file based on test type (.js preferred, .ts fallback)
-  local jest_config=""
-  case "$test_type" in
-    unit)
-      if [[ -f "$REPO_ROOT/jest.unit.config.js" ]]; then
-        jest_config="-c ./jest.unit.config.js"
-      elif [[ -f "$REPO_ROOT/jest.unit.config.ts" ]]; then
-        jest_config="-c ./jest.unit.config.ts"
-      fi
-      ;;
-    integration)
-      if [[ -f "$REPO_ROOT/jest.integration.config.js" ]]; then
-        jest_config="-c ./jest.integration.config.js"
-      elif [[ -f "$REPO_ROOT/jest.integration.config.ts" ]]; then
-        jest_config="-c ./jest.integration.config.ts"
-      fi
-      ;;
-    acceptance)
-      if [[ -f "$REPO_ROOT/jest.acceptance.config.js" ]]; then
-        jest_config="-c ./jest.acceptance.config.js"
-      elif [[ -f "$REPO_ROOT/jest.acceptance.config.ts" ]]; then
-        jest_config="-c ./jest.acceptance.config.ts"
-      fi
-      ;;
-  esac
+  local jest_config
+  jest_config=$(get_jest_config_flag "$test_type")
 
   # use jest --listTests to get matched files
   # --no-install prevents npx from stall on "install jest?" prompt
@@ -318,7 +532,8 @@ get_scope_file_count() {
   fi
 
   local matched_files
-  local jest_bin="$REPO_ROOT/node_modules/.bin/jest"
+  local jest_bin
+  jest_bin=$(get_jest_bin)
 
   # failfast if jest not installed
   if [[ ! -x "$jest_bin" ]]; then
@@ -354,30 +569,8 @@ get_scope_files() {
   fi
 
   # determine jest config file based on test type (.js preferred, .ts fallback)
-  local jest_config=""
-  case "$test_type" in
-    unit)
-      if [[ -f "$REPO_ROOT/jest.unit.config.js" ]]; then
-        jest_config="-c ./jest.unit.config.js"
-      elif [[ -f "$REPO_ROOT/jest.unit.config.ts" ]]; then
-        jest_config="-c ./jest.unit.config.ts"
-      fi
-      ;;
-    integration)
-      if [[ -f "$REPO_ROOT/jest.integration.config.js" ]]; then
-        jest_config="-c ./jest.integration.config.js"
-      elif [[ -f "$REPO_ROOT/jest.integration.config.ts" ]]; then
-        jest_config="-c ./jest.integration.config.ts"
-      fi
-      ;;
-    acceptance)
-      if [[ -f "$REPO_ROOT/jest.acceptance.config.js" ]]; then
-        jest_config="-c ./jest.acceptance.config.js"
-      elif [[ -f "$REPO_ROOT/jest.acceptance.config.ts" ]]; then
-        jest_config="-c ./jest.acceptance.config.ts"
-      fi
-      ;;
-  esac
+  local jest_config
+  jest_config=$(get_jest_config_flag "$test_type")
 
   # use jest --listTests to get matched files
   # respect THOROUGH flag: add --changedSince when not thorough.
@@ -390,15 +583,20 @@ get_scope_files() {
     changed_since="--changedSince=$(get_changed_since_ref)"
   fi
 
-  # only include --testPathPatterns when scope is not "." (the default)
+  # get the correct flag based on jest version (singular for ≤29, plural for ≥30)
+  local path_flag
+  path_flag=$(get_jest_path_pattern_flag)
+
+  # only include path flag when scope is not "." (the default)
   # reason: --testPathPatterns "." overrides --changedSince behavior in jest
   local test_path_arg=""
   if [[ "$scope" != "." ]]; then
-    test_path_arg="--testPathPatterns $scope"
+    test_path_arg="$path_flag $scope"
   fi
 
   local matched_files
-  local jest_bin="$REPO_ROOT/node_modules/.bin/jest"
+  local jest_bin
+  jest_bin=$(get_jest_bin)
 
   # skip if jest not installed
   if [[ ! -x "$jest_bin" ]]; then
@@ -641,6 +839,7 @@ while [[ $# -gt 0 ]]; do
       echo "                        'path://foo'    match file path (explicit)"
       echo "                        'name://foo'    match test/describe name"
       echo "                        (use multiple --scope flags to combine filters)"
+      echo "                        (unit, integration, acceptance only; types, format, lint run whole)"
       echo "  --resnap            update snapshots (sets RESNAP=true, requires --mode apply)"
       echo "  --thorough          run full suite (sets THOROUGH=true)"
       echo "  --env <name>        keyrack environment: test | prep | prod (required for acceptance)"
@@ -652,7 +851,18 @@ while [[ $# -gt 0 ]]; do
       echo "  --log <mode>        auto | always (default: auto)"
       echo "                        auto = persist logs on failure only"
       echo "                        always = persist logs on success and failure"
+      echo "  -- <jest args>      pass args through to jest (e.g. -- --maxWorkers=8)"
       echo "  --help, -h          show this help"
+      echo ""
+      echo "workers:"
+      echo "  on any box without CI (a laptop or grove), jest runs at most ${JEST_WORKER_CAP} workers,"
+      echo "  so one suite cannot take a shared box from its neighbors. the cap only"
+      echo "  lowers jest's own count, never raises it; when the count is unknown, no"
+      echo "  cap applies. on ci (CI set and not 'false') no cap applies."
+      echo "  a worker flag after -- (--maxWorkers, -w, --runInBand, -i) always wins,"
+      echo "  as does one inside the npm command itself (e.g. --runInBand)."
+      echo "  in a multi-mode run (--what types,unit), types, format and lint drop"
+      echo "  those worker flags; unit, integration and acceptance keep them."
       exit 0
       ;;
     *)
@@ -993,11 +1203,8 @@ fi
 ######################################################################
 validate_npm_command() {
   local test_type="$1"
-  local cmd="test:${test_type}"
-  # use test:acceptance:locally when --against local
-  if [[ "$test_type" == "acceptance" ]] && [[ "$AGAINST" == "local" ]]; then
-    cmd="test:acceptance:locally"
-  fi
+  local cmd
+  cmd=$(get_npm_target "$test_type")
   if ! grep -q "\"$cmd\"" "$REPO_ROOT/package.json"; then
     # hook.onStop context: silently exit — repo may lack this command
     if [[ "$WHEN" == "hook.onStop" ]]; then
@@ -1205,18 +1412,15 @@ run_single_test() {
   local temp_stderr="$3"
 
   # npm command name for this test type
-  local npm_target="test:${test_type}"
-  # use test:acceptance:locally when --against local
-  if [[ "$test_type" == "acceptance" ]] && [[ "$AGAINST" == "local" ]]; then
-    npm_target="test:acceptance:locally"
-  fi
+  local npm_target
+  npm_target=$(get_npm_target "$test_type")
 
   # build jest args
   local jest_args=()
 
-  # add scope filters (skip for lint)
+  # add scope filters (jest kinds only; tsc and biome have no test scope)
   # supports stacked scopes: multiple path patterns AND name patterns
-  if [[ "$test_type" != "lint" ]]; then
+  if is_jest_test_kind "$test_type"; then
     # add path patterns
     if [[ ${#PATH_PATTERNS[@]} -gt 0 ]]; then
       local path_flag
@@ -1237,6 +1441,11 @@ run_single_test() {
   # add REST_ARGS (skip for lint)
   if [[ ${#REST_ARGS[@]} -gt 0 ]] && [[ "$test_type" != "lint" ]]; then
     jest_args+=("${REST_ARGS[@]}")
+  fi
+
+  # cap jest workers on a shared box (decided before the timed run)
+  if [[ -n "$WORKER_CAP_ARG" ]]; then
+    jest_args+=("$WORKER_CAP_ARG")
   fi
 
   # set env vars for execution
@@ -1458,11 +1667,25 @@ if [[ "$MULTI_MODE" == "true" ]]; then
       [[ -n "$AGAINST" ]] && type_args+=("--against" "$AGAINST")
       [[ -n "$ENV_NAME" ]] && type_args+=("--env" "$ENV_NAME")
     fi
-    [[ ${#REST_ARGS[@]} -gt 0 ]] && type_args+=("--" "${REST_ARGS[@]}")
+    # pass REST_ARGS on; a non-jest child gets them without the jest worker
+    # flags, which the caller meant for the jest kinds of this run
+    if [[ ${#REST_ARGS[@]} -gt 0 ]]; then
+      if is_jest_test_kind "$test_type"; then
+        type_args+=("--" "${REST_ARGS[@]}")
+      else
+        child_rest_args=()
+        mapfile -d '' -t child_rest_args < <(print_args_without_worker_flags "${REST_ARGS[@]}")
+        if [[ ${#child_rest_args[@]} -gt 0 ]]; then
+          type_args+=("--" "${child_rest_args[@]}")
+        fi
+      fi
+    fi
 
     # run this type (output goes directly to stdout/stderr)
     # pass --_multi-child to suppress turtle header in child
-    bash "$SCRIPT_PATH" "${type_args[@]}" --_multi-child || MULTI_EXIT_CODE=$?
+    # .note = it goes first: after a `--` in type_args it would reach the
+    #         test command as a passthrough arg
+    bash "$SCRIPT_PATH" --_multi-child "${type_args[@]}" || MULTI_EXIT_CODE=$?
 
     # stop on first failure
     if [[ $MULTI_EXIT_CODE -ne 0 ]]; then
@@ -1570,9 +1793,11 @@ if [[ -n "$KEYRACK_STATUS" ]]; then
 fi
 
 # show scope preview if applicable and failfast if 0 matches or check failed
+# .note = only jest kinds read a scope; types/format/lint ignore it, so a
+#         `--what all --scope X` scopes its jest suites and runs the rest whole
 SCOPE_PREVIEW_OUTPUT=""
 SCOPE_FILE_COUNT=""
-if [[ ${#SCOPES[@]} -gt 0 ]] && [[ "$WHAT" != "lint" ]]; then
+if [[ ${#SCOPES[@]} -gt 0 ]] && is_jest_test_kind "$WHAT"; then
   # determine local_scope for file count check
   # - use first path pattern if any, since jest --listTests filters by path
   # - use "." if no path patterns (name:// doesn't filter file list)
@@ -1608,6 +1833,36 @@ if [[ ${#SCOPES[@]} -gt 0 ]] && [[ "$WHAT" != "lint" ]]; then
     output_no_tests "true" "true" | emit_to_both
     exit 2
   fi
+fi
+
+# name a scope a non-jest type ignores, so the header reads true
+if [[ ${#SCOPES[@]} -gt 0 ]] && ! is_jest_test_kind "$WHAT"; then
+  print_tree_branch "scope" "skipped; $WHAT runs whole (only unit, integration, acceptance take a scope)"
+fi
+
+# decide the worker cap once, before the timer; a lookup fault note
+# renders to both streams as a tree: headline, why, fix
+# (rule.require.skill-output-streams)
+WORKER_CAP_NOTE_PATH=$(mktemp)
+WORKER_CAP_ARG=$(get_worker_cap_arg "$WHAT" 2>"$WORKER_CAP_NOTE_PATH")
+mapfile -t WORKER_CAP_NOTE_LINES < "$WORKER_CAP_NOTE_PATH"
+rm -f "$WORKER_CAP_NOTE_PATH"
+if [[ ${#WORKER_CAP_NOTE_LINES[@]} -eq 3 ]]; then
+  print_tree_branch "workers" "${WORKER_CAP_NOTE_LINES[0]}"
+  echo "   │  ├─ ${WORKER_CAP_NOTE_LINES[1]}"
+  echo "   │  └─ ${WORKER_CAP_NOTE_LINES[2]}"
+  {
+    echo "${WORKER_CAP_NOTE_LINES[0]}"
+    echo "   ├─ ${WORKER_CAP_NOTE_LINES[1]}"
+    echo "   └─ ${WORKER_CAP_NOTE_LINES[2]}"
+  } >&2
+fi
+# any other stderr from the lookup still surfaces, raw, on both streams
+if [[ ${#WORKER_CAP_NOTE_LINES[@]} -gt 0 ]] && [[ ${#WORKER_CAP_NOTE_LINES[@]} -ne 3 ]]; then
+  for note_line in "${WORKER_CAP_NOTE_LINES[@]}"; do
+    print_tree_branch "workers" "$note_line"
+    echo "$note_line" >&2
+  done
 fi
 
 # capture start time for total elapsed
@@ -1698,6 +1953,16 @@ if [[ $NPM_EXIT_CODE -eq 124 ]]; then
     echo "      └─ stderr: $REL_STDERR_LOG"
     echo ""
     echo "hint: increase --timeout or check for slow tests"
+    # the widen command keeps the caller's jest args (a capped run holds no
+    # worker flag among them) and omits the --timeout that just ran out
+    if [[ -n "$WORKER_CAP_ARG" ]]; then
+      widen_rest="${REST_ARGS[*]+${REST_ARGS[*]} }"
+      echo ""
+      echo "🥥 did you know?"
+      echo "   ├─ this run was capped at ${JEST_WORKER_CAP} jest workers (shared box)"
+      echo "   └─ on an idle box, widen it"
+      echo "      └─ rhx git.repo.test $DISPLAY_ARGS -- ${widen_rest}--maxWorkers=8"
+    fi
   )
   echo "$_output"
 
