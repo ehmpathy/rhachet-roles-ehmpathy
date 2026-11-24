@@ -69,8 +69,8 @@ describe('getMechanicRole · every registered hook is reachable', () => {
    * .what = the role hooks a registered hook stands for: the rows of its dispatch manifest when it
    *         is a rhachet hook dispatcher, else the hook itself
    * .why = rhachet (>= 1.54) registers one dispatcher per claude event,
-   *        `bash <bin>/hooks.dispatch.sh <brain dir> <event>`, and parks each role hook as a row in
-   *        `<brain dir>/hooks.dispatch.manifest`. a walk of settings alone sees the dispatcher, never
+   *        `bash <bin>/hooks.dispatch.sh <manifest> <event>`, and parks each role hook as a row in
+   *        that manifest (`.claude/hooks.dispatch.manifest`). a walk of settings alone sees the dispatcher, never
    *        the hooks it runs, so every check below would grade naught on the dispatched events
    * .note = a manifest row holds fields split by \x1f, in rhachet's declared order; this reads the
    *         three it needs (event, author, command) by that order. a `#` line or an empty line is
@@ -87,12 +87,8 @@ describe('getMechanicRole · every registered hook is reachable', () => {
       (words[1] ?? '').endsWith('/hooks.dispatch.sh');
     if (!isDispatcher) return [input.hook];
 
-    // a dispatcher stands for the rows of its manifest, beside the settings in its brain dir
-    const manifestPath = path.join(
-      repoRoot,
-      words[2] ?? '',
-      'hooks.dispatch.manifest',
-    );
+    // a dispatcher stands for the rows of the manifest file its third word names
+    const manifestPath = path.join(repoRoot, words[2] ?? '');
     const FIELD = { event: 0, author: 3, command: 8 };
     return readFileSync(manifestPath, 'utf-8')
       .split('\n')
