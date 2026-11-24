@@ -204,6 +204,9 @@ describe('git.pull.watch.github (real github)', () => {
               issueComments: read(`${base}/issues/1180/comments?per_page=100`),
               reviewComments: read(`${base}/pulls/1180/comments?per_page=100`),
               reviews: read(`${base}/pulls/1180/reviews?per_page=100`),
+              // a merged pr with review threads and replies, for the reply-task fields
+              threads: read(`${base}/pulls/1222/comments?per_page=100`),
+              threadReviews: read(`${base}/pulls/1222/reviews?per_page=100`),
               statuses: fs.readFileSync(log, 'utf-8').trim().split('\n'),
             };
           });
@@ -266,6 +269,41 @@ describe('git.pull.watch.github (real github)', () => {
               JSON.parse(result.reviews.stdout).forEach(
                 (review: Record<string, unknown>) => {
                   expect(review.state).toEqual(expect.any(String));
+                },
+              );
+            },
+          );
+          then(
+            'each review comment carries the fields a reply task reads',
+            () => {
+              // the trust gate, the thread root, the draft arrival, the edit order,
+              // and the file line all read these; a renamed field would go silent
+              expect(result.threads.status).toEqual(0);
+              const rows = JSON.parse(result.threads.stdout);
+              expect(rows.length).toBeGreaterThan(0);
+              // a reply names its root; a root carries no such field
+              expect(
+                rows.some((row: Record<string, unknown>) =>
+                  Number.isInteger(row.in_reply_to_id),
+                ),
+              ).toEqual(true);
+              rows.forEach((row: Record<string, unknown>) => {
+                expect(row).toEqual(
+                  expect.objectContaining({
+                    body: expect.any(String),
+                    author_association: expect.any(String),
+                    created_at: expect.any(String),
+                    updated_at: expect.any(String),
+                    path: expect.any(String),
+                  }),
+                );
+                expect(row).toHaveProperty('pull_request_review_id');
+                expect(row).toHaveProperty('line');
+                expect(row).toHaveProperty('original_line');
+              });
+              JSON.parse(result.threadReviews.stdout).forEach(
+                (review: Record<string, unknown>) => {
+                  expect(review).toHaveProperty('submitted_at');
                 },
               );
             },

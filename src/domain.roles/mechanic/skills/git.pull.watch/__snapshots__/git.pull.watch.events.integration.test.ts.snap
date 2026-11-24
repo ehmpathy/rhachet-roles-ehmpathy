@@ -32,17 +32,6 @@ exports[`git.pull.watch events given: [case2] a watched pr, then a comment from 
    └─ next: rhx git.pull.comment get --which 1220 --in ehmpathy/surf-demo"
 `;
 
-exports[`git.pull.watch events given: [case2] a watched pr, then a comment from a peer and one from the clone itself when: [t2] a ci bot leaves a review comment then: the bot comment is alerted, labeled bot 1`] = `
-"🐢 heads up dude...
-
-🐚 git.pull.watch — new comment on #1220
-   ├─ pr: ehmpathy/surf-demo#1220
-   ├─ by: @reef-lint[bot] (bot) · review comment
-   ├─ says: lint: line too long
-   ├─ url: https://github.com/ehmpathy/surf-demo/pull/1220#discussion_r301
-   └─ next: rhx git.pull.comment get --which 1220 --in ehmpathy/surf-demo"
-`;
-
 exports[`git.pull.watch events given: [case2] a watched pr, then a comment from a peer and one from the clone itself when: [t3] a peer clone, through the shared bot login, comments then: the comment is alerted, labeled clone, not bot 1`] = `
 "🐢 heads up dude...
 

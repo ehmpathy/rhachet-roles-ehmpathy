@@ -27,6 +27,11 @@
 #   - a quiet pr is read less often: the gap doubles per quiet read, up to 30 min;
 #     a change, a push, or a fresh watch snaps it back to one tick
 #   - a pr with no change for a week ends its watches, with a note that names the rewatch
+#   - a human review comment the crew has not answered reaches it as a reply task, its
+#     text whole up to the cap, with the command that answers it; a thread the crew or
+#     a peer answered, a bot's thread, and the crew's own words raise naught
+#   - each comment is tracked by its id and a print of its body, so a draft review
+#     that lands late raises, and a human's edit raises again
 #   - an older key's watch whose repo root runs this key now is taken, cursors and
 #     held alerts with it, so an upgrade moves every clone at once
 #   - a record is written back only under the key lock and only if it still
@@ -118,6 +123,11 @@ get_watch_epoch_now | set_watch_file_atomic "$KEY_DIR/daemon.heartbeat"
 drop_watch_lock "$KEY_DIR"
 set_watch_log_capped
 log_watch "boot: daemon pid $$ key $KEY tick ${WATCH_TICK_SECONDS}s"
+# a cap knob that is no whole number falls back to the default; the log names the swap
+[[ "$WATCH_REPLY_TEXT_MAX_CHARS" == "${GIT_PULL_WATCH_REPLY_TEXT_MAX_CHARS:-$WATCH_REPLY_TEXT_MAX_CHARS}" ]] \
+  || log_watch "boot: GIT_PULL_WATCH_REPLY_TEXT_MAX_CHARS='${GIT_PULL_WATCH_REPLY_TEXT_MAX_CHARS}' is no whole number; reply text caps at $WATCH_REPLY_TEXT_MAX_CHARS chars"
+[[ "$WATCH_ALERT_CHECKS_SHOWN_MAX" == "${GIT_PULL_WATCH_ALERT_CHECKS_SHOWN_MAX:-$WATCH_ALERT_CHECKS_SHOWN_MAX}" ]] \
+  || log_watch "boot: GIT_PULL_WATCH_ALERT_CHECKS_SHOWN_MAX='${GIT_PULL_WATCH_ALERT_CHECKS_SHOWN_MAX}' is no whole number; an alert lists $WATCH_ALERT_CHECKS_SHOWN_MAX checks"
 
 # .what = on exit, clear the pid record if it still names this process
 # .why  = a record left behind reads as stale and costs the next findsert a
@@ -141,7 +151,7 @@ trap 'exit 0' TERM INT
 
 # .what = one watch's events since its cursors, as json
 # .why  = one pure jq transform, so the tick reads as narrative
-# input: { watch, pull, checks, issueComments, reviewComments, reviews, ledger, peers }
+# input: { watch, pull, checks, issueComments, reviewComments, reviews, ledger, peers, textCap }
 # output: { events: [...], cursors: {...}, prEnd: null|"merged"|"closed" }
 WATCH_DIFF_JQ='
   def is_failed: (.status == "completed") and ([.conclusion] | inside(["failure","cancelled","timed_out","action_required"]));
@@ -163,7 +173,13 @@ WATCH_DIFF_JQ='
     | gsub("\t"; " ")
     | gsub("\\p{Cc}"; "");
   # an inline review comment names its file and line, so the clone opens the spot at once
-  def file_line: if (.path // "") == "" then null else "\(.path | clean):\(.line // .original_line // "?")" end;
+  # a push that moves the code nulls `line`; the comment then names the line it was
+  # left on, marked so the crew reads it as a past place, not the current one
+  # a comment on a whole file holds no line at all, so it names the file alone
+  def file_line: if (.path // "") == "" then null
+    elif .line != null then "\(.path | clean):\(.line)"
+    elif .original_line != null then "\(.path | clean):\(.original_line) (outdated)"
+    else "\(.path | clean)" end;
   # the excerpt reads prose only: a fence line and each line inside a fence go, so a
   # suggestion-only comment reads `(a suggestion)`, never its bare ```suggestion fence
   def prose_lines: reduce ((.body // "") | split("\n"))[] as $l ({ fenced: false, out: [] };
@@ -180,23 +196,63 @@ WATCH_DIFF_JQ='
   def line_cut: ((first_line_whole | length) > 120)
     or ((prose_lines | length) > 1)
     or has_fence;
-  def is_own($ledger): . as $id | $ledger | any(. == $id);
   def max_id($rows; $prior): ([$prior] + [$rows[]?.id]) | max;
+  # a comment body as a print: its length and a sum of its code points, each weighted
+  # by its place. jq holds no sha; an edit that keeps both is rare
+  def body_print: ((.body // "") | explode) as $c
+    | "\($c | length):\(reduce $c[] as $x (7; (. * 31 + $x) % 2147483647))";
+  # the seen state of one comment list: id → body print. a record from before seen
+  # state reads each id at or below its max cursor as seen, at its current print,
+  # so an upgrade re-raises naught
+  # .note = a record carried to a new key merges onto a fresh template, whose seen map
+  #         is empty; an empty map beside a max cursor past zero is that legacy record,
+  #         never a watch that saw naught, so it reads by the cursor
+  def seen_of($rows; $map; $max):
+    if ($map | type) == "object" and ((($map | length) > 0) or (($max // 0) == 0)) then $map
+    else ([$rows[] | select(.id <= ($max // 0)) | { key: (.id | tostring), value: body_print }] | from_entries) end;
+  def seen_now($rows): [$rows[] | { key: (.id | tostring), value: body_print }] | from_entries;
+  # a comment no read has seen, whatever its id: a draft review lands with ids
+  # below comments read before its submit, so a max-id cursor would drop it (F8)
+  def is_unseen($seen): (.id | tostring) as $k | ($seen | has($k) | not);
+  # a comment seen before whose body changed; its id stays (F9)
+  def is_edited($seen): (.id | tostring) as $k | ($seen | has($k)) and ($seen[$k] != body_print);
+  # the whole key of the answer a reply task owes, to print as is: the comment id, its
+  # print for an edit, and the clone. a keyed set edits in place and an edit sends no
+  # notice, so the answer to an edited ask, or a second clone, must post fresh, never
+  # edit an answer another wrote
+  def answer_key($seen; $clone): "answer-\(.id)"
+    + (if is_edited($seen) then "-e\(body_print | split(":") | .[1])" else "" end)
+    + "-c\($clone[0:8])";
+  # the text a reply task carries: the body up to the cap, line by line, each cleaned;
+  # a blank line is dropped, since a tree leaf cannot be blank
+  def task_comment($cap): (.body // "") as $b | {
+      id, author: ((.user.login // "?") | clean),
+      lines: (($b | .[0:$cap] | split("\n") | map(clean | sub("\\s+$"; "")) | map(select(test("\\S")))) as $l
+        | if ($l | length) == 0 then ["(no text)"] else $l end),
+      more: ([($b | length) - $cap, 0] | max)
+    };
   . as $in
   | $in.watch.cursors as $c
+  | ($in.textCap // 2000) as $cap
+  # a record with no serial keys as `unknown`, which still fits the key grammar of
+  # `git.pull.comment set` (a-z 0-9 . _ -)
+  | ($in.watch.cloneSerial // "unknown" | tostring | ascii_downcase) as $clone
   | ($in.pull.head.sha // null) as $head
   | ($in.ledger // []) as $ledger
   | ($in.peers // []) as $peers
-  | ([($in.issueComments // [])[], ($in.reviewComments // [])[], ($in.reviews // [])[]]
+  | ($in.issueComments // []) as $ic
+  | ($in.reviewComments // []) as $rc
+  | ([$ic[], $rc[], ($in.reviews // [])[]]
      | map(select(.id as $id | $peers | any(. == $id)) | .user.login // empty) | unique) as $peerLogins
   | (if $c.headSha == $head then ($c.checkRunIdsSeen // []) else [] end) as $seen
+  | seen_of($ic; $c.issueCommentsSeen; $c.issueCommentIdMax) as $seenIc
+  | seen_of($rc; $c.reviewCommentsSeen; $c.reviewCommentIdMax) as $seenRc
+  | ([($in.reviews // [])[] | { key: (.id | tostring), value: (.submitted_at // null) }] | from_entries) as $reviewAt
   | [($in.checks.check_runs // [])[]] as $runs
   | (if ($runs | length) == 0 then "none" elif ($runs | any(is_failed)) then "failed"
      elif ($runs | all(.status == "completed")) then "passed" else "unfinished" end) as $ci
   | [$runs[] | select(is_failed)] as $failed
   | [$failed[] | select(.id as $id | $seen | any(. == $id) | not)] as $failedNew
-  | [($in.issueComments // [])[] | select(.id > $c.issueCommentIdMax) | select(.id | is_own($ledger) | not)] as $issueNew
-  | [($in.reviewComments // [])[] | select(.id > $c.reviewCommentIdMax) | select(.id | is_own($ledger) | not)] as $reviewCommentNew
   | [($in.reviews // [])[] | select(.id > $c.reviewIdMax)] as $reviewNew
   | (if $in.pull.merged == true then "merged" elif $in.pull.state == "closed" then "closed" else null end) as $prEnd
   | ($in.watch.primed == true) as $primed
@@ -204,19 +260,77 @@ WATCH_DIFF_JQ='
   # the prime tick alerts only what happened after the watch was set, so a check
   # that fails between `set` and the first tick still alerts (A3 holds: older stays quiet)
   | def fresh($t): $primed or ("\($t // "")" >= $setAt);
-    {
+    # the crew own words, under any of its logins: its ledger is the proof
+    def is_own: .id as $id | $ledger | any(. == $id);
+    # an answer: the crew own, or a peer clone. a 🐢 body counts only from a login that
+    # holds a ledgered comment, so a stranger or a 🐢 app bot never answers
+    def is_answerer: is_own or (.id as $id | $peers | any(. == $id))
+      or (((.body // "") | startswith("🐢")) and ((.user.login // "") as $l | $peerLogins | any(. == $l)));
+    def is_human: (is_answerer | not) and (is_peer($peers; $peerLogins) | not) and (is_bot | not);
+    # a reply task hands up to the whole comment to the crew as work, so only a human
+    # the repo trusts may raise one; any other human keeps the extant excerpt alert.
+    # a row with no association reads as untrusted, so the gate fails closed
+    def is_trusted: (.author_association // "NONE") as $a | ["OWNER", "MEMBER", "COLLABORATOR"] | any(. == $a);
+    # a comment in a draft review reaches the api at the submit, not when drafted
+    def arrived_at: (if .pull_request_review_id != null then $reviewAt[(.pull_request_review_id | tostring)] else null end) // .created_at;
+    # the reply task of one thread, or empty: each human comment after its last answer
+    # that no read has seen, plus each human comment edited since the last read
+    # .note = a thread is ordered by arrival, not by draft: a draft follow-up that
+    #         reached the api after a crew answer must sort after that answer, or it
+    #         reads as answered. a row with no stamp sorts last
+    def thread_task($seenMap; $root):
+      sort_by((arrived_at // "~"), .id) as $t
+      | ([$t | to_entries[] | select(.value | is_answerer) | .key] | max // -1) as $last
+      | (if $last >= 0 then ($t[$last] | arrived_at) else null end) as $lastAt
+      | [$t | to_entries[] | select(.key > $last) | .value
+          | select(is_human and is_trusted and is_unseen($seenMap) and fresh(arrived_at))] as $asks
+      # an edit raises when it landed after the last answer: one the crew answered after
+      # the edit (via a relay, in the same read gap) is answered. a row with no edit
+      # stamp raises, so an edit is never lost to an absent field
+      | [$t[] | select(is_human and is_trusted and is_edited($seenMap)
+          and ($lastAt == null or ((.updated_at // "~") >= $lastAt)))] as $edits
+      | (($asks + $edits) | unique_by(.id) | sort_by((arrived_at // "~"), .id)) as $all
+      | if ($all | length) == 0 then empty else
+          ($t | map(select(.id == $root)) | first) as $rootRow
+          | (if ($asks | length) == 0 then "edited"
+             elif ($asks | any(.id == $root) | not) then "follow-up"
+             else "new" end) as $label
+          | { kind: "reply.task", root: $root, label: $label,
+              file: ($all[0] | file_line),
+              re: (if $label != "new" and $rootRow != null and $all[0].id != $root then ($rootRow | first_line) else null end),
+              url: ($all[0].html_url | clean), key: ($all[0] | answer_key($seenMap; $clone)),
+              comments: [$all[] | task_comment($cap)] }
+        end;
+    # a review thread groups under its root
+    ($rc | group_by(.in_reply_to_id // .id) | map((.[0].in_reply_to_id // .[0].id) as $root | thread_task($seenRc; $root))) as $replyReview
+    # a top-level comment keeps the extant alert, a human one included: the conversation
+    # tab has no reply link, so no answer can be proven per comment (vision Q9, ruled out)
+    | [$ic[] | select(is_unseen($seenIc) and (is_own | not))] as $issueNew
+    # on a review thread a ledger-proven peer clone, or a human the repo does not trust,
+    # keeps the extant alert: a bot thread raises naught, a 🐢 on an app bot proves no
+    # clone, a trusted human rides a reply task
+    | [$rc[] | select(is_unseen($seenRc) and (is_own | not)
+        and (is_answerer or (is_human and (is_trusted | not))))] as $reviewCommentNew
+    | {
       events: (
-        [ $failedNew[] | select(fresh(.completed_at)) | { kind: "ci.failed", name: (.name | clean), conclusion: (.conclusion | clean), head: (($head | clean) | .[0:7]), url: (.html_url | clean) } ]
+        $replyReview
+        + [ $failedNew[] | select(fresh(.completed_at)) | { kind: "ci.failed", name: (.name | clean), conclusion: (.conclusion | clean), head: (($head | clean) | .[0:7]), url: (.html_url | clean) } ]
         + [ $issueNew[] | select(fresh(.created_at)) | { kind: "comment.new", label: "comment", author: ((.user.login // "?") | clean), who: who($peers; $peerLogins), line: first_line, lineCut: line_cut, url: (.html_url | clean) } ]
-        + [ $reviewCommentNew[] | select(fresh(.created_at)) | { kind: "comment.new", label: "review comment", author: ((.user.login // "?") | clean), who: who($peers; $peerLogins), file: file_line, line: first_line, lineCut: line_cut, url: (.html_url | clean) } ]
+        + [ $reviewCommentNew[] | select(fresh(arrived_at)) | { kind: "comment.new", label: "review comment", author: ((.user.login // "?") | clean), who: who($peers; $peerLogins), file: file_line, line: first_line, lineCut: line_cut, url: (.html_url | clean) } ]
         + [ $reviewNew[] | select(fresh(.submitted_at)) | select(.state == "APPROVED") | { kind: "review.approved", author: ((.user.login // "?") | clean), who: who($peers; $peerLogins), ci: $ci, url: (.html_url | clean) } ]
         + [ $reviewNew[] | select(fresh(.submitted_at)) | select(.state != "APPROVED" and ((.state == "CHANGES_REQUESTED") or ((.body // "") | test("\\S")))) | { kind: "comment.new", label: ("review: " + (.state | ascii_downcase | gsub("_"; " "))), author: ((.user.login // "?") | clean), who: who($peers; $peerLogins), line: first_line, lineCut: line_cut, reviewId: .id, url: (.html_url | clean) } ]
       ),
       cursors: {
         headSha: $head,
         checkRunIdsSeen: (($seen + [$failed[].id]) | unique),
-        issueCommentIdMax: max_id($in.issueComments // []; $c.issueCommentIdMax),
-        reviewCommentIdMax: max_id($in.reviewComments // []; $c.reviewCommentIdMax),
+        # merged, never replaced: a read that omits a row once must not re-raise it on
+        # the next; the current print wins, so an edit still shows (F8, F9)
+        issueCommentsSeen: ($seenIc + seen_now($ic)),
+        reviewCommentsSeen: ($seenRc + seen_now($rc)),
+        # the max-id cursors stay written: an older daemon on this box reads only them,
+        # so a downgrade keeps its place
+        issueCommentIdMax: max_id($ic; $c.issueCommentIdMax),
+        reviewCommentIdMax: max_id($rc; $c.reviewCommentIdMax),
         reviewIdMax: max_id($in.reviews // []; $c.reviewIdMax)
       },
       prEnd: $prEnd
@@ -259,10 +373,12 @@ del_watch_record() {
 # .what = put one alert in the outbox of a watch
 # .why  = every alert lands on disk before it is sent, so a refusal or a crash
 #         holds it rather than drops it (F6); the name sorts oldest first
+# .note = the text rides stdin, not argv: one argv slot caps at 128 KiB, and an alert
+#         of many whole comments passes that
 set_watch_outbox_entry() {
   local record="$1" text="$2" stem
   stem="$(basename "$record" .json)"
-  jq -n --arg text "$text" --arg at "$(get_watch_iso_now)" '{ text: $text, tries: 0, heldAt: $at }' \
+  printf '%s' "$text" | jq -R -s --arg at "$(get_watch_iso_now)" '{ text: ., tries: 0, heldAt: $at }' \
     | set_watch_file_atomic "$(gen_watch_outbox_entry_path "$KEY_DIR" "$stem")"
 }
 
@@ -559,9 +675,11 @@ set_watch_alert_for_record() {
   }
   peers="$(get_all_watch_ledger_peer_json 2>/dev/null)" || peers='[]'
   [[ -n "$peers" ]] || peers='[]'
-  diff="$(jq -n --slurpfile watch "$record" --slurpfile state "$state_file" \
-    --argjson ledger "$ledger" --argjson peers "$peers" \
-    '$state[0] + { watch: $watch[0], ledger: $ledger, peers: $peers }' | jq "$WATCH_DIFF_JQ")" || {
+  # .note = the ledgers ride stdin, not argv: the box-wide peer ledger never prunes,
+  #         and one argv slot caps at 128 KiB; past it every diff on the box would fault
+  diff="$(printf '{"ledger":%s,"peers":%s}' "$ledger" "$peers" \
+    | jq --slurpfile watch "$record" --slurpfile state "$state_file" --argjson cap "$WATCH_REPLY_TEXT_MAX_CHARS" \
+    '$state[0] + { watch: $watch[0], ledger: .ledger, peers: .peers, textCap: $cap }' | jq "$WATCH_DIFF_JQ")" || {
     log_watch "diff failed for $(basename "$record")"
     return 0
   }
@@ -571,7 +689,11 @@ set_watch_alert_for_record() {
 
   # queue the alert first, then advance the cursors (F6, F7); a queue write that
   # does not land holds the cursors too, so the next tick queues it again
-  text="$(as_watch_alert_text "$repo" "$pr" "$events" "$end" "$closed_by")"
+  # a render that faults holds the cursors too: a bare or half alert would drop its task
+  text="$(as_watch_alert_text "$repo" "$pr" "$events" "$end" "$closed_by")" || {
+    log_watch "alert render failed for $(basename "$record"); cursors hold, so its alert is tried again next tick"
+    return 0
+  }
   if [[ -n "$text" ]] && ! set_watch_outbox_entry "$record" "$text"; then
     log_watch "outbox write failed for $(basename "$record") (cause above); cursors hold, so its alert is queued again next tick"
     return 0
@@ -584,10 +706,12 @@ set_watch_alert_for_record() {
 }
 
 # .what = a watch record with its cursors advanced, primed, and its end noted
+# .note = the cursors ride stdin, not argv: with a seen map per comment they pass one
+#         argv slot (128 KiB) on a long pr, and a write that never lands re-queues forever
 get_watch_record_advanced() {
   local record="$1" cursors="$2" end="$3"
-  jq --argjson cursors "$cursors" --arg prEnd "$end" \
-    '.cursors = $cursors | .primed = true | if $prEnd != "" then .ended = $prEnd else . end' "$record"
+  printf '%s' "$cursors" | jq --slurpfile record "$record" --arg prEnd "$end" \
+    '. as $cursors | $record[0] | .cursors = $cursors | .primed = true | if $prEnd != "" then .ended = $prEnd else . end'
 }
 
 # .what = note one more refused try on a held alert, and the refusal's cause

@@ -53,6 +53,8 @@ describe('userpromptsubmit.git-pull-watch.sh', () => {
     afterAll(() => scene.stopAllDaemons());
 
     // the held alerts of this clone, as the daemon wrote them
+    // .note = match `*.json` alone, as the hook's glob does: a write lands as
+    //         `<entry>.json.tmp.<pid>.<rand>` then moves, so a temp file is half a write
     const getHeld = (): { tries: number; cause?: string; text: string }[] => {
       const outboxes = fs
         .readdirSync(scene.getStateRoot())
@@ -61,7 +63,10 @@ describe('userpromptsubmit.git-pull-watch.sh', () => {
       return outboxes.flatMap((dir) =>
         fs
           .readdirSync(dir)
-          .filter((name) => name.includes(`.clone=${SERIAL}.`))
+          .filter(
+            (name) =>
+              name.includes(`.clone=${SERIAL}.`) && name.endsWith('.json'),
+          )
           .map((name) =>
             JSON.parse(fs.readFileSync(path.join(dir, name), 'utf-8')),
           ),
@@ -100,6 +105,19 @@ describe('userpromptsubmit.git-pull-watch.sh', () => {
           check: () => getHeld().some((one) => one.tries >= 2),
           scene,
         });
+
+        // plant half a write, as a temp file looks before its mv: no reader may count it
+        const decoys = fs
+          .readdirSync(scene.getStateRoot())
+          .map((dir) => path.join(scene.getStateRoot(), dir, 'outbox'))
+          .filter((dir) => fs.existsSync(dir))
+          .map((dir) =>
+            path.join(
+              dir,
+              `ehmpathy.surf-demo.pr=1220.clone=${SERIAL}.1700000000.42.7.json.tmp.42.7`,
+            ),
+          );
+        decoys.forEach((decoy) => fs.writeFileSync(decoy, '{"tries":'));
         const listedTree = scene.runSkill({
           verb: 'get',
           args: [],
@@ -114,7 +132,14 @@ describe('userpromptsubmit.git-pull-watch.sh', () => {
             serial: null,
           }).stdout,
         );
-        return { held: getHeld(), listedTree, listedJson };
+        const held = getHeld();
+        decoys.forEach((decoy) => fs.rmSync(decoy, { force: true }));
+        return { held, listedTree, listedJson, decoys };
+      });
+      then('a temp file mid-write is never read as an alert', () => {
+        expect(result.decoys.length).toBeGreaterThan(0);
+        expect(result.held).toHaveLength(1);
+        expect(result.listedJson.daemons[0].watches[0].held).toEqual(1);
       });
       then('the held alert carries the refusal cause', () => {
         expect(result.held).toHaveLength(1);
@@ -185,5 +210,100 @@ describe('userpromptsubmit.git-pull-watch.sh', () => {
         expect(result.stdout).toEqual('');
       });
     });
+
+    when(
+      '[t4] a member opens a review thread, and the daemon cannot say it',
+      () => {
+        const result = useThen(
+          'the next prompt prints the held reply task',
+          async () => {
+            scene.setStore((store) => {
+              store.github.reviewComments['ehmpathy/surf-demo#1220'] = [
+                {
+                  id: 902,
+                  body: 'why a 30 min cap?',
+                  user: { login: 'surfer-kai', type: 'User' },
+                  author_association: 'MEMBER',
+                  html_url:
+                    'https://github.com/ehmpathy/surf-demo/pull/1220#discussion_r902',
+                  // github serves every review comment with its path and line
+                  path: 'src/tide.ts',
+                  line: 12,
+                },
+              ];
+            });
+            await waitForWatch({
+              label: 'reply task held',
+              check: () =>
+                getHeld().some(
+                  // the hook prints only what is held past the named bound, as [t0] waits
+                  (one) => one.text.includes('reply task') && one.tries >= 2,
+                ),
+              scene,
+            });
+            return runHook(SERIAL);
+          },
+        );
+        then(
+          'the held mark asks for a check of the thread first, as the daemon route does',
+          () => {
+            expect(result.status).toEqual(0);
+            // a relay or the web may have answered while the task waited
+            expect(result.stdout).toMatch(
+              /reply task on #1220 \(held \d+ ticks; clone say refused: the say was withheld; check each thread first, you may have answered it\)/,
+            );
+            expect(
+              scene
+                .asMasked(result.stdout)
+                .replace(/held \d+ ticks/, 'held <n> ticks'),
+            ).toMatchSnapshot();
+          },
+        );
+      },
+    );
+
+    when(
+      '[t5] two members open threads in one read, and the daemon cannot say it',
+      () => {
+        const result = useThen(
+          'the next prompt prints the held reply tasks',
+          async () => {
+            scene.setStore((store) => {
+              store.github.reviewComments['ehmpathy/surf-demo#1220']!.push(
+                ...[903, 904].map((id) => ({
+                  id,
+                  body: id === 903 ? 'why poll here?' : 'and the docs?',
+                  user: { login: 'surfer-kai', type: 'User' as const },
+                  author_association: 'MEMBER' as const,
+                  html_url: `https://github.com/ehmpathy/surf-demo/pull/1220#discussion_r${id}`,
+                  path: 'src/tide.ts',
+                  line: 12,
+                })),
+              );
+            });
+            await waitForWatch({
+              label: 'two reply tasks held',
+              check: () =>
+                getHeld().some(
+                  (one) => one.text.includes('2 reply tasks') && one.tries >= 2,
+                ),
+              scene,
+            });
+            return runHook(SERIAL);
+          },
+        );
+        then('the plural mark asks for a check of each thread first', () => {
+          expect(result.status).toEqual(0);
+          expect(result.stdout).toMatch(
+            /2 reply tasks on #1220 \(held \d+ ticks; clone say refused: the say was withheld; check each thread first, you may have answered it\)/,
+          );
+          expect(
+            scene
+              .asMasked(result.stdout)
+              .replace(/held \d+ ticks/, 'held <n> ticks'),
+          ).toMatchSnapshot();
+        });
+      },
+    );
   });
 });

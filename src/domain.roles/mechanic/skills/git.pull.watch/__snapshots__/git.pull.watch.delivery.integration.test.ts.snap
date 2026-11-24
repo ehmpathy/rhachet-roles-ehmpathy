@@ -685,7 +685,7 @@ example:
 `;
 
 exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t4] help is asked of each verb then: each exits 0 with usage, options, and an example 2`] = `
-"git.pull.watch set: watch one pr for this clone; ci failures, comments, and approvals reach it as alerts
+"git.pull.watch set: watch one pr for this clone; ci failures, comments, and approvals reach it as alerts, and a human review comment that awaits its answer as a reply task
 
 usage: git.pull.watch set --which <n> [--in <owner/name>] [--mode plan|apply] [--output tree|json]
 needs: an enrolled clone (rhx enroll sets RHACHET_CLONE_SERIAL)

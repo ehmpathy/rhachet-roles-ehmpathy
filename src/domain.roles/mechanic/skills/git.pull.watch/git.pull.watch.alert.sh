@@ -121,7 +121,10 @@ print_watch_branches() {
 }
 
 # .what = the most failed checks one alert lists by name; the rest read as a count
+# .note = the reply layout hands it to `jq --argjson`, where a value that is no whole
+#         number faults the render and holds every alert; such a value falls back to 5
 WATCH_ALERT_CHECKS_SHOWN_MAX="${GIT_PULL_WATCH_ALERT_CHECKS_SHOWN_MAX:-5}"
+[[ "$WATCH_ALERT_CHECKS_SHOWN_MAX" =~ ^[1-9][0-9]*$ ]] || WATCH_ALERT_CHECKS_SHOWN_MAX=5
 
 # .what = the one head every ci failure of a burst shares, else empty
 # .why  = a burst on one push names its head once, not once per check
@@ -132,13 +135,138 @@ as_watch_ci_head_shared() {
     then (.[0].head // "?") else empty end'
 }
 
+# .what = jq defs that render a reply task as tree nodes, and nodes as tree lines
+# .why  = a reply task nests a thread, its text, and its command; one renderer draws
+#         `├─` / `└─` and the `│` spacers at every depth, so no layout hand-counts them
+# .note = a node is { text, kids }; render prints the nodes under one prefix
+WATCH_REPLY_JQ_DEFS='
+  def render($p): . as $nodes | [range(0; $nodes | length) as $i | $nodes[$i] as $n
+    | ($i == (($nodes | length) - 1)) as $last
+    | ($p + (if $last then "└─ " else "├─ " end) + $n.text),
+      ((($n.kids // []) | render($p + (if $last then "   " else "│  " end)))[])];
+  def reply_cmd($repo; $pr): "rhx git.pull.comment set --which \($pr) --in \($repo) --reply-to \(.root) --key \(.key) --from <file|@stdin> --mode apply";
+  def read_cmd($repo; $pr): "rhx git.pull.comment get --which \($pr) --in \($repo) --id \(.id) --kind review";
+  def says_node($repo; $pr; $multi): {
+    text: (if $multi then "says · @\(.author)" else "says" end),
+    kids: ([.lines[] | { text: . }]
+      + (if (.more // 0) > 0 then [{ text: "… \(.more) more chars: \(read_cmd($repo; $pr))" }] else [] end)) };
+  # a says line names its author only when the thread holds more than one, since the
+  # thread line already names the first
+  def thread_node($repo; $pr; $withReply): . as $e | (([$e.comments[].author] | unique | length) > 1) as $multi | {
+    text: "thread \($e.root) · \($e.label) · by @\($e.comments[0].author)",
+    kids: ((if $e.file != null then [{ text: "file: \($e.file)" }] else [] end)
+      + (if $e.re != null then [{ text: "re: \($e.re)" }] else [] end)
+      + [{ text: "url: \($e.url)" }]
+      + [$e.comments[] | says_node($repo; $pr; $multi)]
+      + (if $e.label == "edited" then [{ text: "note: an edit sends no notice, so this answer posts as a new reply, under its own key" }] else [] end)
+      + (if $withReply then [{ text: "reply: \($e | reply_cmd($repo; $pr))" }] else [] end)) };
+  # every ci failure of one read as one section: its head once, the first $max checks,
+  # then a count of the rest — the same shape the extant ci burst prints
+  # .note = one read stamps one head on each of its ci failures, so the head names once
+  def ci_node($max): . as $c | {
+    text: "ci failed",
+    kids: ([{ text: "head: \($c[0].head // "?")" }]
+      + [$c[0:$max][] | { text: "check: \(.name) (\(.conclusion))", kids: [{ text: "url: \(.url)" }] }]
+      + (if ($c | length) > $max then [{ text: "+ \(($c | length) - $max) more: rhx show.gh.test.errors" }] else [] end)
+      + [{ text: "next: rhx show.gh.test.errors" }]) };
+'
+
+# .what = the header phrase of the reply tasks in one alert
+# .why  = the first line is what a busy clone scans; it names the reply owed first
+# usage: as_watch_reply_phrase pr=<n> count=<n>
+as_watch_reply_phrase() {
+  local pr="" count="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      pr=*) pr="${arg#*=}" ;;
+      count=*) count="${arg#*=}" ;;
+    esac
+  done
+  [[ "$count" == "1" ]] && { echo "reply task on #$pr"; return 0; }
+  echo "$count reply tasks on #$pr"
+}
+
+# .what = the text of an alert that holds reply tasks, with any other events after them
+# .why  = a human awaits the crew, so the reply leads (F2): the header names it first,
+#         its section sits on top, and the last `next` puts it before code work. all of
+#         one read still rides one alert (A9)
+# .note = reply tasks alone: one → its thread flat under the pr, then `next` with its
+#         command; several → a thread per reply task, each with its command. with other
+#         events: a `reply task` section, then one `ci failed` section for every red
+#         check (head once, capped), then one labeled section per other event
+# usage: as_watch_reply_alert_text repo=<owner/name> pr=<n> replies=<json> rest=<json>
+as_watch_reply_alert_text() {
+  local repo="" pr="" replies="" rest="" arg count rest_count phrase vibe nodes rest_nodes event leaves label next
+  for arg in "$@"; do
+    case "$arg" in
+      repo=*) repo="${arg#*=}" ;;
+      pr=*) pr="${arg#*=}" ;;
+      replies=*) replies="${arg#*=}" ;;
+      rest=*) rest="${arg#*=}" ;;
+    esac
+  done
+  count="$(printf '%s' "$replies" | jq 'length')" || return 1
+  rest_count="$(printf '%s' "$rest" | jq 'length')" || return 1
+  phrase="$(as_watch_reply_phrase pr="$pr" count="$count")"
+  vibe="heads up dude..."
+  if [[ "$rest_count" != "0" ]]; then
+    local rest_phrase
+    # the rest's own phrase names the pr too (`ci failed on #N`, `approved #N`); cut it
+    rest_phrase="$(as_watch_alert_phrase "$pr" "$rest")"
+    rest_phrase="${rest_phrase% on #"$pr"}"
+    rest_phrase="${rest_phrase% #"$pr"}"
+    phrase="$phrase, and $rest_phrase"
+    vibe="$(as_watch_alert_vibe "$rest")"
+    [[ "$vibe" == "shell yeah!" ]] && vibe="heads up dude..."
+  fi
+  print_watch_alert_header "$vibe" "$phrase"
+
+  # every red check rides one section; each other event its own, with its own `next`
+  rest_nodes="$(printf '%s' "$rest" | jq -c --argjson max "$WATCH_ALERT_CHECKS_SHOWN_MAX" "$WATCH_REPLY_JQ_DEFS"'
+    [.[] | select(.kind == "ci.failed")] | if length > 0 then [ci_node($max)] else [] end')" || return 1
+  while IFS= read -r event; do
+    [[ -n "$event" ]] || continue
+    leaves="$(as_watch_event_leaves "$event" "$repo" "$pr" | jq -R -s 'split("\n") | map(select(length > 0))')" || return 1
+    label="$(as_watch_event_label "$(printf '%s' "$event" | jq -r '.kind')")" || return 1
+    next="$(as_watch_event_next "$event" "$repo" "$pr")" || return 1
+    rest_nodes="$(printf '{"nodes":%s,"leaves":%s}' "$rest_nodes" "$leaves" | jq --arg label "$label" --arg next "$next" \
+      '.nodes + [{ text: $label, kids: ([.leaves[] | { text: . }] + [{ text: "next: \($next)" }]) }]')" || return 1
+  done < <(printf '%s' "$rest" | jq -c '.[] | select(.kind != "ci.failed")')
+
+  # a render that faults returns nonzero, so the caller holds the cursors (no lost task)
+  # .note = the tasks ride stdin, not argv: one argv slot caps at 128 KiB, and a read
+  #         of many whole comments passes that, which would hold every alert on the pr
+  nodes="$(printf '{"replies":%s,"rest":%s}' "$replies" "$rest_nodes" \
+    | jq --arg repo "$repo" --arg pr "$pr" "$WATCH_REPLY_JQ_DEFS"'
+    .replies as $replies | .rest as $rest
+    | [{ text: "pr: \($repo)#\($pr)" }]
+    + (if ($rest | length) > 0 then
+        [{ text: (if ($replies | length) > 1 then "reply tasks" else "reply task" end), kids: [$replies[] | thread_node($repo; $pr; true)] }] + $rest
+        + [{ text: (if ($replies | length) > 1 then "next: reply to each thread first, then the rest" else "next: reply first, then the rest" end) }]
+      elif ($replies | length) == 1 then
+        [$replies[0] | thread_node($repo; $pr; false)]
+        + [{ text: "next: reply first, then resume: \($replies[0] | reply_cmd($repo; $pr))" }]
+      else
+        [$replies[] | thread_node($repo; $pr; true)]
+        + [{ text: "next: reply to each thread first, then resume" }]
+      end)')" || return 1
+  printf '%s' "$nodes" | jq -r "$WATCH_REPLY_JQ_DEFS"'render("   ")[]' || return 1
+}
+
 # .what = the text of one event alert (no closure)
 # .why  = all of one tick's events on one pr ride one alert (A9)
 # .note = one event → its leaves sit flat under the pr; several events of one
 #         kind → one section per event, headed by its first leaf, then one
 #         `next:`; several kinds → one labeled section per event, each with its own `next:`
+# .note = an alert that holds a reply task takes the reply layout (F2)
 as_watch_events_text() {
-  local repo="$1" pr="$2" events="$3" kinds_count count
+  local repo="$1" pr="$2" events="$3" kinds_count count replies
+  replies="$(printf '%s' "$events" | jq -c '[.[] | select(.kind == "reply.task")]')"
+  if [[ "$replies" != "[]" ]]; then
+    as_watch_reply_alert_text repo="$repo" pr="$pr" replies="$replies" \
+      rest="$(printf '%s' "$events" | jq -c '[.[] | select(.kind != "reply.task")]')" || return 1
+    return 0
+  fi
   count="$(printf '%s' "$events" | jq 'length')"
   kinds_count="$(printf '%s' "$events" | jq '[.[].kind] | unique | length')"
   print_watch_alert_header "$(as_watch_alert_vibe "$events")" "$(as_watch_alert_phrase "$pr" "$events")"
@@ -232,10 +360,13 @@ as_watch_closure_text() {
 
 # .what = the whole alert of one watch for one tick: events, then any closure
 # .why  = events that landed before the merge still reach the clone, ahead of the end
+# .note = returns nonzero where the events fail to render, so the caller holds its cursors
 as_watch_alert_text() {
   local repo="$1" pr="$2" events="$3" end="$4" closed_by="$5" count
   count="$(printf '%s' "$events" | jq 'length')"
-  [[ "$count" != "0" ]] && as_watch_events_text "$repo" "$pr" "$events"
+  if [[ "$count" != "0" ]]; then
+    as_watch_events_text "$repo" "$pr" "$events" || return 1
+  fi
   [[ "$count" != "0" && -n "$end" ]] && echo ""
   [[ -n "$end" ]] && as_watch_closure_text "$pr" "$end" "$closed_by"
   return 0
@@ -294,10 +425,14 @@ as_watch_token_fault_text() {
 
 # .what = mark an alert as held, on its first 🐚 root line
 # .why  = a clone told the alert waited reads it as late, not as new
+# .note = a held reply task may already be answered by another route (a relay, the
+#         web); its mark asks the crew to check the thread before it posts a twin
 as_watch_alert_text_held() {
   local text="$1" tries="$2"
   printf '%s\n' "$text" | awk -v mark=" (held $tries ticks; you were busy)" \
-    '!done && /^🐚 / { print $0 mark; done = 1; next } { print }'
+    -v reply=" (held $tries ticks; you were busy; check each thread first, you may have answered it)" \
+    '!done && /^🐚 / && /reply task/ { print $0 reply; done = 1; next }
+     !done && /^🐚 / { print $0 mark; done = 1; next } { print }'
   return 0
 }
 

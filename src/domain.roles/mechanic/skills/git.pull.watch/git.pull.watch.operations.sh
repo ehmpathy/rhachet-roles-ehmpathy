@@ -28,6 +28,12 @@ WATCH_POLL_MAX_SECONDS="${GIT_PULL_WATCH_POLL_MAX_SECONDS:-1800}"
 # an alert held this many ticks is named in `get` with its cause; a test sets it low
 WATCH_HELD_NAMED_TICKS="${GIT_PULL_WATCH_HELD_NAMED_TICKS:-10}"
 
+# the most chars of one comment a reply task carries; past it, a cut line names the read
+# .note = a value that is no whole number would stall every diff (`--argjson`), so it
+#         falls back to the default
+WATCH_REPLY_TEXT_MAX_CHARS="${GIT_PULL_WATCH_REPLY_TEXT_MAX_CHARS:-2000}"
+[[ "$WATCH_REPLY_TEXT_MAX_CHARS" =~ ^[1-9][0-9]*$ ]] || WATCH_REPLY_TEXT_MAX_CHARS=2000
+
 # a pr with no change for this long ends its watches, so no poll outlives its use (1w)
 WATCH_IDLE_TTL_SECONDS="${GIT_PULL_WATCH_IDLE_TTL_SECONDS:-604800}"
 
@@ -969,7 +975,7 @@ as_watch_record_json() {
       schema: 1,
       repo: $repo, pr: $pr, cloneSerial: $serial, cloneSlug: $slug, repoRoot: $root,
       watchId: $id, setAt: $at, primed: false,
-      cursors: { headSha: null, checkRunIdsSeen: [], issueCommentIdMax: 0, reviewCommentIdMax: 0, reviewIdMax: 0 }
+      cursors: { headSha: null, checkRunIdsSeen: [], issueCommentsSeen: {}, reviewCommentsSeen: {}, issueCommentIdMax: 0, reviewCommentIdMax: 0, reviewIdMax: 0 }
     }'
 }
 
@@ -1016,8 +1022,8 @@ as_watch_pr_state_print() {
   jq -c '{
     head: .pull.head.sha, state: .pull.state, merged: .pull.merged,
     checks: [(.checks.check_runs // [])[] | [.id, .status, .conclusion]],
-    issueComments: [(.issueComments // [])[].id],
-    reviewComments: [(.reviewComments // [])[].id],
+    issueComments: [(.issueComments // [])[] | [.id, (.body // "" | length), .updated_at]],
+    reviewComments: [(.reviewComments // [])[] | [.id, (.body // "" | length), .updated_at]],
     reviews: [(.reviews // [])[] | [.id, .state]]
   }' "$1" | as_watch_sha256
 }

@@ -12,3 +12,40 @@ exports[`userpromptsubmit.git-pull-watch.sh given: [case1] a clone whose screen 
 
 "
 `;
+
+exports[`userpromptsubmit.git-pull-watch.sh given: [case1] a clone whose screen clone say refuses, for good when: [t4] a member opens a review thread, and the daemon cannot say it then: the held mark asks for a check of the thread first, as the daemon route does 1`] = `
+"🐢 heads up dude...
+
+🐚 git.pull.watch — reply task on #1220 (held <n> ticks; clone say refused: the say was withheld; check each thread first, you may have answered it)
+   ├─ pr: ehmpathy/surf-demo#1220
+   ├─ thread 902 · new · by @surfer-kai
+   │  ├─ file: src/tide.ts:12
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/1220#discussion_r902
+   │  └─ says
+   │     └─ why a 30 min cap?
+   └─ next: reply first, then resume: rhx git.pull.comment set --which 1220 --in ehmpathy/surf-demo --reply-to 902 --key answer-902-ca1a1a1a1 --from <file|@stdin> --mode apply
+
+"
+`;
+
+exports[`userpromptsubmit.git-pull-watch.sh given: [case1] a clone whose screen clone say refuses, for good when: [t5] two members open threads in one read, and the daemon cannot say it then: the plural mark asks for a check of each thread first 1`] = `
+"🐢 heads up dude...
+
+🐚 git.pull.watch — 2 reply tasks on #1220 (held <n> ticks; clone say refused: the say was withheld; check each thread first, you may have answered it)
+   ├─ pr: ehmpathy/surf-demo#1220
+   ├─ thread 903 · new · by @surfer-kai
+   │  ├─ file: src/tide.ts:12
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/1220#discussion_r903
+   │  ├─ says
+   │  │  └─ why poll here?
+   │  └─ reply: rhx git.pull.comment set --which 1220 --in ehmpathy/surf-demo --reply-to 903 --key answer-903-ca1a1a1a1 --from <file|@stdin> --mode apply
+   ├─ thread 904 · new · by @surfer-kai
+   │  ├─ file: src/tide.ts:12
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/1220#discussion_r904
+   │  ├─ says
+   │  │  └─ and the docs?
+   │  └─ reply: rhx git.pull.comment set --which 1220 --in ehmpathy/surf-demo --reply-to 904 --key answer-904-ca1a1a1a1 --from <file|@stdin> --mode apply
+   └─ next: reply to each thread first, then resume
+
+"
+`;
