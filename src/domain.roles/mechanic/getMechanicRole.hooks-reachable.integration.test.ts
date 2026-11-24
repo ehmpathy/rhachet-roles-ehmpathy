@@ -29,6 +29,13 @@ describe('getMechanicRole · every registered hook is reachable', () => {
   // .note = the repo-owned settings rhachet generates; `settings.json` links to the
   //         human's own grove settings, which carry no role hooks
   const settingsPath = path.join(repoRoot, '.claude', 'settings.of.repo.json');
+  // .note = `rhx init --hooks` registers one dispatch command per event in settings, and
+  //         lists each role hook in this manifest; the dispatcher runs the manifest rows
+  const manifestPath = path.join(
+    repoRoot,
+    '.claude',
+    'hooks.dispatch.manifest',
+  );
 
   /**
    * .what = the shape of a `.claude/settings.json` hook tree, as this case reads it
@@ -61,6 +68,27 @@ describe('getMechanicRole · every registered hook is reachable', () => {
         })),
       ),
     );
+
+  /**
+   * .what = flatten a hooks.dispatch manifest into one row per registered hook
+   * .why = once settings route through the dispatcher, the role hooks live here, not in
+   *        settings; a walk of settings alone would grade the dispatcher, never the hooks
+   * .note = a row is `event␟matcher␟timeout␟author␟kind␟path␟label␟args␟command␟`;
+   *         `#` lines are comments. an absent manifest yields [], which the positive
+   *         controls below turn red
+   */
+  const asAllManifestHooks = (input: {
+    manifest: string;
+  }): { command: string; author: string; event: string }[] =>
+    input.manifest
+      .split('\n')
+      .filter((line) => line.length > 0 && !line.startsWith('#'))
+      .map((line) => line.split('\x1f'))
+      .map((fields) => ({
+        event: fields[0] ?? '',
+        author: fields[3] ?? '',
+        command: fields[8] ?? '',
+      }));
 
   /**
    * .what = of the given registered hooks, the ones THIS role authored
@@ -200,9 +228,16 @@ describe('getMechanicRole · every registered hook is reachable', () => {
       //         useBeforeAll returns a proxy, and `.length` on a proxied array
       //         reads undefined
       const registry = useBeforeAll(async () => ({
-        hooks: asAllRegisteredHooks({
-          settings: JSON.parse(readFileSync(settingsPath, 'utf-8')),
-        }),
+        hooks: [
+          ...asAllRegisteredHooks({
+            settings: JSON.parse(readFileSync(settingsPath, 'utf-8')),
+          }),
+          ...(existsSync(manifestPath)
+            ? asAllManifestHooks({
+                manifest: readFileSync(manifestPath, 'utf-8'),
+              })
+            : []),
+        ],
       }));
 
       then('at least one hook is registered', () => {

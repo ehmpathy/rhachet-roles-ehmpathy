@@ -42,7 +42,23 @@ export interface WatchStoreComment {
   created_at?: string;
   /** an inline review comment's file and line, as github serves them */
   path?: string;
-  line?: number;
+  /** null once a push moves the code under it, or on a comment on a whole file */
+  line?: number | null;
+  /** the line a comment was left on; github keeps it when a later push nulls `line` */
+  original_line?: number | null;
+  /** a reply in a review thread names its root, as github serves it */
+  in_reply_to_id?: number;
+  /** the review a review comment rides; a draft review's comments reach the api at its submit */
+  pull_request_review_id?: number;
+  /** the author's tie to the repo, as github serves it; only a trusted one raises a reply task */
+  author_association?:
+    | 'OWNER'
+    | 'MEMBER'
+    | 'COLLABORATOR'
+    | 'CONTRIBUTOR'
+    | 'NONE';
+  /** iso time of the last edit, as github serves it */
+  updated_at?: string;
 }
 
 export interface WatchStoreReview extends WatchStoreComment {
@@ -113,6 +129,17 @@ const fs = require('fs');
 const crypto = require('crypto');
 const state = JSON.parse(fs.readFileSync(process.env.FAKE_WATCH_STATE, 'utf-8'));
 const argv = process.argv.slice(2);
+// a body past one pipe buffer (8 KiB) must land whole before process.exit; an async
+// stdout write would drop its tail, so each write is a sync loop (EAGAIN retries)
+// .note = deliberate mutation: the write offset advances as each chunk lands
+const emit = (text) => {
+  const buf = Buffer.from(text);
+  let at = 0;
+  while (at < buf.length) {
+    try { at += fs.writeSync(1, buf, at); } catch (error) { if (error.code !== 'EAGAIN') throw error; }
+  }
+};
+process.stdout.write = (text) => { emit(String(text)); return true; };
 const log = (status) => fs.appendFileSync(process.env.FAKE_WATCH_GH_LOG, JSON.stringify({ argv, token: process.env.GH_TOKEN ?? null, status }) + '\n');
 if (argv[0] !== 'api') { log('refused'); process.stderr.write('stub gh: only api\n'); process.exit(1); }
 const rest = argv.slice(1);

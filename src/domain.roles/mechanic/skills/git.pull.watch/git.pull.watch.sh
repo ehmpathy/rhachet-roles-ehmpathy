@@ -4,7 +4,8 @@
 #
 # .why  = once a pr is watched, a pr-watch daemon (one per machine per
 #         version) alerts the clone of ci failures, new comments, approval,
-#         and the pr's end. git.commit.push watches each pr it opens
+#         and the pr's end; a human review comment that awaits the clone's
+#         answer reaches it as a reply task. git.commit.push watches each pr it opens
 #
 # usage:
 #   rhx git.pull.watch get                              # daemons + watches

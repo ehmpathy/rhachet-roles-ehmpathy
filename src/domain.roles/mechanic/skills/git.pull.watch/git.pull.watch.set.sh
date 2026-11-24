@@ -33,7 +33,7 @@ OUTPUT="tree"
 # .what = print the usage: every flag, its default, an example
 help() {
   cat <<'EOF'
-git.pull.watch set: watch one pr for this clone; ci failures, comments, and approvals reach it as alerts
+git.pull.watch set: watch one pr for this clone; ci failures, comments, and approvals reach it as alerts, and a human review comment that awaits its answer as a reply task
 
 usage: git.pull.watch set --which <n> [--in <owner/name>] [--mode plan|apply] [--output tree|json]
 needs: an enrolled clone (rhx enroll sets RHACHET_CLONE_SERIAL)

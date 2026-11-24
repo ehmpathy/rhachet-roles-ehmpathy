@@ -57,8 +57,12 @@ set_watch_outbox_printed_of_key() {
     [[ -n "$entry" ]] || continue
     IFS=$'\t' read -r tries cause < <(jq -r '[(.tries // 0), (.cause // "no cause given")] | @tsv' "$entry")
     text="$(jq -r '.text' "$entry")"
+    # a held reply task may already be answered by another route, so its mark asks
+    # for a check of the thread first, as the daemon route does
     printf '%s\n' "$text" | awk -v mark=" (held $tries ticks; clone say refused: $cause)" \
-      '!done && /^🐚 / { print $0 mark; done = 1; next } { print }'
+      -v reply=" (held $tries ticks; clone say refused: $cause; check each thread first, you may have answered it)" \
+      '!done && /^🐚 / && /reply task/ { print $0 reply; done = 1; next }
+       !done && /^🐚 / { print $0 mark; done = 1; next } { print }'
     echo ""
     rm -f "$entry"
   done < <(get_all_watch_outbox_entries_held_of_clone "$key_dir")

@@ -853,7 +853,7 @@ describe('git.pull.watch events', () => {
       );
 
       when('[t2] a ci bot leaves a review comment', () => {
-        const result = useThen('the next tick alerts', async () => {
+        const result = useThen('ticks pass', async () => {
           scene.setStore((store) => {
             store.github.reviewComments[`${REPO}#${PR}`] = [
               {
@@ -865,18 +865,21 @@ describe('git.pull.watch events', () => {
               },
             ];
           });
-          const says = await waitForWatch({
-            label: 'bot comment alert',
-            check: () => (scene.getSays().length >= 2 ? scene.getSays() : null),
-            scene,
-          });
-          return { says };
+          await scene.waitForDaemonTicks({ ticks: 3 });
+          return {
+            says: scene.getSays(),
+            seen: Object.keys(
+              scene.getAllWatchRecords()[0]?.record.cursors
+                .reviewCommentsSeen ?? {},
+            ),
+          };
         });
-        then('the bot comment is alerted, labeled bot', () => {
-          expect(result.says[1]!.text).toContain(
-            'by: @reef-lint[bot] (bot) · review comment',
-          );
-          expect(scene.asMasked(result.says[1]!.text)).toMatchSnapshot();
+        then('the read saw the bot comment: naught raised by choice', () => {
+          // a diff that faults each tick still ticks; the seen map proves it read
+          expect(result.seen).toContain('301');
+        });
+        then('a bot thread raises naught: no alert of any kind', () => {
+          expect(result.says).toHaveLength(1);
         });
       });
 
@@ -893,16 +896,16 @@ describe('git.pull.watch events', () => {
           });
           const says = await waitForWatch({
             label: 'peer clone comment alert',
-            check: () => (scene.getSays().length >= 3 ? scene.getSays() : null),
+            check: () => (scene.getSays().length >= 2 ? scene.getSays() : null),
             scene,
           });
           return { says };
         });
         then('the comment is alerted, labeled clone, not bot', () => {
-          expect(result.says[2]!.text).toContain(
+          expect(result.says[1]!.text).toContain(
             'by: @ehm-seaturtle[bot] (clone) · comment',
           );
-          expect(scene.asMasked(result.says[2]!.text)).toMatchSnapshot();
+          expect(scene.asMasked(result.says[1]!.text)).toMatchSnapshot();
         });
       });
 
@@ -937,24 +940,24 @@ describe('git.pull.watch events', () => {
           });
           await waitForWatch({
             label: 'burst alert',
-            check: () => scene.getSays().length >= 4,
+            check: () => scene.getSays().length >= 3,
             scene,
           });
           await scene.waitForDaemonTicks({ ticks: 2 });
           return { says: scene.getSays() };
         });
         then('the burst arrives as one alert', () => {
-          expect(result.says).toHaveLength(4);
-          expect(result.says[3]!.text).toContain('3 events on #1220');
+          expect(result.says).toHaveLength(3);
+          expect(result.says[2]!.text).toContain('3 events on #1220');
         });
         then('each event is its own section, with its own next line', () => {
-          expect(result.says[3]!.text).toContain('ci failed');
-          expect(result.says[3]!.text).toContain('by: @surfer-kai · comment');
-          expect(result.says[3]!.text).toContain('by: @surfer-nalu · comment');
-          expect(result.says[3]!.text).toContain(
+          expect(result.says[2]!.text).toContain('ci failed');
+          expect(result.says[2]!.text).toContain('by: @surfer-kai · comment');
+          expect(result.says[2]!.text).toContain('by: @surfer-nalu · comment');
+          expect(result.says[2]!.text).toContain(
             'next: rhx show.gh.test.errors',
           );
-          expect(scene.asMasked(result.says[3]!.text)).toMatchSnapshot();
+          expect(scene.asMasked(result.says[2]!.text)).toMatchSnapshot();
         });
       });
     },
