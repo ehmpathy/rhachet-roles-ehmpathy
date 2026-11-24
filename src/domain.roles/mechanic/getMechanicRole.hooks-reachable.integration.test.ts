@@ -66,6 +66,46 @@ describe('getMechanicRole · every registered hook is reachable', () => {
     );
 
   /**
+   * .what = the role hooks a registered hook stands for: the rows of its dispatch manifest when it
+   *         is a rhachet hook dispatcher, else the hook itself
+   * .why = rhachet (>= 1.54) registers one dispatcher per claude event,
+   *        `bash <bin>/hooks.dispatch.sh <brain dir> <event>`, and parks each role hook as a row in
+   *        `<brain dir>/hooks.dispatch.manifest`. a walk of settings alone sees the dispatcher, never
+   *        the hooks it runs, so every check below would grade naught on the dispatched events
+   * .note = a manifest row holds fields split by \x1f, in rhachet's declared order; this reads the
+   *         three it needs (event, author, command) by that order. a `#` line or an empty line is
+   *         no row
+   */
+  const asRoleHooksOfRegisteredHook = (input: {
+    hook: { command: string; author: string; event: string };
+  }): { command: string; author: string; event: string }[] => {
+    // a hook that is no dispatcher stands for itself
+    const words = input.hook.command.trim().split(/\s+/);
+    const isDispatcher =
+      words.length === 4 &&
+      words[0] === 'bash' &&
+      (words[1] ?? '').endsWith('/hooks.dispatch.sh');
+    if (!isDispatcher) return [input.hook];
+
+    // a dispatcher stands for the rows of its manifest, beside the settings in its brain dir
+    const manifestPath = path.join(
+      repoRoot,
+      words[2] ?? '',
+      'hooks.dispatch.manifest',
+    );
+    const FIELD = { event: 0, author: 3, command: 8 };
+    return readFileSync(manifestPath, 'utf-8')
+      .split('\n')
+      .filter((line) => line.length > 0 && !line.startsWith('#'))
+      .map((line) => line.split('\x1f'))
+      .map((fields) => ({
+        command: fields[FIELD.command] ?? '',
+        author: fields[FIELD.author] ?? '',
+        event: fields[FIELD.event] ?? '',
+      }));
+  };
+
+  /**
    * .what = of the given registered hooks, the ones THIS role authored
    * .why = settings.json also carries hooks from other role packages
    *        (bhuild/behaver, ehmpathy/architect, …) whose source this repo does
@@ -202,10 +242,12 @@ describe('getMechanicRole · every registered hook is reachable', () => {
       // .note = wrapped in an object, never handed back as a bare array —
       //         useBeforeAll returns a proxy, and `.length` on a proxied array
       //         reads undefined
+      // .note = each dispatcher expands to the role hooks of its manifest, so the walk grades
+      //         the hooks claude runs, under either hook layout rhachet writes
       const registry = useBeforeAll(async () => ({
         hooks: asAllRegisteredHooks({
           settings: JSON.parse(readFileSync(settingsPath, 'utf-8')),
-        }),
+        }).flatMap((hook) => asRoleHooksOfRegisteredHook({ hook })),
       }));
 
       then('at least one hook is registered', () => {
