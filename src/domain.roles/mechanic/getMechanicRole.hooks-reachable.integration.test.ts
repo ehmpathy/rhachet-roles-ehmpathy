@@ -32,6 +32,13 @@ describe('getMechanicRole · every registered hook is reachable', () => {
   const settingsPath = getOneRepoSettingsPath({
     claudeDir: path.join(repoRoot, '.claude'),
   });
+  // .note = where `rhachet init --hooks` moves role hooks once it sets hook dispatchers; the
+  //         settings then hold the dispatchers, and the manifest holds the hooks they run
+  const manifestPath = path.join(
+    repoRoot,
+    '.claude',
+    'hooks.dispatch.manifest',
+  );
 
   /**
    * .what = the shape of a `.claude/settings.json` hook tree, as this case reads it
@@ -64,6 +71,27 @@ describe('getMechanicRole · every registered hook is reachable', () => {
         })),
       ),
     );
+
+  /**
+   * .what = one row per role hook the dispatch manifest holds, as its declared command
+   * .why = a dispatcher-era settings file names each dispatcher, never the role hooks behind it,
+   *        so a walk of the settings alone sees almost no mechanic hook
+   * .note = a row is the fields event, matcher, timeout, author, kind, path, frame, args,
+   *         command, when, split by \x1f; a line that opens with `#`, or an empty line, is no row
+   * .note = an absent manifest yields [], so a settings file stamped before dispatchers still reads whole
+   */
+  const asAllManifestHooks = (input: {
+    text: string | null;
+  }): { command: string; author: string; event: string }[] =>
+    (input.text ?? '')
+      .split('\n')
+      .filter((line) => line.length > 0 && !line.startsWith('#'))
+      .map((line) => line.split('\x1f'))
+      .map((fields) => ({
+        event: fields[0] ?? '',
+        author: fields[3] ?? '',
+        command: fields[8] ?? '',
+      }));
 
   /**
    * .what = of the given registered hooks, the ones THIS role authored
@@ -203,9 +231,16 @@ describe('getMechanicRole · every registered hook is reachable', () => {
       //         useBeforeAll returns a proxy, and `.length` on a proxied array
       //         reads undefined
       const registry = useBeforeAll(async () => ({
-        hooks: asAllRegisteredHooks({
-          settings: JSON.parse(readFileSync(settingsPath, 'utf-8')),
-        }),
+        hooks: [
+          ...asAllRegisteredHooks({
+            settings: JSON.parse(readFileSync(settingsPath, 'utf-8')),
+          }),
+          ...asAllManifestHooks({
+            text: existsSync(manifestPath)
+              ? readFileSync(manifestPath, 'utf-8')
+              : null,
+          }),
+        ],
       }));
 
       then('at least one hook is registered', () => {
