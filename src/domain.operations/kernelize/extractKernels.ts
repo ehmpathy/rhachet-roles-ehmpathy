@@ -23,7 +23,8 @@ import { withSimpleCacheAsync } from 'with-simple-cache';
 import { withRetry, withTimeout } from 'wrapper-fns';
 import { z } from 'zod';
 
-import { getAllBrainAtoms } from '../brain/getAllBrainAtoms';
+import { getAllBrainAtoms } from '@src/domain.operations/brain/getAllBrainAtoms';
+
 import { clusterKernels } from './clusterKernels';
 
 /**
@@ -196,7 +197,9 @@ ${input.content}`;
  */
 export const extractKernels = withSimpleCacheAsync(_extractKernels, {
   cache: kernelizeCache,
+  deserialize: { value: (cached: string) => JSON.parse(cached) },
   serialize: {
+    value: (output) => JSON.stringify(output),
     key: (input) =>
       genKernelizeCacheKey({
         content: input.content,

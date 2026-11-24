@@ -14,7 +14,7 @@ import {
   type ConsensusStability,
   extractKernels,
   extractKernelsWithConsensus,
-} from '../../../../domain.operations/kernelize/extractKernels';
+} from '@src/domain.operations/kernelize/extractKernels';
 
 /**
  * .what = output format for kernelize skill

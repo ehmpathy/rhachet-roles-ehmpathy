@@ -1,4 +1,4 @@
-import type { EvalVerdict } from '../schemas';
+import type { EvalVerdict } from '@src/domain.roles/.evals/schemas';
 
 /**
  * .what = count verdicts that failed

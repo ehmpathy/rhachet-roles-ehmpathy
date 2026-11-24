@@ -8,7 +8,7 @@
  * regex scan for words that end in -ing, then recompress without gerunds
  */
 
-import { compressViaBhrain } from '../../../brief.compress/compress.via.bhrain';
+import { compressViaBhrain } from '@src/domain.roles/librarian/skills/brief.compress/compress.via.bhrain';
 
 /**
  * .what = regex pattern to detect gerunds

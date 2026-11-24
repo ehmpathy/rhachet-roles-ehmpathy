@@ -15,12 +15,12 @@ import { withSimpleCacheAsync } from 'with-simple-cache';
 import {
   type ClusterResult,
   clusterKernels as clusterKernelsRaw,
-} from '../../../../domain.operations/kernelize/clusterKernels';
+} from '@src/domain.operations/kernelize/clusterKernels';
 import {
   type ConceptKernel,
   extractKernels,
-} from '../../../../domain.operations/kernelize/extractKernels';
-import { loadAllTestBriefs } from '../brief.compress/.test/fixtures/briefs';
+} from '@src/domain.operations/kernelize/extractKernels';
+import { loadAllTestBriefs } from '@src/domain.roles/librarian/skills/brief.compress/.test/fixtures/briefs';
 
 /**
  * .what = rate limiter for parallel brain calls
@@ -80,7 +80,9 @@ const clusterKernels = withSimpleCacheAsync(
   },
   {
     cache: perfevalCache,
+    deserialize: { value: (cached: string) => JSON.parse(cached) },
     serialize: {
+      value: (output) => JSON.stringify(output),
       key: (...forInput: any[]) => {
         const input = forInput[0];
         const kernelHash = createHash('sha256')

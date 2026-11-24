@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, useThen, when } from 'test-fns';
 
-import { maskSpinnerTicks } from '../../../../.test/maskSpinnerTicks';
+import { maskSpinnerTicks } from '@src/.test/maskSpinnerTicks';
 
 /**
  * .what = integration tests for git.repo.test --against and --env flags

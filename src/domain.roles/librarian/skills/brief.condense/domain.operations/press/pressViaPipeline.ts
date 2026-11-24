@@ -13,13 +13,13 @@
  * - step 2: compress the result with telegraphic
  */
 
-import type { ConceptKernel } from '../../../../../../domain.operations/kernelize/extractKernels';
-import { countTokens } from '../../../brief.compress/compress.shared';
+import type { ConceptKernel } from '@src/domain.operations/kernelize/extractKernels';
+import { countTokens } from '@src/domain.roles/librarian/skills/brief.compress/compress.shared';
 import {
   type CompressionResult,
   compressViaBhrain,
   type MechanismOrModifier,
-} from '../../../brief.compress/compress.via.bhrain';
+} from '@src/domain.roles/librarian/skills/brief.compress/compress.via.bhrain';
 
 /**
  * .what = compress content through a multi-step pipeline

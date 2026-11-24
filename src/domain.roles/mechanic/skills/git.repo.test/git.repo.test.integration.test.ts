@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, useThen, when } from 'test-fns';
 
-import { maskSpinnerTicks } from '../../../../.test/maskSpinnerTicks';
+import { maskSpinnerTicks } from '@src/.test/maskSpinnerTicks';
 
 /**
  * .what = integration tests for git.repo.test.sh skill
@@ -1605,7 +1605,7 @@ module.exports = {
         const tempDir = genTempDir({
           slug: 'changed-since',
           clone:
-            './src/domain.roles/mechanic/skills/git.repo.test/__test_assets__/changedSince',
+            './src/domain.roles/mechanic/skills/git.repo.test/.test.assets/changedSince',
           git: true,
         });
 
@@ -1700,7 +1700,7 @@ module.exports = {
           const tempDir = genTempDir({
             slug: 'changed-since-behind',
             clone:
-              './src/domain.roles/mechanic/skills/git.repo.test/__test_assets__/changedSince',
+              './src/domain.roles/mechanic/skills/git.repo.test/.test.assets/changedSince',
             git: true,
           });
 

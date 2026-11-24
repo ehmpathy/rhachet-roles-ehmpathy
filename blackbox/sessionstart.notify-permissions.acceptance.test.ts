@@ -1,6 +1,5 @@
 import * as fs from 'fs';
 import * as path from 'path';
-
 import { given, then, useBeforeAll, useThen, when } from 'test-fns';
 
 import {
@@ -26,7 +25,10 @@ const HOOK = 'sessionstart.notify-permissions.sh';
  *        ($CLAUDE_CONFIG_DIR); both are pinned so the runner's own settings never leak in
  *        (rule.require.hermetic-tests)
  */
-const HERMETIC_ENV = { CLAUDE_CONFIG_DIR: undefined, HOME: '/nonexistent-home' };
+const HERMETIC_ENV = {
+  CLAUDE_CONFIG_DIR: undefined,
+  HOME: '/nonexistent-home',
+};
 
 /**
  * .what = the pre-approved section of the notice, up to the auto-decide section
@@ -44,7 +46,12 @@ describe('sessionstart.notify-permissions.sh (acceptance)', () => {
         dir,
         settings: {
           permissions: {
-            allow: ['Bash(git status:*)', 'Bash(git diff:*)', 'Bash(rhx:*)', 'Bash(tree:*)'],
+            allow: [
+              'Bash(git status:*)',
+              'Bash(git diff:*)',
+              'Bash(rhx:*)',
+              'Bash(tree:*)',
+            ],
             deny: [],
             ask: [],
           },
@@ -55,7 +62,12 @@ describe('sessionstart.notify-permissions.sh (acceptance)', () => {
 
     when('[t0] a session starts', () => {
       const res = useThen('the notice runs', async () =>
-        invokeHook({ hookName: HOOK, cwd: repo.dir, stdin: '{}', env: HERMETIC_ENV }),
+        invokeHook({
+          hookName: HOOK,
+          cwd: repo.dir,
+          stdin: '{}',
+          env: HERMETIC_ENV,
+        }),
       );
 
       then('the notice succeeds, silent on stderr', () => {
@@ -92,7 +104,12 @@ describe('sessionstart.notify-permissions.sh (acceptance)', () => {
 
     when('[t0] a session starts', () => {
       const res = useThen('the notice runs', async () =>
-        invokeHook({ hookName: HOOK, cwd: repo.dir, stdin: '{}', env: HERMETIC_ENV }),
+        invokeHook({
+          hookName: HOOK,
+          cwd: repo.dir,
+          stdin: '{}',
+          env: HERMETIC_ENV,
+        }),
       );
 
       then('the notice is silent on both streams, exit 0', () => {
@@ -103,38 +120,55 @@ describe('sessionstart.notify-permissions.sh (acceptance)', () => {
     });
   });
 
-  given('[case3] a linked repo whose two settings files are both broken', () => {
-    // each broken file appends its own malfunction, joined by "; " — a `+=` slipped to `=`
-    // would drop the first file in silence
-    const repo = useBeforeAll(async () => {
-      const dir = await genTestDir({ slug: 'sn-both-broken' });
-      setTestRepoLayoutOld({ dir });
-      fs.writeFileSync(path.join(dir, '.claude', 'settings.json'), '{ broken');
-      fs.writeFileSync(path.join(dir, '.claude', 'settings.local.json'), '{ also broken');
-      return { dir };
-    });
-
-    when('[t0] a session starts', () => {
-      const res = useThen('the notice runs', async () =>
-        invokeHook({ hookName: HOOK, cwd: repo.dir, stdin: '{}', env: HERMETIC_ENV }),
-      );
-
-      then('the built notice names both files, exit 0', () => {
-        expect(res.code).toBe(0);
-        expect(res.stdout).toContain('.claude/settings.json');
-        expect(res.stdout).toContain('.claude/settings.local.json');
+  given(
+    '[case3] a linked repo whose two settings files are both broken',
+    () => {
+      // each broken file appends its own malfunction, joined by "; " — a `+=` slipped to `=`
+      // would drop the first file in silence
+      const repo = useBeforeAll(async () => {
+        const dir = await genTestDir({ slug: 'sn-both-broken' });
+        setTestRepoLayoutOld({ dir });
+        fs.writeFileSync(
+          path.join(dir, '.claude', 'settings.json'),
+          '{ broken',
+        );
+        fs.writeFileSync(
+          path.join(dir, '.claude', 'settings.local.json'),
+          '{ also broken',
+        );
+        return { dir };
       });
 
-      then('the pre-approved section matches snapshot', () => {
-        // the jq parse text varies by jq version, and the temp dir by run; both are masked
-        expect(
-          asPreapprovedSection({ stdout: res.stdout })
-            .replace(/\(jq: [^)]*\)|\((?:parse error|jq)[^)]*\)/g, '(<jq error>)')
-            .replace(/\/\S*\.sn-both-broken\.[0-9a-f]+/g, '<repo>'),
-        ).toMatchSnapshot();
+      when('[t0] a session starts', () => {
+        const res = useThen('the notice runs', async () =>
+          invokeHook({
+            hookName: HOOK,
+            cwd: repo.dir,
+            stdin: '{}',
+            env: HERMETIC_ENV,
+          }),
+        );
+
+        then('the built notice names both files, exit 0', () => {
+          expect(res.code).toBe(0);
+          expect(res.stdout).toContain('.claude/settings.json');
+          expect(res.stdout).toContain('.claude/settings.local.json');
+        });
+
+        then('the pre-approved section matches snapshot', () => {
+          // the jq parse text varies by jq version, and the temp dir by run; both are masked
+          expect(
+            asPreapprovedSection({ stdout: res.stdout })
+              .replace(
+                /\(jq: [^)]*\)|\((?:parse error|jq)[^)]*\)/g,
+                '(<jq error>)',
+              )
+              .replace(/\/\S*\.sn-both-broken\.[0-9a-f]+/g, '<repo>'),
+          ).toMatchSnapshot();
+        });
       });
-    });
-  });
+    },
+  );
 
   given('[case2] a linked repo whose settings.json is not valid json', () => {
     // the old layout: settings.local.json still counts beside the broken settings.json
@@ -152,19 +186,27 @@ describe('sessionstart.notify-permissions.sh (acceptance)', () => {
 
     when('[t0] a session starts', () => {
       const res = useThen('the notice runs', async () =>
-        invokeHook({ hookName: HOOK, cwd: repo.dir, stdin: '{}', env: HERMETIC_ENV }),
+        invokeHook({
+          hookName: HOOK,
+          cwd: repo.dir,
+          stdin: '{}',
+          env: HERMETIC_ENV,
+        }),
       );
 
-      then('the built notice names the broken file on both streams, exit 0', () => {
-        expect(res.code).toBe(0);
-        expect(res.stdout).toContain(
-          '💥 MalfunctionError: .claude/settings.json is not valid json',
-        );
-        expect(res.stderr).toContain(
-          '💥 MalfunctionError: .claude/settings.json is not valid json',
-        );
-        expect(res.stdout).toContain('1 command pre-approved, across 1 head');
-      });
+      then(
+        'the built notice names the broken file on both streams, exit 0',
+        () => {
+          expect(res.code).toBe(0);
+          expect(res.stdout).toContain(
+            '💥 MalfunctionError: .claude/settings.json is not valid json',
+          );
+          expect(res.stderr).toContain(
+            '💥 MalfunctionError: .claude/settings.json is not valid json',
+          );
+          expect(res.stdout).toContain('1 command pre-approved, across 1 head');
+        },
+      );
 
       then('the pre-approved section matches snapshot', () => {
         // the jq parse error text varies by jq version; it is the one volatile piece

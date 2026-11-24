@@ -12,7 +12,8 @@ import {
   checkKernelRetention as checkKernelRetentionRaw,
   compareKernels as compareKernelsRaw,
   extractKernels as extractKernelsRaw,
-} from '../../../../domain.operations/kernelize/extractKernels';
+} from '@src/domain.operations/kernelize/extractKernels';
+
 import { TEST_BRIEFS } from './.test/fixtures/briefs';
 import {
   compressViaBhrain as compressViaBhrainRaw,
@@ -178,7 +179,9 @@ const compressViaBhrain = withSimpleCacheAsync(
   },
   {
     cache: perfevalCache,
+    deserialize: { value: (cached: string) => JSON.parse(cached) },
     serialize: {
+      value: (output) => JSON.stringify(output),
       key: (...forInput: any[]) => {
         const input = forInput[0];
         const hash = createHash('sha256')
@@ -202,7 +205,9 @@ const compressViaBhrain = withSimpleCacheAsync(
  */
 const extractKernels = withSimpleCacheAsync(extractKernelsRaw, {
   cache: perfevalCache,
+  deserialize: { value: (cached: string) => JSON.parse(cached) },
   serialize: {
+    value: (output) => JSON.stringify(output),
     key: (...forInput: any[]) => {
       const input = forInput[0];
       const hash = createHash('sha256')
@@ -221,7 +226,9 @@ const extractKernels = withSimpleCacheAsync(extractKernelsRaw, {
  */
 const compareKernels = withSimpleCacheAsync(compareKernelsRaw, {
   cache: perfevalCache,
+  deserialize: { value: (cached: string) => JSON.parse(cached) },
   serialize: {
+    value: (output) => JSON.stringify(output),
     key: (...forInput: any[]) => {
       const input = forInput[0];
       const hash = createHash('sha256')
@@ -241,7 +248,9 @@ const compareKernels = withSimpleCacheAsync(compareKernelsRaw, {
  */
 const checkKernelRetention = withSimpleCacheAsync(checkKernelRetentionRaw, {
   cache: perfevalCache,
+  deserialize: { value: (cached: string) => JSON.parse(cached) },
   serialize: {
+    value: (output) => JSON.stringify(output),
     key: (...forInput: any[]) => {
       const input = forInput[0];
       const hash = createHash('sha256')
