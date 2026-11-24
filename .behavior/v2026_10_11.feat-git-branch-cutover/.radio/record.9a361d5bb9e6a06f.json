@@ -12,10 +12,8 @@
   "via": "gh.issues",
   "auth": null,
   "idem": null,
-  "heldAt": "2026-10-30T13:44:01Z",
   "heldSeq": 1,
-  "recordStatus": "QUEUED",
-  "reason": "radio.uses:blocked — global",
-  "settledAt": null,
-  "deliveredExid": null
+  "recordStatus": "DELIVERED",
+  "reason": null,
+  "deliveredExid": "780"
 }
