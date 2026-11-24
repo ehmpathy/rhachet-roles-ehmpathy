@@ -4,11 +4,13 @@ import { withSimpleCacheAsync } from 'with-simple-cache';
 
 /**
  * .what = clamp: an on-disk cache wrapped by with-simple-cache returns the object the logic made
- * .why = with-simple-cache 0.17 dropped its json value serde (the default is now a no-op), and
- *        simple-on-disk-cache stores and returns strings. a wrapper with no explicit value serde
- *        then hands back a json string, so `result.compressed` reads undefined. this repo's
- *        compressViaBhrain, extractKernels, and clusterKernels wrap this exact pair, so each one
- *        declares `serialize.value` + `deserialize.value`; this suite pins that the pair needs it
+ * .why = with-simple-cache's value serde defaults to a no-op, and it re-reads the cache right
+ *        after each set. simple-on-disk-cache reads an object value back as its json string, so
+ *        a wrapper with no explicit value serde hands back a string and `result.compressed`
+ *        reads undefined. (simple-on-disk-cache 1.7.x masked this in-process: its memory layer
+ *        returned the raw object; 1.8 reads through to disk.) this repo's compressViaBhrain,
+ *        extractKernels, and clusterKernels wrap this exact pair, so each one declares
+ *        `serialize.value` + `deserialize.value`; this suite pins that the pair needs it
  */
 describe('compress cache serde', () => {
   given(
