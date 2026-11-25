@@ -12,6 +12,13 @@ options:
   --pr-title-fallback "..."    fallback pr title when no commits on branch yet
   --debug                      show verbose debug output
   --help, -h                   show this help
+
+to edit the pr after it is open:
+  push opens a pr only when the branch has none open; it never rewrites an open pr's title or body
+  rhx git.pull.title set --from <path|@stdin>         when the scope outgrew the title
+  rhx git.pull.description set --from <path|@stdin>   when the body no longer tells the work
+  each plans first; add --mode apply to write
+  never raw \`gh\` to edit a pr: the paved verbs write under the credential that opened it, and sign the body
 "
 `;
 

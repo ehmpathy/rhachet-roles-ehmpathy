@@ -691,7 +691,7 @@ exports[`git.commit.push.sh given: [case30] --auth plan mode reflects the pr-ope
 
 exports[`git.commit.push.sh given: [case30] --auth plan mode reflects the pr-open source when: [t2] --auth json plan then: json carries the auth mode 2`] = `""`;
 
-exports[`git.commit.push.sh given: [case31] --help short-circuits before any keyrack fetch when: [t0] a fake rhachet records if it is ever called then: --help exits 0 with usage and never touches keyrack 1`] = `
+exports[`git.commit.push.sh given: [case31] --help short-circuits before any keyrack fetch when: [t0] a fake rhachet records if it is ever called then: --help names usage and pr edit verbs, never hits keyrack 1`] = `
 "usage: git.commit.push [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json] [--pr-title-fallback "..."] [--debug]
 
 options:
@@ -703,10 +703,17 @@ options:
   --pr-title-fallback "..."    fallback pr title when no commits on branch yet
   --debug                      show verbose debug output
   --help, -h                   show this help
+
+to edit the pr after it is open:
+  push opens a pr only when the branch has none open; it never rewrites an open pr's title or body
+  rhx git.pull.title set --from <path|@stdin>         when the scope outgrew the title
+  rhx git.pull.description set --from <path|@stdin>   when the body no longer tells the work
+  each plans first; add --mode apply to write
+  never raw \`gh\` to edit a pr: the paved verbs write under the credential that opened it, and sign the body
 "
 `;
 
-exports[`git.commit.push.sh given: [case31] --help short-circuits before any keyrack fetch when: [t0] a fake rhachet records if it is ever called then: --help exits 0 with usage and never touches keyrack 2`] = `""`;
+exports[`git.commit.push.sh given: [case31] --help short-circuits before any keyrack fetch when: [t0] a fake rhachet records if it is ever called then: --help names usage and pr edit verbs, never hits keyrack 2`] = `""`;
 
 exports[`git.commit.push.sh given: [case32] EXTERNAL_CALL_TIMEOUT bounds a stalled keyrack so the guide still fires when: [t0] rhachet hangs, but the timeout is lowered to 1s then: the fetch is bounded and the as-human guide fires fast 1`] = `
 "🐢 bummer dude...
@@ -963,3 +970,30 @@ exports[`git.commit.push.sh given: [case41] a published branch, rewritten by a r
 `;
 
 exports[`git.commit.push.sh given: [case41] a published branch, rewritten by a rebase, against a real bare origin when: [t0] apply mode pushes the rewritten history then: the lease-guarded force push lands the rewrite on origin, exit 0 2`] = `""`;
+
+exports[`git.commit.push.sh given: [case42] the booted header names the pr edit verbs when: [t0] a driver reads the header its session boots then: the guarantee block names git.pull.title set and git.pull.description set 1`] = `
+"#!/usr/bin/env bash
+######################################################################
+# .what = push HEAD to origin, findsert its pr, and watch the pr
+#
+# .why  = push a commit made earlier; git.commit.set composes it via --push
+#
+# usage:
+#   git.commit.push                  # plan
+#   git.commit.push --mode apply     # push
+#   git.commit.push --output json    # json, to compose
+#   git.commit.push --pr-title-fallback "<title>"   # title when the branch has no commits
+#
+# guarantee:
+#   - pushes only a seaturtle[bot] HEAD, while .meter/git.commit.uses.jsonc
+#     holds the commit grant (even at 0 left); a push never ships — a release
+#     needs git.release.uses
+#   - never pushes to main/master
+#   - never rewrites an open pr; edit it via git.pull.title set / git.pull.description set
+#   - opens the pr --auth as-ehmpath (default, keyrack) or as-human (gh login)
+#   - a new pr body ends in one seaturtle line; claude and co-author lines stripped
+#   - an enrolled clone then watches the pr; a failed watch never fails the push
+#   - never decrements uses
+#   - plan by default
+######################################################################"
+`;

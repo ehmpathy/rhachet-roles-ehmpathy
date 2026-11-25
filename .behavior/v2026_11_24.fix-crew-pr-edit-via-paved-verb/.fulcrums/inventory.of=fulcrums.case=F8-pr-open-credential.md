@@ -1,0 +1,9 @@
+# F8: which credential opens this route's pr
+
+- **fork**: `git.commit.push --mode apply` opens the pr `--auth as-ehmpath` by default, which reads `EHMPATHY_SEATURTLE_GITHUB_TOKEN` from keyrack. on this host that key is absent (`rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN` → `status: absent`). open the pr as the seaturtle (a human fills the token first), or `--auth as-human` under the human's gh login
+- **lean**: as the seaturtle. the wish exists so a driver never edits a pr under the human's login; a pr this route opens as-human would make every later edit verb need `--auth as-human` too (the verbs write only a pull their own credential opened), the exact path the wish closes
+- **rework**: dirty once the pr exists — its author is fixed at open, and every edit after follows it
+- **confidence**: 85% — the as-seaturtle lean follows from the wish; the 15% is whether the human prefers to open it now as-human over a token fill
+- **where**: route done gate, after 5.3 passed
+- **verdict**: ruled (S2): `--auth as-human`. a robot-config tree needs no seaturtle token, and a keyrack fill is no ask this tree makes
+- **the later-edit cost, recorded**: the pr's author is the human's gh login from the moment it opens. `git.pull.title set` and `git.pull.description set` write only a pull their own credential opened (`check_pull_by_self`, `git.pull.operations.sh:195-206`), so every later edit of this pr needs `--auth as-human` too; the default `as-ehmpath` call refuses. the push help this pr adds does not say so: it shows the verbs without `--auth`, which fits a pr push opened as the seaturtle, and misleads for one opened as-human. caught for the push verb's owner: `dreams/2026_11_25.push-help-carry-auth-to-edit-verbs.dream.md`
