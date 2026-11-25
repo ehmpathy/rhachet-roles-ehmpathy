@@ -21,9 +21,15 @@ describe('git.commit.operations.sh', () => {
     keyrackContent?: string;
     orgState?: Record<string, string>;
     orgStateRaw?: string;
+    /** the meter scope to set; null = none, to prove an unscoped read fails closed */
+    scope?: 'commit' | 'release' | null;
   }): { stdout: string; stderr: string; exitCode: number } => {
+    // .why output.sh first = every skill that sources operations.sh sources
+    //        output.sh before it, and the refusals render through its leaves
     const bashCode = `
+      source "${path.join(__dirname, 'output.sh')}"
       source "${operationsPath}"
+      ${args.scope === null ? '' : `set_meter_scope ${args.scope ?? 'commit'}`}
       ${args.functionCall}
     `;
 
@@ -142,6 +148,90 @@ extends:
         });
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('.agent/keyrack.yml#org required');
+      });
+    });
+  });
+
+  given('[case33] a meter read with no scope', () => {
+    when('[t0] check_global_blocker runs before set_meter_scope', () => {
+      then('it refuses as a malfunction, exit 1, and reads no meter', () => {
+        const tempDir = genTempDir({
+          slug: 'meter-unscoped-global',
+          git: true,
+        });
+        const tempHome = genTempDir({
+          slug: 'meter-unscoped-global-home',
+          git: false,
+        });
+        const result = runFunction({
+          functionCall: `
+            check_global_blocker
+            echo "read the meter"
+          `,
+          tempDir,
+          tempHome,
+          scope: null,
+        });
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain('MalfunctionError');
+        expect(result.stderr).toContain('meter read with no scope');
+        expect(result.stdout).not.toContain('read the meter');
+        expect(result.stdout).toMatchSnapshot();
+        expect(result.stderr).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] check_org_blocker runs before set_meter_scope', () => {
+      then('it refuses as a malfunction, exit 1, and reads no meter', () => {
+        const tempDir = genTempDir({ slug: 'meter-unscoped-org', git: true });
+        const tempHome = genTempDir({
+          slug: 'meter-unscoped-org-home',
+          git: false,
+        });
+        const result = runFunction({
+          functionCall: `
+            check_org_blocker
+            echo "read the meter"
+          `,
+          tempDir,
+          tempHome,
+          keyrackContent: 'org: ehmpathy\n',
+          orgState: { ehmpathy: 'allowed' },
+          scope: null,
+        });
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain('MalfunctionError');
+        expect(result.stderr).toContain('meter read with no scope');
+        expect(result.stdout).not.toContain('read the meter');
+        expect(result.stdout).toMatchSnapshot();
+        expect(result.stderr).toMatchSnapshot();
+      });
+    });
+
+    when('[t2] set_meter_scope names a meter that does not exist', () => {
+      then('it refuses as a malfunction, exit 1, on both streams', () => {
+        const tempDir = genTempDir({ slug: 'meter-scope-bogus', git: true });
+        const tempHome = genTempDir({
+          slug: 'meter-scope-bogus-home',
+          git: false,
+        });
+        const result = runFunction({
+          functionCall: `
+            set_meter_scope bogus
+            echo "scoped the meter"
+          `,
+          tempDir,
+          tempHome,
+          scope: null,
+        });
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain(
+          "💥 MalfunctionError: set_meter_scope: unknown meter 'bogus'",
+        );
+        expect(result.stderr).toContain("unknown meter 'bogus'");
+        expect(result.stdout).not.toContain('scoped the meter');
+        expect(result.stdout).toMatchSnapshot();
+        expect(result.stderr).toMatchSnapshot();
       });
     });
   });

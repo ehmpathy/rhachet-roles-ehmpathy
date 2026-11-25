@@ -199,9 +199,17 @@ describe('cpsafe.sh', () => {
           cpsafeArgs: [],
         });
 
-        expect(result.stdout).toContain('usage:');
-        expect(result.stdout).toContain('cpsafe.sh');
+        expect(result.stdout).toContain(
+          '✋ ConstraintError: source path is required',
+        );
+        expect(result.stdout).toContain('└─ rhx cpsafe --help');
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+
+        // the hint it names must lead to the usage itself
+        const usage = runInTempGitRepo({ cpsafeArgs: ['--help'] });
+        expect(usage.exitCode).toBe(0);
+        expect(usage.stdout).toContain('usage:');
+        expect(usage.stdout).toContain('cpsafe.sh');
       });
     });
 
@@ -342,6 +350,7 @@ describe('cpsafe.sh', () => {
           );
           // verify file still exists (not deleted or moved)
           expect(fs.existsSync(outsideFile)).toBe(true);
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         } finally {
           fs.rmSync(adjacentDir, { recursive: true, force: true });
         }
@@ -422,6 +431,7 @@ describe('cpsafe.sh', () => {
           );
           // verify file was NOT created in adjacent dir
           expect(fs.existsSync(outsideDest)).toBe(false);
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         } finally {
           fs.rmSync(adjacentDir, { recursive: true, force: true });
         }
@@ -689,6 +699,8 @@ describe('cpsafe.sh', () => {
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('destination must be a directory');
+        expect(result.stderr).toContain('destination must be a directory');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -735,7 +747,8 @@ describe('cpsafe.sh', () => {
         });
 
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).not.toContain('did you know');
+        // the bracket hint is for a glob that matched none; --literal names no glob
+        expect(result.stdout).not.toContain('is a glob character');
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });

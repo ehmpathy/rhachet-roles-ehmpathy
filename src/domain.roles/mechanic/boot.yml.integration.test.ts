@@ -78,9 +78,16 @@ describe('boot.yml integration', () => {
       });
 
       then('ref briefs are emitted as path-only links', () => {
-        // ref briefs appear as one <briefs.ref base="…"> roster (path only, no content);
-        // rhachet hoists the shared prefix into the block header
-        expect(boot.output).toMatch(/<briefs\.ref base="/);
+        // rhachet >= 1.49 lists ref briefs as paths in one <briefs.ref base="..."> block
+        expect(boot.output).toMatch(/<briefs\.ref base="[^"]+">/);
+        expect(boot.output).toContain(
+          'code.test/frames.behavior/howto.write-bdd.[lesson].pt2.md',
+        );
+
+        // a ref brief is path-only: its content is never emitted
+        expect(boot.output).not.toMatch(
+          /<brief\.say path="[^"]*howto\.write-bdd\.\[lesson\]\.pt2\.md"/,
+        );
       });
     });
 

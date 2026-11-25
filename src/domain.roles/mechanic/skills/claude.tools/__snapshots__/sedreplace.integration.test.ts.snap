@@ -1,5 +1,18 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
+exports[`sedreplace.sh given: [case2] files in nested directories when: [t0.1] --glob "**/*.ts" is specified (unbound glob) then: it should block with helpful message about bounded globs 1`] = `
+"🐢 bummer dude...
+
+🐚 sedreplace
+   └─ ✋ ConstraintError: unbound glob; a glob that starts with **/ is too broad
+
+🥥 did you know?
+   ├─ bound the glob to a directory, e.g. src/ or the repo root
+   ├─ --glob 'src/**/*.ts'
+   └─ --glob '*.ts'
+"
+`;
+
 exports[`sedreplace.sh given: [case3] no files match the pattern when: [t0] --glob filter excludes all files with pattern then: it should report no files match 1`] = `
 "🐢 crickets...
 
@@ -22,9 +35,27 @@ exports[`sedreplace.sh given: [case3] no files match the pattern when: [t1] --gl
 "
 `;
 
-exports[`sedreplace.sh given: [case6] missing required arguments when: [t0] --new is not provided then: it should error with helpful message 1`] = `"error: --new replacement is required (use --new "" for empty replacement)"`;
+exports[`sedreplace.sh given: [case6] missing required arguments when: [t0] --new is not provided then: it should error with helpful message 1`] = `
+"🐢 bummer dude...
 
-exports[`sedreplace.sh given: [case6] missing required arguments when: [t1] --old is not provided then: it should error with helpful message 1`] = `"error: --old pattern is required"`;
+🐚 sedreplace
+   └─ ✋ ConstraintError: --new replacement is required (use --new "" for empty replacement)
+
+🥥 did you know?
+   ├─ see every form sedreplace takes, with examples
+   └─ rhx sedreplace --help"
+`;
+
+exports[`sedreplace.sh given: [case6] missing required arguments when: [t1] --old is not provided then: it should error with helpful message 1`] = `
+"🐢 bummer dude...
+
+🐚 sedreplace
+   └─ ✋ ConstraintError: --old pattern is required
+
+🥥 did you know?
+   ├─ see every form sedreplace takes, with examples
+   └─ rhx sedreplace --help"
+`;
 
 exports[`sedreplace.sh given: [case9] --mode semantics when: [t0] default mode (no --mode flag) then: it should run in plan mode and exit 0 1`] = `
 "🐢 heres the wave...
@@ -69,7 +100,16 @@ exports[`sedreplace.sh given: [case9] --mode semantics when: [t2] --mode apply t
 "
 `;
 
-exports[`sedreplace.sh given: [case9] --mode semantics when: [t3] --mode with invalid value then: it should exit with error 1`] = `"error: --mode must be 'plan' or 'apply' (got 'foo')"`;
+exports[`sedreplace.sh given: [case9] --mode semantics when: [t3] --mode with invalid value then: it should exit with error 1`] = `
+"🐢 bummer dude...
+
+🐚 sedreplace
+   └─ ✋ ConstraintError: --mode must be 'plan' or 'apply' (got 'foo')
+
+🥥 did you know?
+   ├─ see every form sedreplace takes, with examples
+   └─ rhx sedreplace --help"
+`;
 
 exports[`sedreplace.sh given: [case11] line count reports when: [t1] multiple files with different line counts then: it should report per-file and total line counts in plan mode 1`] = `
 "🐢 heres the wave...
@@ -125,5 +165,17 @@ exports[`sedreplace.sh given: [case11] line count reports when: [t2] --mode appl
          │  -const MATCH_ME = 3;
          │  +const REPLACED = 3;
          └─
+"
+`;
+
+exports[`sedreplace.sh given: [case13] plan tracker (HARDNUDGE pattern) when: [t0] --mode apply is used without prior plan then: it should block with helpful message 1`] = `
+"🐢 bummer dude...
+
+🐚 sedreplace
+   └─ ✋ ConstraintError: cannot apply without plan (of these exact args)
+
+🥥 did you know?
+   ├─ preview the change first; then the same args with --mode apply land it
+   └─ rerun with --mode plan, then with --mode apply
 "
 `;

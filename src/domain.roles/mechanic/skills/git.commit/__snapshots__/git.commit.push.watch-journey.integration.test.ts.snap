@@ -20,9 +20,9 @@ exports[`git.commit.push → git.pull.watch journey given: [case1] an enrolled c
    ├─ opened: as-human (gh cli login, fallback)
    ├─ watch: set → @:mechanic (daemon v<key> pid <pid>, spawned)
    └─ meter
-      └─ push: allowed
+      └─ push: held → held (a push spends no use, revokes naught)
 
-🌊 now lets ride the release wave and catch any wipeouts
+🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
 "
 `;

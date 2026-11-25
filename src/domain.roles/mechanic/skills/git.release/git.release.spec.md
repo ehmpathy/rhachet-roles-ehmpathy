@@ -106,9 +106,8 @@ rhx git.release --into prod --mode apply
 
 🌊 release: chore(release): v1.2.3 🎉
    ├─ 👌 all checks passed
-   ├─ 🌴 automerge enabled [added] -> and merged already
-   └─ 🥥 let's watch
-      └─ ✨ done! Xs in action, Xs watched
+   ├─ 🌴 automerge enabled [added]
+   └─ 🌴 already merged
 
 🫧 and then...
    └─ ✨ found it! Xs in action, Xs watched
@@ -134,9 +133,8 @@ rhx git.release --from main --into prod --mode apply
 
 🌊 release: chore(release): v1.32.0 🎉
    ├─ 👌 all checks passed
-   ├─ 🌴 automerge enabled [added] -> and merged already
-   └─ 🥥 let's watch
-      └─ ✨ done! Xs in action, Xs watched
+   ├─ 🌴 automerge enabled [added]
+   └─ 🌴 already merged
 
 🫧 and then...
    └─ ✨ found it! Xs in action, Xs watched

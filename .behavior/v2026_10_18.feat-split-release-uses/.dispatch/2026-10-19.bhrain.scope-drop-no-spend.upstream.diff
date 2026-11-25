@@ -1,0 +1,102 @@
+diff --git a/dist/domain.operations/route/guard/review/getOneScopeDropMalfunctionReason.js b/dist/domain.operations/route/guard/review/getOneScopeDropMalfunctionReason.js
+new file mode 100644
+index 0000000000000000000000000000000000000000..15bb20e13a2e7d5768327f30c7690ba7ecc0f3b6
+--- /dev/null
++++ b/dist/domain.operations/route/guard/review/getOneScopeDropMalfunctionReason.js
+@@ -0,0 +1,67 @@
++"use strict";
++Object.defineProperty(exports, "__esModule", { value: true });
++exports.getOneScopeDropMalfunctionReason = void 0;
++const fs = require("fs/promises");
++const path = require("path");
++const isErrorOfAbsence_1 = require("../../../../utils/fs/isErrorOfAbsence");
++const isErrorOfDenial_1 = require("../../../../utils/fs/isErrorOfDenial");
++/**
++ * .what = the malfunction reason for a lane round whose scope DROPPED files its own
++ *         `--paths` globs matched, or null when the scope kept all it matched
++ * .why = a round that reviewed less than its lane bound is not a verdict on that lane's
++ *        subject. measured on rhachet-roles-ehmpathy, route v2026_10_18.feat-split-release-uses:
++ *        three rounds of two lanes each read 1 of 13 matched files, were graded approved, spent
++ *        the whole budget, and were then served as cached verdicts. graded a malfunction here,
++ *        the round spends no budget (`isReviewRoundCompleted`) and is never cached
++ *        (`getAllCachedPassedReviews` keeps passed runs only)
++ *
++ * .note = "matched" = `targetFilesDropped ∩ targetFilesFromPaths`. a file that rode in on a
++ *         `--diffs` range alone and dropped (a dream, a lockfile) is the filter at work, never
++ *         a malfunction
++ * .note = the trace is found by the `logs:` line(s) of the run's stdout; a partitioned lane
++ *         prints one per partition, and each is read. a run that printed none (a skip, a
++ *         precondition fault) has no trace, so it passes through on its own exit code
++ * .note = an absent or denied trace passes through, the same fault allowlist the lane's
++ *         `$conversation` read keeps; a trace that cannot be parsed is a malfunction, never
++ *         swallowed (rule.forbid.failhide)
++ * .note = patched locally by rhachet-roles-ehmpathy; dispatched upstream
++ */
++const getOneScopeDropMalfunctionReason = async (input) => {
++    // every log dir the run named, one per partition
++    const logDirs = [...input.stdout.matchAll(/^[\s│]*[├└]─ logs: (\S+)\s*$/gm)].map((match) => match[1]);
++    // read each scope trace; collect what it dropped of what its globs matched
++    const droppedOfMatched = [];
++    for (const logDir of new Set(logDirs)) {
++        const tracePath = path.join(input.repoRoot, logDir, 'input.scope.debug.json');
++        const content = await fs.readFile(tracePath, 'utf-8').catch((error) => {
++            if ((0, isErrorOfAbsence_1.isErrorOfAbsence)({ error }) || (0, isErrorOfDenial_1.isErrorOfDenial)({ error }))
++                return null;
++            throw error;
++        });
++        if (content === null)
++            continue;
++        const resolution = (() => {
++            try {
++                return JSON.parse(content).resolution ?? null;
++            }
++            catch (error) {
++                return { unparsable: error instanceof Error ? error.message : String(error) };
++            }
++        })();
++        if (resolution?.unparsable)
++            return `💥 MalfunctionError: the review scope trace could not be parsed (${logDir}/input.scope.debug.json: ${resolution.unparsable})`;
++        const fromPaths = new Set(resolution?.targetFilesFromPaths ?? []);
++        for (const file of resolution?.targetFilesDropped ?? [])
++            if (fromPaths.has(file))
++                droppedOfMatched.push(file);
++    }
++    // a scope that kept all it matched is no malfunction
++    if (droppedOfMatched.length === 0)
++        return null;
++    return [
++        `💥 MalfunctionError: the review scope dropped ${droppedOfMatched.length} file(s) this lane's --paths globs matched, so the round reviewed less than its lane binds; it spends no budget and is never cached`,
++        ...droppedOfMatched.map((file) => `   ├─ dropped: ${file}`),
++        `   └─ fix: name the dropped files in a --paths-with glob that matches route files only, so the polluter filter keeps them`,
++    ].join('\n');
++};
++exports.getOneScopeDropMalfunctionReason = getOneScopeDropMalfunctionReason;
+diff --git a/dist/domain.operations/route/guard/review/runOneStoneGuardReview.js b/dist/domain.operations/route/guard/review/runOneStoneGuardReview.js
+index 579b682a9df55f955a7bc21bf07fea06fa94a56f..717f4a9936a1c56e8577934ea5c713d0bab0db0e 100644
+--- a/dist/domain.operations/route/guard/review/runOneStoneGuardReview.js
++++ b/dist/domain.operations/route/guard/review/runOneStoneGuardReview.js
+@@ -38,6 +38,7 @@ const isErrorOfDenial_1 = require("../../../../utils/fs/isErrorOfDenial");
+ const asReviewRunOfPreconditionFault_1 = require("../../../review/asReviewRunOfPreconditionFault");
+ const runOneReview_1 = require("../../../review/runOneReview");
+ const asCmdWithRuntimeVars_1 = require("../asCmdWithRuntimeVars");
++const getOneScopeDropMalfunctionReason_1 = require("./getOneScopeDropMalfunctionReason");
+ const asExitCodeClass_1 = require("../asExitCodeClass");
+ const asGuardCmdFreeOfNpx_1 = require("../asGuardCmdFreeOfNpx");
+ const asRuntimeGuardBinPaths_1 = require("../asRuntimeGuardBinPaths");
+@@ -173,7 +174,15 @@ const runOneStoneGuardReview = async (input, context) => {
+         : await (0, runOneReview_1.runOneReview)({ cmd, timeout: input.timeout, cwd: repoRoot, meet: input.meet }, context);
+     // `talliedBy` is the durable record of which model tallied, named by pin — the footer
+     // and the artifact share the one read the runner made
+-    const { stdout, stderr, exitCode, blockers, nitpicks, tallier, talliedBy, durationMs, } = run;
++    const { stdout, stderr: stderrOfRun, exitCode: exitCodeOfRun, blockers, nitpicks, tallier, talliedBy, durationMs, } = run;
++    // a round whose scope dropped files its own globs matched is a malfunction: it reviewed
++    // less than its lane binds, so it spends no budget and is never cached
++    // (getOneScopeDropMalfunctionReason holds the why; patched locally by rhachet-roles-ehmpathy)
++    const scopeDropReason = await (0, getOneScopeDropMalfunctionReason_1.getOneScopeDropMalfunctionReason)({ stdout, repoRoot });
++    const exitCode = scopeDropReason ? 1 : exitCodeOfRun;
++    const stderr = scopeDropReason
++        ? [stderrOfRun, scopeDropReason].filter((part) => part).join('\n')
++        : stderrOfRun;
+     // classify exit code (after possible malfunction promotion)
+     const exitClass = (0, asExitCodeClass_1.asExitCodeClass)({ code: exitCode });
+     // format artifact content as one literal: the stream buckets, then both footers.

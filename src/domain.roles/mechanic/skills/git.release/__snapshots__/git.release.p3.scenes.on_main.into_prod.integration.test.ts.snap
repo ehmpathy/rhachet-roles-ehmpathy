@@ -426,62 +426,6 @@ exports[`git.release.p3.scenes.on_main.into_prod scene.5: on main, into prod giv
 "
 `;
 
-exports[`git.release.p3.scenes.on_main.into_prod scene.5: on main, into prod given: [row-10] release PR: passed:with-automerge when: [apply] --apply then: exit 0: automerge found, merged 1`] = `
-"🐢 radical!
-
-🐚 git.release --into prod --mode apply --watch
-
-🌊 release: chore(release): v1.3.0
-   ├─ 👌 all checks passed
-   ├─ 🌴 automerge enabled [found]
-   └─ 🥥 let's watch
-      ├─ 🫧 no runs inflight
-      └─ ✨ done! Xm Ys in action, Xs watched
-
-🫧 and then...
-
-🌊 release: v1.3.0
-   ├─ 👌 all checks passed
-   └─ 🥥 let's watch
-      ├─ 🫧 no runs inflight
-      └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
-"
-`;
-
-exports[`git.release.p3.scenes.on_main.into_prod scene.5: on main, into prod given: [row-10] release PR: passed:with-automerge when: [plan] no flags then: exit 0: passed, automerge found 1`] = `
-"🐢 heres the wave...
-
-🐚 git.release --into prod --mode plan
-
-🌊 release: chore(release): v1.3.0
-   ├─ 👌 all checks passed
-   ├─ 🌴 automerge enabled [found]
-   └─ [dim]hint: use --apply to watch[/dim]
-"
-`;
-
-exports[`git.release.p3.scenes.on_main.into_prod scene.5: on main, into prod given: [row-10] release PR: passed:with-automerge when: [watch] --watch then: exit 0: watch then merged 1`] = `
-"🐢 heres the wave...
-
-🐚 git.release --into prod --watch
-
-🌊 release: chore(release): v1.3.0
-   ├─ 👌 all checks passed
-   ├─ 🌴 automerge enabled [found]
-   └─ 🥥 let's watch
-      ├─ 🫧 no runs inflight
-      └─ ✨ done! Xm Ys in action, Xs watched
-
-🫧 and then...
-
-🌊 release: v1.3.0
-   ├─ 👌 all checks passed
-   └─ 🥥 let's watch
-      ├─ 🫧 no runs inflight
-      └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
-"
-`;
-
 exports[`git.release.p3.scenes.on_main.into_prod scene.5: on main, into prod given: [row-10] release PR: passed:wout-automerge when: [apply] --apply then: exit 0: automerge added, merged 1`] = `
 "🐢 radical!
 
@@ -526,6 +470,62 @@ exports[`git.release.p3.scenes.on_main.into_prod scene.5: on main, into prod giv
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
       └─ ✨ done! Xm Ys in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.into_prod scene.5: on main, into prod given: [row-10b] release PR: passed:with-automerge when: [apply] --apply then: exit 0: automerge found, merged 1`] = `
+"🐢 radical!
+
+🐚 git.release --into prod --mode apply --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [found]
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! Xm Ys in action, Xs watched
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.into_prod scene.5: on main, into prod given: [row-10b] release PR: passed:with-automerge when: [plan] no flags then: exit 0: passed, automerge found 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --mode plan
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [found]
+   └─ [dim]hint: use --apply to watch[/dim]
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.into_prod scene.5: on main, into prod given: [row-10b] release PR: passed:with-automerge when: [watch] --watch then: exit 0: watch then merged 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [found]
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! Xm Ys in action, Xs watched
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
 "
 `;
 

@@ -10,11 +10,13 @@ import {
   SKILL_SPAWN_TIMEOUT_MS,
 } from './.test/infra/asSkillExitStatus';
 import {
-  writeGitCommitUsesPermission,
+  setGitReleaseUsesOrgAllowed,
+  setGitReleaseUsesPermission,
   writeRhachetMock,
   writeSimpleGhMock,
 } from './.test/infra/mockGh';
 import { genGitMockExecutable } from './.test/infra/mockGit';
+import { setGitBranchPushed } from './.test/infra/setGitBranchPushed';
 import {
   genMockBinDir,
   genStateDir,
@@ -64,7 +66,7 @@ const setupTestEnv = (
   writeRhachetMock({ tempDir, mockBinDir: fakeBinDir });
 
   // setup git.commit.uses permission for apply mode tests
-  writeGitCommitUsesPermission({ tempDir });
+  setGitReleaseUsesPermission({ tempDir });
 
   return { tempDir, fakeBinDir, cleanup };
 };
@@ -81,6 +83,10 @@ const runSkill = (
     extraEnv?: Record<string, string>;
   },
 ): { stdout: string; stderr: string; status: number } => {
+  // model a pushed branch: each case checks out its branch inline, so the
+  // origin ref the F14 guard counts against is pinned here, at run time
+  setGitBranchPushed({ tempDir: env.tempDir });
+
   // note: pass EHMPATHY_SEATURTLE_GITHUB_TOKEN via env
   // keyrack returns env var value if already set, so no real keyrack fetch needed
   const result = spawnSync('bash', [SKILL_PATH, ...args], {
@@ -416,13 +422,15 @@ exit 1
         spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
           cwd: tempDir,
         });
+        setGitBranchPushed({ tempDir });
 
         // setup git.commit.uses permission for apply mode
         const meterDir = path.join(tempDir, '.meter');
+        setGitReleaseUsesOrgAllowed({ tempDir });
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
-          path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+          path.join(meterDir, 'git.release.uses.jsonc'),
+          JSON.stringify({ uses: 'infinite' }),
         );
 
         try {
@@ -437,7 +445,9 @@ exit 1
           // stdout shows success
           expect(result.stdout).toContain('cowabunga');
           expect(result.stdout).toContain('all checks passed');
-          expect(result.stdout).toContain('and merged already');
+          expect(result.stdout).toContain(
+            '└─ 🌴 automerge enabled [added] -> and merged already',
+          );
 
           // snapshot output
           expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
@@ -481,6 +491,12 @@ exit 1
           // stdout shows progress up to failure point
           expect(result.stdout).toContain('cowabunga');
           expect(result.stdout).toContain('all checks passed');
+
+          // the tree closes on the failed arm, on both streams
+          const armFailure =
+            '└─ 💥 MalfunctionError: could not arm the merge of pr #42';
+          expect(result.stdout).toContain(armFailure);
+          expect(result.stderr).toContain(armFailure);
 
           // snapshots capture exact output
           expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
@@ -1147,10 +1163,11 @@ exit 1
 
           // setup git.commit.uses permission for apply mode
           const meterDir = path.join(tempDir, '.meter');
+          setGitReleaseUsesOrgAllowed({ tempDir });
           fs.mkdirSync(meterDir, { recursive: true });
           fs.writeFileSync(
-            path.join(meterDir, 'git.commit.uses.jsonc'),
-            JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+            path.join(meterDir, 'git.release.uses.jsonc'),
+            JSON.stringify({ uses: 'infinite' }),
           );
 
           const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
@@ -1282,10 +1299,11 @@ exit 1
 
         // setup git.commit.uses permission for apply mode
         const meterDir = path.join(tempDir, '.meter');
+        setGitReleaseUsesOrgAllowed({ tempDir });
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
-          path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+          path.join(meterDir, 'git.release.uses.jsonc'),
+          JSON.stringify({ uses: 'infinite' }),
         );
 
         const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
@@ -1507,13 +1525,15 @@ exit 1
         spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
           cwd: tempDir,
         });
+        setGitBranchPushed({ tempDir });
 
         // setup git.commit.uses permission for apply mode
         const meterDir = path.join(tempDir, '.meter');
+        setGitReleaseUsesOrgAllowed({ tempDir });
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
-          path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+          path.join(meterDir, 'git.release.uses.jsonc'),
+          JSON.stringify({ uses: 'infinite' }),
         );
 
         const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
@@ -1538,7 +1558,7 @@ exit 1
       '[t2] release PR merges immediately after feature PR (no automerge was set on release)',
       () => {
         then(
-          'shows feature PR watch then release PR -> and merged already',
+          'shows feature PR watch, then the release PR reads already merged',
           () => {
             // scenario: feature branch PR merges normally, then when we get to release PR,
             // it has all checks passed but no automerge. when we enable automerge, gh returns
@@ -1684,14 +1704,11 @@ exit 1
 
             // setup git.commit.uses permission for apply mode
             const meterDir = path.join(tempDir, '.meter');
+            setGitReleaseUsesOrgAllowed({ tempDir });
             fs.mkdirSync(meterDir, { recursive: true });
             fs.writeFileSync(
-              path.join(meterDir, 'git.commit.uses.jsonc'),
-              JSON.stringify({
-                uses: 'infinite',
-                push: 'allow',
-                stage: 'allow',
-              }),
+              path.join(meterDir, 'git.release.uses.jsonc'),
+              JSON.stringify({ uses: 'infinite' }),
             );
 
             const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
@@ -1705,7 +1722,9 @@ exit 1
             );
             // should show release PR with instant merge
             expect(result.stdout).toContain('chore(release)');
-            expect(result.stdout).toContain('-> and merged already');
+            expect(result.stdout).toContain(
+              '└─ 🌴 automerge enabled [added] -> and merged already',
+            );
             expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
 
@@ -1833,13 +1852,15 @@ exit 1
         spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
           cwd: tempDir,
         });
+        setGitBranchPushed({ tempDir });
 
         // setup git.commit.uses permission for apply mode
         const meterDir = path.join(tempDir, '.meter');
+        setGitReleaseUsesOrgAllowed({ tempDir });
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
-          path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+          path.join(meterDir, 'git.release.uses.jsonc'),
+          JSON.stringify({ uses: 'infinite' }),
         );
 
         const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
@@ -1982,13 +2003,15 @@ exit 1
         spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
           cwd: tempDir,
         });
+        setGitBranchPushed({ tempDir });
 
         // setup git.commit.uses permission for apply mode
         const meterDir = path.join(tempDir, '.meter');
+        setGitReleaseUsesOrgAllowed({ tempDir });
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
-          path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+          path.join(meterDir, 'git.release.uses.jsonc'),
+          JSON.stringify({ uses: 'infinite' }),
         );
 
         const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
@@ -2250,6 +2273,7 @@ exit 1
           spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
             cwd: tempDir,
           });
+          setGitBranchPushed({ tempDir });
 
           // custom runSkill without EHMPATHY_SEATURTLE_GITHUB_TOKEN
           // so keyrack locked scenario is actually tested
@@ -2767,13 +2791,15 @@ exit 1
         spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
           cwd: tempDir,
         });
+        setGitBranchPushed({ tempDir });
 
         // setup git.commit.uses permission for apply mode
         const meterDir = path.join(tempDir, '.meter');
+        setGitReleaseUsesOrgAllowed({ tempDir });
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
-          path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+          path.join(meterDir, 'git.release.uses.jsonc'),
+          JSON.stringify({ uses: 'infinite' }),
         );
 
         try {
@@ -2903,13 +2929,15 @@ exit 1
         spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
           cwd: tempDir,
         });
+        setGitBranchPushed({ tempDir });
 
-        // setup git.commit.uses permission for apply mode
+        // setup git.release.uses permission for apply mode
         const meterDir2 = path.join(tempDir, '.meter');
+        setGitReleaseUsesOrgAllowed({ tempDir });
         fs.mkdirSync(meterDir2, { recursive: true });
         fs.writeFileSync(
-          path.join(meterDir2, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+          path.join(meterDir2, 'git.release.uses.jsonc'),
+          JSON.stringify({ uses: 'infinite' }),
         );
 
         try {
@@ -3032,13 +3060,15 @@ exit 1
         spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
           cwd: tempDir,
         });
+        setGitBranchPushed({ tempDir });
 
-        // setup git.commit.uses permission for apply mode
+        // setup git.release.uses permission for apply mode
         const meterDir2a = path.join(tempDir, '.meter');
+        setGitReleaseUsesOrgAllowed({ tempDir });
         fs.mkdirSync(meterDir2a, { recursive: true });
         fs.writeFileSync(
-          path.join(meterDir2a, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+          path.join(meterDir2a, 'git.release.uses.jsonc'),
+          JSON.stringify({ uses: 'infinite' }),
         );
 
         try {
@@ -3380,10 +3410,11 @@ exit 1
 
         // setup git.commit.uses permission for apply mode
         const meterDir = path.join(tempDir, '.meter');
+        setGitReleaseUsesOrgAllowed({ tempDir });
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
-          path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+          path.join(meterDir, 'git.release.uses.jsonc'),
+          JSON.stringify({ uses: 'infinite' }),
         );
 
         try {
@@ -3726,10 +3757,11 @@ exit 1
 
           // setup git.commit.uses permission for apply mode
           const meterDir = path.join(tempDir, '.meter');
+          setGitReleaseUsesOrgAllowed({ tempDir });
           fs.mkdirSync(meterDir, { recursive: true });
           fs.writeFileSync(
-            path.join(meterDir, 'git.commit.uses.jsonc'),
-            JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+            path.join(meterDir, 'git.release.uses.jsonc'),
+            JSON.stringify({ uses: 'infinite' }),
           );
 
           // --into prod triggers and_then_await for release PR
@@ -3886,10 +3918,11 @@ exit 1
 
           // setup git.commit.uses permission for apply mode
           const meterDir = path.join(tempDir, '.meter');
+          setGitReleaseUsesOrgAllowed({ tempDir });
           fs.mkdirSync(meterDir, { recursive: true });
           fs.writeFileSync(
-            path.join(meterDir, 'git.commit.uses.jsonc'),
-            JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+            path.join(meterDir, 'git.release.uses.jsonc'),
+            JSON.stringify({ uses: 'infinite' }),
           );
 
           // --into prod triggers and_then_await for release PR
@@ -4054,10 +4087,11 @@ exit 1
 
           // setup git.commit.uses permission for apply mode
           const meterDir = path.join(tempDir, '.meter');
+          setGitReleaseUsesOrgAllowed({ tempDir });
           fs.mkdirSync(meterDir, { recursive: true });
           fs.writeFileSync(
-            path.join(meterDir, 'git.commit.uses.jsonc'),
-            JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+            path.join(meterDir, 'git.release.uses.jsonc'),
+            JSON.stringify({ uses: 'infinite' }),
           );
 
           // --into prod triggers and_then_await for release PR
@@ -4239,10 +4273,11 @@ exit 1
 
           // setup git.commit.uses permission for apply mode
           const meterDir = path.join(tempDir, '.meter');
+          setGitReleaseUsesOrgAllowed({ tempDir });
           fs.mkdirSync(meterDir, { recursive: true });
           fs.writeFileSync(
-            path.join(meterDir, 'git.commit.uses.jsonc'),
-            JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+            path.join(meterDir, 'git.release.uses.jsonc'),
+            JSON.stringify({ uses: 'infinite' }),
           );
 
           // --into prod triggers and_then_await for release PR
@@ -4382,14 +4417,11 @@ exit 1
 
             // setup git.commit.uses permission for apply mode
             const meterDir = path.join(tempDir, '.meter');
+            setGitReleaseUsesOrgAllowed({ tempDir });
             fs.mkdirSync(meterDir, { recursive: true });
             fs.writeFileSync(
-              path.join(meterDir, 'git.commit.uses.jsonc'),
-              JSON.stringify({
-                uses: 'infinite',
-                push: 'allow',
-                stage: 'allow',
-              }),
+              path.join(meterDir, 'git.release.uses.jsonc'),
+              JSON.stringify({ uses: 'infinite' }),
             );
 
             // --into prod triggers and_then_await for release PR

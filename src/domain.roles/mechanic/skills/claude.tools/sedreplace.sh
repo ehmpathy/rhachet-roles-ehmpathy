@@ -38,6 +38,10 @@
 ######################################################################
 set -euo pipefail
 
+# load the shared refusal leaves (the human-grant guard)
+SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SKILL_DIR/output.sh"
+
 # parse named arguments
 OLD_PATTERN=""
 NEW_PATTERN=""
@@ -78,8 +82,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     *)
-      echo "unknown argument: $1" >&2
-      echo "usage: sedreplace.sh --old 'pattern' --new 'replacement' [--glob '*.ts'] [--mode plan|apply]" >&2
+      emit_constraint_frame --skill sedreplace --diagnosis "unknown argument: $1"
       exit 2
       ;;
   esac
@@ -92,53 +95,50 @@ if [[ "$OLD_PATTERN" == "@stdin" && "$NEW_PATTERN" == "@stdin" ]]; then
   IFS= read -r -d '' OLD_PATTERN || true  # read until NULL (may "fail" at EOF, that's ok)
   IFS= read -r -d '' NEW_PATTERN || true
   if [[ -z "$OLD_PATTERN" ]]; then
-    echo "error: @stdin requires input (use: printf 'old\\0new' | ...)" >&2
+    emit_constraint_frame --skill sedreplace --diagnosis "@stdin requires input (use: printf 'old\\0new' | ...)"
     exit 2
   fi
   if [[ -z "$NEW_PATTERN" ]]; then
-    echo "error: @stdin for --new requires second pattern after NULL byte" >&2
+    emit_constraint_frame --skill sedreplace --diagnosis "@stdin for --new requires second pattern after NULL byte"
     exit 2
   fi
 elif [[ "$OLD_PATTERN" == "@stdin" ]]; then
   # only old from stdin: read entire stdin (allows newlines)
-  OLD_PATTERN=$(cat) || { echo "error: @stdin requires input on stdin" >&2; exit 2; }
+  OLD_PATTERN=$(cat) || { emit_constraint_frame --skill sedreplace --diagnosis "@stdin requires input on stdin"; exit 2; }
 elif [[ "$NEW_PATTERN" == "@stdin" ]]; then
   # only new from stdin: read entire stdin (allows newlines)
-  NEW_PATTERN=$(cat) || { echo "error: @stdin requires input on stdin" >&2; exit 2; }
+  NEW_PATTERN=$(cat) || { emit_constraint_frame --skill sedreplace --diagnosis "@stdin requires input on stdin"; exit 2; }
 fi
 
-# validate required args
+# validate required args; every refusal rides both streams in the house frame
 if [[ -z "$OLD_PATTERN" ]]; then
-  echo "error: --old pattern is required" >&2
+  emit_constraint_frame --skill sedreplace --diagnosis "--old pattern is required"
   exit 2
 fi
 
 if [[ "$NEW_PROVIDED" == "false" ]]; then
-  echo "error: --new replacement is required (use --new \"\" for empty replacement)" >&2
+  emit_constraint_frame --skill sedreplace --diagnosis "--new replacement is required (use --new \"\" for empty replacement)"
   exit 2
 fi
 
 # validate mode
 if [[ "$MODE" != "plan" && "$MODE" != "apply" ]]; then
-  echo "error: --mode must be 'plan' or 'apply' (got '$MODE')" >&2
+  emit_constraint_frame --skill sedreplace --diagnosis "--mode must be 'plan' or 'apply' (got '$MODE')"
   exit 2
 fi
 
 # validate glob pattern (block unbound globs)
 if [[ -n "$GLOB_FILTER" && "$GLOB_FILTER" == \*\*/* ]]; then
-  {
-    echo "🐢 bummer dude..."
+  emit_refusal_to_streams --mode vibes --vibes "$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "sedreplace"
+    print_tree_leaf "✋ ConstraintError: unbound glob; a glob that starts with **/ is too broad"
     echo ""
-    echo "🐚 sedreplace"
-    echo "   └─ ✋ blocked: unbound glob"
-    echo ""
-    echo "glob patterns that start with **/ are too broad and can cause unexpected changes."
-    echo ""
-    echo "use a bounded glob instead:"
-    echo "  --glob 'src/**/*.ts'      (files in src/)"
-    echo "  --glob 'src/**/*.test.ts' (test files in src/)"
-    echo "  --glob '*.ts'             (files in root only)"
-  } >&2
+    echo "🥥 did you know?"
+    echo "   ├─ bound the glob to a directory, e.g. src/ or the repo root"
+    echo "   ├─ --glob 'src/**/*.ts'"
+    echo "   └─ --glob '*.ts'"
+  )"
   exit 2
 fi
 
@@ -210,7 +210,7 @@ plan_exists() {
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
-  echo "error: not in a git repository" >&2
+  emit_constraint_frame --skill sedreplace --diagnosis "not in a git repository"
   exit 2
 fi
 
@@ -224,16 +224,17 @@ PLAN_KEY=$(compute_plan_key)
 # if apply mode, check for prior plan first
 if [[ "$MODE" == "apply" ]]; then
   if ! plan_exists "$PLAN_KEY"; then
-    {
-      echo "🐢 bummer dude..."
+    # .why both streams = a refusal is never stdout-silent
+    #        (rule.require.skill-output-streams)
+    emit_refusal_to_streams --mode vibes --vibes "$(
+      print_turtle_header "bummer dude..."
+      print_tree_start "sedreplace"
+      print_tree_leaf "✋ ConstraintError: cannot apply without plan (of these exact args)"
       echo ""
-      echo "🐚 sedreplace"
-      echo "   └─ ✋ blocked: cannot apply without plan"
-      echo ""
-      echo "to prevent unexpected consequences, sedreplace requires you to preview changes before apply."
-      echo ""
-      echo "run without --mode (or with --mode plan) first, then re-run with --mode apply."
-    } >&2
+      echo "🥥 did you know?"
+      echo "   ├─ preview the change first; then the same args with --mode apply land it"
+      echo "   └─ rerun with --mode plan, then with --mode apply"
+    )"
     exit 2
   fi
 fi
@@ -299,6 +300,16 @@ if [[ -z "$FILES_MATCHED" ]]; then
   echo "   └─ result: no files contain pattern"
   exit 0
 fi
+
+# never write a human-held grant (.meter/, .branch/.bind/), even with
+# --include-ignored: a replace there forges the grant a human stamps.
+# each file sed would write is checked at the place it writes (realpath
+# follows a link), and a hit refuses loud, never drops out in silence
+REPO_ROOT_REAL=$(realpath "$(git rev-parse --show-toplevel)")
+while IFS= read -r file; do
+  [[ -z "$file" ]] && continue
+  refuse_if_human_grant --skill sedreplace --path "$(realpath -m "$file")" --root "$REPO_ROOT_REAL"
+done <<< "$FILES_MATCHED"
 
 # count files and lines (pre-pass for tree header)
 MATCH_COUNT=$(echo "$FILES_MATCHED" | wc -l)

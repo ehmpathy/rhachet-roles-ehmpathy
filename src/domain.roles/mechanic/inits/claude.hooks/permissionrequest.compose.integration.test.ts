@@ -3,6 +3,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, when } from 'test-fns';
 
+import { getOneRepoSettingsPath } from '../../../../.test/getOneRepoSettingsPath';
+
 /**
  * .what = the composed permission-control clamp — pins the end-to-end verdict
  *         across THE TWO HOOK LAYERS WE OWN, run against the REAL shipped files
@@ -32,21 +34,22 @@ describe('permissionrequest — composed control stack', () => {
     HOOKS_DIR,
     'permissionrequest.decide-permissions.sh',
   );
-  // locate .claude/settings.of.repo.json by an upward search from the hooks dir —
-  // the same move the shell hooks' find_claude_dir makes — so a future directory
+  // locate the repo's settings by an upward search from the hooks dir — the
+  // same move the shell hooks' find_claude_dir makes — so a future directory
   // rename or re-nest cannot silently break the manifest lookup (a hardcoded
-  // ../../../ climb would, with no compiler or lint signal). the repo-owned
-  // settings rhachet generates hold the hook registration; `settings.json` links
-  // to the human's own grove settings, absent on a ci runner.
+  // ../../../ climb would, with no compiler or lint signal). the split layout
+  // (rhachet >= 1.49.2) keeps it in settings.of.repo.json.
   const findSettingsPath = (): string => {
     let dir = HOOKS_DIR;
     while (dir !== path.dirname(dir)) {
-      const candidate = path.join(dir, '.claude', 'settings.of.repo.json');
+      const candidate = getOneRepoSettingsPath({
+        claudeDir: path.join(dir, '.claude'),
+      });
       if (fs.existsSync(candidate)) return candidate;
       dir = path.dirname(dir);
     }
     throw new Error(
-      '.claude/settings.of.repo.json not found upward from the hooks dir',
+      '.claude settings (settings.of.repo.json or settings.json) not found upward from the hooks dir',
     );
   };
   const SETTINGS = findSettingsPath();
@@ -113,6 +116,8 @@ describe('permissionrequest — composed control stack', () => {
             'Bash(rhx git.commit.uses set:*)',
             'Bash(rhx git.commit.uses allow:*)',
             'Bash(rhx git.commit.uses --org * del:*)',
+            'Bash(rhx git.release.uses set:*)',
+            'Bash(rhx git.release.uses allow:*)',
             'Bash(bash:*)',
             'Bash(tee:*)',
           ],
@@ -455,6 +460,24 @@ describe('permissionrequest — composed control stack', () => {
       expect: 'LIFT',
       danger: false,
       why: 'unlimited-quota shorthand in permissions.deny -> LIFTS',
+    },
+    {
+      command: 'rhx git.release.uses set --quant 1',
+      expect: 'LIFT',
+      danger: false,
+      why: 'release stamp in permissions.deny -> deny-honor LIFTS it; a clone never stamps its own ship',
+    },
+    {
+      command: 'rhx git.release.uses allow',
+      expect: 'LIFT',
+      danger: false,
+      why: 'unlimited release stamp in permissions.deny -> LIFTS',
+    },
+    {
+      command: 'echo y | rhx git.release.uses set --quant 1',
+      expect: 'LIFT',
+      danger: false,
+      why: 'release stamp as a pipe sink -> the denied sink LIFTS the whole compound',
     },
     {
       command: 'rhx git.commit.bind set --level feat',

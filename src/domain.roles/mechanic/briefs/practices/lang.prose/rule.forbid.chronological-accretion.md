@@ -14,6 +14,9 @@ guard rejects invalid input.`
 - code: comments, jsdoc headers
 - docs: markdown, briefs, plans, readmes, yield/verification artifacts
 - comms: commit bodies, pr descriptions
+- output: skill and hook stdout. a brain reads every byte a skill or hook prints, so a migration
+  note ("this grant carries the retired fields; push now rides …") taxes each call that renders it.
+  the skill reads an old shape silently; the migration lives in the brief and the changelog
 
 exempt: verbatim quotes, code blocks, human-chat tone. also exempt: a changelog or an audit log
 whose declared purpose IS the time-order (a dated release list, an incident timeline). the ban
@@ -63,6 +66,7 @@ unit tests). the readme exemption matches `.readme.md` only.
 
 - a time-ordered log of iterations/attempts where a statement of current truth would serve = **blocker**
 - a new section appended below a stale one, instead of an in-place revision = **blocker**
+- a skill or hook render that narrates a past shape or a migration ("retired", "now rides", "was") = **blocker**
 - a changelog/incident-timeline whose purpose IS the chronology = **false positive** (exempt)
 
 ## .see also

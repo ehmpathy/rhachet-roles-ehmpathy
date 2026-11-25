@@ -74,6 +74,7 @@ always:
 
       # git release
       - skills/git.release/git.release.sh
+      - skills/git.release/git.release.uses.sh
 
       # git repo
       - skills/git.repo.get/git.repo.get.sh
@@ -89,10 +90,11 @@ always:
       - skills/git.pull.comment/git.pull.comment.get.sh
       - skills/git.pull.comment/git.pull.comment.set.sh
 
-      # permissions: the pre-approved commands, on demand
+    ref:
+      # permissions: the pre-approved commands, on demand — the session-start notice
+      # names all three forms of this call every boot, so its header rides ref
       - skills/permissions.get.sh
 
-    ref:
       # claude tools — each hook that blocks a raw command names its safe twin
       - skills/claude.tools/cpsafe.sh
       - skills/claude.tools/mvsafe.sh

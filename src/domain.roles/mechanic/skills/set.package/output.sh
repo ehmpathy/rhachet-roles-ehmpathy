@@ -12,15 +12,16 @@
 #   print_tree_leaf "version" "3.22.4"
 ######################################################################
 
-# output stream (set to "stderr" for error output)
+# output stream: "stdout" for success, "both" for a failure
+# .why = rule.require.skill-output-streams: a failure rides stdout and stderr,
+#        so a reader of either stream sees why the command refused
 OUTPUT_STREAM="stdout"
 
-# helper to echo to the correct stream
+# helper to echo to the correct stream(s)
 _echo() {
-  if [[ "$OUTPUT_STREAM" == "stderr" ]]; then
+  echo "$@"
+  if [[ "$OUTPUT_STREAM" == "both" ]]; then
     echo "$@" >&2
-  else
-    echo "$@"
   fi
 }
 
@@ -127,11 +128,18 @@ print_doubly_nested_leaf() {
   fi
 }
 
-# print error message
+# print a constraint the caller must fix, as the last tree line
 # usage: print_error "message"
 print_error() {
   local message="$1"
-  _echo "   └─ error: $message"
+  _echo "   └─ ✋ ConstraintError: $message"
+}
+
+# print a malfunction the system must fix, as the last tree line
+# usage: print_malfunction "message"
+print_malfunction() {
+  local message="$1"
+  _echo "   └─ 💥 MalfunctionError: $message"
 }
 
 # print footer message (after tree)
@@ -140,4 +148,17 @@ print_footer() {
   local message="$1"
   _echo ""
   _echo "$message"
+}
+
+# print the next move as a coconut hint: the affordance, then the command last
+# usage: print_coconut_hint "upgrade it instead" "rhx set.package.upgrade --package zod --to 3.23.0"
+# .why = the remedy reads apart from the diagnosis, and the line a human copies
+#        closes the block (rule.require.coconut-hints)
+print_coconut_hint() {
+  local affordance="$1"
+  local command="$2"
+  _echo ""
+  _echo "🥥 did you know?"
+  _echo "   ├─ $affordance"
+  _echo "   └─ $command"
 }

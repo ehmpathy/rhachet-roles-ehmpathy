@@ -197,6 +197,19 @@ describe('git.repo.get.sh', () => {
     const refreshFlag = options?.refresh === 'on' ? '' : '--refresh off';
     const fullArgs = `${args} ${refreshFlag}`.trim();
 
+    // pin gh to no credential: a host's GH_TOKEN (ci sets one) or its gh login
+    // would otherwise decide whether the cloud lookup runs (rule.require.hermetic-tests)
+    const ghConfigDir = path.join(env.HOME, '.gh-empty');
+    fs.mkdirSync(ghConfigDir, { recursive: true });
+    const envHermetic: NodeJS.ProcessEnv = {
+      ...process.env,
+      HOME: env.HOME,
+      GH_CONFIG_DIR: ghConfigDir,
+      ...(env.PATH ? { PATH: env.PATH } : {}),
+    };
+    delete envHermetic.GH_TOKEN;
+    delete envHermetic.GITHUB_TOKEN;
+
     const result = spawnSync(
       'bash',
       [scriptPath, ...fullArgs.split(' ').filter(Boolean)],
@@ -205,11 +218,7 @@ describe('git.repo.get.sh', () => {
         encoding: 'utf-8',
         stdio: ['pipe', 'pipe', 'pipe'],
         timeout: 30000,
-        env: {
-          ...process.env,
-          HOME: env.HOME,
-          ...(env.PATH ? { PATH: env.PATH } : {}),
-        },
+        env: envHermetic,
       },
     );
 
@@ -361,28 +370,281 @@ describe('git.repo.get.sh', () => {
     });
   });
 
-  given('[case7] files in unknown repo', () => {
-    when('[t0] --in unknown/repo', () => {
-      then('shows bummer dude error and matches snapshot', () => {
-        const { homeDir, cleanup } = genTempDir();
+  given('[case7] files in a repo not cloned here', () => {
+    when('[t0] the cloud answers that no such repo exists', () => {
+      then('refuses as not found, on both streams', () => {
+        const { tempDir, homeDir, cleanup } = genTempDir();
         try {
+          // .mock = the gh cli, as it answers a lookup of an absent repo
+          // .why  = a real 404 needs a github credential, and the test keyrack
+          //         holds none; the real gh with no credential is [t1]
+          // .real = [t1] below calls the real gh
+          const shimDir = path.join(tempDir, 'shim-bin');
+          fs.mkdirSync(shimDir, { recursive: true });
+          fs.writeFileSync(
+            path.join(shimDir, 'gh'),
+            [
+              '#!/usr/bin/env bash',
+              `echo "GraphQL: Could not resolve to a Repository with the name 'unknown-org-xyz/unknown-repo-abc'. (repository)" >&2`,
+              'exit 1',
+              '',
+            ].join('\n'),
+            { mode: 0o755 },
+          );
+
           const result = runSkill(
             'files --in unknown-org-xyz/unknown-repo-abc',
-            {
-              HOME: homeDir,
-            },
+            { HOME: homeDir, PATH: `${shimDir}:${process.env.PATH}` },
           );
 
           expect(result.exitCode).toBe(2);
           expect(result.stdout).toContain('bummer dude');
-          expect(result.stdout).toContain('repo not found');
+          expect(result.stdout).toContain('✋ ConstraintError: repo not found');
+          expect(result.stderr).toContain('✋ ConstraintError: repo not found');
+          expect(result.stdout).not.toContain('gh auth login');
           expect(result.stdout).toMatchSnapshot();
         } finally {
           cleanup();
         }
       });
     });
+
+    when('[t1] the real gh holds no github credential', () => {
+      then('names the login, not a repo that may well exist', () => {
+        const { homeDir, cleanup } = genTempDir();
+        try {
+          // .why = GH_CONFIG_DIR at an empty dir and no GH_TOKEN / GITHUB_TOKEN
+          //        is a host with no `gh auth login`: the real gh's lack-of-creds
+          //        refusal, reachable on every host (the external contract proof)
+          const ghConfigDir = path.join(homeDir, '.gh-empty');
+          fs.mkdirSync(ghConfigDir, { recursive: true });
+          const env: NodeJS.ProcessEnv = {
+            ...process.env,
+            HOME: homeDir,
+            GH_CONFIG_DIR: ghConfigDir,
+          };
+          delete env.GH_TOKEN;
+          delete env.GITHUB_TOKEN;
+
+          const spawned = spawnSync(
+            'bash',
+            [
+              scriptPath,
+              'files',
+              '--in',
+              'ehmpathy/rhachet-roles-ehmpathy',
+              '--refresh',
+              'off',
+            ],
+            {
+              encoding: 'utf-8', // note: library api requires this term
+              stdio: ['pipe', 'pipe', 'pipe'],
+              timeout: 60000,
+              env,
+            },
+          );
+
+          expect(spawned.status).toBe(2);
+          expect(spawned.stdout).toContain(
+            '✋ ConstraintError: gh is not logged in',
+          );
+          expect(spawned.stderr).toContain(
+            '✋ ConstraintError: gh is not logged in',
+          );
+          expect(spawned.stdout).toContain('└─ gh auth login');
+          expect(spawned.stdout).not.toContain('repo not found');
+          expect(spawned.stdout).toMatchSnapshot();
+        } finally {
+          cleanup();
+        }
+      });
+    });
+
+    when(
+      '[t2] the real gh holds no github credential, inside a github actions job',
+      () => {
+        then('still names the login, not a repo that may well exist', () => {
+          const { homeDir, cleanup } = genTempDir();
+          try {
+            // .why = with GITHUB_ACTIONS=true the real gh words its refusal as
+            //        "set the GH_TOKEN environment variable", with no mention of
+            //        `gh auth login`; that wording once read as "repo not found"
+            const ghConfigDir = path.join(homeDir, '.gh-empty');
+            fs.mkdirSync(ghConfigDir, { recursive: true });
+            const env: NodeJS.ProcessEnv = {
+              ...process.env,
+              HOME: homeDir,
+              GH_CONFIG_DIR: ghConfigDir,
+              GITHUB_ACTIONS: 'true',
+            };
+            delete env.GH_TOKEN;
+            delete env.GITHUB_TOKEN;
+
+            const spawned = spawnSync(
+              'bash',
+              [
+                scriptPath,
+                'files',
+                '--in',
+                'ehmpathy/rhachet-roles-ehmpathy',
+                '--refresh',
+                'off',
+              ],
+              {
+                encoding: 'utf-8', // note: library api requires this term
+                stdio: ['pipe', 'pipe', 'pipe'],
+                timeout: 60000,
+                env,
+              },
+            );
+
+            expect(spawned.status).toBe(2);
+            expect(spawned.stdout).toContain(
+              '✋ ConstraintError: gh is not logged in',
+            );
+            expect(spawned.stdout).not.toContain('repo not found');
+          } finally {
+            cleanup();
+          }
+        });
+      },
+    );
   });
+
+  // .why = `lines` reaches the same lookup as `files` through its own caller
+  //        (emit_lookup_refusal "lines" ...), so each refusal is pinned per
+  //        subcommand: a regression in one caller must not hide behind the other
+  given('[case43] lines in a repo not cloned here', () => {
+    when('[t0] the cloud answers that no such repo exists', () => {
+      then('refuses as not found, on both streams', () => {
+        const { tempDir, homeDir, cleanup } = genTempDir();
+        try {
+          // .mock = the gh cli, as it answers a lookup of an absent repo
+          // .why  = a real 404 needs a github credential, and the test keyrack
+          //         holds none; the real gh with no credential is [t1]
+          // .real = [t1] below calls the real gh
+          const shimDir = path.join(tempDir, 'shim-bin');
+          fs.mkdirSync(shimDir, { recursive: true });
+          fs.writeFileSync(
+            path.join(shimDir, 'gh'),
+            [
+              '#!/usr/bin/env bash',
+              `echo "GraphQL: Could not resolve to a Repository with the name 'unknown-org-xyz/unknown-repo-abc'. (repository)" >&2`,
+              'exit 1',
+              '',
+            ].join('\n'),
+            { mode: 0o755 },
+          );
+
+          const result = runSkill(
+            "lines --in unknown-org-xyz/unknown-repo-abc --words 'reef'",
+            { HOME: homeDir, PATH: `${shimDir}:${process.env.PATH}` },
+          );
+
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain('git.repo.get lines');
+          expect(result.stdout).toContain('✋ ConstraintError: repo not found');
+          expect(result.stderr).toContain('✋ ConstraintError: repo not found');
+          expect(result.stdout).not.toContain('gh auth login');
+          expect(result.stdout).toMatchSnapshot();
+        } finally {
+          cleanup();
+        }
+      });
+    });
+
+    when('[t1] the real gh holds no github credential', () => {
+      then('names the login, not a repo that may well exist', () => {
+        const { homeDir, cleanup } = genTempDir();
+        try {
+          const ghConfigDir = path.join(homeDir, '.gh-empty');
+          fs.mkdirSync(ghConfigDir, { recursive: true });
+          const env: NodeJS.ProcessEnv = {
+            ...process.env,
+            HOME: homeDir,
+            GH_CONFIG_DIR: ghConfigDir,
+          };
+          delete env.GH_TOKEN;
+          delete env.GITHUB_TOKEN;
+
+          const spawned = spawnSync(
+            'bash',
+            [
+              scriptPath,
+              'lines',
+              '--in',
+              'ehmpathy/rhachet-roles-ehmpathy',
+              '--words',
+              'reef',
+              '--refresh',
+              'off',
+            ],
+            {
+              encoding: 'utf-8', // note: library api requires this term
+              stdio: ['pipe', 'pipe', 'pipe'],
+              timeout: 60000,
+              env,
+            },
+          );
+
+          expect(spawned.status).toBe(2);
+          expect(spawned.stdout).toContain('git.repo.get lines');
+          expect(spawned.stdout).toContain('└─ gh auth login');
+          expect(spawned.stdout).toContain(
+            '✋ ConstraintError: gh is not logged in',
+          );
+          expect(spawned.stderr).toContain(
+            '✋ ConstraintError: gh is not logged in',
+          );
+          expect(spawned.stdout).not.toContain('repo not found');
+          expect(spawned.stdout).toMatchSnapshot();
+        } finally {
+          cleanup();
+        }
+      });
+    });
+  });
+
+  given(
+    '[case44] repos for an org while the real gh holds no github credential',
+    () => {
+      when('[t0] the org is enumerated', () => {
+        then('the cloud skip is named, never passed off as no repos', () => {
+          const { homeDir, cleanup } = genTempDir();
+          try {
+            const ghConfigDir = path.join(homeDir, '.gh-empty');
+            fs.mkdirSync(ghConfigDir, { recursive: true });
+            const env: NodeJS.ProcessEnv = {
+              ...process.env,
+              HOME: homeDir,
+              GH_CONFIG_DIR: ghConfigDir,
+            };
+            delete env.GH_TOKEN;
+            delete env.GITHUB_TOKEN;
+
+            const spawned = spawnSync(
+              'bash',
+              [scriptPath, 'repos', '--repos', 'ehmpathy/*'],
+              {
+                encoding: 'utf-8', // note: library api requires this term
+                stdio: ['pipe', 'pipe', 'pipe'],
+                timeout: 60000,
+                env,
+              },
+            );
+
+            expect(spawned.status).toBe(0);
+            expect(spawned.stdout).toContain(
+              'cloud: skipped, gh holds no github credential (run: gh auth login)',
+            );
+            expect(spawned.stdout).toMatchSnapshot();
+          } finally {
+            cleanup();
+          }
+        });
+      });
+    },
+  );
 
   // lines subcommand tests - search mode
   given('[case8] lines search in local repo', () => {
@@ -652,6 +914,80 @@ describe('git.repo.get.sh', () => {
 
           expect(result.exitCode).toBe(2);
           expect(result.stdout).toContain('--paths is required for read mode');
+          expect(result.stderr).toContain('--paths is required for read mode');
+          expect(result.stdout).toMatchSnapshot();
+        } finally {
+          cleanup();
+        }
+      });
+    });
+
+    when('[t3] lines --repos without --words', () => {
+      then('refuses on both streams, names the search form', () => {
+        const { homeDir, cleanup } = genTempDir();
+        try {
+          const result = runSkill('lines --repos testorg/*', {
+            HOME: homeDir,
+          });
+
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain(
+            '✋ ConstraintError: --words is required for multi-repo search',
+          );
+          expect(result.stderr).toContain(
+            '--words is required for multi-repo search',
+          );
+          expect(result.stdout).toContain(
+            "rhx git.repo.get lines --repos 'testorg/*' --words 'pattern'",
+          );
+          expect(result.stdout).toMatchSnapshot();
+        } finally {
+          cleanup();
+        }
+      });
+    });
+  });
+
+  given('[case16b] the fetch from origin fails under --refresh on', () => {
+    when('[t0] files --in a local clone whose fetch fails', () => {
+      then('refuses as a malfunction, exit 1, on both streams', () => {
+        const { tempDir, homeDir, cleanup } = genTempDir();
+        try {
+          const { pathPrefix } = genGitStub({ tempDir, failOn: 'fetch' });
+          const result = runSkill(
+            'files --in testorg/short',
+            { HOME: homeDir, PATH: `${pathPrefix}:${process.env.PATH ?? ''}` },
+            { refresh: 'on' },
+          );
+
+          expect(result.exitCode).toBe(1);
+          expect(result.stdout).toContain(
+            '💥 MalfunctionError: failed to fetch latest from origin',
+          );
+          expect(result.stderr).toContain('failed to fetch latest from origin');
+          expect(result.stdout).toMatchSnapshot();
+        } finally {
+          cleanup();
+        }
+      });
+    });
+
+    when('[t1] lines --in a local clone whose fetch fails', () => {
+      then('refuses as a malfunction, exit 1, on both streams', () => {
+        const { tempDir, homeDir, cleanup } = genTempDir();
+        try {
+          const { pathPrefix } = genGitStub({ tempDir, failOn: 'fetch' });
+          const result = runSkill(
+            'lines --in testorg/short --paths src/index.ts',
+            { HOME: homeDir, PATH: `${pathPrefix}:${process.env.PATH ?? ''}` },
+            { refresh: 'on' },
+          );
+
+          expect(result.exitCode).toBe(1);
+          expect(result.stdout).toContain(
+            '💥 MalfunctionError: failed to fetch latest from origin',
+          );
+          expect(result.stderr).toContain('failed to fetch latest from origin');
           expect(result.stdout).toMatchSnapshot();
         } finally {
           cleanup();
@@ -790,8 +1126,14 @@ describe('git.repo.get.sh', () => {
           });
 
           expect(result.exitCode).toBe(2);
-          expect(result.stdout).toContain('unknown argument');
-          expect(result.stdout).toContain('--unknown-flag');
+          expect(result.stdout).toContain(
+            '✋ ConstraintError: unknown argument: --unknown-flag',
+          );
+          expect(result.stderr).toContain(
+            '✋ ConstraintError: unknown argument: --unknown-flag',
+          );
+          expect(result.stdout).toContain('└─ rhx git.repo.get --help');
+          expect(result.stdout).toMatchSnapshot();
         } finally {
           cleanup();
         }
@@ -808,8 +1150,13 @@ describe('git.repo.get.sh', () => {
           const result = runSkill('invalidcmd', { HOME: homeDir });
 
           expect(result.exitCode).toBe(2);
-          expect(result.stdout).toContain('unknown argument');
-          expect(result.stdout).toContain('invalidcmd');
+          expect(result.stdout).toContain(
+            '✋ ConstraintError: unknown subcommand: invalidcmd (valid subcommands: repos, files, lines)',
+          );
+          expect(result.stderr).toContain(
+            '✋ ConstraintError: unknown subcommand: invalidcmd (valid subcommands: repos, files, lines)',
+          );
+          expect(result.stdout).toMatchSnapshot();
         } finally {
           cleanup();
         }
@@ -826,7 +1173,13 @@ describe('git.repo.get.sh', () => {
           const result = runSkill('--repos testorg/*', { HOME: homeDir });
 
           expect(result.exitCode).toBe(2);
-          expect(result.stdout).toContain('no subcommand specified');
+          expect(result.stdout).toContain(
+            '✋ ConstraintError: no subcommand specified',
+          );
+          expect(result.stderr).toContain(
+            '✋ ConstraintError: no subcommand specified',
+          );
+          expect(result.stdout).toMatchSnapshot();
         } finally {
           cleanup();
         }
@@ -1164,11 +1517,19 @@ describe('git.repo.get.sh', () => {
             'no worktree named "no-such-tree-xyz"',
           );
           // names the fix: shows what IS available
-          expect(result.stdout).toContain('worktrees found:');
+          expect(result.stdout).toContain('├─ worktrees found');
+          expect(result.stdout).toContain(
+            'ConstraintError: no worktree named "no-such-tree-xyz"',
+          );
           expect(result.stdout).toContain('feat/inflight');
-          expect(result.stdout).toContain('worktree list');
-          // the worktree list and the `git -C <path>` hint both carry the temp
-          // root, so the render is redacted rather than left unreviewable
+          // the hint names a paved rerun, never a raw `git -C <path> worktree
+          // list` — the mechanic's check-permissions hook blocks that raw call
+          expect(result.stdout).toContain(
+            'rhx git.repo.get files --in testorg/short --tree <name>',
+          );
+          expect(result.stdout).not.toContain('worktree list');
+          // the worktree list carries the temp root, so the render is redacted
+          // rather than left unreviewable
           expect(redactTempRoot(result.stdout, homeDir)).toMatchSnapshot();
         } finally {
           cleanup();
@@ -1348,8 +1709,11 @@ describe('git.repo.get.sh', () => {
             { HOME: homeDir, PATH: `${pathPrefix}:${process.env.PATH ?? ''}` },
           );
 
-          expect(result.exitCode).toBe(2);
-          expect(result.stdout).toContain('could not list the files of');
+          // a git fault is the system's to fix: malfunction, exit 1
+          expect(result.exitCode).toBe(1);
+          expect(result.stdout).toContain(
+            '💥 MalfunctionError: could not list the files of',
+          );
           // the whole point: a broken read must never look like an empty one
           expect(result.stdout).not.toContain('crickets');
           expect(result.stdout).not.toContain('found: 0');
@@ -1382,8 +1746,10 @@ describe('git.repo.get.sh', () => {
             { HOME: homeDir, PATH: `${pathPrefix}:${process.env.PATH ?? ''}` },
           );
 
-          expect(result.exitCode).toBe(2);
-          expect(result.stdout).toContain('could not list the worktrees of');
+          expect(result.exitCode).toBe(1);
+          expect(result.stdout).toContain(
+            '💥 MalfunctionError: could not list the worktrees of',
+          );
           // .why = the name IS valid here; only the enumeration broke. to
           //        blame the caller's --tree would send them to fix a name
           //        that was never wrong (rule.require.errors-name-the-fix)
