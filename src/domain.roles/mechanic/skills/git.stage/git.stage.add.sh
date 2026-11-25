@@ -153,7 +153,7 @@ if [[ "$IN_REBASE" == "false" && "$COMMIT_LIVE" != "true" ]]; then
     print_turtle_header "hold up dude..."
     print_tree_start "git.stage.add"
     print_tree_constraint "no live commit grant"
-    print_coconut_hint "stage rides the commit grant; ask your human to grant one" \
+    print_coconut_hint "stage rides the commit grant; ask your sponsor to grant one" \
       "git.commit.uses set --quant N"
   )"
   exit 2

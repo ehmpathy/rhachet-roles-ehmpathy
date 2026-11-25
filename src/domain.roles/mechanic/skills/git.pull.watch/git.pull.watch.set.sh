@@ -4,7 +4,7 @@
 #         this clone's key is findserted to serve it
 #
 # .why  = once a pr is watched, the clone is alerted of ci failures, new
-#         comments, approval, and the pr's end, with no director relay
+#         comments, approval, and the pr's end, with no relay
 #
 # usage:
 #   rhx git.pull.watch set --which 1220                     # plan (preview)

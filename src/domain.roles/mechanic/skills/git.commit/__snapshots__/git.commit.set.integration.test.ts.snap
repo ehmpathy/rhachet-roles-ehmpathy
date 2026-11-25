@@ -73,7 +73,7 @@ exports[`git.commit.set.sh given: [case3] no uses left when: [t0] apply mode wit
    └─ ✋ ConstraintError: no commit uses left
 
 🥥 did you know?
-   ├─ the grant is spent; ask your human to grant more
+   ├─ the grant is spent; ask your sponsor to grant more
    └─ git.commit.uses set --quant N
 "
 `;
@@ -111,7 +111,7 @@ exports[`git.commit.set.sh given: [case3b] a release stamp with no commit grant 
    └─ ✋ ConstraintError: no commit quota set
 
 🥥 did you know?
-   ├─ this tree holds no commit grant; ask your human to grant one
+   ├─ this tree holds no commit grant; ask your sponsor to grant one
    └─ git.commit.uses set --quant N
 "
 `;
@@ -123,7 +123,7 @@ exports[`git.commit.set.sh given: [case4] commit grant revoked when: [t0] the gr
    └─ ✋ ConstraintError: commit grant revoked
 
 🥥 did you know?
-   ├─ a human revoked this grant; ask your human to grant again
+   ├─ this grant was revoked; ask your sponsor to grant again
    └─ git.commit.uses set --quant N
 "
 `;
@@ -1409,7 +1409,7 @@ exports[`git.commit.set.sh given: [case53] the LOCAL quota file is damaged when:
      .meter/git.commit.uses.jsonc
 
 🥥 did you know?
-   ├─ ask your human to reset the quota, then grant again
+   ├─ ask your sponsor to reset the quota, then grant again
    ├─ git.commit.uses del
    └─ git.commit.uses set --quant N
 "
@@ -1425,7 +1425,7 @@ exports[`git.commit.set.sh given: [case53] the LOCAL quota file is damaged when:
      .meter/git.commit.uses.jsonc
 
 🥥 did you know?
-   ├─ ask your human to reset the quota, then grant again
+   ├─ ask your sponsor to reset the quota, then grant again
    ├─ git.commit.uses del
    └─ git.commit.uses set --quant N
 "

@@ -94,7 +94,7 @@ describe('git.release.uses (acceptance)', () => {
         expect(res.code).toBe(2);
         expect(res.stdout).toContain('ConstraintError: no terminal on this command');
         expect(res.stderr).toContain('ConstraintError: no terminal on this command');
-        // a sponsor grants a release the way it grants commits: a human or a director
+        // a sponsor grants a release the way it grants commits
         expect(res.stdout).toContain('only a sponsor at a real terminal may run this');
         expect(res.stdout).toContain('a sponsor runs it from their own terminal');
         expect(res.stdout).not.toContain('a human');

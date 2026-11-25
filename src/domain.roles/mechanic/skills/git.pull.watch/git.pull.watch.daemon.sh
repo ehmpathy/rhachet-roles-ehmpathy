@@ -5,7 +5,7 @@
 #         new comments, approval, and the pr's end
 #
 # .why  = the mechanic that idles after a push is woken by github's own
-#         signals, with no director relay
+#         signals, with no relay
 #
 # usage:
 #   spawned by gen_watch_daemon, detached, from v=$key/bin/; never by hand

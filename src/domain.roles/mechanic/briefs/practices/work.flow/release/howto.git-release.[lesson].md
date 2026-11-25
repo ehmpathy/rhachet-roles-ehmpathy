@@ -110,7 +110,7 @@ when you might need them (rare, human-prescribed only):
 - `--mode apply` reads `git.release.uses` alone; a bare plan previews it, read only; `--watch` and `--retry` read no meter
 - a commit grant never ships, and a release grant needs no commit quota
 - unpushed commits on the release branch refuse the release (exit 2): push first, via `rhx git.commit.push --mode apply`
-- only a sponsor at a terminal grants either meter: a human, or a director, which grants releases as it grants commits
+- only a sponsor at a terminal grants either meter; ask your sponsor for each
 - apply checks the stamp first and spends its use at the arm of the merge, then says so
   - a refusal before the arm (no pr, unpushed, behind, red checks) spends none; a failed arm refunds
   - a red ci or a watch timeout after the arm does not refund; `--watch` and `--retry` spend none

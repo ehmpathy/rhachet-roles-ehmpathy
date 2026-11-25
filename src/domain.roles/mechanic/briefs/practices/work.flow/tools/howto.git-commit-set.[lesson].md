@@ -44,6 +44,7 @@ EOF
 | `--mode plan` | preview commit (default) |
 | `--mode apply` | execute commit |
 | `--push` | push + findsert pr after commit |
+| (no `--unstaged`) | refuse when unstaged changes exist (the default) |
 | `--unstaged ignore` | commit staged only, ignore unstaged |
 | `--unstaged include` | stage all changes before commit |
 
@@ -65,7 +66,7 @@ printf 'fix(typo): readme\n\n- fixed typo' | npx rhachet run --skill git.commit.
 
 ## .prerequisites
 
-- a sponsor (a human or a director) must grant quota: `git.commit.uses set --quant N`
+- a quota: ask your sponsor to grant it: `git.commit.uses set --quant N`
   - one grant covers commit, stage, rebase, and push to this tree's own branch
   - a grant at 0 left still pushes; only `block` / `del` revoke it
   - `set --quant 0` = commit no more, push what you have

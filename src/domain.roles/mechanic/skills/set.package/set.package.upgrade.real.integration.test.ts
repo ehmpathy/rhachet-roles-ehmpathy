@@ -11,7 +11,7 @@ import { given, then, useThen, when } from 'test-fns';
  * .note = excluded from the default integration run (jest.integration.config.ts testMatch),
  *         so registry drift cannot redden ci; run it by hand, by name:
  *           npx jest -c jest.integration.config.ts --testMatch '<rootDir>/src/domain.roles/mechanic/skills/set.package/set.package.upgrade.real.integration.test.ts'
- *         ruled in fulcrum F25 (director, 2026-11-04)
+ *         ruled in fulcrum F25 (2026-11-04)
  */
 describe('set.package.upgrade.sh (real registry)', () => {
   const scriptPath = path.join(__dirname, 'set.package.upgrade.sh');

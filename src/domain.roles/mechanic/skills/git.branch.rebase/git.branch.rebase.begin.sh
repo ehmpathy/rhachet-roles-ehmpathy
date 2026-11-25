@@ -153,7 +153,7 @@ if [[ "$LOCAL_GRANT_STATUS" -eq 2 || "$COMMIT_HELD" != "true" ]]; then
     print_turtle_header "hold up dude..."
     print_tree_start "git.branch.rebase begin"
     print_tree_constraint "no commit grant on this tree"
-    print_coconut_hint "a rebase rides the commit grant; ask your human to grant one" \
+    print_coconut_hint "a rebase rides the commit grant; ask your sponsor to grant one" \
       "rhx git.commit.uses set --quant N"
   )"
   exit 2

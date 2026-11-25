@@ -55,7 +55,7 @@ exports[`git.branch.rebase.begin given: [case4] no commit grant held when: [t0] 
    └─ ✋ ConstraintError: no commit grant on this tree
 
 🥥 did you know?
-   ├─ a rebase rides the commit grant; ask your human to grant one
+   ├─ a rebase rides the commit grant; ask your sponsor to grant one
    └─ rhx git.commit.uses set --quant N
 "
 `;
@@ -168,7 +168,7 @@ exports[`git.branch.rebase.begin given: [case10] the commit quota file is damage
      .meter/git.commit.uses.jsonc
 
 🥥 did you know?
-   ├─ ask your human to reset the quota, then grant again
+   ├─ ask your sponsor to reset the quota, then grant again
    ├─ git.commit.uses del
    └─ git.commit.uses set --quant N
 "
@@ -349,7 +349,7 @@ exports[`git.branch.rebase.begin given: [case15] no commit quota file when: [t0]
    └─ ✋ ConstraintError: no commit grant on this tree
 
 🥥 did you know?
-   ├─ a rebase rides the commit grant; ask your human to grant one
+   ├─ a rebase rides the commit grant; ask your sponsor to grant one
    └─ rhx git.commit.uses set --quant N
 "
 `;

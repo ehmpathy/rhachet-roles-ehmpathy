@@ -4,8 +4,8 @@
 #
 # .why  = a release (a merge to main, a publish, a tag that ships) is the
 #         costly act, so it owns its own meter apart from git.commit.uses.
-#         a director grants commit + push freely; only this meter lets a
-#         crew run `git.release --mode apply`
+#         a sponsor may grant commit + push freely; only this meter lets a
+#         clone run `git.release --mode apply`
 #
 # usage:
 #   git.release.uses set --quant 1              # grant one release
@@ -24,8 +24,7 @@
 #   - levels compose by AND: global ∧ org ∧ local; unset at any level blocks
 #   - local state stored in .meter/git.release.uses.jsonc
 #   - global + org state stored at ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/
-#   - every write needs a sponsor at a tty (a human or a director, as for
-#     commits); any actor may get
+#   - every write needs a sponsor at a tty (as for commits); any actor may get
 ######################################################################
 set -euo pipefail
 

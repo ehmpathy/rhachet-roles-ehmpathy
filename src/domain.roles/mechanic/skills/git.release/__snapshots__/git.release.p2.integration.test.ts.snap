@@ -463,7 +463,7 @@ exports[`git.release.p2 permission requirements given: [case-perm-local-damaged]
      .meter/git.release.uses.jsonc
 
 🥥 did you know?
-   ├─ ask your human to reset the quota, then grant again
+   ├─ ask your sponsor to reset the quota, then grant again
    ├─ git.release.uses del
    └─ git.release.uses set --quant N
 "

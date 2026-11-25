@@ -33,7 +33,7 @@ exports[`git.stage.add.sh given: [case3] stage without a live commit grant when:
    └─ ✋ ConstraintError: no live commit grant
 
 🥥 did you know?
-   ├─ stage rides the commit grant; ask your human to grant one
+   ├─ stage rides the commit grant; ask your sponsor to grant one
    └─ git.commit.uses set --quant N
 "
 `;
@@ -119,7 +119,7 @@ exports[`git.stage.add.sh given: [case10] the local commit quota file is damaged
      .meter/git.commit.uses.jsonc
 
 🥥 did you know?
-   ├─ ask your human to reset the quota, then grant again
+   ├─ ask your sponsor to reset the quota, then grant again
    ├─ git.commit.uses del
    └─ git.commit.uses set --quant N
 "

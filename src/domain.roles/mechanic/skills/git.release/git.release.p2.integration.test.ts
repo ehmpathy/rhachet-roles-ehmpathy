@@ -2206,7 +2206,7 @@ describe('git.release.p2', () => {
         );
         afterAll(() => scene.cleanup());
 
-        // the commit grant a director gave, spent to 0 by a commit + push; held, never revoked
+        // the commit grant a sponsor gave, spent to 0 by a commit + push; held, never revoked
         const commitMeterHeld = JSON.stringify({ uses: 0 });
         const readMeter = (input: { name: string }): string | null => {
           const meterPath = path.join(scene.tempDir, '.meter', input.name);

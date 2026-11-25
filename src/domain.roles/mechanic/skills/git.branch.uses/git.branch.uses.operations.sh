@@ -297,7 +297,7 @@ print_branch_meter_damaged_fix() {
   echo ""
   echo "   the file that holds this tree's cutover quota cannot be read:"
   echo "     $file"
-  print_coconut_hint "ask your human to reset the quota, then grant again" \
+  print_coconut_hint "ask your sponsor to reset the quota, then grant again" \
     "rhx git.branch.uses del" \
     "rhx git.branch.uses set --quant N"
 }
@@ -360,7 +360,7 @@ set_branch_uses_verdict() {
       return 0
     fi
     BRANCH_USES_VERDICT="refused"
-    BRANCH_USES_ASK="ask your human to lift it"
+    BRANCH_USES_ASK="ask your sponsor to lift it"
     BRANCH_USES_LIFT="rhx git.branch.uses allow --global"
     return 0
   fi
@@ -374,7 +374,7 @@ set_branch_uses_verdict() {
       return 0
     fi
     BRANCH_USES_VERDICT="refused"
-    BRANCH_USES_ASK="ask your human to allow"
+    BRANCH_USES_ASK="ask your sponsor to allow"
     BRANCH_USES_LIFT="rhx git.branch.uses allow --org <org>"
     return 0
   fi
@@ -388,7 +388,7 @@ set_branch_uses_verdict() {
   if [[ ! -e "$file" ]] || ! content=$(cat "$file" 2> /dev/null); then
     BRANCH_USES_VERDICT="refused"
     BRANCH_USES_REASON="no cutover quota set"
-    BRANCH_USES_ASK="ask your human to grant"
+    BRANCH_USES_ASK="ask your sponsor to grant"
     BRANCH_USES_LIFT="rhx git.branch.uses set --quant N"
     return 0
   fi
@@ -404,7 +404,7 @@ set_branch_uses_verdict() {
   if [[ "$(printf '%s' "$content" | jq -r '.uses')" == "0" ]]; then
     BRANCH_USES_VERDICT="refused"
     BRANCH_USES_REASON="no cutover uses left"
-    BRANCH_USES_ASK="ask your human to grant more"
+    BRANCH_USES_ASK="ask your sponsor to grant more"
     BRANCH_USES_LIFT="rhx git.branch.uses set --quant N"
   fi
   return 0

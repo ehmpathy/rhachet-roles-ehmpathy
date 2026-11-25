@@ -1094,9 +1094,8 @@ guard_actor_is_human_via_stdin() {
   #        and its availability is not ours to assume).
   # 🔴 .why the refusal names the CHANNEL and the SPONSOR, never "a human" =
   #        a claude `!` command has no terminal either, so "only humans can
-  #        run this" told a human at that prompt they were not one; and a
-  #        director grants commits and releases as a sponsor, through this
-  #        same terminal gate.
+  #        run this" told a human at that prompt they were not one; and any
+  #        sponsor grants commits and releases through this same terminal gate.
   # .why the body rides tree branches and a 🥥 hint = one refusal shape for
   #        the family: no prose hangs below a tree that already closed
   #        (rule.forbid.snapshot-visual-blemishes, rule.require.coconut-hints)
@@ -2720,7 +2719,7 @@ print_local_meter_damaged_fix() {
     return 0
   fi
 
-  print_coconut_hint "ask your human to reset the quota, then grant again" \
+  print_coconut_hint "ask your sponsor to reset the quota, then grant again" \
     "$METER_SKILL del" \
     "$METER_SKILL set --quant N"
 }

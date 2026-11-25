@@ -3063,7 +3063,7 @@ describe('git.branch.cutover', () => {
           'stage: ✋ no live commit grant, so rhx git.stage.add will refuse',
         );
         expect(outcome.halt.stdout).toContain(
-          'ask your human: rhx git.commit.uses set --quant N',
+          'ask your sponsor: rhx git.commit.uses set --quant N',
         );
         expect(outcome.halt.stdout).toContain(
           'quota: the cutover unit is spent; abort refunds none',

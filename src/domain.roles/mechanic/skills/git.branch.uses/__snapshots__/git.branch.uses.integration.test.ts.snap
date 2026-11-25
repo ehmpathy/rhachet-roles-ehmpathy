@@ -41,7 +41,7 @@ exports[`git.branch.uses given: [case2] no quota is set when: [t0] get then: it 
 
 🥥 did you know?
    ├─ no quota is granted on this tree, so a cutover apply will refuse
-   └─ rhx git.branch.uses set --quant N   # ask your human
+   └─ rhx git.branch.uses set --quant N   # ask your sponsor
 "
 `;
 
@@ -66,7 +66,7 @@ exports[`git.branch.uses given: [case3] a robot tries to grant itself a quota wh
 
 🥥 did you know?
    ├─ no quota is granted on this tree, so a cutover apply will refuse
-   └─ rhx git.branch.uses set --quant N   # ask your human
+   └─ rhx git.branch.uses set --quant N   # ask your sponsor
 "
 `;
 
@@ -101,7 +101,7 @@ exports[`git.branch.uses given: [case5] the local meter file is damaged when: [t
      .meter/git.branch.uses.jsonc
 
 🥥 did you know?
-   ├─ ask your human to reset the quota, then grant again
+   ├─ ask your sponsor to reset the quota, then grant again
    ├─ rhx git.branch.uses del
    └─ rhx git.branch.uses set --quant N
 "
@@ -117,7 +117,7 @@ exports[`git.branch.uses given: [case5] the local meter file is damaged when: [t
      .meter/git.branch.uses.jsonc
 
 🥥 did you know?
-   ├─ ask your human to reset the quota, then grant again
+   ├─ ask your sponsor to reset the quota, then grant again
    ├─ rhx git.branch.uses del
    └─ rhx git.branch.uses set --quant N
 "
@@ -133,7 +133,7 @@ exports[`git.branch.uses given: [case5] the local meter file is damaged when: [t
      .meter/git.branch.uses.jsonc
 
 🥥 did you know?
-   ├─ ask your human to reset the quota, then grant again
+   ├─ ask your sponsor to reset the quota, then grant again
    ├─ rhx git.branch.uses del
    └─ rhx git.branch.uses set --quant N
 "
@@ -186,7 +186,7 @@ exports[`git.branch.uses given: [case8] the gate a cutover apply passes through 
    └─ ✋ ConstraintError: cutovers blocked globally
 
 🥥 did you know?
-   ├─ ask your human to lift it
+   ├─ ask your sponsor to lift it
    └─ rhx git.branch.uses allow --global
 "
 `;
@@ -198,7 +198,7 @@ exports[`git.branch.uses given: [case8] the gate a cutover apply passes through 
    └─ ✋ ConstraintError: no org config for ehmpathy
 
 🥥 did you know?
-   ├─ ask your human to allow
+   ├─ ask your sponsor to allow
    └─ rhx git.branch.uses allow --org <org>
 "
 `;
@@ -210,7 +210,7 @@ exports[`git.branch.uses given: [case8] the gate a cutover apply passes through 
    └─ ✋ ConstraintError: cutovers blocked for org ehmpathy (from @all)
 
 🥥 did you know?
-   ├─ ask your human to allow
+   ├─ ask your sponsor to allow
    └─ rhx git.branch.uses allow --org <org>
 "
 `;
@@ -222,7 +222,7 @@ exports[`git.branch.uses given: [case8] the gate a cutover apply passes through 
    └─ ✋ ConstraintError: no cutover quota set
 
 🥥 did you know?
-   ├─ ask your human to grant
+   ├─ ask your sponsor to grant
    └─ rhx git.branch.uses set --quant N
 "
 `;
@@ -234,7 +234,7 @@ exports[`git.branch.uses given: [case8] the gate a cutover apply passes through 
    └─ ✋ ConstraintError: no cutover uses left
 
 🥥 did you know?
-   ├─ ask your human to grant more
+   ├─ ask your sponsor to grant more
    └─ rhx git.branch.uses set --quant N
 "
 `;
@@ -249,7 +249,7 @@ exports[`git.branch.uses given: [case8] the gate a cutover apply passes through 
      .meter/git.branch.uses.jsonc
 
 🥥 did you know?
-   ├─ ask your human to reset the quota, then grant again
+   ├─ ask your sponsor to reset the quota, then grant again
    ├─ rhx git.branch.uses del
    └─ rhx git.branch.uses set --quant N
 "
