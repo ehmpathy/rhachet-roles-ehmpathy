@@ -4811,7 +4811,9 @@ describe('git.branch.cutover', () => {
       then('the quota line names the fault and its file lift', () => {
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('quota: ✋ apply will refuse:');
-        expect(result.stdout).toContain('ask your human to fix:');
+        expect(result.stdout).toContain(
+          'ask your human to fix .agent/keyrack.yml',
+        );
         expect(result.stdout).not.toContain('allow --org');
         expect(asSnapshotSafe(result.stdout)).toMatchSnapshot();
       });

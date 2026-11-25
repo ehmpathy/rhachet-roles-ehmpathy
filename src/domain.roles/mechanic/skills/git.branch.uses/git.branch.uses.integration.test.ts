@@ -665,7 +665,7 @@ describe('git.branch.uses', () => {
           );
           if (thisCase.keyrack !== null) fs.chmodSync(keyrackPath, 0o644);
           expect(result.stdout.trim()).toBe(
-            `refused|ask your human to fix: ${thisCase.lift}`,
+            `refused|ask your human to fix ${thisCase.lift}`,
           );
         }),
       );

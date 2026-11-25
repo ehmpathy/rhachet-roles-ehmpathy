@@ -394,7 +394,7 @@ describe('git.commit.uses precedence matrix', () => {
       then('allowed - shows plan', () => {
         const result = runPushWithPrecedence({
           orgState: { orgs: { ahbode: 'allowed', bhanya: 'allowed' } },
-          localState: { uses: 3, push: 'allow' },
+          localState: { uses: 3, held: true },
           keyrackOrg: '[ahbode, bhanya]',
         });
 
@@ -410,7 +410,7 @@ describe('git.commit.uses precedence matrix', () => {
       then('blocked - names the blocked org and its allow', () => {
         const result = runPushWithPrecedence({
           orgState: { orgs: { ahbode: 'allowed', bhanya: 'blocked' } },
-          localState: { uses: 3, push: 'allow' },
+          localState: { uses: 3, held: true },
           keyrackOrg: '[ahbode, bhanya]',
         });
 
@@ -426,7 +426,7 @@ describe('git.commit.uses precedence matrix', () => {
       then('blocked - names the blocked org', () => {
         const result = runPushWithPrecedence({
           orgState: { orgs: { ahbode: 'allowed', bhanya: 'blocked' } },
-          localState: { uses: 3, push: 'allow' },
+          localState: { uses: 3, held: true },
           keyrackOrg: '',
           keyrackRaw: 'org:\n  - ahbode\n  - bhanya\n',
         });
@@ -444,7 +444,7 @@ describe('git.commit.uses precedence matrix', () => {
       then('blocked - shows what it read, names no org allow', () => {
         const result = runPushWithPrecedence({
           orgState: '@all-allowed',
-          localState: { uses: 3, push: 'allow' },
+          localState: { uses: 3, held: true },
           keyrackOrg: '[]',
         });
 
@@ -460,7 +460,7 @@ describe('git.commit.uses precedence matrix', () => {
       then('blocked - names the keyrack fix, no org allow', () => {
         const result = runPushWithPrecedence({
           orgState: '@all-allowed',
-          localState: { uses: 3, push: 'allow' },
+          localState: { uses: 3, held: true },
           keyrackOrg: '',
           keyrackRaw: null,
         });

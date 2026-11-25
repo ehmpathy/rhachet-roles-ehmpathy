@@ -199,7 +199,7 @@ exports[`git.branch.uses given: [case8] the gate a cutover apply passes through 
 
 🥥 did you know?
    ├─ ask your human to allow
-   └─ rhx git.branch.uses allow --org <org>
+   └─ rhx git.branch.uses allow --org ehmpathy
 "
 `;
 
@@ -211,7 +211,7 @@ exports[`git.branch.uses given: [case8] the gate a cutover apply passes through 
 
 🥥 did you know?
    ├─ ask your human to allow
-   └─ rhx git.branch.uses allow --org <org>
+   └─ rhx git.branch.uses allow --org ehmpathy
 "
 `;
 
@@ -269,6 +269,48 @@ exports[`git.branch.uses given: [case8] the gate a cutover apply passes through 
 "
 `;
 
+exports[`git.branch.uses given: [case8b] keyrack.yml org: lists several orgs when: [t1] the second listed org is blocked (block list) then: it refuses with exit 2 and names the blocked org 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.cutover begin
+   └─ ✋ ConstraintError: cutovers blocked for org bhanya
+      ├─ .agent/keyrack.yml org: lists ahbode, bhanya
+      └─ every listed org must allow cutovers
+
+🥥 did you know?
+   ├─ ask your human to allow
+   └─ rhx git.branch.uses allow --org bhanya
+"
+`;
+
+exports[`git.branch.uses given: [case8b] keyrack.yml org: lists several orgs when: [t2] org: is an empty list then: it refuses with exit 2, shows the read, and names no org allow 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.cutover begin
+   └─ ✋ ConstraintError: .agent/keyrack.yml org: lists no org
+
+   .agent/keyrack.yml org: read as:
+     org: []
+
+ask your human to name the org in .agent/keyrack.yml, as one of:
+  org: ehmpathy
+  org: [ahbode, bhanya]
+"
+`;
+
+exports[`git.branch.uses given: [case8b] keyrack.yml org: lists several orgs when: [t3] keyrack.yml is absent then: it refuses with exit 2 and names no org allow 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.cutover begin
+   └─ ✋ ConstraintError: .agent/keyrack.yml not found
+
+🥥 did you know?
+   ├─ ask a human to name the org in .agent/keyrack.yml, or to add the ehmpath keyrack so ehmpaths can unlock their own keys
+   ├─ echo 'org: ehmpathy' > .agent/keyrack.yml
+   └─ npx rhachet run --init keyrack.ehmpath
+"
+`;
+
 exports[`git.branch.uses given: [case9] the branch meter slug is left exported in the shell when: [t0] the commit meter blocks globally then: it writes the commit global file, never the branch one 1`] = `
 "🐢 groovy, bonfire time
 
@@ -296,6 +338,9 @@ commands:
   block  alias for del
   allow  grant unlimited quota (human only)
   get    check quota left
+
+org gate:
+  every org in .agent/keyrack.yml org: must allow cutovers (rhx git.branch.uses --org <org> get)
 
 options (set):
   --quant N             cutovers to allow (or 'infinite')

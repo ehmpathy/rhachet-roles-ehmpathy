@@ -1625,7 +1625,7 @@ exports[`git.branch.cutover given: [case66b] a plan while one org of a keyrack l
    ├─ quota: ✋ apply will refuse: cutovers blocked for org bhanya
    │  ├─ .agent/keyrack.yml org: lists ehmpathy, bhanya
    │  ├─ every listed org must allow cutovers
-   │  └─ ask your human to allow: rhx git.branch.uses allow --org bhanya
+   │  └─ ask your human to allow rhx git.branch.uses allow --org bhanya
    └─ left behind on turtle/wave-report (4, not picked)
       ├─ <sha> feat(wave): add wave report
       ├─ <sha> cont(wave): add swell height
@@ -1645,7 +1645,7 @@ exports[`git.branch.cutover given: [case66c] a plan while keyrack.yml org: lists
    ├─ base: origin/main @ <sha> (fetched)
    ├─ into: turtle/wave-report-v2 (new, no upstream)
    ├─ quota: ✋ apply will refuse: .agent/keyrack.yml org: lists no org
-   │  └─ ask your human to fix: .agent/keyrack.yml org: (one org, or a list of orgs)
+   │  └─ ask your human to fix .agent/keyrack.yml org: (one org, or a list of orgs)
    └─ left behind on turtle/wave-report (4, not picked)
       ├─ <sha> feat(wave): add wave report
       ├─ <sha> cont(wave): add swell height
