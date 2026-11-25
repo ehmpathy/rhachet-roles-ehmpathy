@@ -101,7 +101,7 @@
     "jest": "30.2.0",
     "node-pty": "1.2.0-beta.15",
     "playwright": "1.60.0",
-    "rhachet": "1.54.0",
+    "rhachet": "1.54.1",
     "rhachet-brains-anthropic": "0.4.3",
     "rhachet-brains-fireworksai": "0.2.3",
     "rhachet-brains-openrouter": "0.1.4",
