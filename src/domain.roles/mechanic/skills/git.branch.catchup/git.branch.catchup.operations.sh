@@ -195,8 +195,32 @@ get_settled_conflict_files() {
 #         reviews. the rebase guard reads only unstaged; this reads both
 ######################################################################
 get_uncommitted_files() {
-  { git diff --name-only -z; git diff --cached --name-only -z; } 2>/dev/null \
-    | as_lines_from_nul | sort -u
+  local mode_only
+  mode_only=$(get_unstaged_mode_only_files)
+  {
+    git diff --name-only -z 2>/dev/null | as_lines_from_nul \
+      | { if [[ -n "$mode_only" ]]; then grep -vxF -- "$mode_only" || true; else cat; fi; }
+    git diff --cached --name-only -z 2>/dev/null | as_lines_from_nul
+  } | sort -u
+}
+
+######################################################################
+# .what = the tracked files whose only unstaged change is a mode bit
+# .why  = a merge commit records the index, never a worktree mode bit,
+#         so the flip `chmod` leaves (e.g. `prepare:husky` on install)
+#         is no work to fold. the dirty guard passes it, and names it
+######################################################################
+#
+# .note = the worktree side of `git diff --raw` reads as zeros, so the
+#         content test hashes the file and compares to the index blob
+get_unstaged_mode_only_files() {
+  local top meta path mode_src mode_dst sha_src sha_dst status  top=$(git rev-parse --show-toplevel)
+  while IFS= read -r -d '' meta && IFS= read -r -d '' path; do
+    read -r mode_src mode_dst sha_src sha_dst status <<< "${meta#:}"
+    [[ "$status" == "M" && "$mode_src" != "$mode_dst" ]] || continue
+    [[ "$(git hash-object -- "$top/$path")" == "$sha_src" ]] || continue
+    printf '%s\n' "$path"
+  done < <(git diff --raw --no-abbrev --no-renames -z 2>/dev/null)
 }
 
 ######################################################################

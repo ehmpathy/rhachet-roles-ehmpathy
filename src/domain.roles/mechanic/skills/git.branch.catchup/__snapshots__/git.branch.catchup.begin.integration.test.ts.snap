@@ -233,6 +233,30 @@ exports[`git.branch.catchup begin given: [case4b2] staged-only edits in the tree
 "
 `;
 
+exports[`git.branch.catchup begin given: [case4b3] a mode-only flip in the tree (as prepare:husky leaves on install) when: [t0] begin (plan) then: matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.catchup begin --mode plan
+   ├─ catch up via merge (no rewrite) from origin/main
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ into: turtle/feat-wave-report
+   │  ├─ behind: 1 commit
+   │  │  └─ HASH123 feat(docs): add a
+   │  └─ ahead: 1 commit
+   ├─ commit
+   │  ├─ header: cont(branch): merge origin/main into turtle/feat-wave-report
+   │  ├─ author: seaturtle[bot] <seaturtle@ehmpath.com>
+   │  └─ sponsor: Test Human <human@test.com>, from bound (this tree)
+   ├─ kept out: a mode-only change, which a merge commit never records
+   │  └─ readme.md
+   └─ meter
+      └─ left: 4 → 3
+
+run with --mode apply to execute
+"
+`;
+
 exports[`git.branch.catchup begin given: [case4c] meter uses = 0 when: [t0] begin (plan) then: matches snapshot 1`] = `
 "🐢 heres the wave...
 

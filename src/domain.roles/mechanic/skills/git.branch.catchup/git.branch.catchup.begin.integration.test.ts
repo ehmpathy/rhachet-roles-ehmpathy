@@ -583,6 +583,105 @@ describe('git.branch.catchup begin', () => {
     },
   );
 
+  given(
+    '[case4b3] a mode-only flip in the tree (as prepare:husky leaves on install)',
+    () => {
+      const scene = useBeforeAll(async () => {
+        const scene = genCatchupScene({ slug: 'catchup-begin-case4b3' });
+        moveMain({
+          scene,
+          files: { 'docs/a.md': 'a\n' },
+          message: 'feat(docs): add a',
+        });
+        fs.chmodSync(path.join(scene.workDir, 'readme.md'), 0o755);
+        return scene;
+      });
+
+      when('[t0] begin (plan)', () => {
+        const result = useBeforeAll(async () =>
+          runCatchup({ scene, args: ['begin'] }),
+        );
+
+        then('exits 0; names the flip as kept out; flags no refusal', () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain(
+            'kept out: a mode-only change, which a merge commit never records',
+          );
+          expect(result.stdout).toContain('readme.md');
+          expect(result.stdout).not.toContain('apply will refuse');
+        });
+
+        then('matches snapshot', () => {
+          expect(asStableOutput(result.stdout)).toMatchSnapshot();
+        });
+      });
+
+      when('[t1] begin --mode apply', () => {
+        const result = useBeforeAll(async () => {
+          const run = runCatchup({ scene, args: ['begin', '--mode', 'apply'] });
+          return { run, head: getHeadFacts({ scene }) };
+        });
+
+        then('exits 0; HEAD is the 2-parent merge commit', () => {
+          expect(result.run.exitCode).toBe(0);
+          expect(result.head.parents).toBe(2);
+        });
+
+        then('the merge commit holds readme.md at its committed mode', () => {
+          expect(
+            runGit({
+              cwd: scene.workDir,
+              args: ['ls-tree', 'HEAD', '--', 'readme.md'],
+            }),
+          ).toMatch(/^100644 /);
+        });
+
+        then('the flip stays in the worktree, unstaged, as it was', () => {
+          expect(
+            runGit({ cwd: scene.workDir, args: ['diff', '--name-only'] }),
+          ).toBe('readme.md');
+          expect(
+            runGit({
+              cwd: scene.workDir,
+              args: ['diff', '--cached', '--name-only'],
+            }),
+          ).toBe('');
+        });
+      });
+    },
+  );
+
+  given(
+    '[case4b4] a mode flip with a content edit on the same file',
+    () => {
+      const scene = useBeforeAll(async () => {
+        const scene = genCatchupScene({ slug: 'catchup-begin-case4b4' });
+        moveMain({
+          scene,
+          files: { 'docs/a.md': 'a\n' },
+          message: 'feat(docs): add a',
+        });
+        const file = path.join(scene.workDir, 'readme.md');
+        fs.writeFileSync(file, '# wave report, edited\n');
+        fs.chmodSync(file, 0o755);
+        return scene;
+      });
+
+      when('[t0] begin --mode apply', () => {
+        const result = useBeforeAll(async () =>
+          runCatchup({ scene, args: ['begin', '--mode', 'apply'] }),
+        );
+
+        then('exits 2; the content edit still counts as work', () => {
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain('uncommitted changes in the tree');
+          expect(result.stdout).toContain('readme.md');
+          expect(isMergeInFlight({ scene })).toBe(false);
+        });
+      });
+    },
+  );
+
   given('[case4c] meter uses = 0', () => {
     const scene = useBeforeAll(async () => {
       const scene = genCatchupScene({ slug: 'catchup-begin-case4c', uses: 0 });

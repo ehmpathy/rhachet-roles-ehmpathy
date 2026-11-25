@@ -16,6 +16,7 @@
 #   - the git.commit.set gates, in its order: human halts, a corrupt quota
 #     file, sponsor; then uses left (apply refuses, plan flags)
 #   - never merges over uncommitted work, staged or unstaged
+#     (a mode-only unstaged flip passes: a merge commit never records it)
 #   - always --no-ff: the result is a 2-parent commit authored by the
 #     robot, with the sponsor Co-authored-by trailer; meter −1
 #   - a conflict stops loud (exit 2), names each file, leaves the merge
@@ -182,6 +183,7 @@ fi
 MERGE_IN_FLIGHT=false
 is_merge_in_flight && MERGE_IN_FLIGHT=true
 UNCOMMITTED=$(get_uncommitted_files)
+MODE_ONLY=$(get_unstaged_mode_only_files)
 COLLISIONS=$(get_untracked_collision_files)
 
 # robot identity, after the sponsor gate (its fetch can unlock a keyrack)
@@ -223,6 +225,10 @@ if [[ "$MODE" == "plan" ]]; then
   if [[ -n "$UNCOMMITTED" ]]; then
     echo "   ├─ ⚠️ apply will refuse: uncommitted changes"
     print_catchup_lines_tree prefix="   │  " files="$UNCOMMITTED"
+  fi
+  if [[ -n "$MODE_ONLY" ]]; then
+    echo "   ├─ kept out: a mode-only change, which a merge commit never records"
+    print_catchup_lines_tree prefix="   │  " files="$MODE_ONLY"
   fi
   if [[ -n "$COLLISIONS" ]]; then
     echo "   ├─ ⚠️ apply will refuse: untracked files at paths $CATCHUP_SOURCE_REF adds"
