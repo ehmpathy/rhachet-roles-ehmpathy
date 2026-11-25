@@ -1,5 +1,6 @@
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
+import { ConstraintError } from 'helpful-errors';
 import * as path from 'path';
 import { genTempDir, given, then, useThen, when } from 'test-fns';
 
@@ -77,6 +78,9 @@ describe('git.commit.set.sh', () => {
     branch?: string | null; // null = stay on main, string = use that branch name, undefined = 'fix/test-branch'
     env?: Record<string, string>; // extra env for the subprocess (e.g. fake PATH, empty keyrack token)
     fakeRhachet?: string; // shadow node_modules/.bin/rhachet (the keyrack communicator) with this bash body
+    keyrack?: string | null; // .agent/keyrack.yml verbatim; null = no file; undefined = 'org: ehmpathy'
+    keyrackMode?: number; // chmod .agent/keyrack.yml to this mode after the write
+    orgs?: Record<string, string>; // the org meter; undefined = { ehmpathy: 'allowed' }
   }): {
     stdout: string;
     stderr: string;
@@ -270,13 +274,19 @@ describe('git.commit.set.sh', () => {
     fs.mkdirSync(orgMeterDir, { recursive: true });
     fs.writeFileSync(
       path.join(orgMeterDir, 'git.commit.uses.org.jsonc'),
-      JSON.stringify({ orgs: { ehmpathy: 'allowed' } }, null, 2),
+      JSON.stringify({ orgs: args.orgs ?? { ehmpathy: 'allowed' } }, null, 2),
     );
 
     // set up .agent/keyrack.yml so org can be detected from repo
     const agentDir = path.join(tempDir, '.agent');
     fs.mkdirSync(agentDir, { recursive: true });
-    fs.writeFileSync(path.join(agentDir, 'keyrack.yml'), 'org: ehmpathy\n');
+    if (args.keyrack !== null)
+      fs.writeFileSync(
+        path.join(agentDir, 'keyrack.yml'),
+        args.keyrack ?? 'org: ehmpathy\n',
+      );
+    if (args.keyrackMode !== undefined)
+      fs.chmodSync(path.join(agentDir, 'keyrack.yml'), args.keyrackMode);
 
     // create stub bash alias files to prevent warnings when HOME is fake
     // (user's .bash_aliases sources these from $HOME, which breaks with fake HOME)
@@ -5919,6 +5929,371 @@ exec /usr/bin/git "$@"
           //    the moment one does, `[t0]` above is the test that goes red
           expect(onLaptop).not.toContain('source: self');
           expect(onLaptop).not.toContain('source: supplied');
+        });
+      });
+    },
+  );
+
+  given(
+    '[case54] keyrack.yml org: as a scalar or a list gates the commit',
+    () => {
+      /**
+       * .what = the org gate reads every shape of keyrack org:, at the surface a
+       *         human meets, and names the org that refused
+       * .why = a reader that takes a flow list as one literal org falls to
+       *        @all (fail-open); one that misses a block list refuses a legal
+       *        file with a remedy that cannot help
+       */
+      const commitWith = (input: {
+        keyrack: string | null;
+        orgs: Record<string, string>;
+        keyrackMode?: number;
+      }) =>
+        runInTempGitRepo({
+          files: { 'test.txt': 'content' },
+          staged: true,
+          meterState: { uses: 3, push: 'block' },
+          commitArgs: ['-m', '@stdin', '--mode', 'apply'],
+          stdin: 'fix(x): y\n\n- z',
+          keyrack: input.keyrack,
+          keyrackMode: input.keyrackMode,
+          orgs: input.orgs,
+        });
+
+      // root reads a mode-000 file, so that case would assert a fault root never meets
+      const failfastIfRoot = () => {
+        if (process.getuid?.() !== 0) return;
+        throw new ConstraintError(
+          'a mode-000 keyrack case cannot run as root',
+          {
+            hint: 'run the suite as a non-root user',
+          },
+        );
+      };
+
+      // the clone's commits in the tree; empty = the gate let none through
+      const getCloneCommits = (input: { tempDir: string }) =>
+        spawnSync('git', ['log', '--author=seaturtle', '--format=%h'], {
+          cwd: input.tempDir,
+          encoding: 'utf-8', // note: library api requires this term
+        }).stdout.trim();
+
+      when('[t0] a flow list whose every org allows', () => {
+        then('the commit lands', () => {
+          const result = commitWith({
+            keyrack: 'org: [ahbode, bhanya]\n',
+            orgs: { ahbode: 'allowed', bhanya: 'allowed' },
+          });
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('🐢 righteous!');
+          expect(getCloneCommits({ tempDir: result.tempDir })).not.toBe('');
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+
+      when('[t1] a block list whose second org is blocked', () => {
+        then('the commit is refused with exit 2 and names bhanya', () => {
+          const result = commitWith({
+            keyrack: 'org:\n  - ahbode\n  - bhanya\n',
+            orgs: { ahbode: 'allowed', bhanya: 'blocked' },
+          });
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain('commits blocked for org bhanya');
+          expect(result.stdout).toContain('every listed org must allow');
+          expect(result.stdout).toContain('git.commit.uses allow --org bhanya');
+          expect(result.stderr).toContain('commits blocked for org bhanya');
+          expect(getCloneCommits({ tempDir: result.tempDir })).toBe('');
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+
+      when('[t2] a quoted scalar with a trailed comment, org blocked', () => {
+        then('the remedy names the real org, never a placeholder', () => {
+          const result = commitWith({
+            keyrack: "org: 'ehmpathy'  # main org\n",
+            orgs: { ehmpathy: 'blocked' },
+          });
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain('commits blocked for org ehmpathy');
+          expect(result.stdout).toContain(
+            'git.commit.uses allow --org ehmpathy',
+          );
+          expect(result.stdout).not.toContain('<org>');
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+
+      when('[t3] org: holds a shape it cannot read', () => {
+        then('the commit is refused with exit 2 and shows what it read', () => {
+          const result = commitWith({
+            keyrack: 'org: { name: ahbode }\n',
+            orgs: { '@all': 'allowed' },
+          });
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain('org: shape not readable');
+          expect(result.stdout).toContain('org: read as:');
+          expect(result.stdout).not.toContain('allow --org');
+          expect(getCloneCommits({ tempDir: result.tempDir })).toBe('');
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+
+      when('[t4] keyrack.yml is absent', () => {
+        then(
+          'the commit is refused with exit 2 and names the keyrack fix',
+          () => {
+            const result = commitWith({
+              keyrack: null,
+              orgs: { '@all': 'allowed' },
+            });
+            expect(result.exitCode).toBe(2);
+            expect(result.stdout).toContain('.agent/keyrack.yml not found');
+            expect(result.stdout).not.toContain('allow --org');
+            expect(getCloneCommits({ tempDir: result.tempDir })).toBe('');
+            expect(result.stdout).toMatchSnapshot();
+          },
+        );
+      });
+
+      // the same commit again, in a tree a prior refusal left staged
+      const retryCommit = (scene: {
+        tempDir: string;
+        isolatedHome: string;
+      }) => {
+        const result = spawnSync(
+          'bash',
+          [scriptPath, '-m', '@stdin', '--mode', 'apply'],
+          {
+            cwd: scene.tempDir,
+            encoding: 'utf-8', // note: library api requires this term
+            input: 'fix(x): y\n\n- z',
+            env: { ...process.env, HOME: scene.isolatedHome },
+          },
+        );
+        return { stdout: result.stdout ?? '', exitCode: result.status ?? 1 };
+      };
+
+      when('[t5] a block list whose every org allows', () => {
+        then('the commit lands', () => {
+          const result = commitWith({
+            keyrack: 'org:\n  - ahbode\n  - bhanya\n',
+            orgs: { ahbode: 'allowed', bhanya: 'allowed' },
+          });
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('🐢 righteous!');
+          expect(getCloneCommits({ tempDir: result.tempDir })).not.toBe('');
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+
+      when('[t6] a flow list whose second org is blocked', () => {
+        then('the commit is refused with exit 2 and names bhanya', () => {
+          const result = commitWith({
+            keyrack: 'org: [ahbode, bhanya]\n',
+            orgs: { ahbode: 'allowed', bhanya: 'blocked' },
+          });
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain('commits blocked for org bhanya');
+          expect(result.stdout).toContain('git.commit.uses allow --org bhanya');
+          expect(getCloneCommits({ tempDir: result.tempDir })).toBe('');
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+
+      when(
+        '[t7] the meter allows ahbode, holds no key for bhanya, no @all',
+        () => {
+          const scene = useThen('the commit is refused for bhanya', async () =>
+            commitWith({
+              keyrack: 'org: [ahbode, bhanya]\n',
+              orgs: { ahbode: 'allowed' },
+            }),
+          );
+
+          then('exit 2 names bhanya as unconfigured, with its allow', () => {
+            expect(scene.exitCode).toBe(2);
+            expect(scene.stdout).toContain('no org config for bhanya');
+            expect(scene.stdout).toContain(
+              'git.commit.uses allow --org bhanya',
+            );
+            expect(getCloneCommits({ tempDir: scene.tempDir })).toBe('');
+            expect(scene.stdout).toMatchSnapshot();
+          });
+
+          then(
+            'the taught fix works: allow bhanya, retry, the commit lands',
+            () => {
+              const allow = spawnSync(
+                'bash',
+                [
+                  path.join(__dirname, 'git.commit.uses.sh'),
+                  '--org',
+                  'bhanya',
+                  'allow',
+                ],
+                {
+                  cwd: scene.tempDir,
+                  encoding: 'utf-8', // note: library api requires this term
+                  env: {
+                    ...process.env,
+                    HOME: scene.isolatedHome,
+                    __I_AM_HUMAN: 'true',
+                  },
+                },
+              );
+              expect(allow.status).toBe(0);
+              const retry = retryCommit(scene);
+              expect(retry.exitCode).toBe(0);
+              expect(getCloneCommits({ tempDir: scene.tempDir })).not.toBe('');
+            },
+          );
+        },
+      );
+
+      when('[t8] org: is an empty list', () => {
+        const scene = useThen('the commit is refused', async () =>
+          commitWith({ keyrack: 'org: []\n', orgs: { ahbode: 'allowed' } }),
+        );
+
+        then('exit 2 shows the read and the keyrack fix, no allow', () => {
+          expect(scene.exitCode).toBe(2);
+          expect(scene.stdout).toContain('org: lists no org');
+          expect(scene.stdout).toContain('     org: []');
+          expect(scene.stdout).toContain('ask your human to name the org');
+          expect(scene.stdout).not.toContain('allow --org');
+          expect(getCloneCommits({ tempDir: scene.tempDir })).toBe('');
+          expect(scene.stdout).toMatchSnapshot();
+        });
+
+        then(
+          'the taught fix works: name the org, retry, the commit lands',
+          () => {
+            fs.writeFileSync(
+              path.join(scene.tempDir, '.agent', 'keyrack.yml'),
+              'org: ahbode\n',
+            );
+            const retry = retryCommit(scene);
+            expect(retry.exitCode).toBe(0);
+            expect(getCloneCommits({ tempDir: scene.tempDir })).not.toBe('');
+          },
+        );
+      });
+
+      when('[t9] keyrack.yml holds no org: key', () => {
+        then(
+          'the commit is refused with exit 2 and names the keyrack fix',
+          () => {
+            const result = commitWith({
+              keyrack: 'env.test:\n  - SOME_KEY\n',
+              orgs: { '@all': 'allowed' },
+            });
+            expect(result.exitCode).toBe(2);
+            expect(result.stdout).toContain('.agent/keyrack.yml org: absent');
+            expect(result.stdout).toContain('ask your human to name the org');
+            expect(result.stdout).not.toContain('org: read as:');
+            expect(result.stdout).not.toContain('allow --org');
+            expect(getCloneCommits({ tempDir: result.tempDir })).toBe('');
+            expect(result.stdout).toMatchSnapshot();
+          },
+        );
+      });
+
+      when('[t11] keyrack.yml is present but unreadable (mode 000)', () => {
+        then('exit 2 names the permission and the chmod, no allow', () => {
+          failfastIfRoot();
+          const result = commitWith({
+            keyrack: 'org: ehmpathy\n',
+            keyrackMode: 0o000,
+            orgs: { ehmpathy: 'allowed' },
+          });
+          fs.chmodSync(
+            path.join(result.tempDir, '.agent', 'keyrack.yml'),
+            0o644,
+          );
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain(
+            '.agent/keyrack.yml not readable (permission denied)',
+          );
+          expect(result.stdout).toContain('$ chmod 644 .agent/keyrack.yml');
+          expect(result.stdout).not.toContain('org: absent');
+          expect(result.stdout).not.toContain('allow --org');
+          expect(getCloneCommits({ tempDir: result.tempDir })).toBe('');
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+
+      when('[t12] org: holds a member or shape keyrack refuses', () => {
+        const MEMBER_CASES = [
+          {
+            description: '@all as a list member',
+            keyrack: 'org: [ahbode, "@all"]\n',
+            error: "org: '@all' cannot be a member, it names no org",
+            remedy: "remove '@all' from org: in .agent/keyrack.yml",
+          },
+          {
+            description: '@this as a scalar',
+            keyrack: "org: '@this'\n",
+            error: "org: '@this' cannot be a member, it names no org",
+            remedy: "remove '@this' from org: in .agent/keyrack.yml",
+          },
+          {
+            description: 'a member listed twice',
+            keyrack: 'org:\n  - ahbode\n  - ahbode\n',
+            error: "org: 'ahbode' is listed more than once",
+            remedy: "remove the repeat of 'ahbode' from org:",
+          },
+          {
+            description: 'a flow list across lines',
+            keyrack: 'org: [ahbode,\n  bhanya]\n',
+            error: 'org: shape not readable',
+            remedy: 'a flow list [a, b] must sit on one line',
+          },
+          {
+            description: 'a quoted key',
+            keyrack: '"org": ahbode\n',
+            error: 'org: shape not readable',
+            remedy: 'a flow list [a, b] must sit on one line',
+          },
+          {
+            description: 'a name with a space',
+            keyrack: 'org: "acme corp"\n',
+            error: 'org: shape not readable',
+            remedy: 'an org name is letters, digits, and _ . - (no spaces',
+          },
+        ];
+        MEMBER_CASES.map((thisCase) =>
+          then(
+            `${thisCase.description}: exit 2, the read, its own fix, no allow`,
+            () => {
+              const result = commitWith({
+                keyrack: thisCase.keyrack,
+                orgs: { '@all': 'allowed' },
+              });
+              expect(result.exitCode).toBe(2);
+              expect(result.stdout).toContain(thisCase.error);
+              expect(result.stdout).toContain('org: read as:');
+              expect(result.stdout).toContain(thisCase.remedy);
+              expect(result.stdout).not.toContain('allow --org');
+              expect(getCloneCommits({ tempDir: result.tempDir })).toBe('');
+              expect(result.stdout).toMatchSnapshot();
+            },
+          ),
+        );
+      });
+
+      when('[t10] a plain scalar, its org blocked', () => {
+        then('exit 2 names the org and its allow, with no list suffix', () => {
+          const result = commitWith({
+            keyrack: 'org: ehmpathy\n',
+            orgs: { ehmpathy: 'blocked' },
+          });
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain('commits blocked for org ehmpathy');
+          expect(result.stdout).not.toContain('every listed org');
+          expect(result.stdout).toContain(
+            'git.commit.uses allow --org ehmpathy',
+          );
+          expect(result.stdout).toMatchSnapshot();
         });
       });
     },

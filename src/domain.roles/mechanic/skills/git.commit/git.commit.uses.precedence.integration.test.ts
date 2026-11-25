@@ -30,10 +30,12 @@ describe('git.commit.uses precedence matrix', () => {
     globalState?: 'blocked' | 'allowed';
     orgState?:
       | { org: string; state: 'blocked' | 'allowed' }
+      | { orgs: Record<string, string> }
       | '@all-blocked'
       | '@all-allowed';
     localState?: { uses: number; held: boolean };
     keyrackOrg: string;
+    keyrackRaw?: string | null; // keyrack.yml verbatim, over keyrackOrg; null = no file
   }): {
     stdout: string;
     stderr: string;
@@ -47,10 +49,11 @@ describe('git.commit.uses precedence matrix', () => {
     // create .agent/keyrack.yml with org
     const agentDir = path.join(tempDir, '.agent');
     fs.mkdirSync(agentDir, { recursive: true });
-    fs.writeFileSync(
-      path.join(agentDir, 'keyrack.yml'),
-      `org: ${args.keyrackOrg}\n`,
-    );
+    if (args.keyrackRaw !== null)
+      fs.writeFileSync(
+        path.join(agentDir, 'keyrack.yml'),
+        args.keyrackRaw ?? `org: ${args.keyrackOrg}\n`,
+      );
 
     // create global state if provided
     const globalMeterDir = path.join(
@@ -77,6 +80,8 @@ describe('git.commit.uses precedence matrix', () => {
         orgsObj = { '@all': 'blocked' };
       } else if (args.orgState === '@all-allowed') {
         orgsObj = { '@all': 'allowed' };
+      } else if ('orgs' in args.orgState) {
+        orgsObj = args.orgState.orgs;
       } else {
         orgsObj = { [args.orgState.org]: args.orgState.state };
       }
@@ -375,6 +380,94 @@ describe('git.commit.uses precedence matrix', () => {
         expect(result.stdout).toContain(
           '└─ git.commit.uses allow --org ehmpathy',
         );
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  // ================================================================
+  // KEYRACK ORG LISTS — every listed org must allow
+  // ================================================================
+
+  given('[keyrack org: lists several orgs, every one allowed]', () => {
+    when('[t0] push is attempted', () => {
+      then('allowed - shows plan', () => {
+        const result = runPushWithPrecedence({
+          orgState: { orgs: { ahbode: 'allowed', bhanya: 'allowed' } },
+          localState: { uses: 3, push: 'allow' },
+          keyrackOrg: '[ahbode, bhanya]',
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('heres the wave');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[keyrack org: lists several orgs, the second blocked]', () => {
+    when('[t0] push is attempted with a flow list', () => {
+      then('blocked - names the blocked org and its allow', () => {
+        const result = runPushWithPrecedence({
+          orgState: { orgs: { ahbode: 'allowed', bhanya: 'blocked' } },
+          localState: { uses: 3, push: 'allow' },
+          keyrackOrg: '[ahbode, bhanya]',
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('commits blocked for org bhanya');
+        expect(result.stdout).toContain('every listed org must allow');
+        expect(result.stdout).toContain('git.commit.uses allow --org bhanya');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] push is attempted with a block list', () => {
+      then('blocked - names the blocked org', () => {
+        const result = runPushWithPrecedence({
+          orgState: { orgs: { ahbode: 'allowed', bhanya: 'blocked' } },
+          localState: { uses: 3, push: 'allow' },
+          keyrackOrg: '',
+          keyrackRaw: 'org:\n  - ahbode\n  - bhanya\n',
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('commits blocked for org bhanya');
+        expect(result.stdout).toContain('git.commit.uses allow --org bhanya');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[keyrack org: cannot be read]', () => {
+    when('[t0] org: is an empty list', () => {
+      then('blocked - shows what it read, names no org allow', () => {
+        const result = runPushWithPrecedence({
+          orgState: '@all-allowed',
+          localState: { uses: 3, push: 'allow' },
+          keyrackOrg: '[]',
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('org: lists no org');
+        expect(result.stdout).toContain('org: read as:');
+        expect(result.stdout).not.toContain('allow --org');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] keyrack.yml is absent', () => {
+      then('blocked - names the keyrack fix, no org allow', () => {
+        const result = runPushWithPrecedence({
+          orgState: '@all-allowed',
+          localState: { uses: 3, push: 'allow' },
+          keyrackOrg: '',
+          keyrackRaw: null,
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('.agent/keyrack.yml not found');
+        expect(result.stdout).not.toContain('allow --org');
         expect(result.stdout).toMatchSnapshot();
       });
     });

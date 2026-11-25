@@ -98,6 +98,11 @@ while [[ $# -gt 0 ]]; do
       echo "special values:"
       echo "  @all         sets default for all orgs (resets all + sets default)"
       echo ""
+      echo "which orgs gate a repo:"
+      echo "  every org in the repo's .agent/keyrack.yml org: must allow."
+      echo "  an org the meter names decides for itself; @all covers"
+      echo "  only the orgs the meter omits."
+      echo ""
       echo "options:"
       echo "  --help, -h   show this help"
       exit 0

@@ -1,5 +1,6 @@
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
+import { ConstraintError } from 'helpful-errors';
 import * as path from 'path';
 import { genTempDir, given, then, useThen, when } from 'test-fns';
 
@@ -130,7 +131,7 @@ extends:
       });
     });
 
-    when('[t2] keyrack.yml#org unset', () => {
+    when('[t2] keyrack.yml org: unset', () => {
       then('returns error', () => {
         const tempDir = genTempDir({ slug: 'org-keyrack-unset', git: true });
         const result = runFunction({
@@ -147,7 +148,7 @@ extends:
 `,
         });
         expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('.agent/keyrack.yml#org required');
+        expect(result.stdout).toContain('.agent/keyrack.yml org: absent');
       });
     });
   });
@@ -1198,6 +1199,539 @@ extends:
 
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('after-assert');
+      });
+    });
+  });
+
+  /**
+   * .what = every `org:` shape keyrack accepts reads as its members; every
+   *         other shape refuses as a keyrack fault, and never yields an org
+   * .why  = a one-line reader takes the block form as no org and the flow form
+   *         as the literal org `[a,b]`, which falls to `@all` (a fail-open)
+   */
+  given(
+    '[case40] get_org_from_keyrack reads org: as a scalar or a list',
+    () => {
+      const READ_CASES: {
+        description: string;
+        keyrack: string;
+        expect:
+          | { members: string }
+          | {
+              error: string;
+              fault: 'org-unreadable';
+              kind:
+                | 'key-absent'
+                | 'list-empty'
+                | 'shape'
+                | 'member-sigil'
+                | 'member-repeat';
+            };
+      }[] = [
+        {
+          description: 'scalar',
+          keyrack: 'org: ehmpathy\n',
+          expect: { members: 'ehmpathy' },
+        },
+        {
+          description: 'scalar, quoted, with an end-of-line comment',
+          keyrack: "org: 'ahbode'  # main\n",
+          expect: { members: 'ahbode' },
+        },
+        {
+          description: 'block list',
+          keyrack:
+            'org:\n  - ahbode\n  - bhanya\nextends:\n  - .agent/repo=bhrain/role=reviewer/keyrack.yml\n',
+          expect: { members: 'ahbode,bhanya' },
+        },
+        {
+          description: 'block list at column 0, with a comment line',
+          keyrack: 'org:\n# the orgs\n- ahbode\n- "bhanya"\n',
+          expect: { members: 'ahbode,bhanya' },
+        },
+        {
+          description: 'flow list',
+          keyrack: 'org: [ahbode, bhanya]\n',
+          expect: { members: 'ahbode,bhanya' },
+        },
+        {
+          description: 'flow list of one',
+          keyrack: 'org: [ahbode]\n',
+          expect: { members: 'ahbode' },
+        },
+        {
+          description: 'flow list, quoted members, with an end-of-line comment',
+          keyrack: `org: ['ahbode', "bhanya"]  # two orgs\n`,
+          expect: { members: 'ahbode,bhanya' },
+        },
+        {
+          description: 'block list, an item with an end-of-line comment',
+          keyrack: 'org:\n  - ahbode  # main\n  - bhanya\n',
+          expect: { members: 'ahbode,bhanya' },
+        },
+        {
+          description: 'block list with CRLF line ends (a windows edit)',
+          keyrack: 'org:\r\n  - ahbode\r\n  - bhanya\r\n',
+          expect: { members: 'ahbode,bhanya' },
+        },
+        {
+          description: 'scalar with a CRLF line end',
+          keyrack: 'org: ehmpathy\r\n',
+          expect: { members: 'ehmpathy' },
+        },
+        {
+          description: 'scalar @all (grove scope)',
+          keyrack: "org: '@all'\n",
+          expect: { members: '@all' },
+        },
+        {
+          description: 'empty flow list',
+          keyrack: 'org: []\n',
+          expect: {
+            error: '.agent/keyrack.yml org: lists no org',
+            fault: 'org-unreadable',
+            kind: 'list-empty',
+          },
+        },
+        {
+          description: 'bare org: with no items',
+          keyrack: 'org:\nextends:\n  - x.yml\n',
+          expect: {
+            error: '.agent/keyrack.yml org: lists no org',
+            fault: 'org-unreadable',
+            kind: 'list-empty',
+          },
+        },
+        {
+          description: 'org: absent',
+          keyrack: 'extends:\n  - x.yml\n',
+          expect: {
+            error: '.agent/keyrack.yml org: absent',
+            fault: 'org-unreadable',
+            kind: 'key-absent',
+          },
+        },
+        {
+          description: 'a map',
+          keyrack: 'org:\n  name: ahbode\n',
+          expect: {
+            error: '.agent/keyrack.yml org: shape not readable',
+            fault: 'org-unreadable',
+            kind: 'shape',
+          },
+        },
+        {
+          description: 'a flow list across lines',
+          keyrack: 'org: [ahbode,\n  bhanya]\n',
+          expect: {
+            error: '.agent/keyrack.yml org: shape not readable',
+            fault: 'org-unreadable',
+            kind: 'shape',
+          },
+        },
+        {
+          // unsupported: a yaml anchor is refused by shape, never read as an org
+          description: 'a yaml anchor',
+          keyrack: 'org: &main ahbode\n',
+          expect: {
+            error: '.agent/keyrack.yml org: shape not readable',
+            fault: 'org-unreadable',
+            kind: 'shape',
+          },
+        },
+        {
+          // unsupported: a quoted key is outside the grammar; refused by shape, never absent
+          description: 'a quoted key',
+          keyrack: '"org": ahbode\n',
+          expect: {
+            error: '.agent/keyrack.yml org: shape not readable',
+            fault: 'org-unreadable',
+            kind: 'shape',
+          },
+        },
+        {
+          // yaml reads each of these as a number, never a string; keyrack refuses them too
+          description: 'yaml number members (float, exponent, hex)',
+          keyrack: 'org: [1.5, 1e3, 0x1F]\n',
+          expect: {
+            error: '.agent/keyrack.yml org: shape not readable',
+            fault: 'org-unreadable',
+            kind: 'shape',
+          },
+        },
+        {
+          // a second org: key is a yaml error; the gate never reads the first
+          description: 'a duplicate org: key',
+          keyrack: 'org: ahbode\norg: bhanya\n',
+          expect: {
+            error: '.agent/keyrack.yml org: shape not readable',
+            fault: 'org-unreadable',
+            kind: 'shape',
+          },
+        },
+        {
+          // unsupported: a bare comma list is one scalar to yaml, not a list
+          description: 'a bare comma list',
+          keyrack: 'org: ahbode, bhanya\n',
+          expect: {
+            error: '.agent/keyrack.yml org: shape not readable',
+            fault: 'org-unreadable',
+            kind: 'shape',
+          },
+        },
+        {
+          description: 'a yaml null',
+          keyrack: 'org: null\n',
+          expect: {
+            error: '.agent/keyrack.yml org: shape not readable',
+            fault: 'org-unreadable',
+            kind: 'shape',
+          },
+        },
+        {
+          description: 'an @all member in a list',
+          keyrack: 'org: [ahbode, "@all"]\n',
+          expect: {
+            error:
+              ".agent/keyrack.yml org: '@all' cannot be a member, it names no org",
+            fault: 'org-unreadable',
+            kind: 'member-sigil',
+          },
+        },
+        {
+          description: 'scalar @this',
+          keyrack: "org: '@this'\n",
+          expect: {
+            error:
+              ".agent/keyrack.yml org: '@this' cannot be a member, it names no org",
+            fault: 'org-unreadable',
+            kind: 'member-sigil',
+          },
+        },
+        {
+          description: 'a repeated member',
+          keyrack: 'org:\n  - ahbode\n  - ahbode\n',
+          expect: {
+            error: ".agent/keyrack.yml org: 'ahbode' is listed more than once",
+            fault: 'org-unreadable',
+            kind: 'member-repeat',
+          },
+        },
+      ];
+
+      READ_CASES.map((thisCase) =>
+        when(`[t] ${thisCase.description}`, () => {
+          then('reads the members, or refuses as a keyrack fault', () => {
+            const tempDir = genTempDir({ slug: 'org-read', git: true });
+            const result = runFunction({
+              functionCall: `
+              if get_org_from_keyrack; then
+                echo "members=$(IFS=','; echo "\${ORG_VALUES[*]}") default=$ORG_VALUE"
+              else
+                echo "error=$ORG_ERROR"
+                echo "fault=$ORG_KEYRACK_FAULT"
+                echo "kind=$ORG_UNREADABLE_KIND"
+                echo "count=\${#ORG_VALUES[@]}"
+              fi
+            `,
+              tempDir,
+              keyrackContent: thisCase.keyrack,
+            });
+            expect(result.exitCode).toBe(0);
+            if ('members' in thisCase.expect) {
+              const members = thisCase.expect.members;
+              expect(result.stdout.trim()).toBe(
+                `members=${members} default=${members.split(',')[0]}`,
+              );
+            }
+            if ('error' in thisCase.expect) {
+              expect(result.stdout).toContain(
+                `error=${thisCase.expect.error}\n`,
+              );
+              expect(result.stdout).toContain(`fault=${thisCase.expect.fault}`);
+              expect(result.stdout).toContain(`kind=${thisCase.expect.kind}\n`);
+              expect(result.stdout).toContain('count=0');
+            }
+          });
+        }),
+      );
+
+      when('[t] .agent/keyrack.yml absent', () => {
+        then('refuses as a file-absent keyrack fault', () => {
+          const tempDir = genTempDir({ slug: 'org-read-absent', git: true });
+          const result = runFunction({
+            functionCall: `
+            get_org_from_keyrack || echo "error=$ORG_ERROR fault=$ORG_KEYRACK_FAULT"
+          `,
+            tempDir,
+          });
+          expect(result.stdout.trim()).toBe(
+            'error=.agent/keyrack.yml not found fault=file-absent',
+          );
+        });
+      });
+
+      when('[t] .agent/keyrack.yml present but unreadable (mode 000)', () => {
+        then(
+          'refuses on the permission, names chmod, and grants no org',
+          () => {
+            // root reads a mode-000 file, so this case cannot run as root
+            if (process.getuid?.() === 0)
+              throw new ConstraintError(
+                'a mode-000 keyrack case cannot run as root',
+                { hint: 'run the suite as a non-root user' },
+              );
+            const tempDir = genTempDir({ slug: 'org-read-noperm', git: true });
+            fs.mkdirSync(path.join(tempDir, '.agent'), { recursive: true });
+            const keyrackPath = path.join(tempDir, '.agent', 'keyrack.yml');
+            fs.writeFileSync(keyrackPath, 'org: ehmpathy\n');
+            fs.chmodSync(keyrackPath, 0o000);
+            const result = runFunction({
+              functionCall: `
+            get_org_from_keyrack || echo "refused fault=$ORG_KEYRACK_FAULT count=\${#ORG_VALUES[@]} error=$ORG_ERROR"
+            print_keyrack_org_note
+          `,
+              tempDir,
+            });
+            fs.chmodSync(keyrackPath, 0o644);
+            expect(result.stdout).toContain(
+              'refused fault=file-unreadable count=0 error=.agent/keyrack.yml not readable (permission denied)',
+            );
+            expect(result.stdout).toContain('$ chmod 644 .agent/keyrack.yml');
+            expect(result.stdout).not.toContain('org: absent');
+          },
+        );
+      });
+
+      when('[t] the read fails after the guards pass (a race)', () => {
+        then('refuses as file-unreadable, never a raw bash abort', () => {
+          const tempDir = genTempDir({ slug: 'org-read-race', git: true });
+          // a function named mapfile shadows the builtin: the read fails
+          const result = runFunction({
+            functionCall: `
+            mapfile() { return 1; }
+            get_org_from_keyrack || echo "error=$ORG_ERROR fault=$ORG_KEYRACK_FAULT"
+          `,
+            tempDir,
+            keyrackContent: 'org: ehmpathy\n',
+          });
+          expect(result.stdout.trim()).toBe(
+            'error=.agent/keyrack.yml not readable (read failed) fault=file-unreadable',
+          );
+        });
+      });
+
+      when('[t] git cannot read the repo (dubious ownership)', () => {
+        then('keeps git words as repo-unreadable, never "not a repo"', () => {
+          const tempDir = genTempDir({ slug: 'org-read-dubious', git: true });
+          // a function named git shadows the binary with the fatal git prints
+          const result = runFunction({
+            functionCall: `
+            git() { echo "fatal: detected dubious ownership in repository at '/x'" >&2; return 128; }
+            get_org_from_keyrack || echo "error=$ORG_ERROR fault=$ORG_KEYRACK_FAULT"
+            print_keyrack_org_note
+          `,
+            tempDir,
+            keyrackContent: 'org: ehmpathy\n',
+          });
+          expect(result.stdout).toContain(
+            "error=git cannot read this repo: detected dubious ownership in repository at '/x' fault=repo-unreadable",
+          );
+          expect(result.stdout).toContain('fix the repo state git names above');
+          expect(result.stdout).not.toContain('run it inside a git repo');
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+
+      when('[t] no git repo around the cwd', () => {
+        then('refuses as a repo-absent fault, with its own note', () => {
+          const tempDir = genTempDir({ slug: 'org-read-norepo', git: true });
+          const result = runFunction({
+            functionCall: `
+            GIT_DIR="$PWD/absent" get_org_from_keyrack || echo "error=$ORG_ERROR fault=$ORG_KEYRACK_FAULT"
+            print_keyrack_org_note
+          `,
+            tempDir,
+          });
+          expect(result.stdout).toContain(
+            'error=not in a git repository fault=repo-absent',
+          );
+          expect(result.stdout).toContain('run it inside a git repo');
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+    },
+  );
+
+  /**
+   * .what = a list repo gates on every listed org; the first refusal names it
+   * .why  = a human who blocks one org blocks work that touches it. a flow
+   *         list read as one unknown org would pass via `@all: allowed`
+   */
+  given('[case41] check_org_blocker gates every listed org', () => {
+    const runGate = (input: {
+      slug: string;
+      keyrack: string;
+      orgState?: Record<string, string>;
+    }) =>
+      runFunction({
+        functionCall: `
+          if check_org_blocker; then
+            echo "verdict=allowed"
+          else
+            echo "verdict=refused"
+            echo "gate=$ORG_BLOCK_ORG"
+            echo "fault=$ORG_KEYRACK_FAULT"
+            echo "reason=$ORG_BLOCK_REASON"
+            echo "branches=$ORG_BLOCK_BRANCHES"
+          fi
+        `,
+        tempDir: genTempDir({ slug: input.slug, git: true }),
+        tempHome: genTempDir({ slug: `${input.slug}-home`, git: false }),
+        keyrackContent: input.keyrack,
+        orgState: input.orgState,
+      });
+
+    when("[t] scalar org: '@all' (grove scope) reads the meter's @all", () => {
+      // F4: a scalar @all is legal; the gate reads the meter's @all verdict
+      then('@all allowed → allows', () => {
+        const result = runGate({
+          slug: 'gate-grove-ok',
+          keyrack: "org: '@all'\n",
+          orgState: { '@all': 'allowed' },
+        });
+        expect(result.stdout.trim()).toBe('verdict=allowed');
+      });
+      then('@all blocked → refuses, no keyrack fault', () => {
+        const result = runGate({
+          slug: 'gate-grove-blocked',
+          keyrack: "org: '@all'\n",
+          orgState: { '@all': 'blocked' },
+        });
+        expect(result.stdout).toContain('verdict=refused');
+        expect(result.stdout).toContain('fault=\n');
+        expect(result.stdout).toContain('reason=commits blocked for org @all');
+      });
+    });
+
+    when('[t0] a block list, every org allowed', () => {
+      then('allows', () => {
+        const result = runGate({
+          slug: 'gate-list-ok',
+          keyrack: 'org:\n  - ahbode\n  - bhanya\n',
+          orgState: { ahbode: 'allowed', bhanya: 'allowed' },
+        });
+        expect(result.stdout.trim()).toBe('verdict=allowed');
+      });
+    });
+
+    when('[t1] a flow list, one org blocked, @all allowed', () => {
+      then('refuses and names the blocked org', () => {
+        const result = runGate({
+          slug: 'gate-flow-blocked',
+          keyrack: 'org: [ahbode, bhanya]\n',
+          orgState: { ahbode: 'allowed', bhanya: 'blocked', '@all': 'allowed' },
+        });
+        expect(result.stdout).toContain('verdict=refused');
+        expect(result.stdout).toContain('gate=bhanya\n');
+        expect(result.stdout).toContain('fault=\n');
+        expect(result.stdout).toContain(
+          'reason=commits blocked for org bhanya\n',
+        );
+        expect(result.stdout).toContain(
+          'branches=├─ .agent/keyrack.yml org: lists ahbode, bhanya\n└─ every listed org must allow commits',
+        );
+      });
+    });
+
+    when('[t2] a block list, one org blocked', () => {
+      then('refuses and names the blocked org', () => {
+        const result = runGate({
+          slug: 'gate-block-blocked',
+          keyrack: 'org:\n  - ahbode\n  - bhanya\n',
+          orgState: { ahbode: 'allowed', bhanya: 'blocked' },
+        });
+        expect(result.stdout).toContain('verdict=refused');
+        expect(result.stdout).toContain('gate=bhanya\n');
+      });
+    });
+
+    when('[t2b] a list, two orgs blocked', () => {
+      then('refuses and names the first blocked org, in list order', () => {
+        const result = runGate({
+          slug: 'gate-two-blocked',
+          keyrack: 'org: [ahbode, bhanya]\n',
+          orgState: { ahbode: 'blocked', bhanya: 'blocked' },
+        });
+        expect(result.stdout).toContain('verdict=refused');
+        expect(result.stdout).toContain('gate=ahbode\n');
+        expect(result.stdout).toContain(
+          'reason=commits blocked for org ahbode\n',
+        );
+      });
+    });
+
+    when('[t3] a list, one org unset, no @all', () => {
+      then('refuses and names the unset org', () => {
+        const result = runGate({
+          slug: 'gate-list-unset',
+          keyrack: 'org: [ahbode, bhanya]\n',
+          orgState: { ahbode: 'allowed' },
+        });
+        expect(result.stdout).toContain('gate=bhanya\n');
+        expect(result.stdout).toContain('reason=no org config for bhanya');
+      });
+    });
+
+    when('[t4] a list, members unset, @all allowed', () => {
+      then('allows via @all', () => {
+        const result = runGate({
+          slug: 'gate-list-all',
+          keyrack: 'org: [ahbode, bhanya]\n',
+          orgState: { '@all': 'allowed' },
+        });
+        expect(result.stdout.trim()).toBe('verdict=allowed');
+      });
+    });
+
+    when('[t5] a list, no meter file', () => {
+      then('refuses and names member 0', () => {
+        const result = runGate({
+          slug: 'gate-list-nometer',
+          keyrack: 'org: [ahbode, bhanya]\n',
+        });
+        expect(result.stdout).toContain('gate=ahbode\n');
+        expect(result.stdout).toContain('reason=no org config for ahbode');
+      });
+    });
+
+    when('[t6] an empty list', () => {
+      then('refuses as a keyrack fault, before any meter read', () => {
+        const result = runGate({
+          slug: 'gate-list-empty',
+          keyrack: 'org: []\n',
+          orgState: { '@all': 'allowed' },
+        });
+        expect(result.stdout).toContain('verdict=refused');
+        expect(result.stdout).toContain('gate=\n');
+        expect(result.stdout).toContain('fault=org-unreadable');
+        expect(result.stdout).toContain(
+          'reason=.agent/keyrack.yml org: lists no org',
+        );
+      });
+    });
+
+    when('[t7] a decorated scalar, its org blocked, @all allowed', () => {
+      then('refuses and names the plain org', () => {
+        const result = runGate({
+          slug: 'gate-scalar-decorated',
+          keyrack: "org: 'ahbode'  # main\n",
+          orgState: { ahbode: 'blocked', '@all': 'allowed' },
+        });
+        expect(result.stdout).toContain('gate=ahbode\n');
+        expect(result.stdout).toContain(
+          'reason=commits blocked for org ahbode\n',
+        );
       });
     });
   });

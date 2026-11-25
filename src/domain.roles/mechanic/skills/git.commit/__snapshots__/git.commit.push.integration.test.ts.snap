@@ -703,6 +703,9 @@ options:
   --pr-title-fallback "..."    fallback pr title when no commits on branch yet
   --debug                      show verbose debug output
   --help, -h                   show this help
+
+org gate:
+  every org in .agent/keyrack.yml org: must allow commits (rhx git.commit.uses --org <org> get)
 "
 `;
 

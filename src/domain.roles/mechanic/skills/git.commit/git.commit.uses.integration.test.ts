@@ -1527,6 +1527,22 @@ describe('git.commit.uses.sh', () => {
     });
   });
 
+  given('[case38] a human asks --org --help, about to grant', () => {
+    when('[t0] the org help is shown', () => {
+      then('it declares that every org in keyrack.yml org: must allow', () => {
+        const result = runWithOrgStorage({
+          args: ['--org', 'ehmpathy', '--help'],
+        });
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('which orgs gate a repo:');
+        expect(result.stdout).toContain(
+          "every org in the repo's .agent/keyrack.yml org: must allow.",
+        );
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
   /**
    * 🔴 .what = the two `get` DISPLAY surfaces must agree with the GATE
    *

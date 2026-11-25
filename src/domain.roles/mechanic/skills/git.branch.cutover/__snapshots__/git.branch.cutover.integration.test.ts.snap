@@ -1615,6 +1615,48 @@ run with --mode apply to execute
 "
 `;
 
+exports[`git.branch.cutover given: [case66b] a plan while one org of a keyrack list is blocked when: [t0] begin in plan mode then: the quota line names the blocked org, the list, and its lift 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.cutover begin --mode plan
+   ├─ source: turtle/wave-report @ <sha>
+   ├─ base: origin/main @ <sha> (fetched)
+   ├─ into: turtle/wave-report-v2 (new, no upstream)
+   ├─ quota: ✋ apply will refuse: cutovers blocked for org bhanya
+   │  ├─ .agent/keyrack.yml org: lists ehmpathy, bhanya
+   │  ├─ every listed org must allow cutovers
+   │  └─ ask your human to allow: rhx git.branch.uses allow --org bhanya
+   └─ left behind on turtle/wave-report (4, not picked)
+      ├─ <sha> feat(wave): add wave report
+      ├─ <sha> cont(wave): add swell height
+      ├─ <sha> cont(wave): add tide window
+      └─ <sha> chore(keyrack): list two orgs
+
+to carry a left-behind commit, name it: --pick <sha> (repeatable, applied in order)
+run with --mode apply to execute
+"
+`;
+
+exports[`git.branch.cutover given: [case66c] a plan while keyrack.yml org: lists no org when: [t0] begin in plan mode then: the quota line names the fault and its file lift 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.cutover begin --mode plan
+   ├─ source: turtle/wave-report @ <sha>
+   ├─ base: origin/main @ <sha> (fetched)
+   ├─ into: turtle/wave-report-v2 (new, no upstream)
+   ├─ quota: ✋ apply will refuse: .agent/keyrack.yml org: lists no org
+   │  └─ ask your human to fix: .agent/keyrack.yml org: (one org, or a list of orgs)
+   └─ left behind on turtle/wave-report (4, not picked)
+      ├─ <sha> feat(wave): add wave report
+      ├─ <sha> cont(wave): add swell height
+      ├─ <sha> cont(wave): add tide window
+      └─ <sha> chore(keyrack): empty list
+
+to carry a left-behind commit, name it: --pick <sha> (repeatable, applied in order)
+run with --mode apply to execute
+"
+`;
+
 exports[`git.branch.cutover given: [case67] an untracked file appears mid-halt where a pick adds when: [t0] continue then: it refuses, names the file, and leaves it untouched 1`] = `
 "🐢 bummer dude...
 

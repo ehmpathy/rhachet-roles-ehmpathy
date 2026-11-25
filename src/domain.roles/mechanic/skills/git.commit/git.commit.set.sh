@@ -371,6 +371,11 @@ while [[ $# -gt 0 ]]; do
       #        the inputs a command needs, and a bound sponsor is one of them.
       echo ""
       echo "requires:"
+      echo "  an org gate — .agent/keyrack.yml org: names one org (org: ehmpathy)"
+      echo "  or a list (org: [ahbode, bhanya], or '- org' lines). every listed"
+      echo "  org must allow commits; the first refusal names its org:"
+      echo "    \$ rhx git.commit.uses --org <org> get"
+      echo ""
       echo "  a sponsor — the human who answers for the commit. on a human's"
       echo "  own machine, git config names them and no bind is needed. a bind"
       echo "  in this tree wins over git config; on the clone's machine a bind"
@@ -746,11 +751,14 @@ if ! check_org_blocker; then
     if [[ "$ORG_BLOCK_CORRUPT" != "true" ]]; then
       print_tree_constraint "$ORG_BLOCK_REASON"
     fi
+    print_org_block_branches branches="$ORG_BLOCK_BRANCHES"
     # ⚠️ exclusive, as above: `allow --org` writes a key into a file, which is
-    #    no remedy for a file that cannot be parsed to write into.
-    if [[ "$ORG_BLOCK_CORRUPT" != "true" ]]; then
+    #    no remedy for a file that cannot be parsed to write into — nor for a
+    #    keyrack fault, which the meter cannot cure. each fault prints its own.
+    if [[ "$ORG_BLOCK_CORRUPT" != "true" && -z "${ORG_KEYRACK_FAULT:-}" ]]; then
       print_org_blocked_hint
     fi
+    print_keyrack_org_note
     print_org_corrupt_note
   )"
   if [[ "$ORG_BLOCK_CORRUPT" == "true" ]]; then

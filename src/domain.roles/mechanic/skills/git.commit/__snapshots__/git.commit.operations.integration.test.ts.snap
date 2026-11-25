@@ -157,3 +157,17 @@ exports[`git.commit.operations.sh given: [case39] assert_git_identity_read guard
    a defect in the skill, never the caller's input; report it upstream
 "
 `;
+
+exports[`git.commit.operations.sh given: [case40] get_org_from_keyrack reads org: as a scalar or a list when: [t] git cannot read the repo (dubious ownership) then: keeps git words as repo-unreadable, never "not a repo" 1`] = `
+"error=git cannot read this repo: detected dubious ownership in repository at '/x' fault=repo-unreadable
+
+fix the repo state git names above, then retry
+"
+`;
+
+exports[`git.commit.operations.sh given: [case40] get_org_from_keyrack reads org: as a scalar or a list when: [t] no git repo around the cwd then: refuses as a repo-absent fault, with its own note 1`] = `
+"error=not in a git repository fault=repo-absent
+
+run it inside a git repo; .agent/keyrack.yml is read from the repo root
+"
+`;

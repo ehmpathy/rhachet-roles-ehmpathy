@@ -1984,56 +1984,503 @@ EOF
 }
 
 ######################################################################
-# helper: get org from .agent/keyrack.yml
-# returns:
-#   - 0 if found, sets ORG_VALUE to org name
-#   - 2 if not found or unset, sets ORG_ERROR
-# note: uses global ORG_VALUE instead of echo to avoid subshell issues
-#       (ORG_ERROR wouldn't propagate if called via command substitution)
+# .what = one yaml line, its end-of-line comment cut, then trimmed
+#
+# .why  = yaml reads `org: ahbode  # main` as `ahbode`. a reader that strips
+#         every space instead reads `ahbode#main` — a name no meter key
+#         matches, so the gate falls to `@all` (a fail-open).
+#
+# .note = a comment starts at a `#` at line start or after whitespace, as in
+#         yaml. a `#` inside a quoted value that follows a space is cut too;
+#         the quote then fails to close, and the member refuses (fail closed).
 ######################################################################
-get_org_from_keyrack() {
-  ORG_ERROR=""
-  ORG_VALUE=""
-  local keyrack_file
-  local git_root
+as_yaml_line_sans_comment() {
+  local line="$1"
+  line=$(printf '%s' "$line" | sed -E 's/(^|[[:space:]])#.*$//')
+  line="${line#"${line%%[![:space:]]*}"}"
+  line="${line%"${line##*[![:space:]]}"}"
+  printf '%s' "$line"
+}
 
-  # find git root
-  git_root=$(git rev-parse --show-toplevel 2>/dev/null)
-  if [[ -z "$git_root" ]]; then
-    ORG_ERROR="not in a git repository"
-    return 2
+######################################################################
+# .what = one raw `org:` member as a plain org name, or status 1
+#
+# .why  = keyrack accepts a member only as a plain string. a quoted name is
+#         that string; any other token (a nested list, a map, a yaml null,
+#         bool, or number, an open quote) is no org name, and the gate must
+#         never guess one from it.
+######################################################################
+as_keyrack_org_member() {
+  local raw="$1"
+  local member="$raw"
+
+  # unquote a whole-token quote pair; a quoted token keeps its literal text
+  local quoted=false
+  if [[ "$member" =~ ^\'(.*)\'$ || "$member" =~ ^\"(.*)\"$ ]]; then
+    member="${BASH_REMATCH[1]}"
+    quoted=true
   fi
 
-  keyrack_file="$git_root/.agent/keyrack.yml"
-
-  # check file exists
-  if [[ ! -f "$keyrack_file" ]]; then
-    ORG_ERROR=".agent/keyrack.yml not found"
-    return 2
+  # yaml reads these bare tokens as null, bool, or number — never a string
+  local re_nonstring='^(~|null|Null|NULL|true|True|TRUE|false|False|FALSE|[-+]?[0-9]+|[-+]?([0-9]+\.?[0-9]*|\.[0-9]+)([eE][-+]?[0-9]+)?|0x[0-9a-fA-F]+|0o[0-7]+|[-+]?\.(inf|Inf|INF)|\.(nan|NaN|NAN))$'
+  if [[ "$quoted" == "false" && "$member" =~ $re_nonstring ]]; then
+    return 1
   fi
 
-  # parse org field (simple grep + sed, no yq dependency)
-  # note: `grep -m1` (not `grep | head -n1`) stops grep itself after the first
-  # match, so no downstream reader closes a pipe early and SIGPIPEs the writer
-  # under `set -o pipefail` + `set -e`
-  local org_val
-  org_val=$(grep -m1 -E "^org:" "$keyrack_file" 2>/dev/null | sed 's/^org:[[:space:]]*//' | tr -d '[:space:]')
+  # a plain org name: an optional sigil `@`, then letters, digits, `_ . -`
+  local re_name='^@?[A-Za-z0-9][A-Za-z0-9_.-]*$'
+  [[ "$member" =~ $re_name ]] || return 1
+  printf '%s' "$member"
+}
 
-  if [[ -z "$org_val" ]]; then
-    ORG_ERROR=".agent/keyrack.yml#org required"
-    return 2
-  fi
+######################################################################
+# .what = refuse a member list keyrack itself refuses
+#
+# .why  = keyrack refuses `@all` or `@this` as a list member (each names no
+#         org) and a member listed twice (`asKeyrackManifestOrgs`). the gate
+#         mirrors those rules so the gate and keyrack agree on every file,
+#         even when keyrack never runs (`--auth as-human` skips its unlock).
+#
+# .note = a scalar `org: '@all'` is legal (keyrack's grove scope); the caller
+#         passes form=scalar for a scalar, and only `@this` refuses there.
+#
+# .note = a MIRROR of keyrack's rules (rhachet `asKeyrackManifestOrgs`), so it
+#         can drift: a change to how keyrack casts `org:` must land here too.
+#         no keyrack command emits the cast list, so the gate cannot ask it.
+#
+# usage: check_keyrack_org_members form=list|scalar <member>...
+# sets: ORG_ERROR on refusal. returns 0 ok, 1 refused.
+#
+# .note = the members are a variadic tail, the shape of a bash list arg (as
+#         `git add -- <path>...`): the one scalar input is named, the list is
+#         the rest. bash has no named array arg short of a nameref.
+######################################################################
+check_keyrack_org_members() {
+  local form="${1#form=}"
+  shift
+  local -a members=("$@")
+  local member prior
 
-  ORG_VALUE="$org_val"
+  for member in "${members[@]}"; do
+    if [[ "$member" == "@this" || ("$form" == "list" && "$member" == "@all") ]]; then
+      ORG_ERROR=".agent/keyrack.yml org: '$member' cannot be a member, it names no org"
+      ORG_UNREADABLE_KIND="member-sigil"
+      ORG_UNREADABLE_AT="$member"
+      return 1
+    fi
+  done
+
+  local -a seen=()
+  for member in "${members[@]}"; do
+    for prior in "${seen[@]+"${seen[@]}"}"; do
+      if [[ "$member" == "$prior" ]]; then
+        ORG_ERROR=".agent/keyrack.yml org: '$member' is listed more than once"
+        ORG_UNREADABLE_KIND="member-repeat"
+        ORG_UNREADABLE_AT="$member"
+        return 1
+      fi
+    done
+    seen+=("$member")
+  done
   return 0
 }
 
 ######################################################################
-# helper: check if org blocker is active
-# returns:
-#   - 0 (success) if NOT blocked (continue)
-#   - 2 if blocked (caller should exit 2)
-#   - sets ORG_BLOCK_REASON if blocked
+# .what = empty every output of the keyrack org read
+#
+# .why  = the reader and its parse both start from this state; one reset
+#         means a new output field cannot be reset in one and not the other
+######################################################################
+set_org_read_state_empty() {
+  ORG_ERROR=""
+  ORG_VALUE=""
+  ORG_VALUES=()
+  ORG_LINES_READ=""
+  ORG_KEYRACK_FAULT=""
+  ORG_UNREADABLE_KIND=""
+  ORG_UNREADABLE_AT=""
+}
+
+######################################################################
+# .what = read `org:` of .agent/keyrack.yml the way keyrack reads it
+#
+# .why  = keyrack accepts `org:` as a scalar, a block list, or a flow list;
+#         member 0 is its default org (`asKeyrackManifestOrgs`). the gate
+#         must read the same list, or the gate and keyrack disagree on one
+#         file: a one-line reader takes the block form as no org, and the
+#         flow form as the literal org `[a,b]`, which falls to `@all` (a
+#         fail-open).
+#
+# the parse of the lines: as_keyrack_org_members (the grammar lives there)
+#
+# sets:
+#   ORG_VALUES          every member, in file order
+#   ORG_VALUE           member 0 (keyrack's default org)
+#   ORG_ERROR           why the read refused
+#   ORG_LINES_READ      the raw lines read, for a refusal to show
+#   ORG_KEYRACK_FAULT   '' | repo-absent | repo-unreadable | file-absent |
+#                       file-unreadable | org-unreadable — a named fault,
+#                       so callers pick the keyrack remedy without a match
+#                       on the prose of ORG_ERROR (rule.forbid.magic-values)
+#   ORG_UNREADABLE_KIND '' | key-absent | list-empty | shape | member-sigil |
+#                       member-repeat — which org-unreadable fault, so the
+#                       note names the fix for that fault alone
+#   ORG_UNREADABLE_AT   the member at fault (member-sigil, member-repeat)
+# returns: 0 if read, 2 if refused
+#
+# .note = globals, never stdout: a command substitution would run this in a
+#         subshell, and ORG_ERROR would never reach the caller
+######################################################################
+get_org_from_keyrack() {
+  set_org_read_state_empty
+  local keyrack_file
+  local git_root
+
+  # find git root; only git's own "not a git repository" means no repo. any
+  # other failure (dubious ownership, a corrupt .git) keeps git's words
+  local rev_out
+  # LC_ALL=C: the not-a-repo match below reads git's english text in any locale
+  if ! rev_out=$(LC_ALL=C git rev-parse --show-toplevel 2>&1); then
+    ORG_ERROR="git cannot read this repo: ${rev_out#fatal: }"
+    ORG_KEYRACK_FAULT="repo-unreadable"
+    [[ "$rev_out" != *"not a git repository"* ]] && return 2
+    ORG_ERROR="not in a git repository"
+    ORG_KEYRACK_FAULT="repo-absent"
+    return 2
+  fi
+  # the root from stdout alone; a note git prints on stderr must not join the path
+  git_root=$(git rev-parse --show-toplevel 2> /dev/null)
+
+  keyrack_file="$git_root/.agent/keyrack.yml"
+
+  # refuse an absent file
+  if [[ ! -f "$keyrack_file" ]]; then
+    ORG_ERROR=".agent/keyrack.yml not found"
+    ORG_KEYRACK_FAULT="file-absent"
+    return 2
+  fi
+
+  # refuse a file this process cannot read; an empty read would say `org: absent`
+  if [[ ! -r "$keyrack_file" ]]; then
+    ORG_ERROR=".agent/keyrack.yml not readable (permission denied)"
+    ORG_KEYRACK_FAULT="file-unreadable"
+    return 2
+  fi
+
+  # read the file, then parse its org: members. a read that fails after the
+  # guards above (the file removed or chmod-ed between) is the same fault
+  local -a lines=()
+  if ! mapfile -t lines < "$keyrack_file" 2> /dev/null; then
+    ORG_ERROR=".agent/keyrack.yml not readable (read failed)"
+    ORG_KEYRACK_FAULT="file-unreadable"
+    return 2
+  fi
+  as_keyrack_org_members "${lines[@]+"${lines[@]}"}"
+}
+
+######################################################################
+# .what = parse the `org:` members from the lines of .agent/keyrack.yml
+#
+# .why  = the parse is pure compute over captured lines, so it lives apart
+#         from the file read: get_org_from_keyrack reads, this transforms
+#
+# grammar (closed; every other shape refuses, and never grants):
+#   org: ahbode                 scalar (bare, quoted, or with a comment)
+#   org: [ahbode, bhanya]       flow list, on one line
+#   org:                        block list, its items on the lines below
+#     - ahbode
+#
+# usage: as_keyrack_org_members <line>...
+# sets: ORG_VALUES, ORG_VALUE, ORG_ERROR, ORG_LINES_READ, ORG_KEYRACK_FAULT
+#       (see get_org_from_keyrack). returns 0 if read, 2 if refused.
+#
+# .note = the lines are a variadic tail, the shape of a bash list arg; and
+#         globals, never stdout, for the subshell reason get_org_from_keyrack names
+######################################################################
+as_keyrack_org_members() {
+  set_org_read_state_empty
+  local -a lines=("$@")
+
+  # find the top-level org: key
+  local re_key='^org:([[:space:]].*)?$'
+  local index start=-1
+  for index in "${!lines[@]}"; do
+    if [[ "${lines[$index]}" =~ $re_key ]]; then
+      start=$index
+      break
+    fi
+  done
+  # a second top-level org: key is a yaml error keyrack refuses; never read the first
+  local count_key=0
+  for index in "${!lines[@]}"; do
+    [[ "${lines[$index]}" =~ $re_key ]] && count_key=$((count_key + 1))
+  done
+  if (( count_key > 1 )); then
+    ORG_LINES_READ=$(printf '%s\n' "${lines[@]}" | grep -E "$re_key")
+    ORG_ERROR=".agent/keyrack.yml org: shape not readable"
+    ORG_KEYRACK_FAULT="org-unreadable"
+    ORG_UNREADABLE_KIND="shape"
+    return 2
+  fi
+
+  # a quoted key (`"org":`) is the org: key to yaml, but outside the closed
+  # grammar; show the line read, so the refusal never says absent of a key
+  # the human can see
+  local re_key_quoted='^("org"|'"'org'"'):'
+  if (( start < 0 )); then
+    for index in "${!lines[@]}"; do
+      [[ "${lines[$index]}" =~ $re_key_quoted ]] || continue
+      ORG_LINES_READ="${lines[$index]}"
+      ORG_ERROR=".agent/keyrack.yml org: shape not readable"
+      ORG_KEYRACK_FAULT="org-unreadable"
+      ORG_UNREADABLE_KIND="shape"
+      return 2
+    done
+  fi
+  if (( start < 0 )); then
+    ORG_ERROR=".agent/keyrack.yml org: absent"
+    ORG_KEYRACK_FAULT="org-unreadable"
+    ORG_UNREADABLE_KIND="key-absent"
+    return 2
+  fi
+
+  # collect the org: line and every line that belongs under it
+  local -a block=()
+  local line
+  ORG_LINES_READ="${lines[$start]}"
+  for (( index = start + 1; index < ${#lines[@]}; index++ )); do
+    line="${lines[$index]}"
+    [[ "$line" =~ ^[[:space:]-] || -z "$(as_yaml_line_sans_comment "$line")" ]] || break
+    [[ -n "$(as_yaml_line_sans_comment "$line")" ]] || continue
+    block+=("$line")
+    ORG_LINES_READ+=$'\n'"$line"
+  done
+
+  # split the value into raw members, per form
+  local value form=list
+  value=$(as_yaml_line_sans_comment "${lines[$start]#org:}")
+  local -a raws=()
+  local unreadable=false
+  local re_flow='^\[(.*)\]$'
+  local re_item='^[[:space:]]*-([[:space:]](.*))?$'
+
+  if [[ -z "$value" ]]; then
+    # block form: every line below must be a `- member` item
+    for line in "${block[@]+"${block[@]}"}"; do
+      if [[ ! "$line" =~ $re_item ]]; then
+        unreadable=true
+        break
+      fi
+      raws+=("$(as_yaml_line_sans_comment "${BASH_REMATCH[2]}")")
+    done
+  fi
+
+  if [[ -n "$value" && "$value" =~ $re_flow ]]; then
+    # flow form, on one line
+    local inner
+    inner=$(as_yaml_line_sans_comment "${BASH_REMATCH[1]}")
+    if [[ -n "$inner" ]]; then
+      local -a parts=()
+      IFS=',' read -ra parts <<< "$inner"
+      for line in "${parts[@]}"; do
+        raws+=("$(as_yaml_line_sans_comment "$line")")
+      done
+    fi
+  fi
+
+  if [[ -n "$value" && ! "$value" =~ $re_flow ]]; then
+    # scalar form; lines below it are no part of a scalar
+    form=scalar
+    raws=("$value")
+    (( ${#block[@]} == 0 )) || unreadable=true
+  fi
+
+  # each raw member must be a plain org name
+  local raw member
+  for raw in "${raws[@]+"${raws[@]}"}"; do
+    member=$(as_keyrack_org_member "$raw") || {
+      unreadable=true
+      break
+    }
+    ORG_VALUES+=("$member")
+  done
+
+  if [[ "$unreadable" == "true" ]]; then
+    ORG_VALUES=()
+    ORG_ERROR=".agent/keyrack.yml org: shape not readable"
+    ORG_KEYRACK_FAULT="org-unreadable"
+    ORG_UNREADABLE_KIND="shape"
+    return 2
+  fi
+
+  if (( ${#ORG_VALUES[@]} == 0 )); then
+    ORG_ERROR=".agent/keyrack.yml org: lists no org"
+    ORG_KEYRACK_FAULT="org-unreadable"
+    ORG_UNREADABLE_KIND="list-empty"
+    return 2
+  fi
+
+  if ! check_keyrack_org_members form="$form" "${ORG_VALUES[@]}"; then
+    ORG_VALUES=()
+    ORG_KEYRACK_FAULT="org-unreadable"
+    return 2
+  fi
+
+  ORG_VALUE="${ORG_VALUES[0]}"
+  return 0
+}
+
+######################################################################
+# .what = the child branches a refusal leaf carries when keyrack lists
+#         several orgs
+#
+# .why  = they name the file that put the org in play, so a human who never
+#         typed the org into a command learns why it gates. a scalar repo
+#         names its one org in the reason already: one member → no branches.
+#
+# usage: as_org_list_reason_branches noun=<commit|cutover> <member>...
+# stdout: '' or two lines, glyph'd, no indent:
+#   ├─ .agent/keyrack.yml org: lists a, b
+#   └─ every listed org must allow commits
+######################################################################
+as_org_list_reason_branches() {
+  local noun="${1#noun=}"
+  shift
+  (( $# > 1 )) || return 0
+  local joined
+  joined=$(IFS=','; printf '%s' "$*")
+  printf '├─ .agent/keyrack.yml org: lists %s\n└─ every listed org must allow %ss' "${joined//,/, }" "$noun"
+}
+
+######################################################################
+# .what = draw an org refusal's child branches under its leaf, if any
+#
+# .why  = set, push, and branch.uses each draw the one org refusal; one
+#         render keeps the children at the leaf's depth on every surface
+#
+# usage: print_org_block_branches branches=<lines>   (ORG_BLOCK_BRANCHES)
+######################################################################
+print_org_block_branches() {
+  local branches="${1#branches=}"
+  [[ -n "$branches" ]] || return 0
+  local line
+  while IFS= read -r line; do
+    echo "      $line"
+  done <<< "$branches"
+}
+
+######################################################################
+# .what = the one-line fix for a keyrack fault, for a condensed preview
+#
+# .why  = a preview has room for one line, not the full note; that line must
+#         still name the fix for THIS fault (an absent file is created, an
+#         unreadable one is chmod-ed), never one fix for every kind
+#
+# usage: as_keyrack_fault_lift fault=<ORG_KEYRACK_FAULT> kind=<ORG_UNREADABLE_KIND> at=<ORG_UNREADABLE_AT>
+#   fault: repo-absent | repo-unreadable | file-absent | file-unreadable | org-unreadable
+#   kind, at: read for org-unreadable only; a member fault lifts by its member
+######################################################################
+as_keyrack_fault_lift() {
+  local fault="" kind="" at="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      fault=*) fault="${arg#fault=}" ;;
+      kind=*) kind="${arg#kind=}" ;;
+      at=*) at="${arg#at=}" ;;
+    esac
+  done
+
+  # a member fault: drop the member, never add what is already there
+  if [[ "$fault" == "org-unreadable" && "$kind" == "member-sigil" ]]; then
+    printf '%s' "remove '$at' from org: in .agent/keyrack.yml"
+    return 0
+  fi
+  if [[ "$fault" == "org-unreadable" && "$kind" == "member-repeat" ]]; then
+    printf '%s' "remove the repeat of '$at' from org: in .agent/keyrack.yml"
+    return 0
+  fi
+
+  case "$fault" in
+    repo-absent) printf '%s' "cd into a git repo" ;;
+    repo-unreadable) printf '%s' "the git error named above" ;;
+    file-absent) printf '%s' "echo 'org: <org>' > .agent/keyrack.yml" ;;
+    file-unreadable) printf '%s' "chmod 644 .agent/keyrack.yml" ;;
+    org-unreadable) printf '%s' ".agent/keyrack.yml org: (one org, or a list of orgs)" ;;
+    *) printf '%s' ".agent/keyrack.yml (keyrack fault '$fault' has no named fix)" ;;
+  esac
+}
+
+######################################################################
+# .what = the keyrack remedy for a keyrack fault, after a refusal's tree
+#
+# .why  = a keyrack fault is the file's to fix, not the meter's. the meter
+#         remedy (`allow --org`) writes the meter and changes naught for a
+#         file the gate cannot read (rule.require.errors-name-the-fix).
+#
+# .note = prints naught unless ORG_KEYRACK_FAULT is set, so a caller may call
+#         it on every refusal, as with `print_org_corrupt_note`
+######################################################################
+print_keyrack_org_note() {
+  if [[ "${ORG_KEYRACK_FAULT:-}" == "file-absent" ]]; then
+    print_coconut_hint "ask a human to name the org in .agent/keyrack.yml, or to add the ehmpath keyrack so ehmpaths can unlock their own keys" \
+      "echo 'org: ehmpathy' > .agent/keyrack.yml" \
+      "npx rhachet run --init keyrack.ehmpath"
+    return 0
+  fi
+
+  if [[ "${ORG_KEYRACK_FAULT:-}" == "repo-unreadable" ]]; then
+    echo ""
+    echo "fix the repo state git names above, then retry"
+    return 0
+  fi
+
+  if [[ "${ORG_KEYRACK_FAULT:-}" == "repo-absent" ]]; then
+    echo ""
+    echo "run it inside a git repo; .agent/keyrack.yml is read from the repo root"
+    return 0
+  fi
+
+  if [[ "${ORG_KEYRACK_FAULT:-}" == "file-unreadable" ]]; then
+    echo ""
+    echo "ask your human to make .agent/keyrack.yml readable:"
+    echo "  \$ chmod 644 .agent/keyrack.yml"
+    return 0
+  fi
+
+  if [[ "${ORG_KEYRACK_FAULT:-}" != "org-unreadable" ]]; then
+    return 0
+  fi
+
+  if [[ -n "${ORG_LINES_READ:-}" ]]; then
+    echo ""
+    echo "   .agent/keyrack.yml org: read as:"
+    local line
+    while IFS= read -r line; do
+      echo "     $line"
+    done <<< "$ORG_LINES_READ"
+  fi
+  echo ""
+
+  # a member fault names its member; the fix is to drop it, as keyrack says
+  if [[ "${ORG_UNREADABLE_KIND:-}" == "member-sigil" ]]; then
+    echo "ask your human to remove '$ORG_UNREADABLE_AT' from org: in .agent/keyrack.yml"
+    echo "to reach a key of no org, pass --org @all at ask time"
+    return 0
+  fi
+  if [[ "${ORG_UNREADABLE_KIND:-}" == "member-repeat" ]]; then
+    echo "ask your human to remove the repeat of '$ORG_UNREADABLE_AT' from org: in .agent/keyrack.yml"
+    return 0
+  fi
+
+  # an absent, empty, or unreadable org: is fixed by a name, in a shape the gate reads
+  echo "ask your human to name the org in .agent/keyrack.yml, as one of:"
+  echo "  org: ehmpathy"
+  echo "  org: [ahbode, bhanya]"
+  [[ "${ORG_UNREADABLE_KIND:-}" == "shape" ]] || return 0
+  echo "a flow list [a, b] must sit on one line"
+  echo "an org name is letters, digits, and _ . - (no spaces, no yaml anchor)"
+}
+
 ######################################################################
 # .what = read ONE key from the org meter — status 0 + the value, or status 1
 #
@@ -2153,16 +2600,34 @@ is_org_state_known() {
 # .why  = an unset org and a blocked org share one remedy but not one
 #         cause; a coconut that says "a human blocked this org" under
 #         "no org config" contradicts the line above it
+# .note = names ORG_BLOCK_ORG, the listed org that refused, never member 0
 # usage: print_org_blocked_hint   (after check_org_blocker returned 2)
 ######################################################################
 print_org_blocked_hint() {
-  local org="${ORG_VALUE:-<org>}"
+  local org="${ORG_BLOCK_ORG:-${ORG_VALUE:-<org>}}"
   local affordance="a human blocked this org; ask them to allow it"
   [[ "$ORG_BLOCK_REASON" == "no org config for"* ]] \
     && affordance="no human has allowed this org yet; ask one to allow it"
   print_coconut_hint "$affordance" "git.commit.uses allow --org $org"
 }
 
+######################################################################
+# .what = the org gate: status 0 where every org in .agent/keyrack.yml
+#         org: allows this meter, else status 2 (the caller exits 2) with
+#         a named reason
+#
+# .why  = a repo may name several orgs (org: [ahbode, bhanya]). each org's
+#         human holds a veto, so EVERY listed org must allow; the first
+#         refusal, in list order, is the one reported
+#
+# sets:
+#   ORG_BLOCK_REASON    the refusal, for the tree line
+#   ORG_BLOCK_BRANCHES  the leaf's children on a list (print_org_block_branches)
+#   ORG_BLOCK_CORRUPT   true where the org meter file cannot be read
+#   ORG_BLOCK_ORG       the org whose verdict refused; empty on a keyrack
+#                       fault or a damaged meter, where `allow --org` is no fix
+#   ORG_KEYRACK_FAULT   via get_org_from_keyrack; set ⇒ print_keyrack_org_note
+######################################################################
 check_org_blocker() {
   assure_meter_scope
   ORG_BLOCK_REASON=""
@@ -2177,12 +2642,26 @@ check_org_blocker() {
   #    for one commit, so a caller that learns the shape once applies it twice.
   ORG_BLOCK_CORRUPT=false
 
-  # get org from keyrack (called directly, not via subshell, so ORG_ERROR propagates)
+  # .what = the org whose verdict refused, so a remedy names it rather than a
+  #         `<org>` placeholder. empty on a keyrack fault or a damaged meter.
+  ORG_BLOCK_ORG=""
+
+  # .what = the leaf's children where keyrack lists several orgs; empty else
+  ORG_BLOCK_BRANCHES=""
+
+  # get orgs from keyrack (called directly, not via subshell, so ORG_ERROR propagates)
   if ! get_org_from_keyrack; then
     ORG_BLOCK_REASON="$ORG_ERROR"
     return 2
   fi
   local org="$ORG_VALUE"
+
+  # 🔴 .why every member gates = the list names every org whose keys this repo
+  #        may reach (keyrack's allowlist). a human who blocks one org blocks
+  #        work that touches it; a looser rule (member 0 alone, or any one)
+  #        would let a repo that lists a blocked org run anyway.
+  local org_list_branches
+  org_list_branches=$(as_org_list_reason_branches noun="$METER_NOUN" "${ORG_VALUES[@]+"${ORG_VALUES[@]}"}")
 
   # 🔴 ABSENCE is `-e`; DAMAGE is `-f`. two tests, because they are two states
   #    with two different remedies — "configure one" versus "clear the wreck".
@@ -2199,7 +2678,8 @@ check_org_blocker() {
   #    meters, one absence/damage split — so a reader learns it once.
   if [[ ! -e "$ORG_METER_FILE" ]]; then
     # no org config = unset = check for @all
-    ORG_BLOCK_REASON="no org config for $org"
+    ORG_BLOCK_ORG="$org"
+    ORG_BLOCK_REASON="no org config for $org"; ORG_BLOCK_BRANCHES="$org_list_branches"
     return 2
   fi
 
@@ -2236,7 +2716,8 @@ check_org_blocker() {
   #        `-e` holds and the read falls through to the gates below, which
   #        classify it as damage exactly as they should.
   if [[ -z "$contents" && ! -e "$ORG_METER_FILE" ]]; then
-    ORG_BLOCK_REASON="no org config for $org"
+    ORG_BLOCK_ORG="$org"
+    ORG_BLOCK_REASON="no org config for $org"; ORG_BLOCK_BRANCHES="$org_list_branches"
     return 2
   fi
 
@@ -2265,58 +2746,67 @@ check_org_blocker() {
     return 2
   fi
 
-  # read org-specific state
-  local org_state
-  if ! org_state=$(read_org_meter_key "$contents" "$org"); then
-    ORG_BLOCK_CORRUPT=true
-    ORG_BLOCK_REASON="$ORG_CORRUPT_HEADLINE"
-    return 2
-  fi
-
-  # 🔴 the LEAF gate. the shape gate above proves the file is an object, and it
-  #    says no word about the one value this gate actually decides on.
-  if ! is_org_state_known "$org_state"; then
-    ORG_BLOCK_CORRUPT=true
-    ORG_BLOCK_REASON="$ORG_CORRUPT_HEADLINE"
-    return 2
-  fi
-
-  # if org-specific state exists, use it
-  if [[ "$org_state" != "unset" ]]; then
-    if [[ "$org_state" == "blocked" ]]; then
-      ORG_BLOCK_REASON="$METER_NOUN_PLURAL blocked for org $org"
+  # gate every member, in file order; the first refusal wins and names its org
+  #
+  # .why `@all` is read lazily = a member with its own key never consults
+  #      `@all`, so a damaged `@all` refuses only a member that falls back
+  #      to it, never one the meter names.
+  local member member_state all_state=""
+  for member in "${ORG_VALUES[@]}"; do
+    # read this member's state
+    if ! member_state=$(read_org_meter_key "$contents" "$member"); then
+      ORG_BLOCK_CORRUPT=true
+      ORG_BLOCK_REASON="$ORG_CORRUPT_HEADLINE"
       return 2
     fi
-    return 0  # org is allowed
-  fi
 
-  # fall back to @all default
-  local all_state
-  if ! all_state=$(read_org_meter_key "$contents" "@all"); then
-    ORG_BLOCK_CORRUPT=true
-    ORG_BLOCK_REASON="$ORG_CORRUPT_HEADLINE"
-    return 2
-  fi
+    # 🔴 the LEAF gate. the shape gate above proves the file is an object, and
+    #    it says no word about the one value this gate actually decides on.
+    if ! is_org_state_known "$member_state"; then
+      ORG_BLOCK_CORRUPT=true
+      ORG_BLOCK_REASON="$ORG_CORRUPT_HEADLINE"
+      return 2
+    fi
 
-  # the same leaf gate, on the fallback. `@all` decides for every org that names
-  # itself nowhere in the file, so a damaged `@all` is the wider fail-open
-  if ! is_org_state_known "$all_state"; then
-    ORG_BLOCK_CORRUPT=true
-    ORG_BLOCK_REASON="$ORG_CORRUPT_HEADLINE"
-    return 2
-  fi
+    # a member with its own key decides for itself
+    if [[ "$member_state" == "blocked" ]]; then
+      ORG_BLOCK_ORG="$member"
+      ORG_BLOCK_REASON="$METER_NOUN_PLURAL blocked for org $member"; ORG_BLOCK_BRANCHES="$org_list_branches"
+      return 2
+    fi
+    [[ "$member_state" == "unset" ]] || continue
 
-  if [[ "$all_state" == "unset" ]]; then
-    ORG_BLOCK_REASON="no org config for $org"
-    return 2
-  fi
+    # fall back to @all, read once on first need
+    if [[ -z "$all_state" ]]; then
+      if ! all_state=$(read_org_meter_key "$contents" "@all"); then
+        ORG_BLOCK_CORRUPT=true
+        ORG_BLOCK_REASON="$ORG_CORRUPT_HEADLINE"
+        return 2
+      fi
 
-  if [[ "$all_state" == "blocked" ]]; then
-    ORG_BLOCK_REASON="$METER_NOUN_PLURAL blocked for org $org (from @all)"
-    return 2
-  fi
+      # the same leaf gate, on the fallback. `@all` decides for every org that
+      # names itself nowhere in the file, so a damaged `@all` is the wider fail-open
+      if ! is_org_state_known "$all_state"; then
+        ORG_BLOCK_CORRUPT=true
+        ORG_BLOCK_REASON="$ORG_CORRUPT_HEADLINE"
+        return 2
+      fi
+    fi
 
-  return 0  # @all is allowed
+    if [[ "$all_state" == "unset" ]]; then
+      ORG_BLOCK_ORG="$member"
+      ORG_BLOCK_REASON="no org config for $member"; ORG_BLOCK_BRANCHES="$org_list_branches"
+      return 2
+    fi
+
+    if [[ "$all_state" == "blocked" ]]; then
+      ORG_BLOCK_ORG="$member"
+      ORG_BLOCK_REASON="$METER_NOUN_PLURAL blocked for org $member (from @all)"; ORG_BLOCK_BRANCHES="$org_list_branches"
+      return 2
+    fi
+  done
+
+  return 0  # every member allowed, by name or via @all
 }
 
 ######################################################################
