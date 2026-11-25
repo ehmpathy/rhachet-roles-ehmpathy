@@ -1059,6 +1059,10 @@ exit 1
         expect(result.stdout).toContain('no commit uses left');
         expect(result.stdout).toContain('git.commit.uses set --quant N');
         expect(result.stdout).not.toContain('--push');
+
+        // the refusal asks the sponsor, never a human alone
+        expect(result.stdout).toContain('ask your sponsor to grant more');
+        expect(result.stdout).not.toContain('ask your human');
         expect(result.stdout).toMatchSnapshot();
       });
 
@@ -1128,6 +1132,8 @@ exit 1
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('🐢 bummer dude...');
         expect(result.stdout).toContain('commit grant revoked');
+        expect(result.stdout).toContain('ask your sponsor to grant again');
+        expect(result.stdout).not.toContain('ask your human');
         expect(result.stdout).toMatchSnapshot();
       });
     });

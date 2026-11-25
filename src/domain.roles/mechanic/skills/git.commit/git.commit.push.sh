@@ -153,6 +153,7 @@ emit_error() {
     case "$arg" in
       class=*) class="${arg#class=}" ;;
       message=*) message="${arg#message=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
     esac
   done
   # default to the tree format; the json branch overrides it (no else — the
@@ -179,7 +180,7 @@ emit_error() {
 # .what = given the mode-specific fix (label + cmd), return the ordered pair
 #         of fixes as four tab-separated fields:
 #         prefer_label \t prefer_cmd \t alt_label \t alt_cmd
-# .why  = the order is a pure decision (a function of $AUTH), separable from the
+# .why  = the order is a pure decision (a function of auth), separable from the
 #         guide's i/o. as a transformer it lets emit_pr_open_guide read as a
 #         straight compose of print_* calls (rule.forbid.decode-friction-in-orchestrators).
 # .note = keyrack leads by default (the vision's preferred bias); under as-human
@@ -233,10 +234,21 @@ get_ordered_pr_fixes() {
 # .note = the fix order is decided by the pure get_ordered_pr_fixes transformer;
 #         the fix2 label is passed bare — this helper renders it as numbered fix
 #         #1 or #2 (the "or" prefix rides #2) per that order.
-# args = error_line, fix2_label, fix2_cmd, json_error, [detail]
+# usage: emit_pr_open_guide error_line="..." fix2_label="..." fix2_cmd="..." \
+#          json_error="..." [detail="..."]
 ######################################################################
 emit_pr_open_guide() {
-  local error_line="$1" fix2_label="$2" fix2_cmd="$3" json_error="$4" detail="${5:-}"
+  local error_line="" fix2_label="" fix2_cmd="" json_error="" detail="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      error_line=*) error_line="${arg#error_line=}" ;;
+      fix2_label=*) fix2_label="${arg#fix2_label=}" ;;
+      fix2_cmd=*) fix2_cmd="${arg#fix2_cmd=}" ;;
+      json_error=*) json_error="${arg#json_error=}" ;;
+      detail=*) detail="${arg#detail=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
+    esac
+  done
 
   # order the two fixes (pure decision, delegated to the transformer)
   local prefer_label prefer_cmd prefer_then alt_label alt_cmd alt_then
@@ -368,11 +380,11 @@ if [[ "$LOCAL_GRANT_STATUS" -eq 1 ]]; then
 fi
 
 # guard: a push needs a HELD commit grant — granted, even at 0 left. a push
-# spends no use; only a human's block / del revokes it (F16)
+# spends no use; only a sponsor's block / del revokes it (F16)
 if [[ "$COMMIT_HELD" != "true" ]]; then
   emit_error class=constraint message="no commit grant held"
   if [[ "$OUTPUT" == "tree" ]]; then
-    emit_both "$(print_coconut_hint "a push rides the commit grant; ask your human to grant one" \
+    emit_both "$(print_coconut_hint "a push rides the commit grant; ask your sponsor to grant one" \
       "git.commit.uses set --quant N")"
   fi
   exit 2  # blocked by constraints
@@ -445,10 +457,11 @@ PUSH_TARGET="origin/$CURRENT_BRANCH"
 ######################################################################
 if [[ "$MODE" == "plan" ]]; then
   if [[ "$OUTPUT" == "json" ]]; then
-    # escape quotes in pr title for valid json
-    PR_TITLE_ESCAPED=$(echo "$PR_TITLE" | sed 's/"/\\"/g')
+    # escape each value for valid json (backslash, quote, control chars); no echo,
+    # so a title that opens with a dash is never read as an echo flag
     printf '{"status":"planned","push_target":"%s","pr_title":"%s","pr_action":"findsert","auth":"%s"}\n' \
-      "$PUSH_TARGET" "$PR_TITLE_ESCAPED" "$AUTH"
+      "$(escape_json_string "$PUSH_TARGET")" "$(escape_json_string "$PR_TITLE")" \
+      "$(escape_json_string "$AUTH")"
   else
     print_turtle_header "heres the wave..."
     print_tree_start "git.commit.push --mode plan"
@@ -565,11 +578,11 @@ if [[ "$AUTH" == "as-ehmpath" ]]; then
     TOKEN_CAUSE=""
     [[ -n "$TOKEN_FETCH_ERR" ]] && TOKEN_CAUSE="cause: $TOKEN_FETCH_ERR"
     emit_pr_open_guide \
-      "ehmpath keyrack token not available" \
-      "open the pr with the human's github login" \
-      "rhx git.commit.push --mode apply --auth as-human" \
-      "$TOKEN_JSON_ERROR" \
-      "$TOKEN_CAUSE"
+      error_line="ehmpath keyrack token not available" \
+      fix2_label="open the pr with the human's github login" \
+      fix2_cmd="rhx git.commit.push --mode apply --auth as-human" \
+      json_error="$TOKEN_JSON_ERROR" \
+      detail="$TOKEN_CAUSE"
   fi
 
   # identity-sync guard: the fetched token must imply the SAME seaturtle identity
@@ -631,18 +644,27 @@ run_gh() {
 #         or gh auth login) — never a bare gh stack trace. the guide states both,
 #         so it is correct whichever mode failed. the commit is already pushed;
 #         only the pr-open is on hold.
+# usage: emit_gh_auth_guide gh_output="$PR_LIST_OUTPUT"
 emit_gh_auth_guide() {
+  local gh_output="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      gh_output=*) gh_output="${arg#gh_output=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
+    esac
+  done
+
   # label the raw gh output as the cause, to match the keyrack path's
   # `cause: $TOKEN_FETCH_ERR` — so the guide's diagnostic reads as an intentional
   # annotation, not leaked gh noise (consistent across both pr-open guide sites)
   local cause=""
-  [[ -n "$1" ]] && cause="cause: $1"
+  [[ -n "$gh_output" ]] && cause="cause: $gh_output"
   emit_pr_open_guide \
-    "no usable gh credential to open the pr" \
-    "log in the human's github, so the as-human fallback works" \
-    "gh auth login" \
-    "pr-open credential unusable — unlock keyrack or run gh auth login" \
-    "$cause"
+    error_line="no usable gh credential to open the pr" \
+    fix2_label="log in the human's github, so the as-human fallback works" \
+    fix2_cmd="gh auth login" \
+    json_error="pr-open credential unusable — unlock keyrack or run gh auth login" \
+    detail="$cause"
 }
 
 # findsert draft pr
@@ -657,7 +679,7 @@ PR_LIST_OUTPUT=$(run_gh pr list --head "$CURRENT_BRANCH" --json number --jq '.[0
 # the earliest signal of an unusable pr-open credential: guide now, before a
 # doomed create attempt, when the list failed for lack of auth (both modes)
 if [[ $PR_LIST_EXIT -ne 0 ]] && is_gh_auth_failure "$PR_LIST_OUTPUT"; then
-  emit_gh_auth_guide "$PR_LIST_OUTPUT"
+  emit_gh_auth_guide gh_output="$PR_LIST_OUTPUT"
 fi
 
 PR_FOUND=""
@@ -703,7 +725,7 @@ if [[ -z "$PR_FOUND" ]]; then
     # an auth failure here means the credential is unusable under this mode —
     # guide to the two fixes rather than surface a bare gh error as pr status
     if is_gh_auth_failure "$PR_CREATE_OUTPUT"; then
-      emit_gh_auth_guide "$PR_CREATE_OUTPUT"
+      emit_gh_auth_guide gh_output="$PR_CREATE_OUTPUT"
     fi
     # a non-auth pr-create failure (branch protection, rate limit, no commits)
     # is a caller-must-fix constraint — record it so the output path reports the

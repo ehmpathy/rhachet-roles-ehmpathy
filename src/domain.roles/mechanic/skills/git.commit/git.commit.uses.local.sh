@@ -279,7 +279,7 @@ case "$COMMAND" in
       print_global_corrupt_note
       print_coconut_hint \
         "no quota is granted on this tree, so commits will refuse" \
-        "git.commit.uses set --quant N   # ask your human"
+        "git.commit.uses set --quant N   # ask your sponsor"
       exit 0
     fi
 

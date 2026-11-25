@@ -14,7 +14,7 @@ measured 2026-10-18, `rhachet-roles-bhuild`, from `0.wish.md`:
 
 | step | given | when | then (old) | then (with `held`) |
 |---|---|---|---|---|
-| 1 | a branch with 0 commits | a director grants 1 commit, push blocked | — | — |
+| 1 | a branch with 0 commits | a sponsor grants 1 commit, push blocked | — | — |
 | 2 | the grant | the crew begins a rebase | refused: "rebase requires push permission" | proceeds: a rebase spends no use; the grant is held |
 | 3 | — | a second grant, push allowed | proceeds | not needed |
 

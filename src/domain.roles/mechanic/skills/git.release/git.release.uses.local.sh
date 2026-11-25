@@ -119,8 +119,8 @@ while [[ $# -gt 0 ]]; do
       echo "a release = git.release --mode apply. commit, stage, rebase, and push"
       echo "ride git.commit.uses; no commit grant can ship."
       echo ""
-      echo "a sponsor grants a release the way it grants commits: a human or a"
-      echo "director, from a real terminal."
+      echo "a sponsor grants a release the way it grants commits, from a real"
+      echo "terminal."
       exit 0
       ;;
     --repo|--role|--skill)

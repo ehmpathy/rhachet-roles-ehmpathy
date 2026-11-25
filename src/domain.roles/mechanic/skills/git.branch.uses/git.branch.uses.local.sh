@@ -256,7 +256,7 @@ usage: git.branch.uses set --quant N"
       print_global_corrupt_note
       print_coconut_hint \
         "no quota is granted on this tree, so a cutover apply will refuse" \
-        "rhx git.branch.uses set --quant N   # ask your human"
+        "rhx git.branch.uses set --quant N   # ask your sponsor"
       exit 0
     fi
 

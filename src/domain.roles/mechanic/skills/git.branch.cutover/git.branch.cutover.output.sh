@@ -432,7 +432,7 @@ get_halt_stage_block() {
   if [[ -f "$global_file" ]] && [[ "$(jq -r '.blocked // false' "$global_file" 2> /dev/null)" == "true" ]]; then
     printf '%s\n' \
       "stage: ✋ mechanic ops are blocked globally, so rhx git.stage.add will refuse" \
-      "└─ ask your human: rhx git.commit.uses allow --global"
+      "└─ ask your sponsor: rhx git.commit.uses allow --global"
     return 0
   fi
 
@@ -441,7 +441,7 @@ get_halt_stage_block() {
   [[ "$COMMIT_LIVE" != "true" ]] || return 0
   printf '%s\n' \
     "stage: ✋ no live commit grant, so rhx git.stage.add will refuse" \
-    "└─ ask your human: rhx git.commit.uses set --quant N"
+    "└─ ask your sponsor: rhx git.commit.uses set --quant N"
 }
 
 ######################################################################

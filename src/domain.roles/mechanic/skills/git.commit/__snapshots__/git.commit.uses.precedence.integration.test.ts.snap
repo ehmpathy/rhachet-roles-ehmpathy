@@ -47,7 +47,7 @@ exports[`git.commit.uses precedence matrix given: [global=unset, org=allowed, lo
    └─ ✋ ConstraintError: no commit grant held
 
 🥥 did you know?
-   ├─ a push rides the commit grant; ask your human to grant one
+   ├─ a push rides the commit grant; ask your sponsor to grant one
    └─ git.commit.uses set --quant N
 "
 `;

@@ -30,7 +30,7 @@ narrative, distilled from `1.vision.yield.md`:
 | a human runs `git.release.uses set --quant 1` | the crew applies | it ships; the stamp spends itself, 1 → 0 |
 | the merge arm fails | — | the stamp is refunded, unless a human changed it since |
 
-⇒ a ship is the costly, irreversible act; the stamp is the human's mark on that one act, distinct from the commit grant a director gives freely.
+⇒ a ship is the costly, irreversible act; the stamp is the human's mark on that one act, distinct from the commit grant a sponsor gives freely.
 
 ## .the etymology
 
