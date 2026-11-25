@@ -100,7 +100,7 @@ exports[`git.branch.cutover (acceptance) given: [case3] a pick that conflicts wi
       │  └─ files
       │     └─ src/band.ts (both added it)
       ├─ stage: ✋ no live commit grant, so rhx git.stage.add will refuse
-      │  └─ ask your human: rhx git.commit.uses set --quant N
+      │  └─ ask your sponsor: rhx git.commit.uses set --quant N
       └─ quota: the cutover unit is spent; abort refunds none
 
 🥥 did you know?
@@ -122,7 +122,7 @@ exports[`git.branch.cutover (acceptance) given: [case3] a pick that conflicts wi
       ├─ files
       │  └─ src/band.ts (both added it)
       ├─ stage: ✋ no live commit grant, so rhx git.stage.add will refuse
-      │  └─ ask your human: rhx git.commit.uses set --quant N
+      │  └─ ask your sponsor: rhx git.commit.uses set --quant N
       └─ fix: settle each; once your human grants a commit, rhx git.stage.add <files>, then continue again
 "
 `;
@@ -183,7 +183,7 @@ exports[`git.branch.cutover (acceptance) given: [case5] a tracked edit that cann
       │     └─ src/band.ts (both changed it)
       ├─ safe: original tracked edits held at refs/worktree/cutover/tree
       ├─ stage: ✋ no live commit grant, so rhx git.stage.add will refuse
-      │  └─ ask your human: rhx git.commit.uses set --quant N
+      │  └─ ask your sponsor: rhx git.commit.uses set --quant N
       └─ quota: the cutover unit is spent; abort refunds none
 
 🥥 did you know?
