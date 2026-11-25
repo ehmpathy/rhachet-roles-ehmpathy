@@ -1,0 +1,720 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.branch.catchup begin given: [case1] a feature branch 3 behind origin/main, no overlap in files when: [t0] begin, plan mode (default) then: matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.catchup begin --mode plan
+   ├─ catch up via merge (no rewrite) from origin/main
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ into: turtle/feat-wave-report
+   │  ├─ behind: 3 commits
+   │  │  ├─ HASH123 feat(docs): add c
+   │  │  ├─ HASH123 feat(docs): add b
+   │  │  └─ HASH123 feat(docs): add a
+   │  └─ ahead: 1 commit
+   ├─ commit
+   │  ├─ header: cont(branch): merge origin/main into turtle/feat-wave-report
+   │  ├─ author: seaturtle[bot] <seaturtle@ehmpath.com>
+   │  └─ sponsor: Test Human <human@test.com>, from bound (this tree)
+   └─ meter
+      └─ left: 4 → 3
+
+run with --mode apply to execute
+"
+`;
+
+exports[`git.branch.catchup begin given: [case1] a feature branch 3 behind origin/main, no overlap in files when: [t1] begin --mode apply then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ behind: 3 → 0
+   │  └─ status: committed
+   ├─ commit: HASH123 cont(branch): merge origin/main into turtle/feat-wave-report
+   └─ meter
+      └─ left: 3
+
+🌊 ready to push
+   └─ rhx git.commit.push --mode apply
+"
+`;
+
+exports[`git.branch.catchup begin given: [case1] a feature branch 3 behind origin/main, no overlap in files when: [t3] begin --mode apply again, right after the merge then: matches snapshot 1`] = `
+"🐢 already level
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ from: origin/main
+   ├─ behind: 0
+   └─ no merge needed; meter untouched
+"
+`;
+
+exports[`git.branch.catchup begin given: [case1b] a feature branch with 0 commits ahead and 2 behind origin/main when: [t0] begin (plan) then: matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.catchup begin --mode plan
+   ├─ catch up via merge (no rewrite) from origin/main
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ into: turtle/feat-wave-report
+   │  ├─ behind: 2 commits
+   │  │  ├─ HASH123 feat(docs): add b
+   │  │  └─ HASH123 feat(docs): add a
+   │  └─ ahead: 0 commits
+   ├─ commit
+   │  ├─ header: cont(branch): merge origin/main into turtle/feat-wave-report
+   │  ├─ author: seaturtle[bot] <seaturtle@ehmpath.com>
+   │  └─ sponsor: Test Human <human@test.com>, from bound (this tree)
+   └─ meter
+      └─ left: 4 → 3
+
+run with --mode apply to execute
+"
+`;
+
+exports[`git.branch.catchup begin given: [case1b] a feature branch with 0 commits ahead and 2 behind origin/main when: [t1] begin --mode apply then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ behind: 2 → 0
+   │  └─ status: committed
+   ├─ commit: HASH123 cont(branch): merge origin/main into turtle/feat-wave-report
+   └─ meter
+      └─ left: 3
+
+🌊 ready to push
+   └─ rhx git.commit.push --mode apply
+"
+`;
+
+exports[`git.branch.catchup begin given: [case2] a feature branch and origin/main that both edit the same two files when: [t0] begin --mode apply then: matches snapshot 1`] = `
+"✋ ConstraintError: merge stopped on conflicts
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ merge
+   │  ├─ from: origin/main
+   │  └─ status: in flight, unsettled
+   ├─ conflicts
+   │  ├─ src/a.md
+   │  └─ src/b.md
+   └─ next
+      ├─ remove the <<<<<<< ======= >>>>>>> lines from each file
+      ├─ settle each file:  rhx git.stage.add <file>
+      ├─ or take a side:    rhx git.branch.catchup take --whos <main|branch> <file>
+      ├─ then:              rhx git.branch.catchup continue
+      └─ or back out:       rhx git.branch.catchup abort
+"
+`;
+
+exports[`git.branch.catchup begin given: [case2] a feature branch and origin/main that both edit the same two files when: [t1] begin --mode apply again, with the merge in flight then: matches snapshot 1`] = `
+"✋ ConstraintError: a merge is already in flight
+
+🐚 git.branch.catchup begin --mode apply
+   └─ next
+      ├─ settle + finish it: rhx git.branch.catchup continue
+      └─ or back out:        rhx git.branch.catchup abort
+"
+`;
+
+exports[`git.branch.catchup begin given: [case2b] a conflict while the grant blocks stage when: [t0] begin --mode apply then: matches snapshot 1`] = `
+"✋ ConstraintError: merge stopped on conflicts
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ merge
+   │  ├─ from: origin/main
+   │  └─ status: in flight, unsettled
+   ├─ conflicts
+   │  └─ src/a.md
+   └─ next
+      ├─ remove the <<<<<<< ======= >>>>>>> lines from each file
+      ├─ settle each file:  a human grants stage first
+      │  └─ a human runs: rhx git.commit.uses set --quant N --push allow --stage allow
+      ├─ or take a side:    rhx git.branch.catchup take --whos <main|branch> <file>
+      ├─ then:              rhx git.branch.catchup continue
+      └─ or back out:       rhx git.branch.catchup abort
+"
+`;
+
+exports[`git.branch.catchup begin given: [case2c] a clean merge, and a commit-msg hook that refuses when: [t0] begin --mode apply then: matches snapshot 1`] = `
+"💥 MalfunctionError: git commit failed; the merge stays in flight
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ cause
+   │  ├─ commitlint: the header was refused
+   │  └─ commitlint: see the commit convention
+   └─ next
+      ├─ fix the cause above
+      ├─ then:              rhx git.branch.catchup continue
+      └─ or back out:       rhx git.branch.catchup abort
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4a] HEAD on main when: [t0] begin (plan) then: matches snapshot 1`] = `
+"✋ ConstraintError: will not merge into main
+
+🐚 git.branch.catchup begin --mode plan
+   ├─ branch: main
+   ├─ why: this verb levels a feature branch with main; it never writes to main or master
+   └─ fix: run it from the worktree of your feature branch
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4a] HEAD on main when: [t1] begin --mode apply then: matches snapshot 1`] = `
+"✋ ConstraintError: will not merge into main
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ branch: main
+   ├─ why: this verb levels a feature branch with main; it never writes to main or master
+   └─ fix: run it from the worktree of your feature branch
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4a2] HEAD on master when: [t0] begin --mode apply then: matches snapshot 1`] = `
+"✋ ConstraintError: will not merge into master
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ branch: master
+   ├─ why: this verb levels a feature branch with main; it never writes to main or master
+   └─ fix: run it from the worktree of your feature branch
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4b] unstaged edits in the tree when: [t0] begin (plan) then: matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.catchup begin --mode plan
+   ├─ catch up via merge (no rewrite) from origin/main
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ into: turtle/feat-wave-report
+   │  ├─ behind: 1 commit
+   │  │  └─ HASH123 feat(docs): add a
+   │  └─ ahead: 1 commit
+   ├─ commit
+   │  ├─ header: cont(branch): merge origin/main into turtle/feat-wave-report
+   │  ├─ author: seaturtle[bot] <seaturtle@ehmpath.com>
+   │  └─ sponsor: Test Human <human@test.com>, from bound (this tree)
+   ├─ ⚠️ apply will refuse: uncommitted changes
+   │  └─ readme.md
+   └─ meter
+      └─ left: 4 → 3
+
+clear each ⚠️ apply will refuse above, then run with --mode apply
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4b] unstaged edits in the tree when: [t1] begin --mode apply then: matches snapshot 1`] = `
+"✋ ConstraintError: uncommitted changes in the tree
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ dirty
+   │  └─ readme.md
+   ├─ why: a merge over uncommitted work folds it into a merge commit no one reviews
+   └─ fix: commit it first, then begin again
+      ├─ rhx git.stage.add <files>
+      └─ rhx git.commit.set -m @stdin --mode apply
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4b2] staged-only edits in the tree (the gap the rebase guard leaves open) when: [t0] begin --mode apply then: matches snapshot 1`] = `
+"✋ ConstraintError: uncommitted changes in the tree
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ dirty
+   │  └─ readme.md
+   ├─ why: a merge over uncommitted work folds it into a merge commit no one reviews
+   └─ fix: commit it first, then begin again
+      ├─ rhx git.stage.add <files>
+      └─ rhx git.commit.set -m @stdin --mode apply
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4c] meter uses = 0 when: [t0] begin (plan) then: matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.catchup begin --mode plan
+   ├─ catch up via merge (no rewrite) from origin/main
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ into: turtle/feat-wave-report
+   │  ├─ behind: 1 commit
+   │  │  └─ HASH123 feat(docs): add a
+   │  └─ ahead: 1 commit
+   ├─ commit
+   │  ├─ header: cont(branch): merge origin/main into turtle/feat-wave-report
+   │  ├─ author: seaturtle[bot] <seaturtle@ehmpath.com>
+   │  └─ sponsor: Test Human <human@test.com>, from bound (this tree)
+   ├─ ⚠️ apply will refuse: no commit uses left
+   │  └─ a human runs: rhx git.commit.uses set --quant N --push allow
+   └─ meter
+      └─ left: 0
+
+clear each ⚠️ apply will refuse above, then run with --mode apply
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4c] meter uses = 0 when: [t1] begin --mode apply then: matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.catchup begin --mode apply
+   └─ ✋ ConstraintError: no commit uses left
+
+ask your human to grant more:
+  $ rhx git.commit.uses set --quant N --push allow
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4d] meter uses = "infinite" when: [t0] begin --mode apply then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ behind: 1 → 0
+   │  └─ status: committed
+   ├─ commit: HASH123 cont(branch): merge origin/main into turtle/feat-wave-report
+   └─ meter
+      └─ left: unlimited
+
+🌊 ready to push
+   └─ rhx git.commit.push --mode apply
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4e] no quota granted at all when: [t0] begin (plan) then: matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.catchup begin --mode plan
+   ├─ catch up via merge (no rewrite) from origin/main
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ into: turtle/feat-wave-report
+   │  ├─ behind: 1 commit
+   │  │  └─ HASH123 feat(docs): add a
+   │  └─ ahead: 1 commit
+   ├─ commit
+   │  ├─ header: cont(branch): merge origin/main into turtle/feat-wave-report
+   │  ├─ author: seaturtle[bot] <seaturtle@ehmpath.com>
+   │  └─ sponsor: Test Human <human@test.com>, from bound (this tree)
+   ├─ ⚠️ apply will refuse: no commit quota set
+   │  └─ a human runs: rhx git.commit.uses set --quant N --push allow
+   └─ meter
+      └─ left: none granted
+
+clear each ⚠️ apply will refuse above, then run with --mode apply
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4e] no quota granted at all when: [t1] begin --mode apply then: matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.catchup begin --mode apply
+   └─ ✋ ConstraintError: no commit quota set
+
+ask your human to grant:
+  $ rhx git.commit.uses set --quant N --push allow
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4f] a human set the global blocker when: [t0] begin (plan) then: matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.catchup begin --mode plan
+   └─ ✋ ConstraintError: commits blocked globally
+
+ask your human to lift:
+  $ git.commit.uses allow --global
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4f] a human set the global blocker when: [t1] begin --mode apply then: matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.catchup begin --mode apply
+   └─ ✋ ConstraintError: commits blocked globally
+
+ask your human to lift:
+  $ git.commit.uses allow --global
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4f2] a human blocked commits for this org when: [t0] begin (plan) then: matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.catchup begin --mode plan
+   └─ ✋ ConstraintError: commits blocked for org ehmpathy
+
+ask your human to allow:
+  $ git.commit.uses allow --org <org>
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4f2] a human blocked commits for this org when: [t1] begin --mode apply then: matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.catchup begin --mode apply
+   └─ ✋ ConstraintError: commits blocked for org ehmpathy
+
+ask your human to allow:
+  $ git.commit.uses allow --org <org>
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4g] no sponsor bound, and git config names a clone when: [t0] begin (plan) then: matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.catchup begin --mode plan
+   └─ ✋ ConstraintError: no sponsor for this commit
+
+   no sponsor is bound to this tree, and this machine's git config
+   names a clone:
+     seaturtle[bot] <seaturtle@ehmpath.com>
+   ...so this is the clone's machine, and it cannot answer for the change.
+
+   ⛔ you cannot fix this yourself. a sponsor is bound by a human,
+      at a terminal.
+
+ask your human to run, in this tree:
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4g] no sponsor bound, and git config names a clone when: [t1] begin --mode apply then: matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.catchup begin --mode apply
+   └─ ✋ ConstraintError: no sponsor for this commit
+
+   no sponsor is bound to this tree, and this machine's git config
+   names a clone:
+     seaturtle[bot] <seaturtle@ehmpath.com>
+   ...so this is the clone's machine, and it cannot answer for the change.
+
+   ⛔ you cannot fix this yourself. a sponsor is bound by a human,
+      at a terminal.
+
+ask your human to run, in this tree:
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4h] a merge already in flight when: [t0] begin (plan) then: matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.catchup begin --mode plan
+   ├─ catch up via merge (no rewrite) from origin/main
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ into: turtle/feat-wave-report
+   │  ├─ behind: 1 commit
+   │  │  └─ HASH123 feat(src): edit a
+   │  └─ ahead: 1 commit
+   ├─ commit
+   │  ├─ header: cont(branch): merge origin/main into turtle/feat-wave-report
+   │  ├─ author: seaturtle[bot] <seaturtle@ehmpath.com>
+   │  └─ sponsor: Test Human <human@test.com>, from bound (this tree)
+   ├─ ⚠️ apply will refuse: a merge is in flight
+   │  ├─ finish it:   rhx git.branch.catchup continue
+   │  └─ or back out: rhx git.branch.catchup abort
+   ├─ ⚠️ apply will refuse: uncommitted changes
+   │  └─ src/a.md
+   └─ meter
+      └─ left: 4 → 3
+
+clear each ⚠️ apply will refuse above, then run with --mode apply
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4h] a merge already in flight when: [t1] begin --mode apply then: matches snapshot 1`] = `
+"✋ ConstraintError: a merge is already in flight
+
+🐚 git.branch.catchup begin --mode apply
+   └─ next
+      ├─ settle + finish it: rhx git.branch.catchup continue
+      └─ or back out:        rhx git.branch.catchup abort
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4i] a corrupt commit quota file when: [t-apply] begin --mode apply then: matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.catchup begin --mode apply
+   └─ 💥 MalfunctionError: commit quota file corrupt
+
+   the file that holds this tree's commit quota cannot be read:
+     .meter/git.commit.uses.jsonc
+
+ask your human to reset the quota, then grant again:
+  $ git.commit.uses del
+  $ git.commit.uses set --quant N --push allow|block
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4i] a corrupt commit quota file when: [t-plan] begin --mode plan then: matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.catchup begin --mode plan
+   └─ 💥 MalfunctionError: commit quota file corrupt
+
+   the file that holds this tree's commit quota cannot be read:
+     .meter/git.commit.uses.jsonc
+
+ask your human to reset the quota, then grant again:
+  $ git.commit.uses del
+  $ git.commit.uses set --quant N --push allow|block
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4j] an untracked file at a path origin/main adds when: [t0] begin (plan) then: matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.catchup begin --mode plan
+   ├─ catch up via merge (no rewrite) from origin/main
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ into: turtle/feat-wave-report
+   │  ├─ behind: 1 commit
+   │  │  └─ HASH123 feat(docs): add tide
+   │  └─ ahead: 1 commit
+   ├─ commit
+   │  ├─ header: cont(branch): merge origin/main into turtle/feat-wave-report
+   │  ├─ author: seaturtle[bot] <seaturtle@ehmpath.com>
+   │  └─ sponsor: Test Human <human@test.com>, from bound (this tree)
+   ├─ ⚠️ apply will refuse: untracked files at paths origin/main adds
+   │  └─ docs/tide.md
+   └─ meter
+      └─ left: 4 → 3
+
+clear each ⚠️ apply will refuse above, then run with --mode apply
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4j] an untracked file at a path origin/main adds when: [t1] begin --mode apply then: matches snapshot 1`] = `
+"✋ ConstraintError: untracked files at paths origin/main adds
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ collide
+   │  └─ docs/tide.md
+   ├─ why: the merge would overwrite them, so git refuses it
+   └─ fix: move or remove each, then begin again
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4k] a detached HEAD when: [t0] begin (plan) then: matches snapshot 1`] = `
+"✋ ConstraintError: no branch checked out (detached HEAD)
+
+🐚 git.branch.catchup begin --mode plan
+   ├─ HEAD: HASH123
+   ├─ why: a catch-up merge commits onto a feature branch; a detached HEAD has none
+   └─ fix: check out your feature branch, then begin again
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4l] untracked paths that clash with origin/main as file and dir when: [t0] begin --mode apply, from a subdirectory then: matches snapshot 1`] = `
+"✋ ConstraintError: untracked files at paths origin/main adds
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ collide
+   │  ├─ tide
+   │  └─ wave/draft.md
+   ├─ why: the merge would overwrite them, so git refuses it
+   └─ fix: move or remove each, then begin again
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4m] no quota granted and no sponsor when: [t0] begin --mode apply then: matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.catchup begin --mode apply
+   └─ ✋ ConstraintError: no sponsor for this commit
+
+   no sponsor is bound to this tree, and this machine's git config
+   names a clone:
+     seaturtle[bot] <seaturtle@ehmpath.com>
+   ...so this is the clone's machine, and it cannot answer for the change.
+
+   ⛔ you cannot fix this yourself. a sponsor is bound by a human,
+      at a terminal.
+
+ask your human to run, in this tree:
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4n] a commit use left, but push is blocked when: [t0] begin (plan) then: matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.catchup begin --mode plan
+   ├─ catch up via merge (no rewrite) from origin/main
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ into: turtle/feat-wave-report
+   │  ├─ behind: 1 commit
+   │  │  └─ HASH123 feat(docs): add a
+   │  └─ ahead: 1 commit
+   ├─ commit
+   │  ├─ header: cont(branch): merge origin/main into turtle/feat-wave-report
+   │  ├─ author: seaturtle[bot] <seaturtle@ehmpath.com>
+   │  └─ sponsor: Test Human <human@test.com>, from bound (this tree)
+   ├─ ⚠️ apply will commit, but the push after needs a human grant
+   │  └─ a human runs: rhx git.commit.uses set --quant N --push allow
+   └─ meter
+      └─ left: 4 → 3
+
+run with --mode apply to execute
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4o] a hand merge of another branch in flight when: [t0] begin (plan) then: matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.catchup begin --mode plan
+   ├─ catch up via merge (no rewrite) from origin/main
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ into: turtle/feat-wave-report
+   │  ├─ behind: 1 commit
+   │  │  └─ HASH123 feat(docs): add a
+   │  └─ ahead: 1 commit
+   ├─ commit
+   │  ├─ header: cont(branch): merge origin/main into turtle/feat-wave-report
+   │  ├─ author: seaturtle[bot] <seaturtle@ehmpath.com>
+   │  └─ sponsor: Test Human <human@test.com>, from bound (this tree)
+   ├─ ⚠️ apply will refuse: a merge in flight is not a catch-up from origin/main
+   │  └─ back it out first: rhx git.branch.catchup abort
+   └─ meter
+      └─ left: 4 → 3
+
+clear each ⚠️ apply will refuse above, then run with --mode apply
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4o] a hand merge of another branch in flight when: [t1] begin --mode apply then: matches snapshot 1`] = `
+"✋ ConstraintError: a merge is already in flight, and not a catch-up from origin/main
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ MERGE_HEAD: HASH123 (not on origin/main)
+   └─ next
+      ├─ back it out:       rhx git.branch.catchup abort
+      └─ then:              rhx git.branch.catchup begin --mode apply
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4p] a feature branch checked out in a linked worktree when: [t0] begin --mode apply, from the worktree then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ behind: 1 → 0
+   │  └─ status: committed
+   ├─ commit: HASH123 cont(branch): merge origin/main into turtle/feat-tide-chart
+   └─ meter
+      └─ left: 3
+
+🌊 ready to push
+   └─ rhx git.commit.push --mode apply
+"
+`;
+
+exports[`git.branch.catchup begin given: [case5] a feature branch that already contains origin/main when: [t0] begin (plan) then: matches snapshot 1`] = `
+"🐢 already level
+
+🐚 git.branch.catchup begin --mode plan
+   ├─ from: origin/main
+   ├─ behind: 0
+   └─ no merge needed; meter untouched
+"
+`;
+
+exports[`git.branch.catchup begin given: [case6] a rebase in flight when: [t0] begin (plan) then: matches snapshot 1`] = `
+"✋ ConstraintError: a rebase is in flight
+
+🐚 git.branch.catchup begin --mode plan
+   ├─ why: a rebase detaches HEAD; there is no branch to catch up until it ends
+   └─ next
+      ├─ finish it:   rhx git.branch.rebase continue
+      └─ or back out: rhx git.branch.rebase abort
+"
+`;
+
+exports[`git.branch.catchup begin given: [case6] a rebase in flight when: [t1] begin --mode apply then: matches snapshot 1`] = `
+"✋ ConstraintError: a rebase is in flight
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ why: a rebase detaches HEAD; there is no branch to catch up until it ends
+   └─ next
+      ├─ finish it:   rhx git.branch.rebase continue
+      └─ or back out: rhx git.branch.rebase abort
+"
+`;
+
+exports[`git.branch.catchup begin given: [case7] a fetch that fails when: [t0] begin (plan) then: matches snapshot 1`] = `
+"💥 MalfunctionError: could not fetch origin/main
+
+🐚 git.branch.catchup begin --mode plan
+   ├─ cause
+   │  ├─ fatal: '/TEMP/absent.git' does not appear to be a git repository
+   │  ├─ fatal: Could not read from remote repository.
+   │  ├─ Please make sure you have the correct access rights
+   │  └─ and the repository exists.
+   └─ fix: check the network and the remote, then begin again
+"
+`;
+
+exports[`git.branch.catchup begin given: [case7c] origin is a real github url, for a repo that does not exist when: [t0] begin (plan) then: matches snapshot, with the live remote words masked 1`] = `
+"💥 MalfunctionError: could not fetch origin/main
+
+🐚 git.branch.catchup begin --mode plan
+   ├─ cause
+   │  └─ <the live remote words>
+   └─ fix: check the network and the remote, then begin again
+"
+`;
+
+exports[`git.branch.catchup begin given: [case7d] a dir that is no git repository when: [t0] begin (plan) then: matches snapshot 1`] = `
+"✋ ConstraintError: not in a git repository
+
+🐚 git.branch.catchup begin --mode plan
+   └─ fix: run it from the worktree of your feature branch
+"
+`;
+
+exports[`git.branch.catchup begin given: [case8] a branch with more commits behind than the plan lists when: [t0] begin (plan) then: matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.catchup begin --mode plan
+   ├─ catch up via merge (no rewrite) from origin/main
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ into: turtle/feat-wave-report
+   │  ├─ behind: 12 commits
+   │  │  ├─ HASH123 feat(docs): add 12
+   │  │  ├─ HASH123 feat(docs): add 11
+   │  │  ├─ HASH123 feat(docs): add 10
+   │  │  ├─ HASH123 feat(docs): add 9
+   │  │  ├─ HASH123 feat(docs): add 8
+   │  │  ├─ HASH123 feat(docs): add 7
+   │  │  ├─ HASH123 feat(docs): add 6
+   │  │  ├─ HASH123 feat(docs): add 5
+   │  │  ├─ HASH123 feat(docs): add 4
+   │  │  ├─ HASH123 feat(docs): add 3
+   │  │  └─ … and 2 more
+   │  └─ ahead: 1 commit
+   ├─ commit
+   │  ├─ header: cont(branch): merge origin/main into turtle/feat-wave-report
+   │  ├─ author: seaturtle[bot] <seaturtle@ehmpath.com>
+   │  └─ sponsor: Test Human <human@test.com>, from bound (this tree)
+   └─ meter
+      └─ left: 4 → 3
+
+run with --mode apply to execute
+"
+`;

@@ -1,0 +1,167 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.branch.catchup lock refresh given: [case6] main adds dep b, the branch adds devDep b2; only the lock conflicts when: [t1] take --whos main pnpm-lock.yaml then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup take
+   ├─ whos: main
+   ├─ settled
+   │  └─ pnpm-lock.yaml ✓
+   └─ next
+      ├─ refresh the lock:  rhx git.branch.catchup lock refresh
+      └─ then:              rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup lock refresh given: [case6] main adds dep b, the branch adds devDep b2; only the lock conflicts when: [t2] lock refresh then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup lock refresh
+   ├─ package manager: pnpm
+   ├─ install: pnpm install --lockfile-only
+   ├─ staged
+   │  └─ pnpm-lock.yaml ✓
+   └─ next: rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup lock refresh given: [case6] main adds dep b, the branch adds devDep b2; only the lock conflicts when: [t2b] lock refresh again, on the settled lock then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup lock refresh
+   ├─ package manager: pnpm
+   ├─ install: pnpm install --lockfile-only
+   ├─ staged
+   │  └─ pnpm-lock.yaml ✓
+   └─ next: rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup lock refresh given: [case6-npm] a npm repo: main adds dep b, the branch adds devDep b2 when: [t0] begin, take --whos main npm's lock, then lock refresh then: matches snapshot: the take and refresh renders under npm: refresh 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup lock refresh
+   ├─ package manager: npm
+   ├─ install: npm install --package-lock-only
+   ├─ staged
+   │  └─ package-lock.json ✓
+   └─ next: rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup lock refresh given: [case6-npm] a npm repo: main adds dep b, the branch adds devDep b2 when: [t0] begin, take --whos main npm's lock, then lock refresh then: matches snapshot: the take and refresh renders under npm: take 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup take
+   ├─ whos: main
+   ├─ settled
+   │  └─ package-lock.json ✓
+   └─ next
+      ├─ refresh the lock:  rhx git.branch.catchup lock refresh
+      └─ then:              rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup lock refresh given: [case6-yarn] a yarn repo: main adds dep b, the branch adds devDep b2 when: [t0] begin, take --whos main yarn's lock, then lock refresh then: matches snapshot: the take and refresh renders under yarn: refresh 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup lock refresh
+   ├─ package manager: yarn
+   ├─ install: yarn install
+   ├─ staged
+   │  └─ yarn.lock ✓
+   └─ next: rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup lock refresh given: [case6-yarn] a yarn repo: main adds dep b, the branch adds devDep b2 when: [t0] begin, take --whos main yarn's lock, then lock refresh then: matches snapshot: the take and refresh renders under yarn: take 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup take
+   ├─ whos: main
+   ├─ settled
+   │  └─ yarn.lock ✓
+   └─ next
+      ├─ refresh the lock:  rhx git.branch.catchup lock refresh
+      └─ then:              rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup lock refresh given: [case6b] main and the branch both add a dep at one spot; package.json conflicts too when: [t0] begin, take --whos main pnpm-lock.yaml, then lock refresh then: matches snapshot 1`] = `
+"✋ ConstraintError: a manifest is still in conflict
+
+🐚 git.branch.catchup lock refresh
+   ├─ settle first
+   │  └─ package.json
+   ├─ why: a refresh reads package.json as is; with conflict markers it writes a wrong lock
+   └─ next
+      ├─ remove the <<<<<<< ======= >>>>>>> lines from each file
+      ├─ settle each file:  rhx git.stage.add <file>
+      └─ then:              rhx git.branch.catchup lock refresh
+"
+`;
+
+exports[`git.branch.catchup lock refresh given: [case6c] main's lock taken, and the package manager is gone from PATH when: [t0] lock refresh, with each PATH dir that holds pnpm cut then: matches snapshot 1`] = `
+"✋ ConstraintError: pnpm not found on PATH
+
+🐚 git.branch.catchup lock refresh
+   ├─ lockfile: pnpm-lock.yaml
+   └─ fix: install pnpm, then lock refresh again
+"
+`;
+
+exports[`git.branch.catchup lock refresh given: [case6c] main's lock taken, and the package manager is gone from PATH when: [t1] lock refresh, where the merged manifest names a package that is absent then: matches snapshot, with the output leaves masked 1`] = `
+"💥 MalfunctionError: pnpm could not refresh the lockfile
+
+🐚 git.branch.catchup lock refresh
+   ├─ ran: pnpm install --lockfile-only
+   ├─ exit: 1
+   └─ output
+      └─ <pnpm output>
+"
+`;
+
+exports[`git.branch.catchup lock refresh given: [case26b] no merge in flight when: [t0] lock refresh then: matches snapshot: the lock refresh header 1`] = `
+"✋ ConstraintError: no merge in flight
+
+🐚 git.branch.catchup lock refresh
+   ├─ state: no catch-up merge is in flight
+   └─ fix: start one with rhx git.branch.catchup begin
+"
+`;
+
+exports[`git.branch.catchup lock refresh given: [case26b] no merge in flight when: [t1] lock with no subcommand then: matches snapshot 1`] = `
+"✋ ConstraintError: lock needs the subcommand refresh (got: none)
+
+🐚 git.branch.catchup lock
+   └─ usage: rhx git.branch.catchup lock refresh
+"
+`;
+
+exports[`git.branch.catchup lock refresh given: [case26c] a hand merge of another branch in flight when: [t0] lock refresh then: matches snapshot: under the lock refresh header 1`] = `
+"✋ ConstraintError: the merge in flight is not a catch-up from origin/main
+
+🐚 git.branch.catchup lock refresh
+   ├─ MERGE_HEAD: HASH123 (not on origin/main)
+   ├─ why: this verb commits only a merge of origin/main
+   └─ fix: back it out with rhx git.branch.catchup abort, then begin
+"
+`;
+
+exports[`git.branch.catchup lock refresh given: [case26c] a merge in flight, in a repo with no lockfile when: [t0] lock refresh then: matches snapshot 1`] = `
+"✋ ConstraintError: no lockfile found
+
+🐚 git.branch.catchup lock refresh
+   └─ looked for: pnpm-lock.yaml, package-lock.json, yarn.lock
+"
+`;
+
+exports[`git.branch.catchup lock refresh given: [case26d] a merge of origin/main in flight on main itself when: [t0] lock refresh then: matches snapshot: under the lock refresh header 1`] = `
+"✋ ConstraintError: will not catch up main
+
+🐚 git.branch.catchup lock refresh
+   ├─ branch: main
+   ├─ why: this verb levels a feature branch with main; it never writes to main or master
+   └─ fix: back the merge out with rhx git.branch.catchup abort, then run from your feature branch
+"
+`;

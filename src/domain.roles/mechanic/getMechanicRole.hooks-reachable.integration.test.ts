@@ -63,6 +63,35 @@ describe('getMechanicRole · every registered hook is reachable', () => {
     );
 
   /**
+   * .what = expand each rhachet hooks.dispatch entry into the rows of the manifest it names
+   * .why = rhachet ≥1.54 registers one `hooks.dispatch.sh <manifest> <event>` command per
+   *        event, and the real hook commands live in that manifest. a walk of settings alone
+   *        would grade the dispatcher and miss every hook it runs.
+   * .note = manifest v1: `#` lines are comments; a row holds event, matcher, timeout,
+   *         author, kind, path, frame, args, command, when, split by \x1f
+   */
+  const asAllRegisteredHooksViaDispatch = (input: {
+    hooks: { command: string; author: string; event: string }[];
+  }): { command: string; author: string; event: string }[] =>
+    input.hooks.flatMap((hook) => {
+      const dispatch = hook.command.match(
+        /hooks\.dispatch\.sh\s+(\S+)\s+(\S+)/,
+      );
+      if (!dispatch) return [hook];
+      const manifestPath = path.join(repoRoot, dispatch[1] ?? '');
+      return readFileSync(manifestPath, 'utf-8')
+        .split('\n')
+        .filter((line) => line.length > 0 && !line.startsWith('#'))
+        .map((line) => line.split('\x1f'))
+        .filter((fields) => fields[0] === dispatch[2])
+        .map((fields) => ({
+          command: fields[8] ?? '',
+          author: fields[3] ?? '',
+          event: fields[0] ?? '',
+        }));
+    });
+
+  /**
    * .what = of the given registered hooks, the ones THIS role authored
    * .why = settings.json also carries hooks from other role packages
    *        (bhuild/behaver, ehmpathy/architect, …) whose source this repo does
@@ -200,8 +229,10 @@ describe('getMechanicRole · every registered hook is reachable', () => {
       //         useBeforeAll returns a proxy, and `.length` on a proxied array
       //         reads undefined
       const registry = useBeforeAll(async () => ({
-        hooks: asAllRegisteredHooks({
-          settings: JSON.parse(readFileSync(settingsPath, 'utf-8')),
+        hooks: asAllRegisteredHooksViaDispatch({
+          hooks: asAllRegisteredHooks({
+            settings: JSON.parse(readFileSync(settingsPath, 'utf-8')),
+          }),
         }),
       }));
 
