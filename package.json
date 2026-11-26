@@ -138,7 +138,8 @@
       "helpful-errors@1.5.3": "1.7.5"
     },
     "patchedDependencies": {
-      "bottleneck@2.19.5": "patches/bottleneck@2.19.5.patch"
+      "bottleneck@2.19.5": "patches/bottleneck@2.19.5.patch",
+      "rhachet-roles-bhrain@0.42.4": "patches/rhachet-roles-bhrain@0.42.4.patch"
     }
   }
 }
