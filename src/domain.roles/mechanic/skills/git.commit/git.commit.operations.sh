@@ -32,6 +32,11 @@
 #        a second source by a caller is harmless: it holds constants and
 #        functions only.
 source "$(dirname "${BASH_SOURCE[0]}")/keyrack.operations.sh"
+# .why = the push gate below (`set_pr_repo_visibility`, `guard_push_text_promised`)
+#        reads the promise value, visibility rule, and nudge from this pure leaf,
+#        so a caller that sources only this file still gets them
+# shellcheck source=../git/git.promise.operations.sh
+source "$(dirname "${BASH_SOURCE[0]}")/../git/git.promise.operations.sh"
 
 ######################################################################
 # global blocker constants (shared across git.commit skills)
@@ -2834,4 +2839,146 @@ as_global_block_display() {
     return 0
   fi
   echo "blocked"
+}
+
+######################################################################
+# the public-repo text promise, for the skills that push
+# .note = the value, the visibility rule, and the nudge text live in
+#         ../git/git.promise.operations.sh; each push skill sources it
+######################################################################
+
+# .what = owner/name from a github remote url, or empty
+# .why  = ssh, ssh://, and https remotes all name one repo. the one copy for the
+#         pull and commit families; git.pull.comment.operations.sh sources this file
+as_repo_slug_from_remote_url() {
+  local url="$1" repo=""
+  [[ "$url" =~ ^git@github\.com:([^/]+/[^/]+)$ ]] && repo="${BASH_REMATCH[1]}"
+  [[ "$url" =~ ^ssh://git@github\.com/([^/]+/[^/]+)$ ]] && repo="${BASH_REMATCH[1]}"
+  [[ "$url" =~ ^https://([^@/]+@)?github\.com/([^/]+/[^/]+)$ ]] && repo="${BASH_REMATCH[2]}"
+  echo "${repo%.git}"
+}
+
+# .what = the origin's owner/name; empty when origin is absent or not on github
+# .why  = a visibility read that fails still names the repo it held
+# .note = an absent origin is no fault here: the slug only labels the nudge
+get_origin_github_slug() {
+  as_repo_slug_from_remote_url "$(git remote get-url origin 2>/dev/null || echo "")"
+}
+
+# .what = the owner/name half of a `gh repo view` answer of `<owner/name> <visibility>`
+# .why  = the read asks gh for both fields in one call; this names the split
+as_repo_slug_from_view_answer() {
+  local answer="$1"
+  printf '%s' "${answer%% *}"
+}
+
+# .what = the visibility half of a `gh repo view` answer of `<owner/name> <visibility>`;
+#         empty when the answer holds no visibility
+as_visibility_from_view_answer() {
+  local answer="$1"
+  [[ "$answer" == *" "* ]] || return 0
+  printf '%s' "${answer#* }"
+}
+
+# .what = read the repo's visibility, as `gh pr create` resolves the repo;
+#         sets PR_REPO, PR_REPO_VISIBILITY, PR_REPO_VISIBILITY_CAUSE
+# .why  = the pr opens where gh resolves it, so the read asks gh the same way.
+#         a read that fails reads unreadable, which holds as public (fail safe)
+# .note = the read runs under the skill's own credential (fulcrum F5): as-ehmpath
+#         reads with the seaturtle token, as-human with the human's gh login, never
+#         an inherited token. as-ehmpath with no token cannot read, so it holds
+# usage: set_pr_repo_visibility auth=as-ehmpath|as-human token="<token or empty>" [token_cause="..."]
+# .note = token_cause = why the token fetch failed, if it did; it rides the hold's cause
+set_pr_repo_visibility() {
+  local auth="" token="" token_cause="" out="" rc=0 err arg
+  for arg in "$@"; do
+    case "$arg" in
+      auth=*) auth="${arg#auth=}" ;;
+      token=*) token="${arg#token=}" ;;
+      token_cause=*) token_cause="${arg#token_cause=}" ;;
+    esac
+  done
+  err="$(mktemp)"
+  if [[ "$auth" == "as-ehmpath" && -z "$token" ]]; then
+    rc=1
+    echo "the ehmpath keyrack token is not available to read it${token_cause:+ ($token_cause)}; unlock the keyrack, or rerun with the promise" >"$err"
+  fi
+  if [[ "$auth" == "as-ehmpath" && -n "$token" ]]; then
+    out="$(GH_TOKEN="$token" gh repo view --json nameWithOwner,visibility --jq '.nameWithOwner + " " + .visibility' 2>"$err")" || rc=$?
+  fi
+  if [[ "$auth" != "as-ehmpath" ]]; then
+    out="$(env -u GH_TOKEN -u GITHUB_TOKEN gh repo view --json nameWithOwner,visibility --jq '.nameWithOwner + " " + .visibility' 2>"$err")" || rc=$?
+  fi
+  PR_REPO_VISIBILITY_CAUSE="$(head -n 1 "$err")"
+  rm -f "$err"
+  [[ "$rc" == "0" ]] || out=""
+  PR_REPO="$(as_repo_slug_from_view_answer "$out")"
+  [[ -n "$PR_REPO" ]] || PR_REPO="$(get_origin_github_slug)"
+  # no github owner/name in gh's answer or the remotes: say so, never name a remote alias as a repo
+  [[ -n "$PR_REPO" ]] || PR_REPO="none resolved from the git remotes"
+  PR_REPO_VISIBILITY="$(as_repo_visibility "$(as_visibility_from_view_answer "$out")")"
+  [[ "$rc" == "0" && "$PR_REPO_VISIBILITY" == "unreadable" ]] && PR_REPO_VISIBILITY_CAUSE="github answered no visibility"
+  return 0
+}
+
+# .what = the push family's json refusal for a held public-repo push
+# .why  = push's extant json error shape, `{ status, error }`, plus the repo,
+#         its visibility, and the rerun, so a json caller can act on it
+# usage: as_push_promise_refusal_json repo= visibility= fix=
+as_push_promise_refusal_json() {
+  local repo="" visibility="" fix="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      repo=*) repo="${arg#repo=}" ;;
+      visibility=*) visibility="${arg#visibility=}" ;;
+      fix=*) fix="${arg#fix=}" ;;
+    esac
+  done
+  jq -cn --arg repo "$repo" --arg visibility "$visibility" --arg fix "$fix" \
+    '{ status: "error", error: "this text goes to a public repo; check it holds naught private, then rerun with the promise", repo: $repo, visibility: $visibility, fix: $fix }'
+}
+
+# .what = hold a push into a public repo with the nudge, exit 2; return 0 when
+#         the repo is private or internal
+# .why  = the commit messages become the pr title and description, and the
+#         push itself sends them, so the whole push waits on the promise (F1)
+# .note = output=json puts one machine object on stdout and the nudge on
+#         stderr; output=tree puts the nudge on both streams
+# .note = keep_path + keep_text: text the rerun pipes back in (a spent @stdin).
+#         it is written only on the held branch, so a passed gate leaves the
+#         worktree as it found it, and the unstaged guard after it sees no scratch
+# usage: guard_push_text_promised auth=... token="..." [token_cause="..."] output=tree|json rerun="<line>" [keep_path=<file> keep_text="<text>"]
+guard_push_text_promised() {
+  local auth="" token="" token_cause="" output="tree" rerun="" keep_path="" keep_text="" arg nudge
+  for arg in "$@"; do
+    case "$arg" in
+      auth=*) auth="${arg#auth=}" ;;
+      token=*) token="${arg#token=}" ;;
+      token_cause=*) token_cause="${arg#token_cause=}" ;;
+      output=*) output="${arg#output=}" ;;
+      rerun=*) rerun="${arg#rerun=}" ;;
+      keep_path=*) keep_path="${arg#keep_path=}" ;;
+      keep_text=*) keep_text="${arg#keep_text=}" ;;
+    esac
+  done
+  set_pr_repo_visibility auth="$auth" token="$token" token_cause="$token_cause"
+  is_repo_visibility_ungated "$PR_REPO_VISIBILITY" && return 0
+
+  # held: keep the text the rerun pipes back in
+  if [[ -n "$keep_path" ]]; then
+    mkdir -p "$(dirname "$keep_path")"
+    printf '%s\n' "$keep_text" | tee "$keep_path" >/dev/null
+  fi
+
+  nudge="$(as_promise_nudge repo="$PR_REPO" visibility="$PR_REPO_VISIBILITY" \
+    subject="the commit messages, which become the pr title and description, hold" \
+    rerun="$rerun" cause="$PR_REPO_VISIBILITY_CAUSE")"
+  if [[ "$output" == "json" ]]; then
+    echo "$nudge" >&2
+    as_push_promise_refusal_json repo="$PR_REPO" visibility="$PR_REPO_VISIBILITY" fix="$rerun"
+    exit 2
+  fi
+  echo "$nudge"
+  echo "$nudge" >&2
+  exit 2
 }

@@ -102,7 +102,8 @@ describe('git.commit.push → git.pull.watch journey', () => {
       { cwd: root },
     );
 
-    // .mock = gh pr list|create and git push, in front of the scene's stub gh
+    // .mock = gh repo view|pr list|create and git push, in front of the scene's stub gh.
+    //         surf-demo is private, so the push meets no public-repo text gate
     fs.renameSync(
       path.join(scene.fakeBin, 'gh'),
       path.join(scene.fakeBin, 'gh.api'),
@@ -110,6 +111,7 @@ describe('git.commit.push → git.pull.watch journey', () => {
     fs.writeFileSync(
       path.join(scene.fakeBin, 'gh'),
       `#!/bin/bash
+if [[ "$1" == "repo" && "$2" == "view" ]]; then echo "ehmpathy/surf-demo PRIVATE"; exit 0; fi
 if [[ "$1" == "pr" && "$2" == "list" ]]; then exit 0; fi
 if [[ "$1" == "pr" && "$2" == "create" ]]; then echo "https://github.com/ehmpathy/surf-demo/pull/1230"; exit 0; fi
 exec "$(dirname "$0")/gh.api" "$@"

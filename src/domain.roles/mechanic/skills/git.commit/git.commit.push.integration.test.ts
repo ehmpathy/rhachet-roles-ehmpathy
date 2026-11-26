@@ -179,7 +179,16 @@ env.prod:
     // .why = a copy of this skill beside a stub peer skill, so the push can be
     //        driven against a peer reply the real peer only gives with a live daemon
     pushPath?: string;
+    // .why = the public-repo text gate reads visibility before any other step a
+    //        case drives, so every case gives the promise unless it tests the gate
+    //        itself; 'absent' sends none, so the gate reads visibility
+    promise?: 'given' | 'absent';
   }): { stdout: string; stderr: string; exitCode: number } => {
+    const pushArgs =
+      args.promise === 'absent'
+        ? args.pushArgs
+        : [...args.pushArgs, '--promise', 'text-to-public-repo-is-anonymized'];
+
     // always exclude token from process.env for deterministic tests
     const { EHMPATHY_SEATURTLE_GITHUB_TOKEN: _token, ...envWithoutToken } =
       process.env;
@@ -212,7 +221,7 @@ env.prod:
 
     const result = spawnSync(
       'bash',
-      [args.pushPath ?? pushScriptPath, ...args.pushArgs],
+      [args.pushPath ?? pushScriptPath, ...pushArgs],
       {
         cwd: args.tempDir,
         encoding: 'utf-8' as BufferEncoding,
@@ -911,7 +920,13 @@ exec /usr/bin/git "$@"
           branch: 'turtle/bare-flag',
           commits: ['feat: bare flag'],
         });
-        const result = runPush({ tempDir, pushArgs: ['--mode'] });
+        // promise absent: an appended --promise would sit after --mode, so
+        // --mode would no longer be the last arg this case names
+        const result = runPush({
+          tempDir,
+          pushArgs: ['--mode'],
+          promise: 'absent',
+        });
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain(
@@ -4070,6 +4085,362 @@ exit 1
           },
         );
       });
+    },
+  );
+
+  given(
+    '[case90] a push into a public repo waits on the anonymized promise',
+    () => {
+      const PROMISE = 'text-to-public-repo-is-anonymized';
+      const BRANCH = 'turtle/reef-map';
+
+      /**
+       * .what = a seaturtle commit on a branch, a bare origin, and a gh stub that
+       *         logs each call and answers `repo view` with the given visibility
+       * .mock = gh: github cannot be set public or private on demand per case
+       * .real = external.contracts.integration.test.ts [case4] runs the same
+       *         `gh repo view` read through the real gh (no credential, revoked token)
+       */
+      const genPushGateScene = (input: {
+        visibility: string | null;
+        // a pr already open on the branch: `pr list` answers its number
+        prExtant?: boolean;
+        // shadow the keyrack communicator, e.g. with a locked keyrack
+        fakeRhachet?: string;
+      }) => {
+        const tempDir = setupTempRepo({
+          meterState: { uses: 3, push: 'allow' },
+          branch: BRANCH,
+          commits: ['feat(reef): map the kelp beds'],
+          commitAuthor: {
+            name: 'seaturtle[bot]',
+            email: 'seaturtle@ehmpath.com',
+          },
+          fakeRhachet: input.fakeRhachet,
+        });
+        const remoteDir = genTempDir({ slug: 'git-commit-push-gate-remote' });
+        spawnSync('git', ['init', '--bare'], { cwd: remoteDir });
+        spawnSync('git', ['remote', 'add', 'origin', remoteDir], {
+          cwd: tempDir,
+        });
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+        const viewAnswer =
+          input.visibility === null
+            ? 'echo "HTTP 502: Bad Gateway" >&2; exit 1'
+            : `echo "ehmpathy/surf-demo ${input.visibility}"; exit 0`;
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'gh'),
+          `#!/bin/bash
+echo "$*" >> "${fakeBinDir}/gh.calls.log"
+if [[ "$1" == "repo" && "$2" == "view" ]]; then ${viewAnswer}; fi
+if [[ "$1" == "pr" && "$2" == "list" ]]; then ${input.prExtant ? 'echo 41; ' : ''}exit 0; fi
+if [[ "$1" == "pr" && "$2" == "create" ]]; then echo "https://github.com/ehmpathy/surf-demo/pull/42"; exit 0; fi
+exit 1`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+        const push = (input: { args: string[]; promise: 'given' | 'absent' }) =>
+          runPush({
+            tempDir,
+            pushArgs: input.args,
+            promise: input.promise,
+            env: {
+              PATH: `${fakeBinDir}:${process.env.PATH}`,
+              RHACHET_CLONE_SERIAL: '',
+            },
+          });
+        const getGhCalls = (): string[] => {
+          const log = path.join(fakeBinDir, 'gh.calls.log');
+          if (!fs.existsSync(log)) return [];
+          return fs
+            .readFileSync(log, 'utf-8')
+            .split('\n')
+            .filter((line) => line.length > 0);
+        };
+        const isBranchOnRemote = (): boolean =>
+          spawnSync('git', ['ls-remote', '--heads', 'origin', BRANCH], {
+            cwd: tempDir,
+            encoding: 'utf-8', // note: library api requires this term
+          }).stdout.includes(BRANCH);
+        return { tempDir, push, getGhCalls, isBranchOnRemote };
+      };
+
+      when('[t0] apply with no promise into a public repo', () => {
+        const scene = genPushGateScene({ visibility: 'PUBLIC' });
+        const result = useThen('it runs', async () =>
+          scene.push({
+            args: ['--mode', 'apply', '--auth', 'as-human'],
+            promise: 'absent',
+          }),
+        );
+        then('it exits 2 with the nudge on both streams', () => {
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain(
+            '🐢 hold up — this text goes to a public repo',
+          );
+          expect(result.stdout).toContain('repo: ehmpathy/surf-demo (public)');
+          expect(result.stdout).toContain(
+            'check the commit messages, which become the pr title and description, hold none of',
+          );
+          expect(result.stderr).toContain(
+            '🐢 hold up — this text goes to a public repo',
+          );
+          expect(result.stdout).toContain(
+            `rhx git.commit.push --mode apply --auth as-human --promise ${PROMISE}`,
+          );
+          expect(result.stdout).toMatchSnapshot();
+        });
+        then(
+          'the whole push waits: no branch on the remote, no pr opened',
+          () => {
+            expect(scene.isBranchOnRemote()).toBe(false);
+            expect(
+              scene.getGhCalls().filter((call) => call.startsWith('pr ')),
+            ).toEqual([]);
+          },
+        );
+      });
+
+      when('[t1] apply with the promise into a public repo', () => {
+        const scene = genPushGateScene({ visibility: 'PUBLIC' });
+        const result = useThen('it runs', async () =>
+          scene.push({
+            args: ['--mode', 'apply', '--auth', 'as-human'],
+            promise: 'given',
+          }),
+        );
+        then('it pushes and opens one pr, as today', () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('pr #42 (created)');
+          expect(scene.isBranchOnRemote()).toBe(true);
+          expect(
+            scene.getGhCalls().filter((call) => call.startsWith('pr create')),
+          ).toHaveLength(1);
+        });
+        then('the promise skips the visibility read', () => {
+          expect(
+            scene.getGhCalls().filter((call) => call.startsWith('repo view')),
+          ).toEqual([]);
+        });
+      });
+
+      when('[t2] plan with no promise into a public repo', () => {
+        const scene = genPushGateScene({ visibility: 'PUBLIC' });
+        const result = useThen('it runs', async () =>
+          scene.push({
+            args: ['--mode', 'plan', '--auth', 'as-human'],
+            promise: 'absent',
+          }),
+        );
+        then('plan shows the same nudge, so it is seen before apply', () => {
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain(
+            '🐢 hold up — this text goes to a public repo',
+          );
+          expect(result.stdout).toContain(
+            `rhx git.commit.push --mode plan --auth as-human --promise ${PROMISE}`,
+          );
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+
+      when('[t3] apply with no promise, --output json', () => {
+        const scene = genPushGateScene({ visibility: 'PUBLIC' });
+        const result = useThen('it runs', async () =>
+          scene.push({
+            args: ['--mode', 'apply', '--auth', 'as-human', '--output', 'json'],
+            promise: 'absent',
+          }),
+        );
+        then(
+          'stdout is one error object that names the rerun; the nudge rides stderr',
+          () => {
+            expect(result.exitCode).toBe(2);
+            const parsed = JSON.parse(result.stdout);
+            expect(parsed.status).toEqual('error');
+            expect(parsed.visibility).toEqual('public');
+            expect(parsed.fix).toContain(`--promise ${PROMISE}`);
+            expect(parsed.error).toContain('public repo');
+            expect(parsed.repo).toBeTruthy();
+            expect(parsed).toMatchSnapshot();
+            expect(result.stderr).toContain('🐢 hold up');
+            expect(scene.isBranchOnRemote()).toBe(false);
+          },
+        );
+      });
+
+      when('[t4] apply with no promise into a private or internal repo', () => {
+        const result = useThen('it runs', async () => {
+          const viaPrivate = genPushGateScene({ visibility: 'PRIVATE' });
+          const viaInternal = genPushGateScene({ visibility: 'INTERNAL' });
+          const args = ['--mode', 'apply', '--auth', 'as-human'];
+          return {
+            private: viaPrivate.push({ args, promise: 'absent' }),
+            internal: viaInternal.push({ args, promise: 'absent' }),
+            pushed: [
+              viaPrivate.isBranchOnRemote(),
+              viaInternal.isBranchOnRemote(),
+            ],
+          };
+        });
+        then('each pushes as today, with no nudge', () => {
+          expect(result.private.exitCode).toBe(0);
+          expect(result.internal.exitCode).toBe(0);
+          expect(result.private.stdout).not.toContain('hold up');
+          expect(result.pushed).toEqual([true, true]);
+        });
+      });
+
+      when('[t5] apply with no promise, and the visibility read fails', () => {
+        const scene = genPushGateScene({ visibility: null });
+        const result = useThen('it runs', async () =>
+          scene.push({
+            args: ['--mode', 'apply', '--auth', 'as-human'],
+            promise: 'absent',
+          }),
+        );
+        then(
+          'it holds the repo as public, names the cause, and pushes naught',
+          () => {
+            expect(result.exitCode).toBe(2);
+            expect(result.stdout).toContain(
+              '(visibility unreadable, held as public)',
+            );
+            expect(result.stdout).toContain('cause: HTTP 502: Bad Gateway');
+            expect(result.stdout).toMatchSnapshot();
+            expect(scene.isBranchOnRemote()).toBe(false);
+          },
+        );
+      });
+
+      when('[t6] a --promise of another value', () => {
+        const scene = genPushGateScene({ visibility: 'PUBLIC' });
+        const result = useThen('it runs', async () =>
+          scene.push({
+            args: [
+              '--mode',
+              'apply',
+              '--auth',
+              'as-human',
+              '--promise',
+              'is-netnew-behavior',
+            ],
+            promise: 'absent',
+          }),
+        );
+        then('it is refused before any gh call', () => {
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain(`--promise must be '${PROMISE}'`);
+          expect(result.stdout).toMatchSnapshot();
+          expect(scene.getGhCalls()).toEqual([]);
+          expect(scene.isBranchOnRemote()).toBe(false);
+        });
+      });
+
+      when('[t7] --help', () => {
+        const scene = genPushGateScene({ visibility: 'PUBLIC' });
+        const result = useThen('it runs', async () =>
+          scene.push({ args: ['--help'], promise: 'absent' }),
+        );
+        then('the help names the promise', () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain(`--promise ${PROMISE}`);
+        });
+      });
+
+      when('[t8] apply with no promise, onto a pr already open', () => {
+        const scene = genPushGateScene({
+          visibility: 'PUBLIC',
+          prExtant: true,
+        });
+        const result = useThen('it runs', async () =>
+          scene.push({
+            args: ['--mode', 'apply', '--auth', 'as-human'],
+            promise: 'absent',
+          }),
+        );
+        then('the push is held too: new commits retext the open pr', () => {
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain(
+            '🐢 hold up — this text goes to a public repo',
+          );
+          expect(scene.isBranchOnRemote()).toBe(false);
+          expect(
+            scene.getGhCalls().filter((call) => call.startsWith('pr ')),
+          ).toEqual([]);
+        });
+      });
+
+      // a keyrack that refuses every get, as a locked one does
+      const RHACHET_LOCKED = `#!/bin/bash
+echo "credential is locked: EHMPATHY_SEATURTLE_GITHUB_TOKEN" >&2
+exit 2
+`;
+
+      when(
+        '[t9] as-ehmpath, the keyrack locked, a private repo, no promise',
+        () => {
+          const scene = genPushGateScene({
+            visibility: 'PRIVATE',
+            fakeRhachet: RHACHET_LOCKED,
+          });
+          const result = useThen('it runs', async () =>
+            scene.push({
+              args: ['--mode', 'apply', '--auth', 'as-ehmpath'],
+              promise: 'absent',
+            }),
+          );
+          then(
+            'the read cannot run under the seaturtle token, so it holds as public',
+            () => {
+              expect(result.exitCode).toBe(2);
+              expect(result.stdout).toContain(
+                '(visibility unreadable, held as public)',
+              );
+              expect(result.stdout).toContain(
+                'cause: the ehmpath keyrack token is not available to read it',
+              );
+              expect(result.stdout).toMatchSnapshot();
+            },
+          );
+          then('no git push ran, and no gh call was made', () => {
+            expect(scene.isBranchOnRemote()).toBe(false);
+            expect(scene.getGhCalls()).toEqual([]);
+          });
+        },
+      );
+
+      when(
+        '[t10] as-ehmpath, the keyrack locked, a private repo, with the promise',
+        () => {
+          const scene = genPushGateScene({
+            visibility: 'PRIVATE',
+            fakeRhachet: RHACHET_LOCKED,
+          });
+          const result = useThen('it runs', async () =>
+            scene.push({
+              args: ['--mode', 'apply', '--auth', 'as-ehmpath'],
+              promise: 'given',
+            }),
+          );
+          then('the push lands, with no visibility read', () => {
+            expect(scene.isBranchOnRemote()).toBe(true);
+            expect(
+              scene.getGhCalls().filter((call) => call.startsWith('repo view')),
+            ).toEqual([]);
+          });
+          then(
+            'the pr open meets the locked keyrack as today: the guide names the unlock',
+            () => {
+              expect(result.exitCode).toBe(2);
+              expect(result.stdout).toContain('keyrack token not available');
+              expect(result.stdout).toContain(
+                `rhx git.commit.push --mode apply --auth as-human --promise ${PROMISE}`,
+              );
+            },
+          );
+        },
+      );
     },
   );
 });

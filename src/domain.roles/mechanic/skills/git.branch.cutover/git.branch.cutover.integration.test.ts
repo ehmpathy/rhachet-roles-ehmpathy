@@ -606,7 +606,12 @@ describe('git.branch.cutover', () => {
       const result = useBeforeAll(async () =>
         runCommitSkill(scene, {
           skill: 'git.commit.push.sh',
-          args: ['--mode', 'plan'],
+          args: [
+            '--mode',
+            'plan',
+            '--promise',
+            'text-to-public-repo-is-anonymized',
+          ],
           stdin: '',
         }),
       );
@@ -2921,7 +2926,12 @@ describe('git.branch.cutover', () => {
         grantCommitQuota(scene);
         const push = runCommitSkill(scene, {
           skill: 'git.commit.push.sh',
-          args: ['--mode', 'apply'],
+          args: [
+            '--mode',
+            'apply',
+            '--promise',
+            'text-to-public-repo-is-anonymized',
+          ],
           stdin: '',
         });
         expect(push.exitCode).toBe(2);

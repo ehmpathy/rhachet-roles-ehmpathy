@@ -150,6 +150,8 @@ always:
       - skills/git.branch.cutover/git.branch.cutover.output.sh
       - skills/git.branch.uses/git.branch.uses.local.sh
       - skills/git.branch.uses/git.branch.uses.operations.sh
+      # the public-repo text promise: a sourced library; each writer's --help names the flag
+      - skills/git/git.promise.operations.sh
 
 subject.code.prod:
   briefs:

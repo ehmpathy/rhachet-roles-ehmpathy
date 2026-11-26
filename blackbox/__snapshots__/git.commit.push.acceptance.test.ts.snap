@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`git.commit.push, via rhachet given: [case1] a repo with the mechanic role linked when: [t0] the push is asked for --help then: the help is snapped 1`] = `
-"usage: git.commit.push [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json] [--pr-title-fallback "..."] [--debug]
+"usage: git.commit.push [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json] [--pr-title-fallback "..."] [--promise text-to-public-repo-is-anonymized] [--debug]
 
 options:
   --mode plan|apply            plan shows preview, apply executes (default: plan)
@@ -10,6 +10,13 @@ options:
                                as-human   = the gh cli login (fallback on keyrack failure)
   --output tree|json           tree for standalone, json for composition (default: tree)
   --pr-title-fallback "..."    fallback pr title when no commits on branch yet
+  --promise text-to-public-repo-is-anonymized
+                               owed on a push into a public repo: you checked the
+                               commit messages, which become the pr title and
+                               description, hold no private org, repo, route, pr or
+                               issue number, internal name, or business detail.
+                               absent, a public push halts with a nudge (exit 2);
+                               a private or internal repo needs none
   --debug                      show verbose debug output
   --help, -h                   show this help
 "
@@ -17,5 +24,33 @@ options:
 
 exports[`git.commit.push, via rhachet given: [case1] a repo with the mechanic role linked when: [t1] the push is handed an unknown --mode then: the refusal is snapped 1`] = `
 "✋ ConstraintError: --mode must be 'plan' or 'apply'
+"
+`;
+
+exports[`git.commit.push, via rhachet given: [case2] a linked repo whose branch pushes into a public repo when: [t0] the driver pushes, is held, checks the commit messages, and reruns with the promise then: the push is held, exit 2, the nudge on both streams 1`] = `
+"🐢 hold up — this text goes to a public repo
+   ├─ repo: ehmpathy/surf-demo (public)
+   ├─ check the commit messages, which become the pr title and description, hold none of
+   │  ├─ a private org, repo, route path, or pr / issue numbers
+   │  ├─ internal endpoint, service, table or product names
+   │  └─ customer, revenue or other business detail
+   └─ once checked, rerun with
+      └─ rhx git.commit.push --mode apply --auth as-human --promise text-to-public-repo-is-anonymized
+"
+`;
+
+exports[`git.commit.push, via rhachet given: [case2] a linked repo whose branch pushes into a public repo when: [t0] the driver pushes, is held, checks the commit messages, and reruns with the promise then: the rerun with the promise pushes and opens one pr 1`] = `
+"🐢 cowabunga!
+
+🐚 git.commit.push
+   ├─ push: origin/turtle/reef-map ✓
+   ├─ pr: pr #42 (created)
+   ├─ opened: as-human (gh cli login, fallback)
+   ├─ watch: skipped (not an enrolled clone)
+   └─ meter
+      └─ push: held → held (a push spends no use, revokes naught)
+
+🌊 now let's ride the release wave and catch any wipeouts
+   └─ rhx git.release --watch || rhx show.gh.test.errors
 "
 `;

@@ -114,15 +114,26 @@ describe('git.commit.uses precedence matrix', () => {
       { cwd: tempDir },
     );
 
-    const result = spawnSync('bash', [pushScriptPath, '--mode', 'plan'], {
-      cwd: tempDir,
-      encoding: 'utf-8' as const,
-      stdio: ['pipe', 'pipe', 'pipe'],
-      env: {
-        ...process.env,
-        HOME: tempHome,
+    // the promise skips the public-repo text gate, which this matrix does not grade
+    const result = spawnSync(
+      'bash',
+      [
+        pushScriptPath,
+        '--mode',
+        'plan',
+        '--promise',
+        'text-to-public-repo-is-anonymized',
+      ],
+      {
+        cwd: tempDir,
+        encoding: 'utf-8' as const,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        env: {
+          ...process.env,
+          HOME: tempHome,
+        },
       },
-    });
+    );
 
     return {
       stdout: result.stdout ?? '',

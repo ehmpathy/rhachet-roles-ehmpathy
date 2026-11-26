@@ -524,7 +524,7 @@ exports[`git.pull.description given: [case10] the verbs dispatch as \`git.pull.d
 `;
 
 exports[`git.pull.description given: [case10] the verbs dispatch as \`git.pull.description <verb>\` when: [t0] get, help, and an unknown verb run via the dispatcher then: help names both verbs; set --help names its flags 1`] = `
-"usage: git.pull.description.set --from <path|@stdin> [--which <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
+"usage: git.pull.description.set --from <path|@stdin> [--which <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json] [--promise text-to-public-repo-is-anonymized]
 
 options:
   --from <path|@stdin>         the body; written with the seaturtle attribution as its last line
@@ -533,6 +533,12 @@ options:
   --mode plan|apply            plan shows preview, apply writes and reads back (default: plan)
   --auth as-ehmpath|as-human   who writes (default: as-ehmpath)
   --output tree|json           the output shape (default: tree)
+  --promise text-to-public-repo-is-anonymized
+                               owed on a write into a public repo: you checked the
+                               description holds no private org, repo, route, pr or
+                               issue number, internal name, or business detail.
+                               absent, a public write halts with a nudge (exit 2);
+                               a private or internal repo needs none
   --help, -h                   show this help
 
 example:
@@ -844,5 +850,105 @@ exports[`git.pull.description given: [case21] the get hint keeps the target as t
    └─ to edit it
       ├─ 1. edit ./.temp/body.md
       └─ 2. rhx git.pull.description set --which 8 --from ./.temp/body.md   # plan; add --mode apply to write
+"
+`;
+
+exports[`git.pull.description given: [case30] a description set into a public repo waits on the anonymized promise when: [t0] apply with no promise then: it exits 2 with the nudge, and the description stands 1`] = `
+"🐢 hold up — this text goes to a public repo
+   ├─ repo: ehmpathy/surf-demo (public)
+   ├─ check the description holds none of
+   │  ├─ a private org, repo, route path, or pr / issue numbers
+   │  ├─ internal endpoint, service, table or product names
+   │  └─ customer, revenue or other business detail
+   └─ once checked, rerun with
+      └─ cat ./.temp/body.2e0be45f.md | rhx git.pull.description.set --from @stdin --mode apply --promise text-to-public-repo-is-anonymized   # pipe the same body in again
+"
+`;
+
+exports[`git.pull.description given: [case30] a description set into a public repo waits on the anonymized promise when: [t2] plan with no promise then: plan shows the nudge too 1`] = `
+"🐢 hold up — this text goes to a public repo
+   ├─ repo: ehmpathy/surf-demo (public)
+   ├─ check the description holds none of
+   │  ├─ a private org, repo, route path, or pr / issue numbers
+   │  ├─ internal endpoint, service, table or product names
+   │  └─ customer, revenue or other business detail
+   └─ once checked, rerun with
+      └─ cat ./.temp/body.2e0be45f.md | rhx git.pull.description.set --from @stdin --mode plan --promise text-to-public-repo-is-anonymized   # pipe the same body in again
+"
+`;
+
+exports[`git.pull.description given: [case30] a description set into a public repo waits on the anonymized promise when: [t4] apply with no promise, and the visibility read fails then: it holds the repo as public, with the cause 1`] = `
+"🐢 hold up — this text goes to a public repo
+   ├─ repo: ehmpathy/surf-demo (visibility unreadable, held as public)
+   │  └─ cause: gh: Bad Gateway (HTTP 502)
+   ├─ check the description holds none of
+   │  ├─ a private org, repo, route path, or pr / issue numbers
+   │  ├─ internal endpoint, service, table or product names
+   │  └─ customer, revenue or other business detail
+   └─ once checked, rerun with
+      └─ cat ./.temp/body.2e0be45f.md | rhx git.pull.description.set --from @stdin --mode apply --promise text-to-public-repo-is-anonymized   # pipe the same body in again
+"
+`;
+
+exports[`git.pull.description given: [case30] a description set into a public repo waits on the anonymized promise when: [t5] a --promise of another value then: it is refused before any gh call 1`] = `
+"✋ ConstraintError: --promise must be 'text-to-public-repo-is-anonymized', got 'yes'
+
+🥥 did you know?
+   └─ to fix it
+      └─ --promise text-to-public-repo-is-anonymized   # once the text holds naught private
+"
+`;
+
+exports[`git.pull.description given: [case30] a description set into a public repo waits on the anonymized promise when: [t7] apply --output json with no promise then: it exits 2 with a json refusal that names the rerun 1`] = `
+{
+  "error": {
+    "class": "ConstraintError",
+    "details": [
+      "repo: ehmpathy/surf-demo (public)",
+    ],
+    "fixes": [
+      "cat ./.temp/body.2e0be45f.md | rhx git.pull.description.set --from @stdin --output json --mode apply --promise text-to-public-repo-is-anonymized   # pipe the same body in again",
+    ],
+    "message": "this text goes to a public repo; check it holds naught private, then rerun with the promise",
+  },
+}
+`;
+
+exports[`git.pull.description given: [case30] a description set into a public repo waits on the anonymized promise when: [t8] a held run, then the promised plan of its rerun then: the apply hint pipes the kept file, which holds this exact body 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.description.set --mode plan
+   ├─ target: ehmpathy/surf-demo#7, description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   ├─ old
+   │  ├─ bytes: 60
+   │  ├─ sha256: 8dd56989cf25f4c296bf9f61a99a274f8db7ad0e160a57ae725a029926677c28
+   │  └─ text
+   │     surf lesson booker
+   │
+   │     ---
+   │     🐢🌊 surfed in by seaturtle[bot]
+   │
+   ├─ new
+   │  ├─ from: @stdin
+   │  ├─ repair: appended the seaturtle footer
+   │  ├─ bytes: 101
+   │  ├─ sha256: 79dd2e0fc838ca9bc34762d0df58eb2043376220a0ea7beecbe97b84bb3c7a94
+   │  └─ text
+   │     ## .what
+   │
+   │     book a surf lesson at the reef, with a tide chart
+   │
+   │     ---
+   │     🐢🌊 surfed in by seaturtle[bot]
+   │
+   └─ verdict: would set (plan)
+
+🥥 did you know?
+   └─ plan writes naught; to write it
+      └─ cat ./.temp/body.2e0be45f.md | rhx git.pull.description.set --from @stdin --promise text-to-public-repo-is-anonymized --mode apply   # pipe the same body in again
 "
 `;
