@@ -577,17 +577,22 @@ exports[`git.release given: [case6] boundary conditions when: [t0] keyrack locke
 `;
 
 exports[`git.release given: [case7] argument validation when: [t0] --into invalid value then: shows error and exits 2 1`] = `
-"error: --into must be 'main' or 'prod', got 'invalid'
+"✋ ConstraintError: --into must be 'main' or 'prod', got 'invalid'
+   ├─ usage: git.release [--into main|prod] [--watch] [--apply] [--mode plan|apply] [--retry] [--dirty block|allow]
+   └─ see every flag: rhx git.release --help
 "
 `;
 
 exports[`git.release given: [case7] argument validation when: [t1] --mode invalid value then: shows error and exits 2 1`] = `
-"error: --mode must be 'plan' or 'apply', got 'invalid'
+"✋ ConstraintError: --mode must be 'plan' or 'apply', got 'invalid'
+   ├─ usage: git.release [--into main|prod] [--watch] [--apply] [--mode plan|apply] [--retry] [--dirty block|allow]
+   └─ see every flag: rhx git.release --help
 "
 `;
 
 exports[`git.release given: [case7] argument validation when: [t2] not in git repo then: shows error and exits 2 1`] = `
-"error: not in a git repository
+"✋ ConstraintError: not in a git repository
+   └─ fix: run git.release from inside the repo to release
 "
 `;
 
@@ -624,6 +629,9 @@ exports[`git.release given: [case7] argument validation when: [t4] --help flag t
   apply needs a sponsor's stamp — git.release.uses set --quant 1 — and spends
   one use at the arm of the merge; --into prod arms both prs on that one use.
   a commit grant never ships. see the stamp: rhx git.release.uses get
+
+  the comment gate: --apply refuses (exit 2) while a pr comment waits on an
+  answer; no flag skips it. find them: rhx git.pull.comment get --unanswered
 "
 `;
 
