@@ -789,7 +789,7 @@ exports[`git.commit.push.sh given: [case35] identity-sync guard fires when the t
 
 🥥 did you know?
    ├─ the commit is already pushed; open the pr with the human's github login instead
-   └─ rhx git.commit.push --mode apply --auth as-human
+   └─ rhx git.commit.push --mode apply --auth as-human --promise text-to-public-repo-is-anonymized
 "
 `;
 
