@@ -4,22 +4,26 @@ exports[`git.release, via rhachet given: [case1] a repo with the mechanic role l
 "usage: git.release [--into main|prod] [--watch] [--apply] [--mode plan|apply] [--retry] [--dirty block|allow]
        git.release --from main --into prod   # special-circumstance only
 
-  --into prod    full release to prod (the default, safe way to ship your work)
-  --into main    merge feature branch to main only (stops before prod)
-  --watch        watch CI without automerge
-  --apply        enable automerge and watch (alias for --mode apply)
-  --mode plan    show status only (default)
-  --mode apply   enable automerge and watch
-  --retry        rerun failed workflows before watch
-  --dirty block  fail fast if unstaged changes (default)
-  --dirty allow  allow release even with unstaged changes
+  --into prod   full release to prod (the default, safe way to ship your work)
+  --into main   merge feature branch to main only (stops before prod)
+  --watch       watch CI without automerge
+  --apply       enable automerge and watch (alias for --mode apply)
+  --mode plan   show status only (default)
+  --mode apply  enable automerge and watch
+  --retry       rerun failed workflows before watch
+  --dirty block fail fast if unstaged changes (default)
+  --dirty allow allow release even with unstaged changes
 
   special circumstances only (footgun — prefer --into prod):
-  --from main    skip the feature branch, release whatever is on main
+  --from main   skip the feature branch, release whatever is on main
 
-  comment gate: plan and --watch show each unanswered pr comment, one row each;
-  --apply refuses (exit 2) while any is unanswered, and each row prints the
-  rhx git.pull.comment set line that answers it. no flag skips the gate
+  the release stamp (git.release.uses):
+  apply needs a sponsor's stamp — git.release.uses set --quant 1 — and spends
+  one use at the arm of the merge; --into prod arms both prs on that one use.
+  a commit grant never ships. see the stamp: rhx git.release.uses get
+
+  the comment gate: --apply refuses (exit 2) while a pr comment waits on an
+  answer; no flag skips it. find them: rhx git.pull.comment get --unanswered
 "
 `;
 

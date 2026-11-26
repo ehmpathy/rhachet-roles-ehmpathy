@@ -72,15 +72,14 @@ describe('git.release, via rhachet', () => {
       then('it exits 0', () => {
         expect(result.code).toBe(0);
       });
-      then('it names the comment gate and the verb that answers it', () => {
+      then('it names the comment gate and how to find what waits', () => {
         expect(result.stdout).toContain(
-          'comment gate: plan and --watch show each unanswered pr comment',
+          'the comment gate: --apply refuses (exit 2) while a pr comment waits',
         );
+        expect(result.stdout).toContain('no flag skips it');
         expect(result.stdout).toContain(
-          '--apply refuses (exit 2) while any is unanswered',
+          'find them: rhx git.pull.comment get --unanswered',
         );
-        expect(result.stdout).toContain('rhx git.pull.comment set');
-        expect(result.stdout).toContain('no flag skips the gate');
       });
       then('the help is snapped', () => {
         expect(asSkillRender(result)).toMatchSnapshot();
