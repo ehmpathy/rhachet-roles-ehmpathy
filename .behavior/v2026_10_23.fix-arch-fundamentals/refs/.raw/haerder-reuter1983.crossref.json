@@ -1,0 +1,182 @@
+{
+  "source": {
+    "id": "haerder-reuter1983",
+    "kind": "crossref",
+    "query": "Haerder Reuter Principles of transaction-oriented database recovery 1983 ACM Computing Surveys",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Haerder%20Reuter%20Principles%20of%20transaction-oriented%20database%20recovery%201983%20ACM%20Computing%20Surveys&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-26T13:21:44.266Z",
+  "items": [
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "4",
+      "DOI": "10.1145/289.291",
+      "type": "journal-article",
+      "page": "287-317",
+      "title": [
+        "Principles of transaction-oriented database recovery"
+      ],
+      "volume": "15",
+      "author": [
+        {
+          "given": "Theo",
+          "family": "Haerder",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Univ. of Kaiserslautern, West Germany"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Andreas",
+          "family": "Reuter",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "IBM Research Laboratory, San Jose, CA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "ACM Computing Surveys"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1983,
+            12,
+            2
+          ]
+        ]
+      }
+    },
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "4",
+      "DOI": "10.1145/1994.2022",
+      "type": "journal-article",
+      "page": "560-595",
+      "title": [
+        "Principles of database buffer management"
+      ],
+      "volume": "9",
+      "author": [
+        {
+          "given": "Wolfgang",
+          "family": "Effelsberg",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "IBM Scientific Center, Heidelberg, W. Germany"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Theo",
+          "family": "Haerder",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Univ. Kaiserslautern, Kaiserslautern, W. Germany"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "ACM Transactions on Database Systems"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1984,
+            12,
+            5
+          ]
+        ]
+      }
+    },
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "3",
+      "DOI": "10.1145/38714.38741",
+      "type": "journal-article",
+      "page": "239-248",
+      "title": [
+        "Concepts for transaction recovery in nested transactions"
+      ],
+      "volume": "16",
+      "author": [
+        {
+          "given": "Theo",
+          "family": "Haerder",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Univ. of Kaiserslautern, Kaiserslautern, W. Germany"
+            }
+          ],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        },
+        {
+          "given": "Kurt",
+          "family": "Rothermel",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Univ. of Stuttgart, Stuttgart, W. Germany"
+            }
+          ],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "ACM SIGMOD Record"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1987,
+            12
+          ]
+        ]
+      }
+    }
+  ]
+}

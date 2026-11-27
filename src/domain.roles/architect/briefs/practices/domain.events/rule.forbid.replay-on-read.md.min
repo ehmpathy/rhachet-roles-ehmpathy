@@ -1,0 +1,10 @@
+# rule.forbid.replay-on-read
+
+never let an owner keep no entity and derive what is by a replay of its events at read time. the facts are the record of what happened; the entity is their conclusion, committed with each fact; they disagree → the facts win, the entity is rebuilt
+the database already is one: its write-ahead log is the record, each table its conclusion, a replica replays it (kreps 2013). the forbid targets a hand-rolled copy of that engine in application code
+why: slow for a live read · harder to reason about — what is lives nowhere · invariants have no home, so storage cannot refuse a break · every external call must be replay-safe · it invites the rewind (`rule.forbid.retroactive-replay`)
+not a replay on read: a fact stream beside the entity, which consumers replay to repair their own records · a pure materialization run once to rebuild after a transform defect
+smell: an aggregate with no table, rebuilt per read · a snapshot job with no entity behind it · a write path that loads the stream to check a rule
+cure (`pattern=materialized-entity`): one write path commits the fact and its entity change in one transaction (`pattern=transactional-outbox`) · storage constraints refuse a break · a pure materialization to rebuild · a test that materializes from empty and compares. invariant: each entity equals the conclusion of the latest version of every fact about it
+enforcement: an owner whose only record of what is comes from a replay = blocker; a live read or write-time check that replays = blocker; a fact committed without its entity change, or the reverse = blocker
+full: catalog.of=pattern.event._ (facet `record`)

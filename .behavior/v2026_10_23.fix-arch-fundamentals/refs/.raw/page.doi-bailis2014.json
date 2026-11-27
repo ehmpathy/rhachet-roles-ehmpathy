@@ -1,0 +1,129 @@
+{
+  "source": {
+    "id": "page.doi-bailis2014",
+    "kind": "page",
+    "url": "https://dl.acm.org/doi/10.14778/2735508.2735509",
+    "keywords": [
+      "invariant",
+      "coordination",
+      "confluence"
+    ]
+  },
+  "urlFinal": "https://dl.acm.org/doi/10.14778/2735508.2735509",
+  "status": 200,
+  "fetchedAt": "2026-11-23T13:29:15.621Z",
+  "title": "Coordination avoidance in database systems | Proceedings of the VLDB Endowment",
+  "meta": [
+    {
+      "name": "citation_journal_title",
+      "content": "Proceedings of the VLDB Endowment"
+    },
+    {
+      "name": "dc.Title",
+      "content": "Coordination avoidance in database systems"
+    },
+    {
+      "name": "dc.Creator",
+      "content": "BailisPeter "
+    },
+    {
+      "name": "dc.Creator",
+      "content": "FeketeAlan "
+    },
+    {
+      "name": "dc.Creator",
+      "content": "FranklinMichael J. "
+    },
+    {
+      "name": "dc.Creator",
+      "content": "GhodsiAli "
+    },
+    {
+      "name": "dc.Creator",
+      "content": "HellersteinJoseph M. "
+    },
+    {
+      "name": "dc.Creator",
+      "content": "StoicaIon "
+    },
+    {
+      "name": "dc.Description",
+      "content": "Minimizing coordination, or blocking communication between concurrently executing operations, is key to maximizing scalability, availability, and high performance in database systems. However, unin..."
+    },
+    {
+      "name": "dc.Publisher",
+      "content": "VLDB EndowmentPUB4722"
+    },
+    {
+      "name": "dc.Date",
+      "content": "2014-11-01"
+    },
+    {
+      "name": "dc.Type",
+      "content": "research-article"
+    },
+    {
+      "name": "dc.Format",
+      "content": "text/HTML"
+    },
+    {
+      "name": "dc.Identifier",
+      "content": "2735509"
+    },
+    {
+      "name": "dc.Identifier",
+      "content": "10.14778/2735508.2735509"
+    },
+    {
+      "name": "dc.Language",
+      "content": "EN"
+    },
+    {
+      "name": "dc.Coverage",
+      "content": "world"
+    },
+    {
+      "name": "og:title",
+      "content": "Coordination avoidance in database systems | Proceedings of the VLDB Endowment"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "invariant",
+      "window": "d high performance in database systems. However, uninhibited coordination-free execution can compromise application correctness, or consistency. When is coordination necessary for correctness? The classic use of serializable transactions is sufficient to maintain correctness but is not necessary for all applications, sacrificing potential scalability. In this paper, we develop a formal framework, invariant confluence, that determines whether an application requires coordination for correct execution. By operating on application-level invariants over database states (e.g., integrity constraints), invariant confluence analysis provides a necessary and sufficient condition for safe, coordination-free execution. When programmers specify their application invariants, this analysis allows databa"
+    },
+    {
+      "keyword": "invariant",
+      "window": "ncy. When is coordination necessary for correctness? The classic use of serializable transactions is sufficient to maintain correctness but is not necessary for all applications, sacrificing potential scalability. In this paper, we develop a formal framework, invariant confluence, that determines whether an application requires coordination for correct execution. By operating on application-level invariants over database states (e.g., integrity constraints), invariant confluence analysis provides a necessary and sufficient condition for safe, coordination-free execution. When programmers specify their application invariants, this analysis allows databases to coordinate only when anomalies that might violate invariants are possible. We analyze the invariant confluence of common invariants a"
+    },
+    {
+      "keyword": "invariant",
+      "window": "c use of serializable transactions is sufficient to maintain correctness but is not necessary for all applications, sacrificing potential scalability. In this paper, we develop a formal framework, invariant confluence, that determines whether an application requires coordination for correct execution. By operating on application-level invariants over database states (e.g., integrity constraints), invariant confluence analysis provides a necessary and sufficient condition for safe, coordination-free execution. When programmers specify their application invariants, this analysis allows databases to coordinate only when anomalies that might violate invariants are possible. We analyze the invariant confluence of common invariants and operations from real-world database systems (i.e., integrity"
+    },
+    {
+      "keyword": "coordination",
+      "window": "Statistics Marketing Show details Use necessary cookies only Allow selected cookies Allow all cookies skip to main content Sign in Register Search ACM Digital Library Advanced Search (Premium feature) Advanced Search Proceedings of the VLDB Endowment Several features on this page require Premium Access. Learn moreSign in HomeCollectionsHosted ContentProceedings of the VLDB EndowmentVol. 8, No. 3Coordination avoidance in database systems RESEARCH-ARTICLE Share on Coordination avoidance in database systems Editors: Chen Li, Volker Markl Authors: Peter Bailis, Alan Fekete, Michael J. Franklin, Ali Ghodsi, Joseph M. Hellerstein, Ion StoicaAuthors Info & Claims Proceedings of the VLDB Endowment, Volume 8, Issue 3 Pages 185 - 196 https://doi.org/10.14778/2735508.2735509 Published: 01 November"
+    },
+    {
+      "keyword": "coordination",
+      "window": "lected cookies Allow all cookies skip to main content Sign in Register Search ACM Digital Library Advanced Search (Premium feature) Advanced Search Proceedings of the VLDB Endowment Several features on this page require Premium Access. Learn moreSign in HomeCollectionsHosted ContentProceedings of the VLDB EndowmentVol. 8, No. 3Coordination avoidance in database systems RESEARCH-ARTICLE Share on Coordination avoidance in database systems Editors: Chen Li, Volker Markl Authors: Peter Bailis, Alan Fekete, Michael J. Franklin, Ali Ghodsi, Joseph M. Hellerstein, Ion StoicaAuthors Info & Claims Proceedings of the VLDB Endowment, Volume 8, Issue 3 Pages 185 - 196 https://doi.org/10.14778/2735508.2735509 Published: 01 November 2014 Publication History Additional metrics (Premium feature) 162 cit"
+    },
+    {
+      "keyword": "coordination",
+      "window": "Hellerstein, Ion StoicaAuthors Info & Claims Proceedings of the VLDB Endowment, Volume 8, Issue 3 Pages 185 - 196 https://doi.org/10.14778/2735508.2735509 Published: 01 November 2014 Publication History Additional metrics (Premium feature) 162 citation 722 Downloads Get Access Information & Contributors Bibliometrics & Citations Get Access References Figures Tables Media Share Abstract Minimizing coordination, or blocking communication between concurrently executing operations, is key to maximizing scalability, availability, and high performance in database systems. However, uninhibited coordination-free execution can compromise application correctness, or consistency. When is coordination necessary for correctness? The classic use of serializable transactions is sufficient to maintain cor"
+    },
+    {
+      "keyword": "confluence",
+      "window": "formance in database systems. However, uninhibited coordination-free execution can compromise application correctness, or consistency. When is coordination necessary for correctness? The classic use of serializable transactions is sufficient to maintain correctness but is not necessary for all applications, sacrificing potential scalability. In this paper, we develop a formal framework, invariant confluence, that determines whether an application requires coordination for correct execution. By operating on application-level invariants over database states (e.g., integrity constraints), invariant confluence analysis provides a necessary and sufficient condition for safe, coordination-free execution. When programmers specify their application invariants, this analysis allows databases to coo"
+    },
+    {
+      "keyword": "confluence",
+      "window": "erializable transactions is sufficient to maintain correctness but is not necessary for all applications, sacrificing potential scalability. In this paper, we develop a formal framework, invariant confluence, that determines whether an application requires coordination for correct execution. By operating on application-level invariants over database states (e.g., integrity constraints), invariant confluence analysis provides a necessary and sufficient condition for safe, coordination-free execution. When programmers specify their application invariants, this analysis allows databases to coordinate only when anomalies that might violate invariants are possible. We analyze the invariant confluence of common invariants and operations from real-world database systems (i.e., integrity constrain"
+    },
+    {
+      "keyword": "confluence",
+      "window": "y operating on application-level invariants over database states (e.g., integrity constraints), invariant confluence analysis provides a necessary and sufficient condition for safe, coordination-free execution. When programmers specify their application invariants, this analysis allows databases to coordinate only when anomalies that might violate invariants are possible. We analyze the invariant confluence of common invariants and operations from real-world database systems (i.e., integrity constraints) and applications and show that many are invariant confluent and therefore achievable without coordination. We apply these results to a proof-of-concept coordination-avoiding database prototype and demonstrate sizable performance gains compared to serializable execution, notably a 25-fold i"
+    }
+  ],
+  "textLength": 19036
+}

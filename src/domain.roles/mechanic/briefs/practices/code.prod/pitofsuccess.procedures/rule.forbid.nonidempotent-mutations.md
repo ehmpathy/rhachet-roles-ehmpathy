@@ -149,3 +149,4 @@ interface DaoTask {
 #### .see also
 - `rule.require.idempotent-procedures` — broader idempotency requirements
 - `rule.require.idempotency.[seed]` — why idempotency matters
+- `catalog.of=pattern.transaction.bound=storage.trait=idempotency.pattern=upsert-on-natural-key` (architect) — the write each idempotent verb lands as

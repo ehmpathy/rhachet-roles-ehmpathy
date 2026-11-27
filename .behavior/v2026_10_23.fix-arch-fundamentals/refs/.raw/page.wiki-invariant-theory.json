@@ -1,0 +1,54 @@
+{
+  "source": {
+    "id": "page.wiki-invariant-theory",
+    "kind": "page",
+    "url": "https://en.wikipedia.org/wiki/Invariant_theory",
+    "keywords": [
+      "Boole",
+      "Cayley",
+      "Sylvester",
+      "1841"
+    ]
+  },
+  "urlFinal": "https://en.wikipedia.org/wiki/Invariant_theory",
+  "status": 200,
+  "fetchedAt": "2026-11-23T13:30:43.271Z",
+  "title": "Invariant theory - Wikipedia",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "Invariant theory - Wikipedia"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "Boole",
+      "window": "heory of invariants came into existence about the middle of the nineteenth century somewhat like Minerva: a grown-up virgin, mailed in the shining armor of algebra, she sprang forth from Cayley's Jovian head. — Weyl (1939b, p.489) Cayley first established invariant theory in his \"On the Theory of Linear Transformations (1845).\" In the opening of his paper, Cayley credits an 1841 paper of George Boole, \"investigations were suggested to me by a very elegant paper on the same subject... by Mr Boole.\" (Boole's paper was Exposition of a General Theory of Linear Transformations, Cambridge Mathematical Journal.)[2] Classically, the term \"invariant theory\" refers to the study of invariant algebraic forms (equivalently, symmetric tensors) for the action of linear transformations. This was a majo"
+    },
+    {
+      "keyword": "Boole",
+      "window": "Minerva: a grown-up virgin, mailed in the shining armor of algebra, she sprang forth from Cayley's Jovian head. — Weyl (1939b, p.489) Cayley first established invariant theory in his \"On the Theory of Linear Transformations (1845).\" In the opening of his paper, Cayley credits an 1841 paper of George Boole, \"investigations were suggested to me by a very elegant paper on the same subject... by Mr Boole.\" (Boole's paper was Exposition of a General Theory of Linear Transformations, Cambridge Mathematical Journal.)[2] Classically, the term \"invariant theory\" refers to the study of invariant algebraic forms (equivalently, symmetric tensors) for the action of linear transformations. This was a major field of study in the latter part of the nineteenth century. Current theories relating to the s"
+    },
+    {
+      "keyword": "Boole",
+      "window": "a grown-up virgin, mailed in the shining armor of algebra, she sprang forth from Cayley's Jovian head. — Weyl (1939b, p.489) Cayley first established invariant theory in his \"On the Theory of Linear Transformations (1845).\" In the opening of his paper, Cayley credits an 1841 paper of George Boole, \"investigations were suggested to me by a very elegant paper on the same subject... by Mr Boole.\" (Boole's paper was Exposition of a General Theory of Linear Transformations, Cambridge Mathematical Journal.)[2] Classically, the term \"invariant theory\" refers to the study of invariant algebraic forms (equivalently, symmetric tensors) for the action of linear transformations. This was a major field of study in the latter part of the nineteenth century. Current theories relating to the symmetric"
+    },
+    {
+      "keyword": "Cayley",
+      "window": "nvariant, we have that ℂ [ 𝑥 , 𝑦 ] ℤ / 2 ℤ ≅ ℂ [ 𝑥 2 , 𝑥 𝑦 , 𝑦 2 ] ≅ ℂ [ 𝑎 , 𝑏 , 𝑐 ] ( 𝑎 𝑐 − 𝑏 2 ) This example forms the basis for doing many computations. The nineteenth-century originsedit The theory of invariants came into existence about the middle of the nineteenth century somewhat like Minerva: a grown-up virgin, mailed in the shining armor of algebra, she sprang forth from Cayley's Jovian head. — Weyl (1939b, p.489) Cayley first established invariant theory in his \"On the Theory of Linear Transformations (1845).\" In the opening of his paper, Cayley credits an 1841 paper of George Boole, \"investigations were suggested to me by a very elegant paper on the same subject... by Mr Boole.\" (Boole's paper was Exposition of a General Theory of Linear Transformations, Cambr"
+    },
+    {
+      "keyword": "Cayley",
+      "window": "≅ ℂ [ 𝑥 2 , 𝑥 𝑦 , 𝑦 2 ] ≅ ℂ [ 𝑎 , 𝑏 , 𝑐 ] ( 𝑎 𝑐 − 𝑏 2 ) This example forms the basis for doing many computations. The nineteenth-century originsedit The theory of invariants came into existence about the middle of the nineteenth century somewhat like Minerva: a grown-up virgin, mailed in the shining armor of algebra, she sprang forth from Cayley's Jovian head. — Weyl (1939b, p.489) Cayley first established invariant theory in his \"On the Theory of Linear Transformations (1845).\" In the opening of his paper, Cayley credits an 1841 paper of George Boole, \"investigations were suggested to me by a very elegant paper on the same subject... by Mr Boole.\" (Boole's paper was Exposition of a General Theory of Linear Transformations, Cambridge Mathematical Journal.)[2] Classically, t"
+    },
+    {
+      "keyword": "Cayley",
+      "window": "e nineteenth-century originsedit The theory of invariants came into existence about the middle of the nineteenth century somewhat like Minerva: a grown-up virgin, mailed in the shining armor of algebra, she sprang forth from Cayley's Jovian head. — Weyl (1939b, p.489) Cayley first established invariant theory in his \"On the Theory of Linear Transformations (1845).\" In the opening of his paper, Cayley credits an 1841 paper of George Boole, \"investigations were suggested to me by a very elegant paper on the same subject... by Mr Boole.\" (Boole's paper was Exposition of a General Theory of Linear Transformations, Cambridge Mathematical Journal.)[2] Classically, the term \"invariant theory\" refers to the study of invariant algebraic forms (equivalently, symmetric tensors) for the action of"
+    },
+    {
+      "keyword": "1841",
+      "window": "ry originsedit The theory of invariants came into existence about the middle of the nineteenth century somewhat like Minerva: a grown-up virgin, mailed in the shining armor of algebra, she sprang forth from Cayley's Jovian head. — Weyl (1939b, p.489) Cayley first established invariant theory in his \"On the Theory of Linear Transformations (1845).\" In the opening of his paper, Cayley credits an 1841 paper of George Boole, \"investigations were suggested to me by a very elegant paper on the same subject... by Mr Boole.\" (Boole's paper was Exposition of a General Theory of Linear Transformations, Cambridge Mathematical Journal.)[2] Classically, the term \"invariant theory\" refers to the study of invariant algebraic forms (equivalently, symmetric tensors) for the action of linear transformat"
+    }
+  ],
+  "textLength": 17426
+}

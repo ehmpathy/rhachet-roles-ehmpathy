@@ -1,0 +1,65 @@
+{
+  "source": {
+    "id": "page.arxiv-klein",
+    "kind": "page",
+    "url": "https://arxiv.org/abs/0807.3161",
+    "keywords": [
+      "Erlangen",
+      "group",
+      "invariant"
+    ]
+  },
+  "urlFinal": "https://arxiv.org/abs/0807.3161",
+  "status": 200,
+  "fetchedAt": "2026-11-23T12:56:49.214Z",
+  "title": "[0807.3161] A comparative review of recent researches in geometry",
+  "meta": [
+    {
+      "name": "description",
+      "content": "Abstract page for arXiv paper 0807.3161: A comparative review of recent researches in geometry"
+    },
+    {
+      "name": "og:title",
+      "content": "A comparative review of recent researches in geometry"
+    },
+    {
+      "name": "citation_title",
+      "content": "A comparative review of recent researches in geometry"
+    },
+    {
+      "name": "citation_author",
+      "content": "Klein, Felix C."
+    },
+    {
+      "name": "citation_date",
+      "content": "2008/07/20"
+    },
+    {
+      "name": "citation_online_date",
+      "content": "2008/07/20"
+    },
+    {
+      "name": "citation_pdf_url",
+      "content": "https://arxiv.org/pdf/0807.3161"
+    },
+    {
+      "name": "citation_arxiv_id",
+      "content": "0807.3161"
+    },
+    {
+      "name": "citation_abstract",
+      "content": " Felix Klein's so-called Erlangen Program was published in 1872 as professoral dissertation. It proposed a new solution to the problem how to classify and characterize geometries on the basis of projective geometry and group theory. The given translation was made in 1892 by Dr. M. W. Haskell and transcribed by N. C. Rughoonauth. We replaced bibliographical data in text and footnotes with pointers to a complete bibliography section."
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "Erlangen",
+      "window": "Skip to main content Search Submit Donate Log in Mathematics > History and Overview [Submitted on 20 Jul 2008] A comparative review of recent researches in geometry Felix C. Klein Felix Klein's so-called Erlangen Program was published in 1872 as professoral dissertation. It proposed a new solution to the problem how to classify and characterize geometries on the basis of projective geometry and group theory. The given translation was made in 1892 by Dr. M. W. Haskell and transcribed by N. C. Rughoonauth. We replaced bibliographical data in text and footnotes with pointers to a complete bibliograph"
+    },
+    {
+      "keyword": "group",
+      "window": "Skip to main content Search Submit Donate Log in Mathematics > History and Overview [Submitted on 20 Jul 2008] A comparative review of recent researches in geometry Felix C. Klein Felix Klein's so-called Erlangen Program was published in 1872 as professoral dissertation. It proposed a new solution to the problem how to classify and characterize geometries on the basis of projective geometry and group theory. The given translation was made in 1892 by Dr. M. W. Haskell and transcribed by N. C. Rughoonauth. We replaced bibliographical data in text and footnotes with pointers to a complete bibliography section. Comments: 26 pages, no figures Subjects: History and Overview (math.HO); Differential Geometry (math.DG) MSC classes: 01A55; 01A75; 53-03; 58-03 Cite as: arXiv:0807.3161 [math.HO] ("
+    }
+  ],
+  "textLength": 1962
+}

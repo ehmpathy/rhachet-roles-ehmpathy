@@ -487,3 +487,7 @@ describe('setCustomer', () => {
 });
 ```
 
+## .see also
+
+- `catalog.of=pattern.transaction.bound=contract.trait=idempotency.pattern=idempotency-key` (architect) — the hash of the desired shape, sent on each create, is this member's key
+

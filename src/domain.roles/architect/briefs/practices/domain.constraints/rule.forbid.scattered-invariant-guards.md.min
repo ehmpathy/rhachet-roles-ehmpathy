@@ -1,0 +1,7 @@
+# rule.forbid.scattered-invariant-guards
+
+never enforce a domain invariant with a guard (`if … throw`) inside one caller — the next caller skips it
+smell: a guard in an operation that protects a fact about another object (`if (age < 18 && !waiver) throw` in `setLessonReservation`, which a voucher path skips) · the same guard in two operations · a write path around the operation that holds the guard
+cure — put the enforcement where every path must pass: the domain object refuses construction (ConstraintError that names the fix) · one write path, the dao never called around it · a storage constraint · a type or parse at the boundary. then prove the break case with a test red without the enforcement
+enforcement: invariant enforced only by a guard in one caller = blocker; one invariant guarded in 2+ callers = blocker
+full: rule.require.invariant-before-operation

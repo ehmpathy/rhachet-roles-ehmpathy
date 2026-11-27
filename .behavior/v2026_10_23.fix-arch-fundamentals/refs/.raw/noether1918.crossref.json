@@ -1,0 +1,120 @@
+{
+  "source": {
+    "id": "noether1918",
+    "kind": "crossref",
+    "query": "Noether Invariante Variationsprobleme 1918",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Noether%20Invariante%20Variationsprobleme%201918&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:16:06.572Z",
+  "items": [
+    {
+      "DOI": "10.1007/978-3-642-61761-4_15",
+      "title": [
+        "Invariante Variationsprobleme"
+      ],
+      "author": [
+        {
+          "given": "Nathan",
+          "family": "Jacobson",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Emmy Noether Gesammelte Abhandlungen Collected Papers"
+      ],
+      "page": "248-270",
+      "issued": {
+        "date-parts": [
+          [
+            1983
+          ]
+        ]
+      },
+      "publisher": "Springer Berlin Heidelberg",
+      "type": "book-chapter"
+    },
+    {
+      "DOI": "10.1007/978-3-642-39990-9_13",
+      "title": [
+        "Invariante Variationsprobleme"
+      ],
+      "author": [
+        {
+          "given": "Emmy",
+          "family": "Noether",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Springer Collected Works in Mathematics",
+        "Gesammelte Abhandlungen - Collected Papers"
+      ],
+      "page": "231-239",
+      "issued": {
+        "date-parts": [
+          [
+            1983
+          ]
+        ]
+      },
+      "publisher": "Springer Berlin Heidelberg",
+      "type": "book-chapter"
+    },
+    {
+      "publisher": "Walter de Gruyter GmbH",
+      "issue": "2",
+      "DOI": "10.1515/dmvm-2011-0046",
+      "type": "journal-article",
+      "page": "100-104",
+      "title": [
+        "\"Göttinger Feldgraue\", Einstein und die verzögerte Wahrnehmung von Emmy Noethers Sätzen über Invariante Variationsprobleme (1918)"
+      ],
+      "volume": "19",
+      "author": [
+        {
+          "given": "Reinhard",
+          "family": "Siegmund-Schultze",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "University of Agder"
+            }
+          ],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Mitteilungen der Deutschen Mathematiker-Vereinigung"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            2011,
+            7,
+            15
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+# philosophy.invariants-are-the-source
+
+a system's invariants, assumptions, and guarantees are its **source**. the code is a **build**, compiled from them by robots, semi-lossy. the inventory is the higher-level language
+
+why now: robots write the code, so the definition of correct is the scarce work. a robot can meet a test's letter and miss its intent (krakovna et al. 2020; metr 2025); the invariant declares the intent the test stands for. a robot reads the inventory on every route review, so upkeep costs one pass
+
+the compile is not trusted to carry an invariant: each one needs an enforcement, and each route review walks the writers to find it. the entry never names the enforcement
+
+the arbiter of a red test — each test proves either an **implementation contract** (glue: no entry, the test says its contract in words) or a **domain invariant** (cites its entry, `[i001]`):
+- an invariant or contract the change kept → the code is wrong; fix the code
+- an invariant amended on record → the test follows the entry
+- a contract the change replaced → the test retires with it
+- a domain rule no entry names → skepticize the silence: an implicit invariant, an implicit assumption, or one derived from the record? record the likeliest as a best guess, act on it, itemize it as a fulcrum. a halt to ask is the defect; a human who verifies a recorded guess is the normal close
+
+the domain lights up one room at a time: each discovered invariant retires one question for good; no inventory holds the whole domain on day one
+
+guarantees sit only at release boundaries; inside, internal contracts stay mutable. each guarantee is a consumer's assumption, proven by a blackbox acceptance test, with its exclusions listed
+
+full brief, with sources weighed: `philosophy.invariants-are-the-source.md`

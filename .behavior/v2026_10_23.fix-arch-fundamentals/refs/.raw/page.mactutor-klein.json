@@ -1,0 +1,48 @@
+{
+  "source": {
+    "id": "page.mactutor-klein",
+    "kind": "page",
+    "url": "https://mathshistory.st-andrews.ac.uk/Biographies/Klein/",
+    "keywords": [
+      "Erlangen",
+      "invariant"
+    ]
+  },
+  "urlFinal": "https://mathshistory.st-andrews.ac.uk/Biographies/Klein/",
+  "status": 200,
+  "fetchedAt": "2026-11-23T12:56:38.158Z",
+  "title": "Felix Klein (1849 - 1925) - Biography - MacTutor History of Mathematics",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "Felix Klein - Biography"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "Erlangen",
+      "window": "hen Bismarck, the Prussian chancellor, published a provocative message aimed at infuriating the French government. France declared war on Prussia on the 19th of July and Klein felt he could no longer remain in Paris and returned. Then, for a short period, he did military service as a medical orderly before being appointed as a lecturer at Göttingen in early 1871. Klein was appointed professor at Erlangen, in Bavaria in southern Germany, in 1872. He was strongly supported by Clebsch, who regarded him as likely to become the leading mathematician of his day, and so Klein held a chair from the remarkably early age of 23. However Klein did not build a school at Erlangen where there were only a few students, so he was pleased to be offered a chair at the Technische Hochschule at Munich in 1875"
+    },
+    {
+      "keyword": "Erlangen",
+      "window": "tary service as a medical orderly before being appointed as a lecturer at Göttingen in early 1871. Klein was appointed professor at Erlangen, in Bavaria in southern Germany, in 1872. He was strongly supported by Clebsch, who regarded him as likely to become the leading mathematician of his day, and so Klein held a chair from the remarkably early age of 23. However Klein did not build a school at Erlangen where there were only a few students, so he was pleased to be offered a chair at the Technische Hochschule at Munich in 1875. There he, and his colleague Brill, taught advanced courses to large numbers of excellent students and Klein's great talent at teaching was fully expressed. Among the students that Klein taught while at Munich were Hurwitz, von Dyck, Rohn, Runge, Planck, Bianchi and"
+    },
+    {
+      "keyword": "Erlangen",
+      "window": "metry. Cayley never accepted Klein's ideas believing his arguments to be circular. Klein's synthesis of geometry as the study of the properties of a space that are invariant under a given group of transformations, known as the Erlanger Programm (1872), profoundly influenced mathematical development. This was written for the occasion of Klein's inaugural address when he was appointed professor at Erlangen in 1872 although it was not actually the speech he gave on that occasion. The Erlanger Programm gave a unified approach to geometry which is now the standard accepted view. Transformations play a major role in modern mathematics and Klein showed how the essential properties of a given geometry could be represented by the group of transformations that preserve those properties. In this wa"
+    },
+    {
+      "keyword": "invariant",
+      "window": "Skip to content MacTutor HOME BIOGRAPHIES HISTORY TOPICS MAP CURVES SEARCH Felix Christian Klein Quick Info Born 25 April 1849 Düsseldorf, Prussia (now Germany) Died 22 June 1925 Göttingen, Germany Summary Felix Klein was a German mathematician whose synthesis of geometry as the study of the properties of a space that are invariant under a given group of transformations, known as the Erlanger Programm, profoundly influenced mathematical development. View twelve larger pictures Biography Felix Klein is best known for his work in non-euclidean geometry, for his work on the connections between geometry and group theory, and for results in function theory. He was born on 25/4/1849 and delighted in pointing out that ea"
+    },
+    {
+      "keyword": "invariant",
+      "window": "rst rival, and then surpass in importance, Crelle's journal. In a sense these journals represented the rival teams of the Berlin school of mathematics who ran Crelle's journal and the followers of Clebsch who supported the Mathematische Annalen. Klein set up a small team of editors who met regularly and made democratic decisions. The journal specialised in complex analysis, algebraic geometry and invariant theory. It also provided an important outlet for real analysis and the new area of group theory. Klein retired due to ill health in 1913. However he continued to teach mathematics at his home during the years of World War I. It is a little hard to understand the significance of Klein's contributions to geometry. This is not because it is strange to us today, quite the reverse, it has b"
+    },
+    {
+      "keyword": "invariant",
+      "window": "ealise the novelty of his results and also the fact that they were not universally accepted by all his contemporaries. Klein's first important mathematical discoveries were made in 1870 in collaboration with Lie. They discovered the fundamental properties of the asymptotic lines on the Kummer surface. Further collaboration with Lie followed and they worked on an investigation of W-curves, curves invariant under a group of projective transformations. In fact Lie played an important role in Klein's development, introducing him to the group concept which played a major role in his later work. It is fair to add that Camille Jordan also played a part in teaching Klein about groups. During his time at Göttingen in 1871 Klein made major discoveries regarding geometry. He published two papers On"
+    }
+  ],
+  "textLength": 15059
+}

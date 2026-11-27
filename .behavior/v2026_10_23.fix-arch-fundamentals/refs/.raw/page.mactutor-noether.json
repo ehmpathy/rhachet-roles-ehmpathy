@@ -1,0 +1,53 @@
+{
+  "source": {
+    "id": "page.mactutor-noether",
+    "kind": "page",
+    "url": "https://mathshistory.st-andrews.ac.uk/Biographies/Noether_Emmy/",
+    "keywords": [
+      "1918",
+      "invariant",
+      "conservation"
+    ]
+  },
+  "urlFinal": "https://mathshistory.st-andrews.ac.uk/Biographies/Noether_Emmy/",
+  "status": 200,
+  "fetchedAt": "2026-11-23T12:56:43.850Z",
+  "title": "Emmy Noether (1882 - 1935) - Biography - MacTutor History of Mathematics",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "Emmy Noether - Biography"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "1918",
+      "window": "ed Jewish families from their own businesses in 1937. One other comment is necessary at this point. Although the family name was chosen to be Nöther by Max's grandfather, Max and his family always used the form Noether (except on Max's wedding certificate where the form Nöther appears). Emmy was the eldest of her parents' four children, the three younger children being boys. Alfred Noether (1883-1918) studied chemistry and was awarded a doctorate from Erlangen in 1909. However, his career was short since he died nine years later. Fritz Noether (1884-1941) became an applied mathematician. However, as a Jew he was unable to work and left Germany in 1937. He was appointed as a professor at the University of Tomsk in the Soviet Union but accused of anti-Soviet acts he was sentenced to death a"
+    },
+    {
+      "keyword": "1918",
+      "window": "penetrating mathematical thinking. Of course, she arrived in Göttingen during World War I. This was a time of extreme difficulty and she lived in poverty during these years and politically she became a radical socialist. However, they were extraordinarily rich years for her mathematically. Hermann Weyl, in [69] writes about Noether's political views:- During the wild times after the Revolution of 1918, she did not keep aloof from the political excitement, she sided more or less with the Social Democrats; without being actually in party life she participated intensely in the discussion of the political and social problems of the day. ... In later years Emmy Noether took no part in matters political. She always remained, however, a convinced pacifist, a stand which she held very important an"
+    },
+    {
+      "keyword": "invariant",
+      "window": "e allowed to matriculate on an equal basis to the men. On 24 October 1904 Noether matriculated at Erlangen where she now studied only mathematics. In 1907 she was granted a doctorate after working under Paul Gordan. The oral examination took place on Friday 13 December and she was awarded the degree 'summa cum laude'. Hilbert's basis theorem of 1888 had given an existence result for finiteness of invariants in 𝑛 n variables. Gordan, however, took a constructive approach and looked at constructive methods to arrive at the same results. Noether's doctoral thesis followed this constructive approach of Gordan and listed systems of 331 covariant forms. Colin McLarty writes that [39]:- ... her dissertation of 1908 with Gordan pursued a huge calculation that had stumped Gordan forty years befor"
+    },
+    {
+      "keyword": "invariant",
+      "window": "asic definitions of a conceptual nature, even that of the limit. Noether's reputation grew quickly as her publications appeared. In 1908 she was elected to the Circolo Matematico di Palermo, then in 1909 she was invited to become a member of the Deutsche Mathematiker-Vereinigung and in the same year she was invited to address the annual meeting of the Society in Salzburg. She gave the lecture Zur Invariantentheorie der Formen von n Variabeln Ⓣ. In 1913 she lectured in Vienna, again to a meeting of the Deutsche Mathematiker-Vereinigung. Her lecture on this occasion was Über rationale Funktionenkörper Ⓣ. While in Vienna she visited Franz Mertens and discussed mathematics with him. One of Merten's grandsons remembered Noether's visit (see [5]):- ... although a woman, [she] seemed to me like a"
+    },
+    {
+      "keyword": "invariant",
+      "window": "rg (doctorate 1911) and Fritz Seidelmann (doctorate 1916). For information on these and Noether's other Ph.D. students see THIS LINK. In 1915 Hilbert and Klein invited Noether to return to Göttingen. The reason for this was that Hilbert was working on physics, in particular on ideas on the theory of relativity close to those of Albert Einstein. He decided that he needed the help of an expert on invariant theory and, after discussions with Klein, they issued the invitation. Van der Waerden writes [68]:- She came and at once solved two important problems. First: How can one obtain all differential covariants of any vector or tensor field in a Riemannian space? ... The second problem Emmy investigated was a problem from special relativity. She proved: To every infinitesimal transformation o"
+    },
+    {
+      "keyword": "conservation",
+      "window": "with Klein, they issued the invitation. Van der Waerden writes [68]:- She came and at once solved two important problems. First: How can one obtain all differential covariants of any vector or tensor field in a Riemannian space? ... The second problem Emmy investigated was a problem from special relativity. She proved: To every infinitesimal transformation of the Lorentz group there corresponds a Conservation Theorem. This result in theoretical physics is sometimes referred to as Noether's Theorem, and proves a relationship between symmetries in physics and conservation principles. This basic result in the theory of relativity was praised by Einstein in a letter to Hilbert when he referred to Noether's penetrating mathematical thinking. Of course, she arrived in Göttingen during World War"
+    },
+    {
+      "keyword": "conservation",
+      "window": "covariants of any vector or tensor field in a Riemannian space? ... The second problem Emmy investigated was a problem from special relativity. She proved: To every infinitesimal transformation of the Lorentz group there corresponds a Conservation Theorem. This result in theoretical physics is sometimes referred to as Noether's Theorem, and proves a relationship between symmetries in physics and conservation principles. This basic result in the theory of relativity was praised by Einstein in a letter to Hilbert when he referred to Noether's penetrating mathematical thinking. Of course, she arrived in Göttingen during World War I. This was a time of extreme difficulty and she lived in poverty during these years and politically she became a radical socialist. However, they were extraordinar"
+    }
+  ],
+  "textLength": 19491
+}

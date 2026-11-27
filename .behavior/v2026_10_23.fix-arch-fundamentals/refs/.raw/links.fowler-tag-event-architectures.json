@@ -1,0 +1,864 @@
+{
+  "index": {
+    "id": "links.fowler-tag-event-architectures",
+    "url": "https://martinfowler.com/tags/event%20architectures.html"
+  },
+  "urlFinal": "https://martinfowler.com/tags/event%20architectures.html",
+  "status": 200,
+  "title": "event architectures",
+  "fetchedAt": "2026-11-26T14:39:42.386Z",
+  "links": [
+    {
+      "text": "",
+      "href": "https://martinfowler.com/"
+    },
+    {
+      "text": "",
+      "href": "https://martinfowler.com/tags/event%20architectures.html#navmenu-bottom"
+    },
+    {
+      "text": "Refactoring",
+      "href": "https://refactoring.com/"
+    },
+    {
+      "text": "Agile",
+      "href": "https://martinfowler.com/agile.html"
+    },
+    {
+      "text": "Architecture",
+      "href": "https://martinfowler.com/architecture"
+    },
+    {
+      "text": "About",
+      "href": "https://martinfowler.com/aboutMe.html"
+    },
+    {
+      "text": "Thoughtworks",
+      "href": "https://www.thoughtworks.com/engineering"
+    },
+    {
+      "text": "",
+      "href": "https://martinfowler.com/feed.atom"
+    },
+    {
+      "text": "",
+      "href": "https://www.twitter.com/martinfowler"
+    },
+    {
+      "text": "",
+      "href": "https://toot.thoughtworks.com/@mfowler"
+    },
+    {
+      "text": "",
+      "href": "https://www.linkedin.com/in/martin-fowler-com/"
+    },
+    {
+      "text": "",
+      "href": "https://bsky.app/profile/martinfowler.com"
+    },
+    {
+      "text": "Architecture",
+      "href": "https://martinfowler.com/architecture"
+    },
+    {
+      "text": "Refactoring",
+      "href": "https://refactoring.com/"
+    },
+    {
+      "text": "Agile",
+      "href": "https://martinfowler.com/agile.html"
+    },
+    {
+      "text": "Delivery",
+      "href": "https://martinfowler.com/delivery.html"
+    },
+    {
+      "text": "Microservices",
+      "href": "https://martinfowler.com/microservices"
+    },
+    {
+      "text": "Data",
+      "href": "https://martinfowler.com/data"
+    },
+    {
+      "text": "Testing",
+      "href": "https://martinfowler.com/testing"
+    },
+    {
+      "text": "DSL",
+      "href": "https://martinfowler.com/dsl.html"
+    },
+    {
+      "text": "About",
+      "href": "https://martinfowler.com/aboutMe.html"
+    },
+    {
+      "text": "Books",
+      "href": "https://martinfowler.com/books"
+    },
+    {
+      "text": "FAQ",
+      "href": "https://martinfowler.com/faq.html"
+    },
+    {
+      "text": "Videos",
+      "href": "https://martinfowler.com/videos.html"
+    },
+    {
+      "text": "Content Index",
+      "href": "https://martinfowler.com/tags"
+    },
+    {
+      "text": "Fragments",
+      "href": "https://martinfowler.com/fragments"
+    },
+    {
+      "text": "Board Games",
+      "href": "https://martinfowler.com/boardgames"
+    },
+    {
+      "text": "Photography",
+      "href": "https://martinfowler.com/photos"
+    },
+    {
+      "text": "Home",
+      "href": "https://thoughtworks.com/"
+    },
+    {
+      "text": "Insights",
+      "href": "https://thoughtworks.com/insights"
+    },
+    {
+      "text": "Careers",
+      "href": "https://thoughtworks.com/careers"
+    },
+    {
+      "text": "Radar",
+      "href": "https://thoughtworks.com/radar"
+    },
+    {
+      "text": "Engineering",
+      "href": "https://www.thoughtworks.com/engineering"
+    },
+    {
+      "text": "RSS",
+      "href": "https://martinfowler.com/feed.atom"
+    },
+    {
+      "text": "Mastodon",
+      "href": "https://toot.thoughtworks.com/@mfowler"
+    },
+    {
+      "text": "LinkedIn",
+      "href": "https://www.linkedin.com/in/martin-fowler-com/"
+    },
+    {
+      "text": "Bluesky",
+      "href": "https://bsky.app/profile/martinfowler.com"
+    },
+    {
+      "text": "X",
+      "href": "https://www.twitter.com/martinfowler"
+    },
+    {
+      "text": "BGG",
+      "href": "https://boardgamegeek.com/blog/13064/martins-7th-decade"
+    },
+    {
+      "text": "Focusing on Events",
+      "href": "https://martinfowler.com/eaaDev/EventNarrative.html"
+    },
+    {
+      "text": "Read more…",
+      "href": "https://martinfowler.com/eaaDev/EventNarrative.html"
+    },
+    {
+      "text": "event architectures",
+      "href": "https://martinfowler.com/tags/event%20architectures.html"
+    },
+    {
+      "text": "What do you mean by “Event-Driven”?",
+      "href": "https://martinfowler.com/articles/201701-event-driven.html"
+    },
+    {
+      "text": "Read more…",
+      "href": "https://martinfowler.com/articles/201701-event-driven.html"
+    },
+    {
+      "text": "design",
+      "href": "https://martinfowler.com/tags/design.html"
+    },
+    {
+      "text": "event architectures",
+      "href": "https://martinfowler.com/tags/event%20architectures.html"
+    },
+    {
+      "text": "The LMAX Architecture",
+      "href": "https://martinfowler.com/articles/lmax.html"
+    },
+    {
+      "text": "Read more…",
+      "href": "https://martinfowler.com/articles/lmax.html"
+    },
+    {
+      "text": "application architecture",
+      "href": "https://martinfowler.com/tags/application%20architecture.html"
+    },
+    {
+      "text": "experience reports",
+      "href": "https://martinfowler.com/tags/experience%20reports.html"
+    },
+    {
+      "text": "event architectures",
+      "href": "https://martinfowler.com/tags/event%20architectures.html"
+    },
+    {
+      "text": "CQRS",
+      "href": "https://martinfowler.com/bliki/CQRS.html"
+    },
+    {
+      "text": "Read more…",
+      "href": "https://martinfowler.com/bliki/CQRS.html"
+    },
+    {
+      "text": "domain driven design",
+      "href": "https://martinfowler.com/tags/domain%20driven%20design.html"
+    },
+    {
+      "text": "application architecture",
+      "href": "https://martinfowler.com/tags/application%20architecture.html"
+    },
+    {
+      "text": "API design",
+      "href": "https://martinfowler.com/tags/API%20design.html"
+    },
+    {
+      "text": "event architectures",
+      "href": "https://martinfowler.com/tags/event%20architectures.html"
+    },
+    {
+      "text": "Event Poster",
+      "href": "https://martinfowler.com/bliki/EventPoster.html"
+    },
+    {
+      "text": "Read more…",
+      "href": "https://martinfowler.com/bliki/EventPoster.html"
+    },
+    {
+      "text": "application architecture",
+      "href": "https://martinfowler.com/tags/application%20architecture.html"
+    },
+    {
+      "text": "event architectures",
+      "href": "https://martinfowler.com/tags/event%20architectures.html"
+    },
+    {
+      "text": "Memory Image",
+      "href": "https://martinfowler.com/bliki/MemoryImage.html"
+    },
+    {
+      "text": "Read more…",
+      "href": "https://martinfowler.com/bliki/MemoryImage.html"
+    },
+    {
+      "text": "database",
+      "href": "https://martinfowler.com/tags/database.html"
+    },
+    {
+      "text": "application architecture",
+      "href": "https://martinfowler.com/tags/application%20architecture.html"
+    },
+    {
+      "text": "event architectures",
+      "href": "https://martinfowler.com/tags/event%20architectures.html"
+    },
+    {
+      "text": "API design",
+      "href": "https://martinfowler.com/tags/API%20design.html"
+    },
+    {
+      "text": "agile",
+      "href": "https://martinfowler.com/tags/agile.html"
+    },
+    {
+      "text": "agile adoption",
+      "href": "https://martinfowler.com/tags/agile%20adoption.html"
+    },
+    {
+      "text": "analysis patterns",
+      "href": "https://martinfowler.com/tags/analysis%20patterns.html"
+    },
+    {
+      "text": "application architecture",
+      "href": "https://martinfowler.com/tags/application%20architecture.html"
+    },
+    {
+      "text": "application integration",
+      "href": "https://martinfowler.com/tags/application%20integration.html"
+    },
+    {
+      "text": "bad things",
+      "href": "https://martinfowler.com/tags/bad%20things.html"
+    },
+    {
+      "text": "board games",
+      "href": "https://martinfowler.com/tags/board%20games.html"
+    },
+    {
+      "text": "build scripting",
+      "href": "https://martinfowler.com/tags/build%20scripting.html"
+    },
+    {
+      "text": "certification",
+      "href": "https://martinfowler.com/tags/certification.html"
+    },
+    {
+      "text": "collaboration",
+      "href": "https://martinfowler.com/tags/collaboration.html"
+    },
+    {
+      "text": "computer history",
+      "href": "https://martinfowler.com/tags/computer%20history.html"
+    },
+    {
+      "text": "conference panels",
+      "href": "https://martinfowler.com/tags/conference%20panels.html"
+    },
+    {
+      "text": "conferences",
+      "href": "https://martinfowler.com/tags/conferences.html"
+    },
+    {
+      "text": "continuous delivery",
+      "href": "https://martinfowler.com/tags/continuous%20delivery.html"
+    },
+    {
+      "text": "covid-19",
+      "href": "https://martinfowler.com/tags/covid-19.html"
+    },
+    {
+      "text": "data analytics",
+      "href": "https://martinfowler.com/tags/data%20analytics.html"
+    },
+    {
+      "text": "data mesh",
+      "href": "https://martinfowler.com/tags/data%20mesh.html"
+    },
+    {
+      "text": "database",
+      "href": "https://martinfowler.com/tags/database.html"
+    },
+    {
+      "text": "design",
+      "href": "https://martinfowler.com/tags/design.html"
+    },
+    {
+      "text": "dictionary",
+      "href": "https://martinfowler.com/tags/dictionary.html"
+    },
+    {
+      "text": "distributed computing magazine",
+      "href": "https://martinfowler.com/tags/distributed%20computing%20magazine.html"
+    },
+    {
+      "text": "diversions",
+      "href": "https://martinfowler.com/tags/diversions.html"
+    },
+    {
+      "text": "diversity",
+      "href": "https://martinfowler.com/tags/diversity.html"
+    },
+    {
+      "text": "documentation",
+      "href": "https://martinfowler.com/tags/documentation.html"
+    },
+    {
+      "text": "domain driven design",
+      "href": "https://martinfowler.com/tags/domain%20driven%20design.html"
+    },
+    {
+      "text": "domain specific language",
+      "href": "https://martinfowler.com/tags/domain%20specific%20language.html"
+    },
+    {
+      "text": "domestic",
+      "href": "https://martinfowler.com/tags/domestic.html"
+    },
+    {
+      "text": "encapsulation",
+      "href": "https://martinfowler.com/tags/encapsulation.html"
+    },
+    {
+      "text": "enterprise architecture",
+      "href": "https://martinfowler.com/tags/enterprise%20architecture.html"
+    },
+    {
+      "text": "estimation",
+      "href": "https://martinfowler.com/tags/estimation.html"
+    },
+    {
+      "text": "event architectures",
+      "href": "https://martinfowler.com/tags/event%20architectures.html"
+    },
+    {
+      "text": "evolutionary design",
+      "href": "https://martinfowler.com/tags/evolutionary%20design.html"
+    },
+    {
+      "text": "experience reports",
+      "href": "https://martinfowler.com/tags/experience%20reports.html"
+    },
+    {
+      "text": "expositional architectures",
+      "href": "https://martinfowler.com/tags/expositional%20architectures.html"
+    },
+    {
+      "text": "extreme programming",
+      "href": "https://martinfowler.com/tags/extreme%20programming.html"
+    },
+    {
+      "text": "front-end",
+      "href": "https://martinfowler.com/tags/front-end.html"
+    },
+    {
+      "text": "gadgets",
+      "href": "https://martinfowler.com/tags/gadgets.html"
+    },
+    {
+      "text": "generative AI",
+      "href": "https://martinfowler.com/tags/generative%20AI.html"
+    },
+    {
+      "text": "ieeeSoftware",
+      "href": "https://martinfowler.com/tags/ieeeSoftware.html"
+    },
+    {
+      "text": "infodecks",
+      "href": "https://martinfowler.com/tags/infodecks.html"
+    },
+    {
+      "text": "internet culture",
+      "href": "https://martinfowler.com/tags/internet%20culture.html"
+    },
+    {
+      "text": "interviews",
+      "href": "https://martinfowler.com/tags/interviews.html"
+    },
+    {
+      "text": "language feature",
+      "href": "https://martinfowler.com/tags/language%20feature.html"
+    },
+    {
+      "text": "language workbench",
+      "href": "https://martinfowler.com/tags/language%20workbench.html"
+    },
+    {
+      "text": "lean",
+      "href": "https://martinfowler.com/tags/lean.html"
+    },
+    {
+      "text": "legacy modernization",
+      "href": "https://martinfowler.com/tags/legacy%20modernization.html"
+    },
+    {
+      "text": "legal",
+      "href": "https://martinfowler.com/tags/legal.html"
+    },
+    {
+      "text": "metrics",
+      "href": "https://martinfowler.com/tags/metrics.html"
+    },
+    {
+      "text": "microservices",
+      "href": "https://martinfowler.com/tags/microservices.html"
+    },
+    {
+      "text": "mobile",
+      "href": "https://martinfowler.com/tags/mobile.html"
+    },
+    {
+      "text": "noSQL",
+      "href": "https://martinfowler.com/tags/noSQL.html"
+    },
+    {
+      "text": "object collaboration design",
+      "href": "https://martinfowler.com/tags/object%20collaboration%20design.html"
+    },
+    {
+      "text": "parser generators",
+      "href": "https://martinfowler.com/tags/parser%20generators.html"
+    },
+    {
+      "text": "photography",
+      "href": "https://martinfowler.com/tags/photography.html"
+    },
+    {
+      "text": "platforms",
+      "href": "https://martinfowler.com/tags/platforms.html"
+    },
+    {
+      "text": "podcast",
+      "href": "https://martinfowler.com/tags/podcast.html"
+    },
+    {
+      "text": "presentation technique",
+      "href": "https://martinfowler.com/tags/presentation%20technique.html"
+    },
+    {
+      "text": "privacy",
+      "href": "https://martinfowler.com/tags/privacy.html"
+    },
+    {
+      "text": "process theory",
+      "href": "https://martinfowler.com/tags/process%20theory.html"
+    },
+    {
+      "text": "productivity",
+      "href": "https://martinfowler.com/tags/productivity.html"
+    },
+    {
+      "text": "programming environments",
+      "href": "https://martinfowler.com/tags/programming%20environments.html"
+    },
+    {
+      "text": "programming style",
+      "href": "https://martinfowler.com/tags/programming%20style.html"
+    },
+    {
+      "text": "project planning",
+      "href": "https://martinfowler.com/tags/project%20planning.html"
+    },
+    {
+      "text": "recruiting",
+      "href": "https://martinfowler.com/tags/recruiting.html"
+    },
+    {
+      "text": "refactoring",
+      "href": "https://martinfowler.com/tags/refactoring.html"
+    },
+    {
+      "text": "refactoring boundary",
+      "href": "https://martinfowler.com/tags/refactoring%20boundary.html"
+    },
+    {
+      "text": "requirements analysis",
+      "href": "https://martinfowler.com/tags/requirements%20analysis.html"
+    },
+    {
+      "text": "ruby",
+      "href": "https://martinfowler.com/tags/ruby.html"
+    },
+    {
+      "text": "security",
+      "href": "https://martinfowler.com/tags/security.html"
+    },
+    {
+      "text": "talk videos",
+      "href": "https://martinfowler.com/tags/talk%20videos.html"
+    },
+    {
+      "text": "team environment",
+      "href": "https://martinfowler.com/tags/team%20environment.html"
+    },
+    {
+      "text": "team organization",
+      "href": "https://martinfowler.com/tags/team%20organization.html"
+    },
+    {
+      "text": "technical debt",
+      "href": "https://martinfowler.com/tags/technical%20debt.html"
+    },
+    {
+      "text": "technical leadership",
+      "href": "https://martinfowler.com/tags/technical%20leadership.html"
+    },
+    {
+      "text": "test categories",
+      "href": "https://martinfowler.com/tags/test%20categories.html"
+    },
+    {
+      "text": "testing",
+      "href": "https://martinfowler.com/tags/testing.html"
+    },
+    {
+      "text": "thoughtworks",
+      "href": "https://martinfowler.com/tags/thoughtworks.html"
+    },
+    {
+      "text": "tools",
+      "href": "https://martinfowler.com/tags/tools.html"
+    },
+    {
+      "text": "travel",
+      "href": "https://martinfowler.com/tags/travel.html"
+    },
+    {
+      "text": "uml",
+      "href": "https://martinfowler.com/tags/uml.html"
+    },
+    {
+      "text": "version control",
+      "href": "https://martinfowler.com/tags/version%20control.html"
+    },
+    {
+      "text": "web development",
+      "href": "https://martinfowler.com/tags/web%20development.html"
+    },
+    {
+      "text": "web services",
+      "href": "https://martinfowler.com/tags/web%20services.html"
+    },
+    {
+      "text": "website",
+      "href": "https://martinfowler.com/tags/website.html"
+    },
+    {
+      "text": "writing",
+      "href": "https://martinfowler.com/tags/writing.html"
+    },
+    {
+      "text": "2026",
+      "href": "https://martinfowler.com/tags/2026.html"
+    },
+    {
+      "text": "2025",
+      "href": "https://martinfowler.com/tags/2025.html"
+    },
+    {
+      "text": "2024",
+      "href": "https://martinfowler.com/tags/2024.html"
+    },
+    {
+      "text": "2023",
+      "href": "https://martinfowler.com/tags/2023.html"
+    },
+    {
+      "text": "2022",
+      "href": "https://martinfowler.com/tags/2022.html"
+    },
+    {
+      "text": "2021",
+      "href": "https://martinfowler.com/tags/2021.html"
+    },
+    {
+      "text": "2020",
+      "href": "https://martinfowler.com/tags/2020.html"
+    },
+    {
+      "text": "2019",
+      "href": "https://martinfowler.com/tags/2019.html"
+    },
+    {
+      "text": "2018",
+      "href": "https://martinfowler.com/tags/2018.html"
+    },
+    {
+      "text": "2017",
+      "href": "https://martinfowler.com/tags/2017.html"
+    },
+    {
+      "text": "2016",
+      "href": "https://martinfowler.com/tags/2016.html"
+    },
+    {
+      "text": "2015",
+      "href": "https://martinfowler.com/tags/2015.html"
+    },
+    {
+      "text": "2014",
+      "href": "https://martinfowler.com/tags/2014.html"
+    },
+    {
+      "text": "2013",
+      "href": "https://martinfowler.com/tags/2013.html"
+    },
+    {
+      "text": "2012",
+      "href": "https://martinfowler.com/tags/2012.html"
+    },
+    {
+      "text": "2011",
+      "href": "https://martinfowler.com/tags/2011.html"
+    },
+    {
+      "text": "2010",
+      "href": "https://martinfowler.com/tags/2010.html"
+    },
+    {
+      "text": "2009",
+      "href": "https://martinfowler.com/tags/2009.html"
+    },
+    {
+      "text": "2008",
+      "href": "https://martinfowler.com/tags/2008.html"
+    },
+    {
+      "text": "2007",
+      "href": "https://martinfowler.com/tags/2007.html"
+    },
+    {
+      "text": "2006",
+      "href": "https://martinfowler.com/tags/2006.html"
+    },
+    {
+      "text": "2005",
+      "href": "https://martinfowler.com/tags/2005.html"
+    },
+    {
+      "text": "2004",
+      "href": "https://martinfowler.com/tags/2004.html"
+    },
+    {
+      "text": "2003",
+      "href": "https://martinfowler.com/tags/2003.html"
+    },
+    {
+      "text": "2002",
+      "href": "https://martinfowler.com/tags/2002.html"
+    },
+    {
+      "text": "2001",
+      "href": "https://martinfowler.com/tags/2001.html"
+    },
+    {
+      "text": "2000",
+      "href": "https://martinfowler.com/tags/2000.html"
+    },
+    {
+      "text": "1999",
+      "href": "https://martinfowler.com/tags/1999.html"
+    },
+    {
+      "text": "1998",
+      "href": "https://martinfowler.com/tags/1998.html"
+    },
+    {
+      "text": "1997",
+      "href": "https://martinfowler.com/tags/1997.html"
+    },
+    {
+      "text": "1996",
+      "href": "https://martinfowler.com/tags/1996.html"
+    },
+    {
+      "text": "All Content",
+      "href": "https://martinfowler.com/tags/index.html"
+    },
+    {
+      "text": "Architecture",
+      "href": "https://martinfowler.com/architecture"
+    },
+    {
+      "text": "Refactoring",
+      "href": "https://refactoring.com/"
+    },
+    {
+      "text": "Agile",
+      "href": "https://martinfowler.com/agile.html"
+    },
+    {
+      "text": "Delivery",
+      "href": "https://martinfowler.com/delivery.html"
+    },
+    {
+      "text": "Microservices",
+      "href": "https://martinfowler.com/microservices"
+    },
+    {
+      "text": "Data",
+      "href": "https://martinfowler.com/data"
+    },
+    {
+      "text": "Testing",
+      "href": "https://martinfowler.com/testing"
+    },
+    {
+      "text": "DSL",
+      "href": "https://martinfowler.com/dsl.html"
+    },
+    {
+      "text": "About",
+      "href": "https://martinfowler.com/aboutMe.html"
+    },
+    {
+      "text": "Books",
+      "href": "https://martinfowler.com/books"
+    },
+    {
+      "text": "FAQ",
+      "href": "https://martinfowler.com/faq.html"
+    },
+    {
+      "text": "Videos",
+      "href": "https://martinfowler.com/videos.html"
+    },
+    {
+      "text": "Content Index",
+      "href": "https://martinfowler.com/tags"
+    },
+    {
+      "text": "Fragments",
+      "href": "https://martinfowler.com/fragments"
+    },
+    {
+      "text": "Board Games",
+      "href": "https://martinfowler.com/boardgames"
+    },
+    {
+      "text": "Photography",
+      "href": "https://martinfowler.com/photos"
+    },
+    {
+      "text": "Home",
+      "href": "https://thoughtworks.com/"
+    },
+    {
+      "text": "Insights",
+      "href": "https://thoughtworks.com/insights"
+    },
+    {
+      "text": "Careers",
+      "href": "https://thoughtworks.com/careers"
+    },
+    {
+      "text": "Radar",
+      "href": "https://thoughtworks.com/radar"
+    },
+    {
+      "text": "Engineering",
+      "href": "https://www.thoughtworks.com/engineering"
+    },
+    {
+      "text": "RSS",
+      "href": "https://martinfowler.com/feed.atom"
+    },
+    {
+      "text": "Mastodon",
+      "href": "https://toot.thoughtworks.com/@mfowler"
+    },
+    {
+      "text": "LinkedIn",
+      "href": "https://www.linkedin.com/in/martin-fowler-com/"
+    },
+    {
+      "text": "Bluesky",
+      "href": "https://bsky.app/profile/martinfowler.com"
+    },
+    {
+      "text": "X",
+      "href": "https://www.twitter.com/martinfowler"
+    },
+    {
+      "text": "BGG",
+      "href": "https://boardgamegeek.com/blog/13064/martins-7th-decade"
+    },
+    {
+      "text": "",
+      "href": "https://www.thoughtworks.com/engineering"
+    },
+    {
+      "text": "Disclosures",
+      "href": "https://martinfowler.com/aboutMe.html#disclosures"
+    }
+  ]
+}

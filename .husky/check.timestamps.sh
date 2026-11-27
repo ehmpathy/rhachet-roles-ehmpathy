@@ -35,6 +35,12 @@ while IFS= read -r file; do
     *.ts | *.sh) continue ;;
   esac
 
+  # skip a route's raw citation captures: each is a verbatim fetch, written once and never
+  # regenerated, so its stamps (a submission date, a crossref index time) cannot permadrift
+  case "$file" in
+    .behavior/*/refs/.raw/*) continue ;;
+  esac
+
   # read the staged content; fail loud if git cannot read the staged blob
   # (2>&1 captures git's error into the var so the halt message can surface it)
   if ! content=$(git show ":$file" 2>&1); then

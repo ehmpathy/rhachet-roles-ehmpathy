@@ -1,0 +1,120 @@
+{
+  "source": {
+    "id": "hoare1969",
+    "kind": "crossref",
+    "query": "Hoare An axiomatic basis for computer programming 1969",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Hoare%20An%20axiomatic%20basis%20for%20computer%20programming%201969&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:11:23.642Z",
+  "items": [
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "10",
+      "DOI": "10.1145/363235.363259",
+      "type": "journal-article",
+      "page": "576-580",
+      "title": [
+        "An axiomatic basis for computer programming"
+      ],
+      "volume": "12",
+      "author": [
+        {
+          "given": "C. A. R.",
+          "family": "Hoare",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Queen's Univ. of Belfast, Northern Ireland"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Communications of the ACM"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1969,
+            10
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.7551/mitpress/12274.003.0033",
+      "title": [
+        "An Axiomatic Basis for Computer Programming (1969)"
+      ],
+      "author": [
+        {
+          "given": "C. A. R.",
+          "family": "Hoare",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Ideas That Created the Future"
+      ],
+      "page": "297-306",
+      "issued": {
+        "date-parts": [
+          [
+            2021,
+            2,
+            2
+          ]
+        ]
+      },
+      "publisher": "The MIT Press",
+      "type": "book-chapter"
+    },
+    {
+      "DOI": "10.1007/978-1-4612-6315-9_9",
+      "title": [
+        "An Axiomatic Basis for Computer Programming"
+      ],
+      "author": [
+        {
+          "given": "C. A. R.",
+          "family": "Hoare",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Programming Methodology"
+      ],
+      "page": "89-100",
+      "issued": {
+        "date-parts": [
+          [
+            1978
+          ]
+        ]
+      },
+      "publisher": "Springer New York",
+      "type": "book-chapter"
+    }
+  ]
+}

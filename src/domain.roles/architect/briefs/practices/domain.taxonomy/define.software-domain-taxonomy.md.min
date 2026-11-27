@@ -1,0 +1,10 @@
+# define.software-domain-taxonomy
+
+software splits by what it does with information:
+- **operations research** — optimizes over scarce resources (schedules, routes, rosters) → a declared formulation + a solver
+- **information logistics** — records and moves information → storage, queues, apis
+  - **transactional** — live writes that keep the domain's invariants → storage with structural enforcements
+  - **analytical** — reads over history → a warehouse (redshift, athena), fed one way from the transactional source of truth
+most of our systems are transactional; some own an analytical copy; few have an optimization
+the kind decides the tools. two hazards, each its own forbid: rule.forbid.handrolled-search-over-scarce-resources (cure: a solver) · rule.forbid.analytical-scans-on-live-storage (cure: an analytical copy)
+test: before the first design choice, name the kind — optimize, transact, or analyze. two kinds → two parts

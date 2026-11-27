@@ -1,0 +1,76 @@
+{
+  "index": {
+    "id": "links.cidr2015-program",
+    "url": "https://www.cidrdb.org/cidr2015/program.html"
+  },
+  "urlFinal": "https://www.cidrdb.org/cidr2015/program.html",
+  "status": 200,
+  "title": "CIDR 2015 - PROGRAM",
+  "fetchedAt": "2026-11-26T17:05:31.832Z",
+  "links": [
+    {
+      "text": "CIDR 2015",
+      "href": "https://www.cidrdb.org/cidr2015/index.html"
+    },
+    {
+      "text": "Home",
+      "href": "https://www.cidrdb.org/cidr2015/index.html"
+    },
+    {
+      "text": "Call For Papers",
+      "href": "https://www.cidrdb.org/cidr2015/cfp.html"
+    },
+    {
+      "text": "Organization",
+      "href": "https://www.cidrdb.org/cidr2015/org.html"
+    },
+    {
+      "text": "Program and Papers",
+      "href": "https://www.cidrdb.org/cidr2015/program.html"
+    },
+    {
+      "text": "Registration",
+      "href": "https://www.cidrdb.org/cidr2015/registration.html"
+    },
+    {
+      "text": "Venue Information",
+      "href": "http://www.visitasilomar.com/"
+    },
+    {
+      "text": "Previous Conferences",
+      "href": "https://www.cidrdb.org/index.html"
+    },
+    {
+      "text": "CIDR 2013",
+      "href": "http://www.cidrdb.org/cidr2013/index.html"
+    },
+    {
+      "text": "CIDR 2011",
+      "href": "https://www.cidrdb.org/cidr2011/index.html"
+    },
+    {
+      "text": "CIDR 2009",
+      "href": "https://www.cidrdb.org/cidr2009/index.html"
+    },
+    {
+      "text": "CIDR 2007",
+      "href": "https://www.cidrdb.org/cidr2007/index.html"
+    },
+    {
+      "text": "CIDR 2005",
+      "href": "https://www.cidrdb.org/cidr2005/index.html"
+    },
+    {
+      "text": "CIDR 2003",
+      "href": "https://www.cidrdb.org/cidr2003/index.html"
+    },
+    {
+      "text": "Specialized Evolution of the General Purpose CPU",
+      "href": "https://www.cidrdb.org/cidr2015/CIDR15_KeyNote.pdf"
+    },
+    {
+      "text": "Accepted Abstracts",
+      "href": "https://www.cidrdb.org/cidr2015/CIDR2015ACCEPTEDABSTRACTS.pdf"
+    }
+  ]
+}

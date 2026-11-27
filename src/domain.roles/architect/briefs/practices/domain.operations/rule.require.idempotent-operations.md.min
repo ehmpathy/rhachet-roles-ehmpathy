@@ -1,0 +1,7 @@
+# rule.require.idempotent-operations
+
+every domain.operation is idempotent by default: a re-run with the same input converges to the same end, with no extra effect. a non-idempotent operation must justify itself. the contract-scale twin of mechanic `rule.require.idempotent-procedures`
+why: idempotent operations are the atoms the garden composes — recomposable, retry-safe, they let callers collapse guards, and they declare their own safety
+how: name the verb for convergence (findsert · upsert · delete; never create · insert · add) · key on the natural identity · carry an idempotency key where the boundary cannot dedupe on it · converge toward a declared end, never append an incremental effect
+the exception: an intrinsic append (audit log, monotonic counter, one-time token) — named so, its reason recorded, isolated so composers see the retry hazard
+enforcement: non-idempotent by accident = blocker; a mutation verb that duplicates on retry with no key or natural-key upsert = blocker; an intrinsic exception with no recorded reason = blocker

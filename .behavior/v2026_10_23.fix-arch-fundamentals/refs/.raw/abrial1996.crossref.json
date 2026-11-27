@@ -1,0 +1,109 @@
+{
+  "source": {
+    "id": "abrial1996",
+    "kind": "crossref",
+    "query": "Abrial The B-Book assigning programs to meanings 1996",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Abrial%20The%20B-Book%20assigning%20programs%20to%20meanings%201996&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:11:29.624Z",
+  "items": [
+    {
+      "DOI": "10.1017/cbo9780511624162",
+      "title": [
+        "The B-Book"
+      ],
+      "author": [
+        {
+          "given": "J. R.",
+          "family": "Abrial",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "A.",
+          "family": "Hoare",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Pierre",
+          "family": "Chapron",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1996,
+            10,
+            10
+          ]
+        ]
+      },
+      "publisher": "Cambridge University Press",
+      "type": "monograph"
+    },
+    {
+      "DOI": "10.1017/cbo9780511624162.018",
+      "title": [
+        "Syntax"
+      ],
+      "container-title": [
+        "The B-Book"
+      ],
+      "page": "715-724",
+      "issued": {
+        "date-parts": [
+          [
+            1996,
+            10,
+            10
+          ]
+        ]
+      },
+      "publisher": "Cambridge University Press",
+      "type": "other"
+    },
+    {
+      "DOI": "10.1017/cbo9780511624162.014",
+      "title": [
+        "Refinement"
+      ],
+      "container-title": [
+        "The B-Book"
+      ],
+      "page": "501-550",
+      "issued": {
+        "date-parts": [
+          [
+            1996,
+            10,
+            10
+          ]
+        ]
+      },
+      "publisher": "Cambridge University Press",
+      "type": "book-chapter"
+    }
+  ]
+}

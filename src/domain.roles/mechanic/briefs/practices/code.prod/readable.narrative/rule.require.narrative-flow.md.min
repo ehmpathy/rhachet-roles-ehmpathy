@@ -1,58 +1,17 @@
 .tactic = flow:narrative
 
-.what = structure logic as flat linear code paragraphs — no nested branches — for better clarity and scanability
-
-.scope:
-  - applies to procedural code: stitched logic, exports, internal helpers
-  - required for conditional flows, validation paths, stateful transformations
-
-.why:
-  - reduces visual complexity by eliminating indentation
-  - aligns with narrative flow: guard clauses → main path → fallback
-  - eases read, debug, test, extend
-  - allows single comment summary per paragraph
-
+.what = procedural code reads as flat, linear code paragraphs — guard clauses, then the main path. no else, no nested if
 .how:
-  - eliminate if/else and nested if blocks
-    - use early returns (if (x) return, if (error) throw)
-    - prefer return, throw, or continue
-  - use code paragraphs:
-    - 1–5 lines per task
-    - each preceded by // one-line title explaining what or why
-    - separate paragraphs with blank line
-    - comments explain only why paragraph exists
-  - break deep nests into separate procedures if needed
+  - early returns and throws in place of if/else (`if (!input.email) return failure();`)
+  - code paragraphs: 1–5 lines per task, each under a one-line `//` title, a blank line between
+  - a deep nest → split into its own procedure
+```ts
+// validate input format
+const isValid = validateShape(input);
+if (!isValid) return failure();
 
-.enforcement:
-  - else and nested if are blockers; refactor
-  - multi-line blocks need paragraph title
-  - paragraph comments are one-liners
-  - flatten decision tree code
-
-.definitions:
-  - code paragraph = contiguous related lines, preceded by single-line // title and separated by blank line
-    ```ts
-    // validate input format
-    const isValid = validateShape(input);
-    if (!isValid) return failure();
-
-    // attempt fallback resolution
-    const resolved = tryToResolve(input);
-    if (!resolved) MalfunctionError.throw('resolution failed');
-    ```
-
-.examples:
-  .positive:
-    ```ts
-    // return early if invalid
-    if (!input.email) return failure();
-
-    // check for banned domains
-    if (input.email.endsWith('@spam.com')) return forbidden();
-
-    // process verified email
-    const result = handleVerifiedEmail(input.email);
-    ```
-
-.links:
-  - see: comment-discipline, funcs:shape-and-signal, flow:guard-first
+// attempt fallback
+const found = tryToFind(input);
+if (!found) MalfunctionError.throw('fallback failed');
+```
+.enforcement: else and nested if = blocker; a multi-line block with no paragraph title = blocker

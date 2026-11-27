@@ -1,0 +1,6 @@
+# rule.require.domain-event-suffix
+
+every domain event is named `[Noun][PastVerb]Event` — `LessonCanceledEvent`, `WaveObservedEvent`. no entity or literal ends in `Event`
+why: scannable — facts that happened read apart from records that are · one sense — a bare `PaymentRefunded` collides with `status === 'REFUNDED'` · `*Event` groups every event in a search or import list
+how: noun = what the fact is about · past verb = what happened to it · suffix `Event`, once, never a prefix · file name = class name · the operation and handler keep their own names: `setLessonCanceled` commits `LessonCanceledEvent`, `onLessonCanceledEvent` reacts · a need (`RefundRequiredEvent`) breaks the past-verb part: an event declares a fact, never an order
+enforcement: a `DomainEvent` with no `Event` suffix = blocker; an entity or literal that ends in `Event` = blocker; an event named for a need = blocker

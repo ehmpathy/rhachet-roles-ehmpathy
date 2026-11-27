@@ -1,0 +1,106 @@
+{
+  "source": {
+    "id": "abrial2010",
+    "kind": "crossref",
+    "query": "Abrial Modeling in Event-B system and software engineering 2010",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Abrial%20Modeling%20in%20Event-B%20system%20and%20software%20engineering%202010&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:16:04.909Z",
+  "items": [
+    {
+      "DOI": "10.1017/cbo9781139195881",
+      "title": [
+        "Modeling in Event-B"
+      ],
+      "author": [
+        {
+          "given": "Jean-Raymond",
+          "family": "Abrial",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            2010,
+            5,
+            13
+          ]
+        ]
+      },
+      "publisher": "Cambridge University Press",
+      "type": "monograph"
+    },
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "2",
+      "DOI": "10.1145/1943371.1943378",
+      "type": "journal-article",
+      "page": "38-39",
+      "title": [
+        "Modeling in event-b - system and software engineering by Jean-Raymond Abrial"
+      ],
+      "volume": "36",
+      "author": [
+        {
+          "suffix": "Jr.",
+          "given": "Aryldo G.",
+          "family": "Russo",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "AeS Group - Brazil"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "ACM SIGSOFT Software Engineering Notes"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            2011,
+            3,
+            14
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.1017/cbo9781139195881.018",
+      "title": [
+        "Train system"
+      ],
+      "container-title": [
+        "Modeling in Event-B"
+      ],
+      "page": "508-549",
+      "issued": {
+        "date-parts": [
+          [
+            2010,
+            5,
+            13
+          ]
+        ]
+      },
+      "publisher": "Cambridge University Press",
+      "type": "book-chapter"
+    }
+  ]
+}

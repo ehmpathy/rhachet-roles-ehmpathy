@@ -1,0 +1,28 @@
+{
+  "source": {
+    "id": "page.minsky2011",
+    "kind": "page",
+    "url": "https://blog.janestreet.com/effective-ml-revisited/",
+    "keywords": [
+      "illegal states unrepresentable",
+      "2010"
+    ]
+  },
+  "urlFinal": "https://blog.janestreet.com/effective-ml-revisited/",
+  "status": 200,
+  "fetchedAt": "2026-11-23T12:57:19.023Z",
+  "title": "Jane Street Blog - Effective ML Revisited",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "Effective ML Revisited"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "illegal states unrepresentable",
+      "window": "= ) : t -> t -> bool val ( > ) : t -> t -> bool val ( < ) : t -> t -> bool val ( <> ) : t -> t -> bool val min : t -> t -> t val max : t -> t -> t module Map : Core_map.S with type key = t module Set : Core_set.S with type elt = t end module Char : sig type t include Comparable with type t := t include Stringable with type t := t include Hashable with type t := t end Make illegal states unrepresentable Before: type connection_state = | Connecting | Connected | Disconnected type connection_info = { state: connection_state; server: Inet_addr.t; last_ping_time: Time.t option; last_ping_id: int option; session_id: string option; when_initiated: Time.t option; when_disconnected: Time.t option; } After: type connecting = { when_initiated: Time.t; } ty"
+    }
+  ],
+  "textLength": 5992
+}

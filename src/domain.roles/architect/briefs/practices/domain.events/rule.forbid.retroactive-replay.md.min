@@ -1,0 +1,8 @@
+# rule.forbid.retroactive-replay
+
+never set a late or wrong fact right by a rewind: no replay from a branch point, no fact inserted into the past or rejected out of it, no merge of the difference into live records. a correction lands at the head of the stream
+why: it rewrites the past ("effectively a delete to the event log", fowler) · the peers already acted, and each reaction must be undone by hand · it rests on replay as the read path (`rule.forbid.replay-on-read`) · the merge is its own system
+not a rewind: a fixed consumer that replays the stream forward to repair its own records (`pattern=replayable-fact-stream`)
+cure: our report was wrong → a newer version, same unique key and `occurredAt`, newer `observedAt` (`pattern=corrected-version`) · the world moved on → a new fact that answers the old (`pattern=correction-event`) · a fact arrived late → naught new; the consumer applies it by key and version (`pattern=latest-version-wins`)
+enforcement: a correction by rewind, insert into the past, or reject = blocker; a published fact edited in place or deleted = blocker
+full: catalog.of=pattern.event._ (facet `correction`)

@@ -1,0 +1,1 @@
+../../../../../src/domain.roles/architect/briefs/practices/domain.constraints/define.constraint._.md

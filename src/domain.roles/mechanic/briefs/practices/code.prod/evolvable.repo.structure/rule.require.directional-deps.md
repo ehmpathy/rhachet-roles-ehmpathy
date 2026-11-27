@@ -136,3 +136,7 @@ import { generateInvoice } from '@/domain.operations/generateInvoice'; // 👎 d
 // access/svcs/sdkWrapper.ts
 import { dispatchFlow } from '@/contract/'; // 👎 bottom-up reference
 ```
+
+## .see also
+
+- `catalog.of=pattern.transaction.bound=storage.trait=atomicity.pattern=transaction-at-the-entrypoint` (architect) — inward deps let one entrypoint own the transaction scope; no inner layer can open its own

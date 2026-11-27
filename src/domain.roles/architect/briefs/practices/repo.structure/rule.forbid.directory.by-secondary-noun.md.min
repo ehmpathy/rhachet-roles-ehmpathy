@@ -1,0 +1,8 @@
+# rule.forbid.directory.by-secondary-noun
+
+never place a file in a directory named for any noun but its filename's primary noun — the first noun after the verb. a dir named for a secondary noun, a status, or a concern splits peers and buries the file
+smell: a status- or concern-named dir at a domain root (`blocked/`, `promise/`) that holds handlers for a broader noun · `setStoneAs*` spread across several dirs · a file whose first noun names no segment of its path
+cure: strip the verb; the first noun is the top dir (`setStoneAsBlocked` → `stones/`) · descend to a narrower sub-noun only where it clusters · a handler sits with its peers at the broad noun; machinery about a narrow concern nests at its own noun (`getBlockedChallengeDecision` → `stones/blocked/`)
+enforcement: a file in a dir named for a noun other than its primary noun = blocker; a verb handler split from its peers by a secondary noun = blocker
+full: rule.require.directory.by-primary-noun
+

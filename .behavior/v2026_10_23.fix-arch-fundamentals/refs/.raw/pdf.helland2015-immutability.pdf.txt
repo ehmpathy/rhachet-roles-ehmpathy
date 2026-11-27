@@ -1,0 +1,474 @@
+                                Immutability Changes Everything
+                                                            Pat Helland
+                                                          Salesforce.com
+                                                      One Market Street, #300
+                                                   San Francisco, CA 94105 USA
+                                                         01(415) 546-5881
+                                                     phelland@salesforce.com
+
+ABSTRACT                                                                   Next, we discuss how the hardware folks have joined the party by
+There is an inexorable trend towards storing and sending                   leveraging these tricks in SSD and HDD. See Figure 1.
+immutable data. We need immutability to coordinate at a distance           Finally, we look at some trade-offs with using immutable data.
+and we can afford immutability, as storage gets cheaper.                                                            App over Immutable Data:
+                                                                                      Append-Only Apps
+                                                                                                                    Record Facts then Derive
+This paper is simply an amuse-bouche on the repeated patterns of
+computing that leverage immutability. Climbing up and down the                     App Generated DataSets           Generate Immutable Data
+compute stack really does yield a sense of déjà vu all over again.
+                                                                                                                    Read & Write Immutable
+                                                                                 Massively Parallel “Big Data”
+1. INTRODUCTION                                                                                                     DataSets
+It wasn’t that long ago that computation was expensive, disk                      SQL Snapshots & DataSets          Generate Immutable Data
+storage was expensive, DRAM was expensive, but coordination
+with latches was cheap. Now, all these have changed using cheap                Subjectively Immutable DataSets      Interpret Data as Immutable
+computation (with many-core), cheap commodity disks, and
+cheap DRAM and SSD, while coordination with latches gets                                                            Expose Change over
+                                                                                     LSF, LSM, and COW
+                                                                                                                    Immutable Files by Append
+harder because latch latency loses lots of instruction opportunities.
+                                                                                                                    Replication of Files/Blocks
+We can now afford to keep immutable copies of lots of data, and                        Immutable Files
+                                                                                                                    without Update Anomalies
+one payoff is reduced coordination challenges.
+                                                                                                                    Change via COW to Spread
+                                                                                    Wear Leveling on SSD
+1.1 More Storage, Distribution, & Ambiguity                                                                         Physical Update Blocks
+We have increasing storage as the cost per terabyte of disk keeps                                                    Change via COW to Allow
+                                                                                       Shingles on HDD
+                                                                                                                     Large Physical Rewrites
+dropping. This means we can keep lots of data for a long time.
+                                                                            Figure 1. Immutability is a key architectural concept at many layers
+We have increasing distribution as more and more data and work                        of the stack.
+are spread across a great distance. Data within a datacenter seems
+“far away”. Data within a many-core chip may seem “far away”.              2. Accountants Don’t Use Erasers
+We have increasing ambiguity when trying to coordinate with                Lots of computing can be characterized as “append-only”. This
+systems that are far away… more stuff has happened since you’ve            section looks at some of the ways this is commonly accomplished.
+heard the news. Can you take action with incomplete knowledge?
+Can you wait for enough knowledge?                                         2.1 “Append-Only” Computing
+                                                                           May kinds of computing are “Append-Only”. Observations are
+1.2 Turtles All the Way Down [17]                                          recorded forever (or for a long time). Derived results are
+As various technological areas have evolved recently, they have            calculated on demand (or periodically pre-calculated).
+responded to these trends of increasing storage, distribution, and
+ambiguity by using immutable data in some very fun ways. We                This is similar to a database management system. Transaction
+will explore how apps use immutability in their ongoing work,              logs record all the changes made to the database. High-speed
+how apps generate immutable DataSets for later offline analysis,           appends are the only way to change the log. From this
+how SQL can expose and process immutable snapshots, how                    perspective, the contents of the database hold a caching of the
+massively parallel “Big Data” work relies on immutable DataSets.           latest record values in the logs. The truth is the log. The database
+This leads us to looking at the ways in which semantically                 is a cache of a subset of the log. That cached subset happens to be
+immutable DataSets may be altered while remaining immutable.               the latest value of each record and index value from the log.
+Next, we consider how updatability is layered atop the creation of         2.2 Accounting: Observed & Derived Facts
+new immutable files via techniques like LSF (Log Structure File            Accountants don’t use erasers or they go to jail. All entries in a
+systems), COW (Copy on Write), and LSM (Log Structured                     ledger remain in the ledger. Corrections can be made but only by
+Merge trees). We examine how replicated and distributed file               making new entries in the ledger. When a company’s quarterly
+systems depend on immutability to eliminate anomalies.                     results are published, they include small corrections to the
+  This article is published under a Creative Commons Attribution License   previous quarter. Small fixes are OK! They are append-only, too!
+  (http://creativecommons.org/licenses/by/3.0/),     which       permits
+  distribution and reproduction in any medium as well allowing             Some entries describe observed facts. For example, receiving a
+  derivative works, provided that you attribute the original work to the   debit or credit against a checking account is an observed fact.
+  author(s) and CIDR 2015.                                                 Some entries describe derived facts. Based on the observations,
+                                                                           we can calculate something new. For example, amortized capital
+  7th Biennial Conference on Innovative Data Systems Research
+                                                                           expenses based upon a rate and a cost. Another example is the
+  (CIDR ’15) January 4-7, 2015, Asilomar, California, USA.
+                                                                           current bank account balance with applied debits and credits.
+2.3 Append-Only Distributed Single Master                             3.3 Contrasting Inside vs. Outside
+Single master computing means somehow we order the changes.           There are deep differences in the representation, meaning, and
+The order can come from a centralized master or some Paxos-like       usage of inside data versus outside data. Increasingly, we are
+[11] distributed protocol providing serial ordering. Somehow, we      keeping data as outside (immutable) data.
+semantically apply the changes one at a time.
+                                                                                                 Inside Data           Outside Data
+Changes are layered over their predecessors. New values
+supersede old ones. The granularity of this may be a set of              Changeable                  Yes!             No! Immutable
+records in a relational store or a new version of a document.
+                                                                                                                      Document, File,
+Distributed single-master computing means there is a space of             Granularity          Relational Field
+                                                                                                                       or Message
+data (relational records, documents, export-files, and more) that
+emanates from one logical location with new versions over time.                                   Typically              Typically
+                                                                       Representation
+                                                                                                  Relational          Semi-Structured
+2.4 Distributed Computing “Back in the Day”                                Schema                Prescriptive            Descriptive
+Before telephones, people used messengers. These were kids
+walking through town to deliver the message. Alternatively, the                                 No Identity:           Identity: URL,
+                                                                            Identity
+Postal Service delivered the messages. They took a long time…                                  Data by Values         Msg#, Doc-ID…
+Sometimes, people used fancy forms to capture the computing.                                   No Versioning:          Versions May
+The forms had many layers, each a different color. The forms had          Versioning
+                                                                                               Data by Value          Augment Identity
+multiple sections on the page. A participant in the work filled out
+the next section (pressing hard with the pen). Then, he tore off      4. Referencing Immutable Data
+the back page of the form and filed it. Each participant got the      In this section, we introduce DataSets as a collection of data with
+data they needed and added more data to the form. You can’t           a unique ID. Some DataSets have a structure that looks like a
+update earlier sections, only append data to the end. See Figure 2.   number of tables with schema. We consider how these DataSets
+                                                                      can be referenced by a relational database and how relational
+ Figure 2. Before computers,                                          operators may span both the DBMS and DataSet.
+           workflow was frequently              Part11
+                                               Part
+                                              Part
+                                             Part  1                  4.1 DataSets: Immutable Collections of Data
+           captured in paper forms               11 2
+                                            PartPart
+           with multiple parts on the         Part222
+                                               Part
+                                             Part
+                                                                      Let’s define a DataSet as a fixed and immutable set of tables.
+           form and multiple pages.         Part 2 3
+                                                Part                  The schema for each table is captured in the DataSet. The
+                                               Part
+                                              Part 33                 contents of each table are captured when the DataSet is created.
+    “Fill out Part 3 and keep the            Part 3
+                                            Part 3 ……                 Since the DataSet is immutable, it is created, may be consumed
+   goldenrod page from the back.”                …
+                                                 ……                   for reading, and then it is deleted. DataSets may be relational or
+                                                                      they may have some other representation such as a graph, a
+                                                                      hierarchy (e.g. JSON), or any other representation. See Figure 3.
+Distributed computing was append-only! New messages, new
+additions to the form… Each is a version and each is immutable.
+You were never allowed to overwrite what had been written.
+3. Data on the Outside vs. Data on the Inside
+Surprisingly (to us database old timers), not all data is kept in
+relational database systems. This section discusses some of the                        …            …           …        …
+implications of unlocking data. This section is a subset of [7].                 Table1          Table2               TableN
+3.1 Data on the Inside
+Data on the inside refers to stuff kept and managed by a classic               DataSet-X                    Schema
+relational database systems and its surrounding application code.
+Sometimes, this is referred to as a service.
+                                                                       Figure 3: A DataSet is a logical set of immutable
+Data on the inside lives in a transactional world with changes
+                                                                       tables along with its schema
+applied in a serializable fashion (or something close to that).
+3.2 Data on the Outside                                               4.2 DataSets Referenced by a Relational DB
+Data on the outside is prepared as messages, files, documents,        DataSets may be referenced by a relational DBMS. The metadata
+and/or web pages. These are sent out from a service into the wild     is visible to the DBMS. The data can be accessed for read, even
+and cruel word. It is also possible that outside data has been        though it may not be updated. The DataSet may be semantically
+created by some other mechanism than one using databases.             present within the relational system even if it is physically stored
+Data on the outside:                                                  elsewhere. Because the DataSet is immutable, there’s no need for
+ • Is Immutable: Once it is written, it is never changed.             locking and no worries about controlling updates.
+ • Is Unlocked: It is not locked in the database. A copy is           4.3 Relational Work on Immutable DataSets
+    extracted and sent outside.
+                                                                      A functional calculation takes a set of inputs and predictably
+ • Has Identity: When sent outside, these files, documents, and       creates a set of outputs. This can happen with a query against
+    messages have a unique identity (perhaps a URL).                  locked or snapshot data in a relational database. It can happen on
+ • Maybe versioned: Updates aren’t updates but new versions           a “Big Data” map-reduce style system. In both cases, there is a
+    with a new unique identifier.                                     still and unchanging collection of data. When we have snapshots
+or some form of isolation, database data becomes semantically         5.3 Immutability and “Big Data”
+immutable for the duration of the calculation. With “Big Data”        Massively parallel computations are based on immutable inputs
+calculations, the inputs are typically stored in GFS or HDFS files.   and functional calculations. MapReduce [3] and Dryad [9] both
+There’s no semantic obstacle to doing JOINs across data stored        take immutable files as input. The work is cut into pieces, each
+inside a relational database and data stored in external DataSets.    with immutable input.       This functional calculation (using
+Locking (or snapshot isolation) provides a version of the             immutable inputs) is idempotent. It is OK to fail and restart.
+relational database, which may be joined. Named and frozen
+DataSets may be joined with relational data. See Figure 4.                Immutability is the Backbone of “Big Data”
+                                                                               Functional Computation with Immutable Inputs
+      Relational DB
+                                                                         Failure and Restart Are Based on the Idempotent Nature of
+                                             Stored Elsewhere…
+                                                                              Functional Computation over Immutable Inputs
+     …
+                Join TableA
+  TableA        and Table1             …        …       …     …       5.4 Immutability as a Semantic Prism
+                                    Table1    Table2        TableN
+                                                                      DataSets show an immutable semantic prism, even if the
+     …                                                                underlying representation is augmented or completely replaced.
+  TableB      DataSet-X                                Schema         The King James Bible is character for character immutable; even
+                                   DataSet-X
+                                                                      when it is printed in a different font; even when digitized; even
+ Figure 4: You can meaningfully apply relational operations across    when accompanied by different pictures… Hmm…
+ data held in a DBMS and data held in immutable DataSets.             Is a DataSet changed if there is a loss-less transformation to a new
+                                                                      schema representation? If the new address field has more
+In some ways, the ability to work across immutable DataSets and
+                                                                      capacity, is that OK? If the ENUM values are mapped to a new
+relational databases is surprising. Immutable DataSets are defined
+                                                                      underlying representation, is that OK? Can we map the data from
+with an identity and an optional version. Their schema is the
+                                                                      UTF-8 to the UTF-16 encoding?
+schema that describes the shape and form of the DataSet at the
+time of its creation. It has descriptive schema rather than the            It’s Not Enough to Have the Right Bits!
+prescriptive schema held in the RDBMS.
+                                                                              You Have to Know How to Interpret Them…
+This tailoring of the schema to meld the two together connects the
+schema of the DataSet (describing its data when written) with the       “President Bush” meant a different thing in 1990 versus 2005
+schema of the RDBMS (describing its data as of the snapshot).         The word “Fanny” is interpreted differently in the US vs Australia
+Also, the JOINs and other relational operators must necessarily       You need to know what the Immutable Bits Actually Mean!
+combine the contents of the DataSet as interpreted as a set of
+relational tables. This sidesteps the notion of identity within the   5.5 Descriptive Meta-Data when Immutable
+DataSet and focuses exclusively on the tables as interpreted as a     Most of us are used to SQL DDL supporting dynamic changes in
+set of values held within rows and columns.                           the metadata for our tables. This happens at a transaction
+                                                                      boundary and can prescribe a new schema for the existing data.
+5. Immutability Is in the Eye of the Beholder
+In this section, we discuss the ways in which a consumer may see      When creating an immutable DataSet, the semantics of the data
+DataSets as immutable even if they change under the covers.           may not be changed. All we can do is describe the contents the
+                                                                      way they are at the time the DataSet is created.
+5.1 DataSets Are Semantically Immutable
+                                                                      SQL DDL can be thought of as prescriptive meta-data since it is
+A DataSet is semantically immutable. It has a set of tables, rows,
+                                                                      prescribing the representation (which may change). Immutable
+and columns. It may also have semi-structured data (e.g. JSON).
+                                                                      DataSets have descriptive meta-data that explains what’s there.
+It may have application specific data in a proprietary format.
+                                                                      Of course, you can create new DataSets that refer to one or many
+DataSets may be defined as a SELECTION, PROJECTION, or
+                                                                      other pre-existing DataSets to create a new representation of their
+JOIN over previously existing DataSets. Semantically, all that
+                                                                      data. The new DataSets each have their own unique ID.
+data is now a part of the new DataSet.
+                                                                      There’s nothing wrong with having a DataSet implemented by
+      What’s important about a DataSet is that it appears             reference and not by value.
+      to be unchanging from the standpoint of the reader.
+                                                                      5.6 Normalization Is for Sissies
+5.2 Optimizing DataSets for Read Patterns                             Normalization’s goal is to eliminate update anomalies. When the
+DataSets are semantically immutable but may be physically             data is not stored in a normalized fashion, updates might yield
+changed. You can add an index or two. It’s OK to denormalize          unpleasant results. The classic example is an imperfectly
+tables to optimize for read access. DataSets may be partitioned       normalized table in which each employee has their manager’s
+and the pieces placed close to their readers. A column-oriented       name and phone number. This makes it very hard to update the
+representation of a DataSet may make a lot of sense, too!             manager’s phone number since its stored in lots of places.
+You can make a copy of a table with far fewer columns to              Normalization is very important in a database designed for update.
+optimize for quick access (a skinny table). It’s OK to leave the      Normalization is not necessary in an immutable DataSet.
+column values in two places, both the skinny table and fat table.
+                                                                      The only reason to normalize immutable DataSets may be to
+By watching and monitoring the read usage of a DataSet, you may       reduce the storage necessary for them. On the other hand,
+realize new optimizations (e.g. new indices) are possible.            denormalized DataSets may be easy and faster to process as inputs
+                                                                      to a computation.
+6. Hey! Versions Are Immutable, Too!                                  6.4 Go Ahead! Have a COW!
+In this section, we consider the use of versions, each of which is    How does LSM make changeable stuff out of immutable files?
+immutable. First, we look at multi-version concurrency control.       Basically, it performs a COW or copy-on-write. The granularity
+Then, we see how techniques like LSM (Log Structured Merge            of the copy is typically a key-value pair. For a relational database,
+Trees) provide a semantic of change within a transactional space      this can be a key-value pair for each record or each index entry.
+while generating immutable data that describes the state of these     The changes are copied into the log and then copied into the LSM
+changes. Finally, we explore the world through the lens of copy-      tree (and copied a few more times for merges).
+on-write in which high-performance updates are implemented by         High-performance copy-on-write happens with logging and
+writing new immutable stuff.                                          classic DBMS performance techniques. The new versions are
+6.1 Versions and History                                              captured in memory and logged for failure recovery. The identity
+Other than the first version of something, a new version captures a   of each log-file is a unique ID and the log-files are immutable.
+replacement for or an augmentation to an earlier version.             Each new log-file can record the history of its preceding log-files
+                                                                      and even the identity of upcoming log files. If you have one of
+A linear version history is sometimes referred to as being strongly   the recent log-file-IDs, the entire LSM key-value store can be
+consistent. One version replaces another. There’s one parent and      reconstructed.
+one child. Each version is immutable. Each version has an
+identity. Typically, each version is viewed as a replacement for      Other than keeping the starting point for the log somewhere, all
+the earlier versions.                                                 the information describing the database state can be kept in
+                                                                      immutable files.
+Alternatively, you may have a DAG or directed acyclic graph of
+version history. With a DAG you may have many parents and/or          7. Keeping the Stone Tablets Safe
+many children. This is sometimes called eventual consistency.         Many file systems keep immutable files comprising immutable
+Versions are immutable and should have immutable names.               blocks. This section explore at a high level the implementation of
+                                                                      GFS and HDFS and the implications of what can be done with
+6.2 Multi-Version Concurrency Control                                 these files. We discuss the vagaries of files that can be renamed.
+Strongly consistent (ACID) transactions appear as if they run in a    Finally, we consider the value of storing immutable data within a
+serial order. This is sometimes called serializability [2].           consistent hash store.
+
+            The DB changes version by version.                        7.1 Log Structured Files: Running in Circles!
+                                                                      An early example of reifying change through immutability is Log
+  Transaction T1 is a version. Later, transaction T2 is a version.
+                                                                      Structured File Systems [16]. In this wonderful invention, file
+Everything changeable can be understood as a bunch of versions.       system writes are always appended to the end of a circular buffer.
+Transactions layer new versions of record and index changes atop      Occasionally, enough meta-data to reconstruct the file system is
+earlier versions. The new versions can be captured as snapshots       added to the circular buffer. Old stuff must be copied forward so
+                                                                      it is not overwritten.
+of the entire database (although that wouldn’t perform too well).
+Alternatively, you can capture the new version as changes to the      Log structured file systems have some very interesting
+                                                                      performance characteristics both good and bad. Today, they are
+previous version. You can build a key-value store this way. You
+                                                                      an important technique. As technology trends move in the
+can build a relational database atop a key-value store. Records are
+                                                                      direction of recent years, they will become even more important.
+deleted by adding tombstones.
+Adding new values to the key-value store changes the database.        7.2 Files, Blocks, & Replication
+                                                                      GFS [5], HDFS [1], and others offer highly available files. Each
+If a timestamp is added to each new version, it is possible to show
+                                                                      file is a bunch of blocks (or chunks). The file comprises a file
+the state of the DB as-of a point in time. This allows the user to
+                                                                      name and a description of the blocks needed to provide a byte
+navigate the state of the database to any old version. Ongoing
+                                                                      stream. Each block (called a chunk in GFS) is replicated in the
+work can see a stable snapshot of a version of the database.
+                                                                      cluster for durability and high availability. They are typically
+6.3 LSM: Reorganizing Immutable Stuff                                 replicated three times over different fault zones in the data center.
+With an LSM (Log Structured Merge tree)[15], changes to the           Each file is immutable and (typically) single writer. The file is
+key-value store are accomplished by writing new versions of the       created and one process can append to it. The file lives for a
+affected records. These new versions are logged to an immutable       while and is eventually deleted. Multi-writers are hard and GFS
+file. Periodically, the new versions of the key-values are sorted     had some challenges with this as explained in [13].
+by key and written out to an immutable file known as a Level-0
+                                                                      Immutable files and immutable blocks empower this replication.
+file within the LSM tree. Level-0 files are merged into a
+                                                                      The file system has no concept of a change to a complete file.
+collection of Level-1 files (typically 10 Level-1 files each
+                                                                      Each block’s immutability allows it to be easily replicated without
+containing 1/10th of the key range). Similarly, Level-1 LSM files
+                                                                      any update anomalies because it doesn’t get updated!
+are merged with Level-2 LSM files on a 10-to-1 basis. As you
+move down the LSM tree, each level has 10 times as many files.        High availability of immutable blocks is available now!
+Reading a record typically involves searching one file per level.
+                                                                          Google, Amazon, Facebook, Yahoo, Microsoft, and more
+As we merge the LSM files, we read immutable files and write                 keep petabytes and exabytes of immutable data!
+brand new immutable files with new identities.
+    LSM presents a facade of change atop immutable files.
+7.3 Widely Sharing Immutable Files Is Safe                            consistent servers and can retry to get the blocks durable in a
+                                                                      bounded time.
+Immutable files have an identity and content.
+
+
+
+
+                                                                        HDFS
+Neither the identity nor the content can change!
+
+
+
+
+                                                                                                                                                     Space
+                                                                                 NameNode
+
+
+
+
+                                                                                                                                                     Name
+                                                                                                                        Catalog in   Files/Blocks
+                                                                                                                         RDBMS       Identified by
+                                                                                 NameSpace
+You can copy an immutable file whenever and wherever you                                                                                 GUID
+want. You can share the immutable copies across users. As long                      Block &                          Data      Data
+
+
+
+
+                                                                                                                                                     File/Block
+                                                                                DataNode Mgmt
+as you manage reference counts (so you know when it’s OK to
+
+
+
+
+                                                                                                                                                        Store
+                                                                                                                     Node     Node
+                                                                                                            Data       Consistent         Data
+delete it), you can use one copy of the file to share across many                                           Node      Hashed Store        Node
+                                                                         Data      Data    …    Data                 Data      Data
+users. You can distribute immutable files wherever you want.             Node      Node         Node                 Node     Node
+With the same identity and same contents, the files are location
+                                                                        Figure 6: Immutable blocks over a consistent hashed store
+independent! See Figure 5.
+
+         Published Books are Immutable!                               7.6 Immutability and Decentralized Recovery
+                                                                      By separating the namespace from block placement control, there
+   Sometimes later editions repair previous bugs                      are a number of advantages. The consistent hashing ring can take
+           This is versioning of the book                             writes and reads even when the ring is under flux.
+                                                                      While the catalog is a central point for access, it does not have the
+         Versions are immutable objects!
+                                                   Figure 5           same varying load that a Name Node does when handling failures
+                                                                      in the cluster. The larger the cluster, the more Data Nodes will
+7.4 Names & Immutability… a Slippery Slope                            fail, each necessitating many controlling operations to elevate the
+GFS (Google File System) and HDFS (Hadoop Distributed File            replica count back to three. While this traffic happens, operations
+System) provide immutable files. Immutable blocks (chunks) are        to read and write from the cluster will experience SLA variation.
+replicated across data nodes. Immutable files are a sequence of       Immutability allows decentralized recovery of Data Node failures
+blocks (chunks) each of which is identified with a GUID. The          with more predictable SLAs.
+contents of a file are immutable and labeled with a GUID. The
+file-id GUID always refers to exactly one file and its contents.      8. Hardware Changes towards Unchanging
+GFS and HDFS also provide a namespace that can be changed!            The trend to leverage immutability in new designs is so pervasive
+The logical name of an immutable file may be changed to               we see it in a number of hardware areas. We first examine the
+something else. File names may be rebound to different contents.      implementation of SSDs, then some new trends in hard disks.
+Users must take great care to ensure they have predictable results
+when changing file names. Is something really immutable when
+                                                                      8.1 SSDs and Wear Leveling
+its name can change? What’s a name, anyway?                           The flash chip within most SSDs is broken into physical blocks,
+                                                                      each of which has an finite number of times it may be written
+7.5 Immutable Data and Consistent Hashing                             before it begins to wear our and give increasingly unreliable
+Consider a strongly consistent file system. There’s a single          results. Consequently, chip designers have a feature known as
+master controlling a namespace (perhaps a Posix-style                 wear leveling [12] to mitigate this aspect of flash.
+namespace). Looking up a file results in a GUID that is used to       Each new block or update to a block in the logical address space
+find an immutable byte stream.                                        of the flash chip is mapped to a different physical block. Each
+Let’s consider a store implemented with a consistent hashing [10].    new write (or update to a new block) is written to a different
+It’s well understood that consistent hashing offers very robust       physical block in a circular fashion, evening out the writes so each
+rebalancing under failures and/or additional capacity. It also has    physical block is written about as often as the others.
+somewhat chaotic placement behavior while the ring is adjusting       Wear leveling is a form of copy-on-write and treats each version
+to changes. There are times when some participants have seen the      of the block as an immutable version.
+changes and others have not. When reading and updating within a
+consistent hashing key-value store, the read occasionally yields an   8.2 Hard Disks: Getting the Shingles
+older version of the value. To cope with this, the application must   As hard disk manufactures strive to get the areal density of the
+be designed to make the data eventually consistent [4], which is a    data on disk higher, some physical headaches have intervened.
+burden and makes application development more difficult.              Current designs have a much larger write track than read track.
+                                                                      Writes overlap the previous ones in a fashion evocative of laying
+When storing immutable data within a consistent hash ring, you        shingles on a roof. Hence the name “Shingled Disk Systems” [6].
+cannot get stale versions of the data. Each block stored has the
+only version it will ever have!                                       In shingled disks, there is a large band of data that is written as
+                                                                      layered write tracks forming a shingle pattern, partially
+This provides the advantages of a self-managing and master-less       overwriting the preceding tracks. The data in the middle of the
+file store while avoiding the anomalies and challenges of eventual    band cannot be overwritten without trashing the remaining part of
+consistency as seen by the application. See Figure 6.                 the band.
+Using an eventually consistent store to hold immutable data also      To overcome this, the hardware disk controllers implement log-
+means that log-writes can have more predictable SLAs by               structured file systems within the disk controller [14]. The
+allowing the replicas to land in less predictable locations in the    operating system is unaware of the use of shingles. What’s
+cluster. In a distributed cluster, you can know where you are         written to the disk (i.e. the band of data written with shingles)
+writing or you can know when the write will complete but not          remains unchanging until it is discarded. The user of the disk
+both [8]. By pre-allocating files from the strongly consistent        (e.g. the operating system) perceives the ability to update in place.
+catalog, log writes using the File-IDs only need to touch weakly
+9. Immutability May Have Some Dark Sides                               11. References
+As we leverage immutability in all these ways, there are tradeoffs     [1] http://en.wikipedia.org/wiki/Apache_Hadoop
+to be managed. We see denormalized documents as helping with           [2] Bernstein, P.; Hadzilacos, V.; Goodman, N. (1987).
+read performance at the expense of extra storage cost. Data is             “Concurrency Control and Recovery in Database Systems”,
+copied many times when we use copy on write. This is                       Addison Wesley, ISBN 0-201-10715-5.
+exacerbated when we layer these mechanisms.
+                                                                       [3] Dean, J.; Ghemawat, S. (2004). “MapReduce; Simplified
+9.1 Denormalization: Nimble but Fat                                        Data Processing on Large Clusters”. OSDI ’04: 6th
+Denormalization consumes storage as a data item is copied                  Symposium on Operating System Design & Implementation.
+multiple times in a DataSet. It’s good in that it eliminates JOINs
+                                                                       [4] DeCandia, G.; Hastorun, D.; Jampani, M.; Kakulapati, G.
+to put the data together, making the use of the data more efficient.
+                                                                           Lakshman, A.; Pilchin, A.; Sivasubramanian, S.; Vosshall, P.
+Immutable data has more choices for its representation. We can             Vogels, W. (2007). “Dynamo: Amazon’s Highly Available
+normalize for space optimization or denormalize for read usage.            Key-Value Store”. Proc of the 21st ACM Symp on Operating
+                                                                           Systems Principles.
+9.2 Write Amplification vs. Read Perspiration
+Data may be copied many times when we use copy on write                [5] Ghemawat, S.; Gobioff, H.; Leung, S. (2003) “The Google
+(e.g. with log structured file systems, log structured merge               File System”. Proceeedings of the 19th ACM Symposium on
+systems, wear leveling in SSDs, and shingle management in                  Operating Systems Principles – SOSP ‘03
+HDD). This is known as write amplification [18].                       [6] Gibson, G.; Ganger, G. (2011) “Principles of Operation for
+In many cases, there is a relationship between the amount of write         Shingled Disk Devices”. Carnegie Mellon University
+amplification and the difficulty involved in reading the data being        Parallel Data Lab Technical Report CMU-PDL-11-107.
+managed. For example, some LSM (Log Structured Merge tree)             [7] Helland, P. (2005) “Data on the Outside versus Data on the
+systems will do more or less copying as the data is reorganized            Inside” Proceedings of the 2005 CIDR Conference
+and merged. If the data is aggressively merged and reorganized,            (Conference on Innovative Database Research).
+there are fewer places that need checking to read a record. This
+                                                                       [8] Helland, P. (2014) “Heisenberg Was on the Write Track”.
+can reduce the cost of reading at the expense of additional writing.
+                                                                           Abstract: Proceedings of the 2015 CIDR Conference
+10. Conclusion                                                             (Conference on Innovative Database Research).
+Designs are driving towards immutability. We need immutability         [9] Isard, M.; Budiu, M.; Yu, Y.; Birrell, A.; Fetterly, D. (2007)
+to coordinate at ever increasing distances. We can afford                  “Dryad: Distributed Data-Parallel Programs from Sequential
+immutability given room to store data for a long time. Versioning          Building Blocks” European Conf on Computer Systems
+gives us a changing view of things while the underlying data is            (EuroSys).
+expressed with new contents bound to a unique identifier.
+                                                                       [10] Karger, D.; Lehman, E.; Leighton, T.; Panigraphy, R.;
+Copy-on-Write: Many emerging systems leverage copy-on-write                 Levine, M.; Lewin, D. (1997). “Consistent Hashing and
+semantics to provide a façade of change while writing immutable             Random Trees: Distributed Caching Protocols for Relieving
+files to an underlying store. In turn, the underlying store offers          Hot Spots on the World Wide Web”. Proc. of the 29th
+robustness and scalability because it is storing immutable files.           Annual ACM Symp on Theory of Computing.
+For instance, there are many key-value systems implemented with
+                                                                       [11] Lamport, L. (1998). “The Part-Time Parliament”,
+log-structured merge trees (e.g. HBase, BigTable, & LevelDB).
+                                                                            ACM Transactions on Computer Systems (TOCS), Volume
+Clean Replication: When data is immutable and has a unique                  16, Issue 2, May 1998.
+identifier, many different challenges with replication are eased.
+                                                                       [12] Lofgren, K.; Normal, R.; Thelin, G.; Gupta, A.; (2003).
+There’s never a worry about finding a stale version of the data
+                                                                            “Wear leveling techniques for flash EEPROM systems”.
+because there are no stale versions. Consequently, the replication
+                                                                            US Patent # 6850443 (SanDisk, Western Digital).
+system may be more fluid and less picky about where it allows a
+replica to land. There are fewer replication bugs, too.                [13] McKusick, M.; Quinlan, S.; “GFS: Evolution on Fast
+                                                                            Forward” (2009) ACM Queue, August 7, 2009.
+Immutable DataSets: Immutable DataSets can be combined by
+reference with transactional database data and offer clean             [14] New, R.; Williams, M.; (2003). “Log-structured file system
+semantics when the DataSets project relational schema and tables.           for disk drives with shingled writing”.
+We can look at the semantics projected by an immutable DataSet              US Patent # 7996645 (Hitachi).
+and create a new version of it optimized for a different usage         [15] O’Neil, P; Cheng, E.; Gawlick, D.; O’Neil, E. (1996) “The
+pattern but still projecting the same semantics. Projections,               Log-Structured Merge-Tree (LSM-tree)”.
+redundant copies, denormalization, indexing, and column stores              Acta Informatica 33 (4).
+are all examples of optimizing immutable data while preserving
+its semantics.                                                         [16] Rosenblum, M.; Ousterhout, J. (1992) “The Design and
+                                                                            Implementation of a Log-Structured File System”. ACM
+Parallelism and Fault Tolerance: Immutability and functional                Transactions on Computer Systems, Vol. 10, Issue 1.
+computation are the key to implementing “Big Data”.
+                                                                       [17] http://en.wikipedia.org/wiki/Turtles_all_the_way_down
+Immutability does change everything!                                   [18] http://en.wikipedia.org/wiki/Write_amplification
+

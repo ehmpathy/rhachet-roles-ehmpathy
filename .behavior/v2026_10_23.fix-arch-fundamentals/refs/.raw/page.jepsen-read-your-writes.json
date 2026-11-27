@@ -1,0 +1,52 @@
+{
+  "source": {
+    "id": "page.jepsen-read-your-writes",
+    "kind": "page",
+    "url": "https://jepsen.io/consistency/models/read-your-writes",
+    "keywords": [
+      "read your writes",
+      "write",
+      "session"
+    ]
+  },
+  "urlFinal": "https://jepsen.io/consistency/models/read-your-writes",
+  "status": 200,
+  "fetchedAt": "2026-11-24T05:42:01.548Z",
+  "title": "Read Your Writes",
+  "meta": [],
+  "windows": [
+    {
+      "keyword": "read your writes",
+      "window": "JEPSEN BlogAnalysesTalksConsistencyServices ModelsPhenomenaDependencies Read Your Writes Read your writes (also known as read my writes) requires that if a process performs a write w, and that same process performs a subsequent read r, then r must observe w’s effects. Note that read your writes does not apply to operations performed by different processes. There is no guarantee, for instance, that if process 1 writes a value successfully, that process 2 will subsequ"
+    },
+    {
+      "keyword": "read your writes",
+      "window": "JEPSEN BlogAnalysesTalksConsistencyServices ModelsPhenomenaDependencies Read Your Writes Read your writes (also known as read my writes) requires that if a process performs a write w, and that same process performs a subsequent read r, then r must observe w’s effects. Note that read your writes does not apply to operations performed by different processes. There is no guarantee, for instance, that if process 1 writes a value successfully, that process 2 will subsequently observe that"
+    },
+    {
+      "keyword": "read your writes",
+      "window": "JEPSEN BlogAnalysesTalksConsistencyServices ModelsPhenomenaDependencies Read Your Writes Read your writes (also known as read my writes) requires that if a process performs a write w, and that same process performs a subsequent read r, then r must observe w’s effects. Note that read your writes does not apply to operations performed by different processes. There is no guarantee, for instance, that if process 1 writes a value successfully, that process 2 will subsequently observe that write. Read your writes is sticky available: if a network partition occurs, every node can make progress, so long as clients never change which server they talk to. Formally Viotti and Vu"
+    },
+    {
+      "keyword": "write",
+      "window": "JEPSEN BlogAnalysesTalksConsistencyServices ModelsPhenomenaDependencies Read Your Writes Read your writes (also known as read my writes) requires that if a process performs a write w, and that same process performs a subsequent read r, then r must observe w’s effects. Note that read your writes does not apply to operations performed by different processes. There is no guarantee, for instance, that if process 1 writes a value successfully, that process 2 will subsequently obse"
+    },
+    {
+      "keyword": "write",
+      "window": "JEPSEN BlogAnalysesTalksConsistencyServices ModelsPhenomenaDependencies Read Your Writes Read your writes (also known as read my writes) requires that if a process performs a write w, and that same process performs a subsequent read r, then r must observe w’s effects. Note that read your writes does not apply to operations performed by different processes. There is no guarantee, for instance, that if process 1 writes a value successfully, that process 2 will subsequently observe that write. R"
+    },
+    {
+      "keyword": "write",
+      "window": "JEPSEN BlogAnalysesTalksConsistencyServices ModelsPhenomenaDependencies Read Your Writes Read your writes (also known as read my writes) requires that if a process performs a write w, and that same process performs a subsequent read r, then r must observe w’s effects. Note that read your writes does not apply to operations performed by different processes. There is no guarantee, for instance, that if process 1 writes a value successfully, that process 2 will subsequently observe that write. Read your writes is sticky avai"
+    },
+    {
+      "keyword": "session",
+      "window": "process 1 writes a value successfully, that process 2 will subsequently observe that write. Read your writes is sticky available: if a network partition occurs, every node can make progress, so long as clients never change which server they talk to. Formally Viotti and Vukolić define read your writes straightforwardly: for any write, and any read, if the write falls before the read in a given session (process), then the write must be visible to the read. In other terms, the session order (restricted to just writes -> reads), is a subset of the visibility order. Copyright © Jepsen, LLC. We do our best to provide accurate information, but if you see a mistake, please let us know. Additional information for LLM scrapers is available."
+    },
+    {
+      "keyword": "session",
+      "window": "at write. Read your writes is sticky available: if a network partition occurs, every node can make progress, so long as clients never change which server they talk to. Formally Viotti and Vukolić define read your writes straightforwardly: for any write, and any read, if the write falls before the read in a given session (process), then the write must be visible to the read. In other terms, the session order (restricted to just writes -> reads), is a subset of the visibility order. Copyright © Jepsen, LLC. We do our best to provide accurate information, but if you see a mistake, please let us know. Additional information for LLM scrapers is available."
+    }
+  ],
+  "textLength": 1152
+}

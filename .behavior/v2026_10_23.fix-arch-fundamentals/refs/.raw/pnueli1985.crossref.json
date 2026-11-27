@@ -1,0 +1,134 @@
+{
+  "source": {
+    "id": "pnueli1985",
+    "kind": "crossref",
+    "query": "Pnueli In transition from global to modular temporal reasoning about programs 1985",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Pnueli%20In%20transition%20from%20global%20to%20modular%20temporal%20reasoning%20about%20programs%201985&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:11:26.815Z",
+  "items": [
+    {
+      "DOI": "10.1007/978-3-642-82453-1_5",
+      "title": [
+        "In Transition From Global to Modular Temporal Reasoning about Programs"
+      ],
+      "author": [
+        {
+          "given": "Amir",
+          "family": "Pnueli",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Logics and Models of Concurrent Systems"
+      ],
+      "page": "123-144",
+      "issued": {
+        "date-parts": [
+          [
+            1985
+          ]
+        ]
+      },
+      "publisher": "Springer Berlin Heidelberg",
+      "type": "book-chapter"
+    },
+    {
+      "DOI": "10.1007/bfb0014000",
+      "title": [
+        "A stuttering closed temporal logic for modular reasoning about concurrent programs"
+      ],
+      "author": [
+        {
+          "given": "Abdelillah",
+          "family": "Mokkedem",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Dominique",
+          "family": "Méry",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Lecture Notes in Computer Science",
+        "Temporal Logic"
+      ],
+      "page": "382-397",
+      "issued": {
+        "date-parts": [
+          [
+            null
+          ]
+        ]
+      },
+      "publisher": "Springer-Verlag",
+      "type": "book-chapter"
+    },
+    {
+      "DOI": "10.21236/ada106750",
+      "title": [
+        "Verification of Concurrent Programs. Part I. The Temporal Framework,"
+      ],
+      "author": [
+        {
+          "given": "Zohar",
+          "family": "Manna",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Amir",
+          "family": "Pnueli",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1981,
+            6,
+            1
+          ]
+        ]
+      },
+      "publisher": "Defense Technical Information Center",
+      "type": "report"
+    }
+  ]
+}

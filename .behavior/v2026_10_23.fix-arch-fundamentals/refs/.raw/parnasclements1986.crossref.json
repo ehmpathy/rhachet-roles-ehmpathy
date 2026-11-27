@@ -1,0 +1,170 @@
+{
+  "source": {
+    "id": "parnasclements1986",
+    "kind": "crossref",
+    "query": "A rational design process: How and why to fake it Parnas Clements 1986",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=A%20rational%20design%20process%3A%20How%20and%20why%20to%20fake%20it%20Parnas%20Clements%201986&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T16:05:43.284Z",
+  "items": [
+    {
+      "publisher": "Institute of Electrical and Electronics Engineers (IEEE)",
+      "issue": "2",
+      "DOI": "10.1109/tse.1986.6312940",
+      "type": "journal-article",
+      "page": "251-257",
+      "title": [
+        "A rational design process: How and why to fake it"
+      ],
+      "volume": "SE-12",
+      "author": [
+        {
+          "given": "David Lorge",
+          "family": "Parnas",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Department of Computer Science, University of Victoria, Victoria, B. C. V8W 2Y2, Canada; Computer Science and Systems Branch, Naval Research Laboratory, Washington, DC 20375"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Paul C.",
+          "family": "Clements",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Computer Science and Systems Branch, Naval Research Laboratory, Washington, DC 20375"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "IEEE Transactions on Software Engineering"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1986,
+            2
+          ]
+        ]
+      }
+    },
+    {
+      "publisher": "Institute of Electrical and Electronics Engineers (IEEE)",
+      "issue": "8",
+      "DOI": "10.1109/tse.1986.6312991",
+      "type": "journal-article",
+      "page": "874-874",
+      "title": [
+        "Correction to “a rational design process: How and why to fake it”"
+      ],
+      "volume": "SE-12",
+      "author": [
+        {
+          "given": "David Lorge",
+          "family": "Parnas",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Department of Computer Science, University of Victoria, Victoria, B.C. V8W 2Y2, Canada; Computer Science and Systems Branch, Naval Research Laboratory, Washington, DC 20375"
+            }
+          ],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        },
+        {
+          "given": "Paul C.",
+          "family": "Clements",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Computer Science and Systems Branch, Naval Research Laboratory, Washington, DC 20375"
+            }
+          ],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "IEEE Transactions on Software Engineering"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1986,
+            8
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.1007/3-540-15199-0_6",
+      "title": [
+        "A rational design process: How and why to fake it"
+      ],
+      "author": [
+        {
+          "given": "David L.",
+          "family": "Parnas",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Paul C.",
+          "family": "Clements",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Lecture Notes in Computer Science",
+        "Formal Methods and Software Development"
+      ],
+      "page": "80-100",
+      "issued": {
+        "date-parts": [
+          [
+            1985
+          ]
+        ]
+      },
+      "publisher": "Springer Berlin Heidelberg",
+      "type": "book-chapter"
+    }
+  ]
+}

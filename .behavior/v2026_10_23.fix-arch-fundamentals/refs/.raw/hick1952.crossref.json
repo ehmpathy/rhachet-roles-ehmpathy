@@ -1,0 +1,163 @@
+{
+  "source": {
+    "id": "hick1952",
+    "kind": "crossref",
+    "query": "Hick On the rate of gain of information Quarterly Journal of Experimental Psychology 1952"
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Hick%20On%20the%20rate%20of%20gain%20of%20information%20Quarterly%20Journal%20of%20Experimental%20Psychology%201952&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T19:30:39.646Z",
+  "items": [
+    {
+      "publisher": "SAGE Publications",
+      "issue": "1",
+      "DOI": "10.1080/17470215208416600",
+      "type": "journal-article",
+      "page": "11-26",
+      "title": [
+        "On the Rate of Gain of Information"
+      ],
+      "volume": "4",
+      "author": [
+        {
+          "given": "W. E.",
+          "family": "Hick",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Medical Research Council Applied Psychology Research Unit, Cambridge"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Quarterly Journal of Experimental Psychology"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1952,
+            3
+          ]
+        ]
+      }
+    },
+    {
+      "publisher": "SAGE Publications",
+      "issue": "2",
+      "DOI": "10.1080/17470216108416477",
+      "type": "journal-article",
+      "page": "78-89",
+      "title": [
+        "Imitative Responses and the Rate of Gain of Information"
+      ],
+      "volume": "13",
+      "author": [
+        {
+          "given": "R.",
+          "family": "Davis",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Institute of Experimental Psychology, University of Oxford"
+            }
+          ],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        },
+        {
+          "given": "N.",
+          "family": "Moray",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Institute of Experimental Psychology, University of Oxford"
+            }
+          ],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        },
+        {
+          "given": "Anne",
+          "family": "Treisman",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Institute of Experimental Psychology, University of Oxford"
+            }
+          ],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Quarterly Journal of Experimental Psychology"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1961,
+            6
+          ]
+        ]
+      }
+    },
+    {
+      "publisher": "SAGE Publications",
+      "issue": "4",
+      "DOI": "10.1080/17470215208416614",
+      "type": "journal-article",
+      "page": "165-169",
+      "title": [
+        "Variations in Blink Rate during Non-Visual Tasks"
+      ],
+      "volume": "4",
+      "author": [
+        {
+          "given": "R. L.",
+          "family": "Gregory",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Medical Research Council Applied Psychology Research Unit, Cambridge"
+            }
+          ],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Quarterly Journal of Experimental Psychology"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1952,
+            12
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -11,7 +11,7 @@ detected terms:
     why: kelpwrangle is a test term
     alt: seaweed, kelp
 
-see rule.forbid.term-* briefs for rationale.
+see rule.forbid.term=* briefs for rationale.
 
 if this is intentional and absolutely unavoidable, retry the same operation.
 
@@ -30,7 +30,7 @@ detected terms:
     why: vague negation - prefer precise alternatives that convey what is absent or empty
     alt: not one, none, no results, empty, absent, omitted
 
-see rule.forbid.term-* briefs for rationale.
+see rule.forbid.term=* briefs for rationale.
 
 if this is intentional and absolutely unavoidable, retry the same operation.
 

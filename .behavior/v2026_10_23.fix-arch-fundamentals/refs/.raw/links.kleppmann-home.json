@@ -1,0 +1,596 @@
+{
+  "index": {
+    "id": "links.kleppmann-home",
+    "url": "https://martin.kleppmann.com/"
+  },
+  "urlFinal": "https://martin.kleppmann.com/",
+  "status": 200,
+  "title": "Martin Kleppmann’s website",
+  "fetchedAt": "2026-11-26T17:05:25.402Z",
+  "links": [
+    {
+      "text": "Skip to content",
+      "href": "https://martin.kleppmann.com/#content"
+    },
+    {
+      "text": "Martin Kleppmann",
+      "href": "https://martin.kleppmann.com/"
+    },
+    {
+      "text": "Student Projects",
+      "href": "https://martin.kleppmann.com/student-projects.html"
+    },
+    {
+      "text": "About/Contact",
+      "href": "https://martin.kleppmann.com/contact.html"
+    },
+    {
+      "text": "Supporters",
+      "href": "https://martin.kleppmann.com/supporters.html"
+    },
+    {
+      "text": "University of Cambridge",
+      "href": "http://www.cst.cam.ac.uk/"
+    },
+    {
+      "text": "local-first",
+      "href": "https://www.inkandswitch.com/local-first.html"
+    },
+    {
+      "text": "Concurrent and Distributed Systems",
+      "href": "https://www.cl.cam.ac.uk/teaching/current/ConcDisSys/"
+    },
+    {
+      "text": "Databases",
+      "href": "https://www.cl.cam.ac.uk/teaching/current/Databases/"
+    },
+    {
+      "text": "Cryptography and Protocol Engineering",
+      "href": "https://www.cl.cam.ac.uk/teaching/2425/P79/"
+    },
+    {
+      "text": "Coln",
+      "href": "https://github.com/coln-project/Coln"
+    },
+    {
+      "text": "CCTI",
+      "href": "https://ccti.ai/"
+    },
+    {
+      "text": "ARIA",
+      "href": "https://aria.org.uk/"
+    },
+    {
+      "text": "Automerge",
+      "href": "https://github.com/automerge/automerge"
+    },
+    {
+      "text": "Systems Research Group",
+      "href": "https://dse.in.tum.de/"
+    },
+    {
+      "text": "TU Munich",
+      "href": "https://www.tum.de/en/"
+    },
+    {
+      "text": "University of Cambridge",
+      "href": "http://www.cst.cam.ac.uk/"
+    },
+    {
+      "text": "Rapportive",
+      "href": "https://www.crunchbase.com/organization/rapportive"
+    },
+    {
+      "text": "acquired",
+      "href": "http://allthingsd.com/20120207/linkedin-is-acquiring-contacts-start-up-rapportive/"
+    },
+    {
+      "text": "LinkedIn",
+      "href": "http://www.linkedin.com/"
+    },
+    {
+      "text": "Go Test It",
+      "href": "https://www.crunchbase.com/organization/go-test-it"
+    },
+    {
+      "text": "acquired",
+      "href": "https://thenextweb.com/uk/2009/12/02/red-gate-software-acquire-gotestit-testing-environment-start-ups/"
+    },
+    {
+      "text": "Red Gate Software",
+      "href": "http://www.red-gate.com/"
+    },
+    {
+      "text": "Designing Data-Intensive Applications",
+      "href": "https://dataintensive.net/"
+    },
+    {
+      "text": "Chris Riccomini",
+      "href": "https://cnr.sh/"
+    },
+    {
+      "text": "Die Türme des Februar",
+      "href": "https://martin.kleppmann.com/die-tuerme-des-februar/"
+    },
+    {
+      "text": "book by Tonke Dragt",
+      "href": "https://www.goodreads.com/book/show/254092.The_Towers_of_February"
+    },
+    {
+      "text": "premiered",
+      "href": "https://martin.kleppmann.com/die-tuerme-des-februar/"
+    },
+    {
+      "text": "support me on Patreon",
+      "href": "https://www.patreon.com/martinkl"
+    },
+    {
+      "text": "supporters",
+      "href": "https://martin.kleppmann.com/supporters.html"
+    },
+    {
+      "text": "contact me",
+      "href": "https://martin.kleppmann.com/contact.html"
+    },
+    {
+      "text": "Announcing the Centre for Cryptographic Trust Infrastructure (CCTI)",
+      "href": "https://martin.kleppmann.com/2026/10/07/centre-for-cryptographic-trust-infrastructure.html"
+    },
+    {
+      "text": "Prediction: AI will make formal verification go mainstream",
+      "href": "https://martin.kleppmann.com/2025/12/08/ai-formal-verification.html"
+    },
+    {
+      "text": "Pudding: user discovery for anonymity networks",
+      "href": "https://martin.kleppmann.com/2024/07/05/pudding-user-discovery-anonymity-networks.html"
+    },
+    {
+      "text": "2023 year in review",
+      "href": "https://martin.kleppmann.com/2024/01/04/year-in-review.html"
+    },
+    {
+      "text": "Verifying distributed systems with Isabelle/HOL",
+      "href": "https://martin.kleppmann.com/2022/10/12/verifying-distributed-systems-isabelle.html"
+    },
+    {
+      "text": "Full archive",
+      "href": "https://martin.kleppmann.com/archive.html"
+    },
+    {
+      "text": "Using Bloom filters to efficiently synchronise hash graphs",
+      "href": "https://martin.kleppmann.com/2020/12/02/bloom-filter-hash-graph-sync.html"
+    },
+    {
+      "text": "New courses on distributed systems and elliptic curve cryptography",
+      "href": "https://martin.kleppmann.com/2020/11/18/distributed-systems-and-elliptic-curves.html"
+    },
+    {
+      "text": "Writing a book: is it worth it?",
+      "href": "https://martin.kleppmann.com/2020/09/29/is-book-writing-worth-it.html"
+    },
+    {
+      "text": "Should you put several event types in the same Kafka topic?",
+      "href": "https://martin.kleppmann.com/2018/01/18/event-types-in-kafka-topic.html"
+    },
+    {
+      "text": "How to do distributed locking",
+      "href": "https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html"
+    },
+    {
+      "text": "Please stop calling databases CP or AP",
+      "href": "https://martin.kleppmann.com/2015/05/11/please-stop-calling-databases-cp-or-ap.html"
+    },
+    {
+      "text": "Turning the database inside-out with Apache Samza",
+      "href": "https://martin.kleppmann.com/2015/03/04/turning-the-database-inside-out.html"
+    },
+    {
+      "text": "Hermitage: Testing the “I” in ACID",
+      "href": "https://martin.kleppmann.com/2014/11/25/hermitage-testing-the-i-in-acid.html"
+    },
+    {
+      "text": "Schema evolution in Avro, Protocol Buffers and Thrift",
+      "href": "https://martin.kleppmann.com/2012/12/05/schema-evolution-in-avro-protocol-buffers-thrift.html"
+    },
+    {
+      "text": "Accounting for Computer Scientists",
+      "href": "https://martin.kleppmann.com/2011/03/07/accounting-for-computer-scientists.html"
+    },
+    {
+      "text": "Valuation caps on convertible notes, explained with graphs",
+      "href": "https://martin.kleppmann.com/2010/05/05/valuation-caps-on-convertible-notes-explained-with-graphs.html"
+    },
+    {
+      "text": "09 Dec 2026 at 30th Conference on Principles of Distributed Systems (OPODIS)",
+      "href": "https://martin.kleppmann.com/2026/12/09/opodis-keynote.html"
+    },
+    {
+      "text": "24 Sep 2026 at 45th International Symposium on Reliable Distributed Systems (SRDS)",
+      "href": "https://martin.kleppmann.com/2026/09/24/srds-keynote.html"
+    },
+    {
+      "text": "12 Jul 2026 at Local-First Conference",
+      "href": "https://martin.kleppmann.com/2026/07/12/local-first-conf.html"
+    },
+    {
+      "text": "17 Mar 2026 at QCon London",
+      "href": "https://martin.kleppmann.com/2026/03/17/qcon-keynote-geopolitical-risk.html"
+    },
+    {
+      "text": "24 Feb 2026 at Local First (LoFi) meetup",
+      "href": "https://martin.kleppmann.com/2026/02/24/local-first-meetup.html"
+    },
+    {
+      "text": "Full archive",
+      "href": "https://martin.kleppmann.com/talks.html"
+    },
+    {
+      "text": "YouTube playlist of my talks",
+      "href": "https://www.youtube.com/playlist?list=PLeKd45zvjcDHJxge6VtYUAbYnvd_VNQCx"
+    },
+    {
+      "text": "BeeKEM: Decentralized, Secure and Efficient Group Key Agreement",
+      "href": "https://eprint.iacr.org/2026/1434"
+    },
+    {
+      "text": "Designing Data-Intensive Applications, 2nd Edition",
+      "href": "https://martin.kleppmann.com/2026/03/24/designing-data-intensive-applications-2e.html"
+    },
+    {
+      "text": "Secret Colors: A Gentle Introduction to Cryptography",
+      "href": "https://martin.kleppmann.com/2022/04/07/secret-colors.html"
+    },
+    {
+      "text": "Designing Data-Intensive Applications",
+      "href": "https://martin.kleppmann.com/2017/03/27/designing-data-intensive-applications.html"
+    },
+    {
+      "text": "Emission Impossible: Cryptographically Verifiable Carbon Emissions Reporting for Cloud Computing",
+      "href": "https://martin.kleppmann.com/2026/06/23/emission-impossible-e-energy.html"
+    },
+    {
+      "text": "doi:10.1145/3744255.3811720",
+      "href": "https://doi.org/10.1145/3744255.3811720"
+    },
+    {
+      "text": "The Art of the Fugue: Minimizing Interleaving in Collaborative Text Editing",
+      "href": "https://martin.kleppmann.com/2025/11/01/fugue-minimizing-interleaving.html"
+    },
+    {
+      "text": "doi:10.1109/TPDS.2025.3611880",
+      "href": "https://doi.org/10.1109/TPDS.2025.3611880"
+    },
+    {
+      "text": "Collaborative Text Editing with Eg-walker: Better, Faster, Smaller",
+      "href": "https://martin.kleppmann.com/2025/04/02/eg-walker-collaborative-text.html"
+    },
+    {
+      "text": "doi:10.1145/3689031.3696076",
+      "href": "https://doi.org/10.1145/3689031.3696076"
+    },
+    {
+      "text": "Pudding: Private User Discovery in Anonymity Networks",
+      "href": "https://martin.kleppmann.com/2024/05/20/pudding-private-user-discovery.html"
+    },
+    {
+      "text": "doi:10.1109/SP54263.2024.00167",
+      "href": "https://doi.org/10.1109/SP54263.2024.00167"
+    },
+    {
+      "text": "Peritext: A CRDT for Collaborative Rich Text Editing",
+      "href": "https://martin.kleppmann.com/2022/11/08/peritext-rich-text-crdt.html"
+    },
+    {
+      "text": "doi:10.1145/3555644",
+      "href": "https://doi.org/10.1145/3555644"
+    },
+    {
+      "text": "Key Agreement for Decentralized Secure Group Messaging with Strong Security Guarantees",
+      "href": "https://martin.kleppmann.com/2021/11/17/decentralized-key-agreement.html"
+    },
+    {
+      "text": "doi:10.1145/3460120.3484542",
+      "href": "https://doi.org/10.1145/3460120.3484542"
+    },
+    {
+      "text": "A highly-available move operation for replicated trees",
+      "href": "https://martin.kleppmann.com/2021/10/07/crdt-tree-move-operation.html"
+    },
+    {
+      "text": "doi:10.1109/TPDS.2021.3118603",
+      "href": "https://doi.org/10.1109/TPDS.2021.3118603"
+    },
+    {
+      "text": "Rollercoaster: An Efficient Group-Multicast Scheme for Mix Networks",
+      "href": "https://martin.kleppmann.com/2021/08/13/rollercoaster.html"
+    },
+    {
+      "text": "Snapdoc: Authenticated snapshots with history privacy in peer-to-peer collaborative editing",
+      "href": "https://martin.kleppmann.com/2019/07/16/snapdoc-authenticated-snapshots.html"
+    },
+    {
+      "text": "doi:10.2478/popets-2019-0044",
+      "href": "https://doi.org/10.2478/popets-2019-0044"
+    },
+    {
+      "text": "Verifying Strong Eventual Consistency in Distributed Systems",
+      "href": "https://martin.kleppmann.com/2017/10/25/verifying-crdt-isabelle.html"
+    },
+    {
+      "text": "doi:10.1145/3133933",
+      "href": "https://doi.org/10.1145/3133933"
+    },
+    {
+      "text": "A Conflict-Free Replicated JSON Datatype",
+      "href": "https://martin.kleppmann.com/2017/04/24/json-crdt.html"
+    },
+    {
+      "text": "doi:10.1109/TPDS.2017.2697382",
+      "href": "https://doi.org/10.1109/TPDS.2017.2697382"
+    },
+    {
+      "text": "Kintsugi: Decentralized E2EE Key Recovery",
+      "href": "https://martin.kleppmann.com/2025/03/26/kintsugi-spw.html"
+    },
+    {
+      "text": "doi:10.1007/978-3-032-30504-6_11",
+      "href": "https://doi.org/10.1007/978-3-032-30504-6_11"
+    },
+    {
+      "text": "Bluesky and the AT Protocol: Usable Decentralized Social Media",
+      "href": "https://martin.kleppmann.com/2024/12/09/bluesky-at-protocol.html"
+    },
+    {
+      "text": "doi:10.1145/3694809.3700740",
+      "href": "https://doi.org/10.1145/3694809.3700740"
+    },
+    {
+      "text": "Emission Impossible: privacy-preserving carbon emissions claims",
+      "href": "https://martin.kleppmann.com/2024/12/03/emission-impossible-loco.html"
+    },
+    {
+      "text": "Undo and Redo Support for Replicated Registers",
+      "href": "https://martin.kleppmann.com/2024/04/22/undo-replicated-register.html"
+    },
+    {
+      "text": "doi:10.1145/3642976.3653029",
+      "href": "https://doi.org/10.1145/3642976.3653029"
+    },
+    {
+      "text": "Extending JSON CRDTs with Move Operations",
+      "href": "https://martin.kleppmann.com/2024/04/22/json-crdt-move.html"
+    },
+    {
+      "text": "doi:10.1145/3642976.3653030",
+      "href": "https://doi.org/10.1145/3642976.3653030"
+    },
+    {
+      "text": "Making CRDTs Byzantine Fault Tolerant",
+      "href": "https://martin.kleppmann.com/2022/04/05/bft-crdt-papoc.html"
+    },
+    {
+      "text": "doi:10.1145/3517209.3524042",
+      "href": "https://doi.org/10.1145/3517209.3524042"
+    },
+    {
+      "text": "PushPin: Towards Production-Quality Peer-to-Peer Collaboration",
+      "href": "https://martin.kleppmann.com/2020/04/27/papoc-pushpin.html"
+    },
+    {
+      "text": "doi:10.1145/3380787.3393683",
+      "href": "https://doi.org/10.1145/3380787.3393683"
+    },
+    {
+      "text": "Moving Elements in List CRDTs",
+      "href": "https://martin.kleppmann.com/2020/04/27/papoc-list-move.html"
+    },
+    {
+      "text": "doi:10.1145/3380787.3393677",
+      "href": "https://doi.org/10.1145/3380787.3393677"
+    },
+    {
+      "text": "Local-first software: You own your data, in spite of the cloud",
+      "href": "https://martin.kleppmann.com/2019/10/23/local-first-at-onward.html"
+    },
+    {
+      "text": "doi:10.1145/3359591.3359737",
+      "href": "https://doi.org/10.1145/3359591.3359737"
+    },
+    {
+      "text": "Ghost trace on the wire? Using key evidence for informed decisions",
+      "href": "https://martin.kleppmann.com/2019/04/12/ghost-attack-spw19.html"
+    },
+    {
+      "text": "doi:10.1007/978-3-030-57043-9_23",
+      "href": "https://doi.org/10.1007/978-3-030-57043-9_23"
+    },
+    {
+      "text": "Interleaving anomalies in collaborative text editors",
+      "href": "https://martin.kleppmann.com/2019/03/25/papoc-interleaving-anomalies.html"
+    },
+    {
+      "text": "doi:10.1145/3301419.3323972",
+      "href": "https://doi.org/10.1145/3301419.3323972"
+    },
+    {
+      "text": "From Secure Messaging to Secure Collaboration",
+      "href": "https://martin.kleppmann.com/2018/03/20/security-protocols-workshop.html"
+    },
+    {
+      "text": "doi:10.1007/978-3-030-03251-7_21",
+      "href": "https://doi.org/10.1007/978-3-030-03251-7_21"
+    },
+    {
+      "text": "Strengthening public key authentication against key theft",
+      "href": "https://martin.kleppmann.com/2015/12/08/preventing-key-theft-at-passwords15.html"
+    },
+    {
+      "text": "doi:10.1007/978-3-319-29938-9_9",
+      "href": "https://doi.org/10.1007/978-3-319-29938-9_9"
+    },
+    {
+      "text": "Die Türme des Februar: Eine Musical-Adaption",
+      "href": "https://martin.kleppmann.com/2023/04/01/tuerme-des-februar.html"
+    },
+    {
+      "text": "doi:10.25819/ubsi/10415",
+      "href": "https://doi.org/10.25819/ubsi/10415"
+    },
+    {
+      "text": "Upwelling: Combining real-time collaboration with version control for writers",
+      "href": "https://martin.kleppmann.com/2023/03/09/upwelling-version-control-for-writers.html"
+    },
+    {
+      "text": "Research for Practice: Convergence",
+      "href": "https://martin.kleppmann.com/2022/11/01/convergence-cacm.html"
+    },
+    {
+      "text": "doi:10.1145/3563901",
+      "href": "https://doi.org/10.1145/3563901"
+    },
+    {
+      "text": "Assessing the understandability of a distributed algorithm by tweeting buggy pseudocode",
+      "href": "https://martin.kleppmann.com/2022/05/05/crdt-bug-tweets.html"
+    },
+    {
+      "text": "doi:10.48456/tr-969",
+      "href": "https://doi.org/10.48456/tr-969"
+    },
+    {
+      "text": "Harm reduction for cryptographic backdoors",
+      "href": "https://martin.kleppmann.com/2021/07/16/cryptographic-backdoors-hotpets.html"
+    },
+    {
+      "text": "Thinking in Events: From Databases to Distributed Collaboration Software",
+      "href": "https://martin.kleppmann.com/2021/07/02/debs-keynote-thinking-in-events.html"
+    },
+    {
+      "text": "doi:10.1145/3465480.3467835",
+      "href": "https://doi.org/10.1145/3465480.3467835"
+    },
+    {
+      "text": "Byzantine Eventual Consistency and the Fundamental Limits of Peer-to-Peer Databases",
+      "href": "https://martin.kleppmann.com/2020/12/01/byzantine-eventual.html"
+    },
+    {
+      "text": "Implementing Curve25519/X25519: A Tutorial on Elliptic Curve Cryptography",
+      "href": "https://martin.kleppmann.com/2020/10/01/curve25519-tutorial.html"
+    },
+    {
+      "text": "Online Event Processing: Achieving consistency where distributed transactions have failed",
+      "href": "https://martin.kleppmann.com/2019/05/01/olep-cacm.html"
+    },
+    {
+      "text": "doi:10.1145/3312527",
+      "href": "https://doi.org/10.1145/3312527"
+    },
+    {
+      "text": "OpSets: Sequential Specifications for Replicated Datatypes (Extended Version)",
+      "href": "https://martin.kleppmann.com/2018/05/11/opsets-sequential-specifications.html"
+    },
+    {
+      "text": "OpSets: Sequential Specifications for Replicated Datatypes (Proof Document)",
+      "href": "https://martin.kleppmann.com/2018/05/10/opsets-isabelle-proof.html"
+    },
+    {
+      "text": "Apache Samza",
+      "href": "https://martin.kleppmann.com/2018/03/20/big-data-encyclopedia-samza.html"
+    },
+    {
+      "text": "doi:10.1007/978-3-319-63962-8_197-2",
+      "href": "https://doi.org/10.1007/978-3-319-63962-8_197-2"
+    },
+    {
+      "text": "A framework for establishing Strong Eventual Consistency for Conflict-free Replicated Datatypes",
+      "href": "https://martin.kleppmann.com/2017/07/07/isabelle-crdt-proof.html"
+    },
+    {
+      "text": "Data Governance and Modern Computer Systems",
+      "href": "https://martin.kleppmann.com/2016/07/26/data-governance.html"
+    },
+    {
+      "text": "Making Sense of Stream Processing",
+      "href": "https://martin.kleppmann.com/2016/05/24/making-sense-of-stream-processing.html"
+    },
+    {
+      "text": "Kafka, Samza and the Unix philosophy of distributed data",
+      "href": "https://martin.kleppmann.com/2015/12/15/stream-processing-data-engineering-bulletin.html"
+    },
+    {
+      "text": "A critique of the CAP theorem",
+      "href": "https://martin.kleppmann.com/2015/09/17/critique-of-the-cap-theorem.html"
+    },
+    {
+      "text": "Simulation of colliding constrained rigid bodies",
+      "href": "https://martin.kleppmann.com/2007/04/01/rigid-body-simulation.html"
+    },
+    {
+      "text": "doi:10.48456/tr-683",
+      "href": "https://doi.org/10.48456/tr-683"
+    },
+    {
+      "text": "Local First Conf 2026",
+      "href": "https://www.localfirstconf.com/"
+    },
+    {
+      "text": "Site RSS feed",
+      "href": "http://feeds.feedburner.com/martinkl"
+    },
+    {
+      "text": "email notification",
+      "href": "https://martinkl.substack.com/"
+    },
+    {
+      "text": "follow me on Bluesky",
+      "href": "https://bsky.app/profile/martin.kleppmann.com"
+    },
+    {
+      "text": "Mastodon",
+      "href": "https://nondeterministic.computer/@martin"
+    },
+    {
+      "text": "RSS feed",
+      "href": "http://feeds.feedburner.com/martinkl"
+    },
+    {
+      "text": "",
+      "href": "http://dataintensive.net/"
+    },
+    {
+      "text": "Designing Data-Intensive Applications",
+      "href": "http://dataintensive.net/"
+    },
+    {
+      "text": "thousands",
+      "href": "https://www.goodreads.com/book/show/23466395-designing-data-intensive-applications"
+    },
+    {
+      "text": "local-first software",
+      "href": "https://www.inkandswitch.com/local-first/"
+    },
+    {
+      "text": "University of Cambridge",
+      "href": "http://www.cst.cam.ac.uk/"
+    },
+    {
+      "text": "support me on Patreon",
+      "href": "https://www.patreon.com/martinkl"
+    },
+    {
+      "text": "",
+      "href": "http://creativecommons.org/licenses/by/3.0/"
+    },
+    {
+      "text": "Creative Commons Attribution 3.0 Unported License",
+      "href": "http://creativecommons.org/licenses/by/3.0/"
+    },
+    {
+      "text": "Carrington",
+      "href": "http://carringtontheme.com/"
+    },
+    {
+      "text": "Jekyll",
+      "href": "https://github.com/mojombo/jekyll"
+    }
+  ]
+}

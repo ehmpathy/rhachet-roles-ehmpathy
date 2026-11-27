@@ -1,0 +1,102 @@
+{
+  "source": {
+    "id": "page.reeves1992",
+    "kind": "page",
+    "url": "https://www.developerdotstar.com/mag/articles/reeves_design.html",
+    "keywords": [
+      "source code",
+      "design document",
+      "build",
+      "compil"
+    ]
+  },
+  "urlFinal": "https://www.developerdotstar.com/mag/articles/reeves_design.html",
+  "status": 200,
+  "fetchedAt": "2026-11-23T16:06:25.196Z",
+  "title": "What Is Software Design? by Jack W. Reeves - developer.*, Developer Dot Star",
+  "meta": [
+    {
+      "name": "DC.Creator",
+      "content": "Jack W. Reeves"
+    },
+    {
+      "name": "DC.Subject",
+      "content": "software development"
+    },
+    {
+      "name": "DC.Title",
+      "content": "developer.* - What Is Software Design?"
+    },
+    {
+      "name": "DC.Publisher",
+      "content": "Daniel Read - developer.*"
+    },
+    {
+      "name": "DC.Date",
+      "content": " 2005-02-23"
+    },
+    {
+      "name": "DC.Rights",
+      "content": "Author has granted publication right for publication on the developer.* web site. Author retains copyright. All rights reserved. Please do not use without written permission."
+    },
+    {
+      "name": "DC.Resource Type",
+      "content": "Text"
+    },
+    {
+      "name": "DC.Language",
+      "content": "en"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "source code",
+      "window": "truly represent a complete design, the manufacturing team can proceed to build the product. In fact, they can proceed to build lots of the product, all without any further intervention of the designers. After reviewing the software development life cycle as I understood it, I concluded that the only software documentation that actually seems to satisfy the criteria of an engineering design is the source code listings. There are probably enough arguments both for and against this premise to fill numerous articles. This article assumes that final source code is the real software design and then examines some of the consequences of that assumption. I may not be able to prove that this point of view is correct, but I hope to shown that it does explain some of the observed facts of the softwar"
+    },
+    {
+      "keyword": "source code",
+      "window": "without any further intervention of the designers. After reviewing the software development life cycle as I understood it, I concluded that the only software documentation that actually seems to satisfy the criteria of an engineering design is the source code listings. There are probably enough arguments both for and against this premise to fill numerous articles. This article assumes that final source code is the real software design and then examines some of the consequences of that assumption. I may not be able to prove that this point of view is correct, but I hope to shown that it does explain some of the observed facts of the software industry, including the popularity of C++. There is one consequence of considering code as software design that completely overwhelms all others. It"
+    },
+    {
+      "keyword": "source code",
+      "window": "e observed facts of the software industry, including the popularity of C++. There is one consequence of considering code as software design that completely overwhelms all others. It is so important and so obvious that it is a total blind spot for most software organizations. This is the fact that software is cheap to build. It does not qualify as inexpensive; it is so cheap it is almost free. If source code is a software design, then actually building software is done by compilers and linkers. We often refer to the process of compiling and linking a complete software system as \"doing a build\". The capital investment in software construction equipment is low—all it really takes is a computer, an editor, a compiler, and a linker. Once a build environment is available, then actually doing a"
+    },
+    {
+      "keyword": "design document",
+      "window": "software industry has created some false parallels with hardware engineering while missing some perfectly valid parallels. In essence, I concluded that we are not software engineers because we do not realize what a software design really is. I am even more convinced of that today. The final goal of any engineering activity is the some type of documentation. When a design effort is complete, the design documentation is turned over to the manufacturing team. This is a completely different group with completely different skills from the design team. If the design documents truly represent a complete design, the manufacturing team can proceed to build the product. In fact, they can proceed to build lots of the product, all without any further intervention of the designers. After reviewing th"
+    },
+    {
+      "keyword": "design document",
+      "window": "t software engineers because we do not realize what a software design really is. I am even more convinced of that today. The final goal of any engineering activity is the some type of documentation. When a design effort is complete, the design documentation is turned over to the manufacturing team. This is a completely different group with completely different skills from the design team. If the design documents truly represent a complete design, the manufacturing team can proceed to build the product. In fact, they can proceed to build lots of the product, all without any further intervention of the designers. After reviewing the software development life cycle as I understood it, I concluded that the only software documentation that actually seems to satisfy the criteria of an engineeri"
+    },
+    {
+      "keyword": "design document",
+      "window": "that it is counter-productive to blame the workers for errors in the process. Instead of continuing to force software development to conform to an incorrect process model, we need to revise the process so that it helps rather than hinders efforts to produce better software. This is the litmus test of \"software engineering.\" Engineering is about how you do the process, not about whether the final design document needs a CAD system to produce it. The overwhelming problem with software development is that everything is part of the design process. Coding is design, testing and debugging are part of design, and what we typically call software design is still part of design. Software may be cheap to build, but it is incredibly expensive to design. Software is so complex that there are plenty o"
+    },
+    {
+      "keyword": "build",
+      "window": "nd software design. For almost 10 years I have felt that the software industry collectively misses a subtle point about the difference between developing a software design and what a software design really is. I think there is a profound lesson in the growing popularity of C++ about what we can do to become better software engineers, if only we see it. This lesson is that programming is not about building software; programming is about designing software. Years ago I was attending a seminar where the question came up of whether software development is an engineering discipline or not. While I do not remember the resulting discussion, I do remember how it catalyzed my own thinking that the software industry has created some false parallels with hardware engineering while missing some perfe"
+    },
+    {
+      "keyword": "build",
+      "window": "more convinced of that today. The final goal of any engineering activity is the some type of documentation. When a design effort is complete, the design documentation is turned over to the manufacturing team. This is a completely different group with completely different skills from the design team. If the design documents truly represent a complete design, the manufacturing team can proceed to build the product. In fact, they can proceed to build lots of the product, all without any further intervention of the designers. After reviewing the software development life cycle as I understood it, I concluded that the only software documentation that actually seems to satisfy the criteria of an engineering design is the source code listings. There are probably enough arguments both for and a"
+    },
+    {
+      "keyword": "build",
+      "window": "f any engineering activity is the some type of documentation. When a design effort is complete, the design documentation is turned over to the manufacturing team. This is a completely different group with completely different skills from the design team. If the design documents truly represent a complete design, the manufacturing team can proceed to build the product. In fact, they can proceed to build lots of the product, all without any further intervention of the designers. After reviewing the software development life cycle as I understood it, I concluded that the only software documentation that actually seems to satisfy the criteria of an engineering design is the source code listings. There are probably enough arguments both for and against this premise to fill numerous articles. T"
+    },
+    {
+      "keyword": "compil",
+      "window": "There is one consequence of considering code as software design that completely overwhelms all others. It is so important and so obvious that it is a total blind spot for most software organizations. This is the fact that software is cheap to build. It does not qualify as inexpensive; it is so cheap it is almost free. If source code is a software design, then actually building software is done by compilers and linkers. We often refer to the process of compiling and linking a complete software system as \"doing a build\". The capital investment in software construction equipment is low—all it really takes is a computer, an editor, a compiler, and a linker. Once a build environment is available, then actually doing a software build just takes a little time. Compiling a 50,000 line C++ program"
+    },
+    {
+      "keyword": "compil",
+      "window": "design that completely overwhelms all others. It is so important and so obvious that it is a total blind spot for most software organizations. This is the fact that software is cheap to build. It does not qualify as inexpensive; it is so cheap it is almost free. If source code is a software design, then actually building software is done by compilers and linkers. We often refer to the process of compiling and linking a complete software system as \"doing a build\". The capital investment in software construction equipment is low—all it really takes is a computer, an editor, a compiler, and a linker. Once a build environment is available, then actually doing a software build just takes a little time. Compiling a 50,000 line C++ program may seem to take forever, but how long would it take to"
+    },
+    {
+      "keyword": "compil",
+      "window": "p to build. It does not qualify as inexpensive; it is so cheap it is almost free. If source code is a software design, then actually building software is done by compilers and linkers. We often refer to the process of compiling and linking a complete software system as \"doing a build\". The capital investment in software construction equipment is low—all it really takes is a computer, an editor, a compiler, and a linker. Once a build environment is available, then actually doing a software build just takes a little time. Compiling a 50,000 line C++ program may seem to take forever, but how long would it take to build a hardware system that had a design of the same complexity as 50,000 lines of C++. Another consequence of considering source code as software design is the fact that a softwar"
+    }
+  ],
+  "textLength": 30615
+}

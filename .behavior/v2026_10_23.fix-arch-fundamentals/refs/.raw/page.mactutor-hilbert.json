@@ -1,0 +1,48 @@
+{
+  "source": {
+    "id": "page.mactutor-hilbert",
+    "kind": "page",
+    "url": "https://mathshistory.st-andrews.ac.uk/Biographies/Hilbert/",
+    "keywords": [
+      "invariant",
+      "basis theorem"
+    ]
+  },
+  "urlFinal": "https://mathshistory.st-andrews.ac.uk/Biographies/Hilbert/",
+  "status": 200,
+  "fetchedAt": "2026-11-23T12:56:41.552Z",
+  "title": "David Hilbert (1862 - 1943) - Biography - MacTutor History of Mathematics",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "David Hilbert - Biography"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "invariant",
+      "window": "ed to Königsberg to succeed Heinrich Weber in 1883 and Adolf Hurwitz was appointed as an extraordinary professor there in the spring of 1884. Hurwitz and Hilbert became close friends, another friendship which was important factor in Hilbert's mathematical development, while Lindemann became Hilbert's thesis advisor. He received his oral examination on 11 December 1884 for his thesis entitled Über invariante Eigenschaften specieller binärer Formen, insbesondere der Kugelfunctionen Ⓣ. Lindemann had suggested that Hilbert study invariant properties of certain algebraic forms and Hilbert showed great originality in devising an approach that Lindemann had not envisaged. Minkowski, after reading the thesis, wrote to Hilbert (see [8]):- I studied your work with great interest and rejoiced over a"
+    },
+    {
+      "keyword": "invariant",
+      "window": "g of 1884. Hurwitz and Hilbert became close friends, another friendship which was important factor in Hilbert's mathematical development, while Lindemann became Hilbert's thesis advisor. He received his oral examination on 11 December 1884 for his thesis entitled Über invariante Eigenschaften specieller binärer Formen, insbesondere der Kugelfunctionen Ⓣ. Lindemann had suggested that Hilbert study invariant properties of certain algebraic forms and Hilbert showed great originality in devising an approach that Lindemann had not envisaged. Minkowski, after reading the thesis, wrote to Hilbert (see [8]):- I studied your work with great interest and rejoiced over all the processes which the poor invariants had to pass through before they manage to disappear. I would not have supposed that such"
+    },
+    {
+      "keyword": "invariant",
+      "window": "ler binärer Formen, insbesondere der Kugelfunctionen Ⓣ. Lindemann had suggested that Hilbert study invariant properties of certain algebraic forms and Hilbert showed great originality in devising an approach that Lindemann had not envisaged. Minkowski, after reading the thesis, wrote to Hilbert (see [8]):- I studied your work with great interest and rejoiced over all the processes which the poor invariants had to pass through before they manage to disappear. I would not have supposed that such a good mathematical theorem could have been obtained in Königsberg. On 7 February 1885 he defended two propositions in a public disputation. One of Hilbert's chosen propositions was on physics, the other on philosophy. This was the final stage of his doctorate, which was then duly awarded. He spent"
+    },
+    {
+      "keyword": "basis theorem",
+      "window": "uld have liked to tempt him to leave Göttingen and, in 1902, the University of Berlin offered Hilbert Fuchs's chair. Hilbert turned down the Berlin chair, but only after he had used the offer to bargain with Göttingen and persuade them to set up a new chair to bring his friend Minkowski to Göttingen. As we saw above, Hilbert's first work was on invariant theory and, in 1888, he proved his famous Basis Theorem. Twenty years earlier Gordan had proved the finite basis theorem for binary forms using a highly computational approach. Attempts to generalise Gordan's work to systems with more than two variables failed since the computational difficulties were too great. Hilbert himself tried at first to follow Gordan's approach but soon realised that a new line of attack was necessary. He discove"
+    },
+    {
+      "keyword": "basis theorem",
+      "window": "University of Berlin offered Hilbert Fuchs's chair. Hilbert turned down the Berlin chair, but only after he had used the offer to bargain with Göttingen and persuade them to set up a new chair to bring his friend Minkowski to Göttingen. As we saw above, Hilbert's first work was on invariant theory and, in 1888, he proved his famous Basis Theorem. Twenty years earlier Gordan had proved the finite basis theorem for binary forms using a highly computational approach. Attempts to generalise Gordan's work to systems with more than two variables failed since the computational difficulties were too great. Hilbert himself tried at first to follow Gordan's approach but soon realised that a new line of attack was necessary. He discovered a completely new approach which proved the finite basis theor"
+    },
+    {
+      "keyword": "basis theorem",
+      "window": "the finite basis theorem for binary forms using a highly computational approach. Attempts to generalise Gordan's work to systems with more than two variables failed since the computational difficulties were too great. Hilbert himself tried at first to follow Gordan's approach but soon realised that a new line of attack was necessary. He discovered a completely new approach which proved the finite basis theorem for any number of variables but in an entirely abstract way. Although he proved that a finite basis existed his methods did not construct such a basis. Hilbert submitted a paper proving the finite basis theorem to Mathematische Annalen. However Gordan was the expert on invariant theory for Mathematische Annalen and he found Hilbert's revolutionary approach difficult to appreciate. H"
+    }
+  ],
+  "textLength": 21687
+}

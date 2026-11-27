@@ -1,0 +1,674 @@
+                       Life beyond Distributed Transactions:
+                               an Apostate’s Opinion
+                                                          Position Paper
+
+                                                              Pat Helland
+                                                         Amazon.Com
+                                                      705 Fifth Ave South
+                                                      Seattle, WA 98104
+                                                              USA
+                                                    PHelland@Amazon.com
+
+     The positions expressed in this paper are                                   Instead, applications are built using different
+     personal opinions and do not in any way reflect                             techniques which do not provide the same
+     the positions of my employer Amazon.com.                                    transactional guarantees but still meet the needs
+                                                                                 of their businesses.
+     ABSTRACT                                                                    This paper explores and names some of the
+                                                                                 practical approaches used in the implementations
+     Many decades of work have been invested in the                              of large-scale mission-critical applications in a
+     area of distributed transactions including                                  world which rejects distributed transactions. We
+     protocols such as 2PC, Paxos, and various                                   discuss the management of fine-grained pieces of
+     approaches to quorum. These protocols provide                               application data which may be repartitioned over
+     the application programmer a façade of global                               time as the application grows. We also discuss
+     serializability. Personally, I have invested a non-                         the design patterns used in sending messages
+     trivial portion of my career as a strong advocate                           between these repartitionable pieces of data.
+     for the implementation and use of platforms
+                                                                                 The reason for starting this discussion is to raise
+     providing guarantees of global serializability.
+                                                                                 awareness of new patterns for two reasons. First,
+     My experience over the last decade has led me to                            it is my belief that this awareness can ease the
+     liken these platforms to the Maginot Line1. In                              challenges of people hand-crafting very large
+     general, application developers simply do not                               scalable applications. Second, by observing the
+     implement large scalable applications assuming                              patterns, hopefully the industry can work
+     distributed transactions. When they attempt to                              towards the creation of platforms that make it
+     use distributed transactions, the projects founder                          easier to build these very large applications.
+     because the performance costs and fragility make
+     them impractical. Natural selection kicks in…                           1. INTRODUCTION
+                                                                                 Let’s examine some goals for this paper, some
+1
+                                                                             assumptions that I am making for this discussion, and
+  The Maginot Line was a huge fortress that ran the length                   then some opinions derived from the assumptions. While
+of the Franco-German border and was constructed at great                     I am keenly interested in high availability, this paper will
+expense between World War I and World War II. It                             ignore that issue and focus on scalability alone. In
+successfully kept the German army from directly crossing                     particular, we focus on the implications that fall out of
+the border between France and Germany. It was quickly                        assuming we cannot have large-scale distributed
+bypassed by the Germans in 1940 who invaded through                          transactions.
+Belgium.
+                                                                             Goals
+This article is published under a Creative Commons License Agreement         This paper has three broad goals:
+(http://creativecommons.org/licenses/by/2.5/).
+You may copy, distribute, display, and perform the work, make
+                                                                              Discuss Scalable Applications
+derivative works and make commercial use of the work, but you must             Many of the requirements for the design of scalable
+attribute the work to the author and CIDR 2007.                                systems are understood implicitly by many application
+3rd Biennial Conference on Innovative DataSystems Research (CIDR)              designers who build large systems.
+January 7-10, Asilomar, California USA.
+
+
+
+
+                                                                       132
+    The problem is that the issues, concepts, and                       message delivery inconsistencies foisted upon the
+    abstractions for the interaction of transactions and                innocent application developer as they attempt to build
+    scalable systems have no names and are not crisply                  scalable solutions to business problems.
+    understood.     When they get applied, they are
+    inconsistently applied and sometimes come back to bite          Assumptions
+    us. One goal of this paper is to launch a discussion                Let’s start out with three assumptions which are
+    which can increase awareness of these concepts and,             asserted and not justified. We simply assume these are
+    hopefully, drive towards a common set of terms and an           true based on experience.
+    agreed approach to scalable programs.                            Layers of the Application and Scale-Agnosticism
+    This paper attempts to name and formalize some                    Let’s start by presuming (at least) two layers in each
+    abstractions implicitly in use for years to implement             scalable application. These layers differ in their
+    scalable systems.                                                 perception of scaling. They may have other differences
+ Think about Almost-Infinite Scaling of Applications                 but that is not relevant to this discussion.
+  To frame the discussion on scaling, this paper presents             The lower layer of the application understands the fact
+  an informal thought experiment on the impact of                     that more computers get added to make the system
+  almost-infinite scaling. I assume the number of                     scale. In addition to other work, it manages the
+  customers, purchasable entities, orders, shipments,                 mapping of the upper layer’s code to the physical
+  health-care-patients, taxpayers, bank accounts, and all             machines and their locations. The lower layer is scale-
+  other business concepts manipulated by the application              aware in that it understands this mapping. We are
+  grow significantly larger over time. Typically, the                 presuming that the lower layer provides a scale-
+  individual things do not get significantly larger; we               agnostic programming abstraction to the upper layer4.
+  simply get more and more of them. It really doesn’t                 Using this scale-agnostic programming abstraction, the
+  matter what resource on the computer is saturated first,            upper layer of application code is written without
+  the increase in demand will drive us to spread what                 worrying about scaling issues. By sticking to the scale-
+  formerly ran on a small set of machines to run over a               agnostic programming abstraction, we can write
+  larger set of machines… 2                                           application code that is not worried about the changes
+  Almost-infinite scaling is a loose, imprecise, and                  happening when the application is deployed against
+  deliberately amorphous way to motivate the need to be               ever increasing load.
+  very clear about when and where we can know                         Over time, the lower layer of these applications may
+  something fits on one machine and what to do if we
+  cannot ensure it does fit on one machine. Furthermore,                    Application             Scale Agnostic Code
+  we want to scale almost linearly3 with the load (both                                               Scale Agnostic
+                                                                           Upper Layer
+  data and computation).                                                                         Programming Abstraction
+                                                                             of Code
+ Describe a Few Common Patterns for Scalable Apps
+  What are the impacts of almost-infinite scaling on the                                            Scale-Aware Code
+  business logic? I am asserting that scaling implies                      Lower Layer           Implementing Support
+  using a new abstraction called an “entity” as you write                    of Code              for the Scale-Agnostic
+  your program. An entity lives on a single machine at a                                       Programming Abstraction
+  time and the application can only manipulate one entity               evolve to become new platforms or middleware which
+  at a time. A consequence of almost-infinite scaling is                simplify the creation of scale-agnostic applications
+  that this programmatic abstraction must be exposed to                 (similar to the past scenarios when CICS and other TP-
+  the developer of business logic.                                      Monitors evolved to simplify the creation of
+  By naming and discussing this as-yet-unnamed                          applications for block-mode terminals).
+  concept, it is hoped that we can agree on a consistent                The focus of this discussion is on the possibilities
+  programmatic approach and a consistent understanding                  posed by these nascent scale-agnostic APIs.
+  of the issues involved in building scalable systems.
+                                                                     Scopes of Transactional Serializability
+  Furthermore, the use of entities has implications on the            Lots of academic work has been done on the notion of
+  messaging patterns used to connect the entities. These              providing transactional serializability across distributed
+  lead to the creation of state machines that cope with the           systems. This includes 2PC (two phase commit) which
+                                                                      can easily block when nodes are unavailable and other
+2                                                                     protocols which do not block in the face of node
+  To be clear, this is conceptually assuming tens of
+thousands or hundreds of thousands of machines. Too                   failures such as the Paxos algorithm.
+many to make them behave like one “big” machine.
+3                                                                   4
+  Scaling at N log N for some big log would be really                Google’s MapReduce is an example of a scale-agnostic
+nice…                                                               programming abstraction.
+
+
+
+                                                              133
+    Let’s describe these algorithms as ones which provide                 does this because its only other recourse is to
+    global transactional serializability5. Their goal is to               occasionally     lose     messages       (“at-most-once”
+    allow arbitrary atomic updates across data spread                     messaging) and that is even more onerous to deal with8.
+    across a set of machines. These algorithms allow                      A consequence of this behavior from the messaging
+    updates to exist in a single scope of serializability                 plumbing is that the application must tolerate message
+    across this set of machines.                                          retries and the out-of-order arrival of some messages.
+    We are going to consider what happens when you                        This paper considers the application patterns arising
+    simply don’t do this. Real system developers and real                 when business-logic programmers must deal with this
+    systems as we see them deployed today rarely even try                 burden in almost-infinitely large applications.
+    to achieve transactional serializability across machines
+    or, if they do, it is within a small number of tightly            Opinions to Be Justified
+    connected machines functioning as a cluster. Put                      The nice thing about writing a position paper is that
+    simply, we aren’t doing transactions across machines              you can express wild opinions. Here are a few that we
+    except perhaps in the simple case where there is a tight          will be arguing in the corpus of this position paper9:
+    cluster which looks like one machine.                              Scalable Apps Use Uniquely Identified “Entities”
+    Instead, we assume multiple disjoint scopes of                      This paper will argue that the upper layer code for each
+    transactional serializability. Consider each computer               application must manipulate a single collection of data
+    to be a separate scope of transactional serializability6.           we are calling an entity. There are no restrictions on
+    Each data item resides in a single computer or cluster7.            the size of an entity except that it must live within a
+    Atomic transactions may include any data residing                   single scope of serializability (i.e. one machine or
+    within that single scope of transactional serializability           cluster).
+    (i.e. within the single computer or cluster). You cannot            Each entity has a unique identifier or key. An entity-
+    perform atomic transactions across these disjoint                   key may be of any shape, form, or flavor but it
+    scopes of transactional serializability. That’s what                somehow uniquely identifies exactly one entity and the
+    makes them disjoint!                                                data contained within that entity.
+ Most Applications Use “At-Least-Once” Messaging
+  TCP-IP is great if you are a short-lived Unix-style                                         Data for an app comprises
+  process. But let’s consider the dilemma faced by an                                        many different entities.
+  application developer whose job is to process a
+  message and modify some data durably represented on                          Key = “ABC”              Entity
+  disk (either in a SQL database or some other durable
+  store).    The message is consumed but not yet                               Key = “WBP”              Entity
+  acknowledged. The database is updated and then the                                                    Entity
+                                                                               Key = “QLA”
+  message is acknowledged. In a failure, this is restarted
+  and the message is processed again.                                          Key = “UNW”              Entity
+  The dilemma derives from the fact that the message
+  delivery is not directly coupled to the update of the
+  durable data other than through application action.                     There are no constraints on the representation of the
+  While it is possible to couple the consumption of                       entity. It may be stored as SQL records, XML
+  messages to the update of the durable data, this is not                 documents, files, data contained within file systems, as
+  commonly available. The absence of this coupling                        blobs, or anything else that is convenient or appropriate
+  leads to failure windows in which the message is                        for the app’s needs. One possible representation is as a
+  delivered more than once. The messaging plumbing                        collection of SQL records (potentially across many
+                                                                          tables) whose primary key begins with the entity-key.
+5
+  I am deliberately conflating strict serializability and the
+weaker locking modes. The issue is the scope of the data
+participating in the transactions visible to the application.
+6                                                                     8
+  This is not intended to preclude a small collection of                I am a big fan of “exactly-once in-order” messaging but
+computers functioning in a cluster to behave as if they are           to provide it for durable data requires a long-lived
+one machine. This IS intended to formally state that we               programmatic abstraction similar to a TCP connection.
+assume many computers and the likelihood that we must                 The assertion here is that these facilities are rarely
+consider work which cannot be atomically committed.                   available to the programmer building scalable
+7
+  This is excluding replication for high-availability which           applications. Hence, we are considering cases dealing
+will not change the presumption of disjoint scopes of                 with “at-least-once”.
+                                                                      9
+tra`nsactional serializability.                                         Note that these topics will be discussed in more detail.
+
+
+
+                                                                134
+  Entities represent disjoint sets of data. Each datum                 Entities Manage Per-Partner State (“Activities”)
+  resides in exactly one entity. The data of an entity                  Scale-agnostic messaging is effectively entity-to-entity
+  never overlaps the data of another entity.                            messaging. The sending entity (as manifest by its
+  An application comprises many entities. For example,                  durable state and identified by its entity-key) sends a
+  an “order-processing” application encapsulates many                   message which is addressed to another entity. The
+  orders. Each order is identified by a unique Order-ID.                recipient entity comprises both upper-layer (scale-
+  To be a scalable “order-processing” application, data                 agnostic) business logic and the durable data
+  for one order must be disjoint from the data for other                representing its state which is stored and accessed by
+  orders.                                                               the entity-key.
+ Atomic Transactions Cannot Span Entities                              Recall the assumption that messages are delivered “at-
+  We will argue below why we conclude that atomic                       least-once”. This means that the recipient entity must
+  transactions cannot span entities. The programmer                     be prepared in its durable state to be assailed with
+  must always stick to the data contained inside a single               redundant messages that must be ignored. In practice,
+  entity for each transaction. This restriction is true for             messages fall into one of two categories: those that
+  entities within the same application and for entities                 affect the state of the recipient entity and those that do
+  within different applications.                                        not. Messages that do not cause change to the
+                                                                        processing entity are easy… They are trivially
+  From the programmer’s perspective, the uniquely
+                                                                        idempotent. It is those making changes to the recipient
+  identified entity is the scope of serializability. This
+                                                                        that pose design challenges.
+  concept has a powerful impact on the behavior of
+  applications designed for scaling. An implication of                  To ensure idempotence (i.e. guarantee the processing
+  this we will explore is that alternate indices cannot be              of retried messages is harmless), the recipient entity is
+  kept transactionally consistent when designing for                    typically designed to remember that the message has
+  almost-infinite scaling.                                              been processed. Once it has been, the repeated
+                                                                        message will typically generate a new response (or
+ Messages Are Addressed to Entities                                    outgoing message) which mimics the behavior of the
+  Most messaging systems do not consider the                            earlier processed message.
+  partitioning key for the data but rather target a queue
+  which is then consumed by a stateless process.                        The knowledge of the received messages creates state
+                                                                        which is wrapped up on a per-partner basis. The key
+  Standard practice is to include some data in the                      observation here is that the state gets organized by
+  message that informs the stateless application code                   partner and the partner is an entity.
+  where to get the data it needs. This is the entity-key
+  described above. The data for the entity is fetched                   We are applying the term activity to the state which
+  from some database or other durable store by the                      manages the per-party messaging on each side of this
+  application.                                                          two-party relationship. Each activity lives is exactly
+                                                                        one entity. An entity will have an activity for each
+  A couple of interesting trends are already happening in               partner entity from which it receives messages.
+  the industry. First, the size of the set of entities within
+  a single application is growing larger than can fit in a              In addition to managing message melees, activities are
+  single data-store. Each individual entity fits in a store             used to manage loosely-coupled agreement. In a world
+  but the set of them all does not. Increasingly, the                   where atomic transactions are not a possibility,
+  stateless application is routing to fetch the entity based            tentative operations are used to negotiate a shared
+  upon some partitioning scheme. Second, the fetching                   outcome. These are performed between entities and
+  and partitioning scheme is being separated into the                   are managed by activities.
+  lower-layers of the application and deliberately isolated             This paper is not asserting that activities can solve the
+  from the upper-layers of the application responsible for              well known challenges to reaching agreement
+  business logic.                                                       described so thoroughly in workflow discussions. We
+  This is effectively driving towards the message                       are, however, pointing out that almost-infinite scaling
+  destination being the entity key. Both the stateless                  leads to surprisingly fine-grained workflow-style
+  Unix-style process and the lower-layers of the                        solutions. The participants are entities and each entity
+  application are simply part of the implementation of the              manages its workflow using specific knowledge about
+  scale-agnostic API for the business-logic. The upper-                 the other entities involved. That two-party knowledge
+  layer scale-agnostic business logic simply addresses the              maintained inside an entity is what we call an activity.
+  message to the entity-key that identifies the durable                 Examples of activities are sometimes subtle. An order
+  state known as the entity.                                            application will send messages to the shipping
+                                                                        application and include the shipping-id and the sending
+                                                                        order-id. The message-type may be used to stimulate
+                                                                        the state changes in the shipping application to record
+
+
+
+                                                                135
+   that the specified order is ready-to-ship. Frequently,              change as the deployment evolves. The upper-layer of the
+   implementers don’t design for retries until a bug                   application cannot make assumptions about the location
+   appears. Rarely but occasionally, the application                   of the entity because that would not be scale-agnostic.
+   designers think about and plan the design for activities.           Atomic Transactions and Entities
+The remaining part of this paper will examine these                        In scalable systems, you can’t assume transactions for
+assertions in greater depth and propose arguments and                  updates across these different entities. Each entity has a
+explanations for these opinions.                                       unique key and each entity is easily placed into one scope
+                                                                       of serializability10. How can you know that two separate
+2. ENTITIES                                                            entities are guaranteed to be within the same scope of
+    This section examines the nature of entities in greater            serializability (and, hence, atomically updateable)? You
+depth. We first consider the guarantee of atomic                       only know when there is a single unique key that unifies
+transactions within a single entity. Next, we consider the             both. Now it is really one entity!
+use of a unique key to access the entity and how this can                  If we use hashing for partitioning by entity-key,
+empower the lower-level (scale-aware) part of the                      there’s no telling when two entities with different keys
+application to relocate entities when repartitioning. After            land on the same box. If we use key-range partitioning
+this, we consider what may be accessed within a single                 for the entity-keys, most of the time the adjacent key-
+atomic transaction and, finally, examine the implications              values resides on the same machine but once in a while
+of almost-infinite scaling on alternate indices.                       you will get unlucky and your neighbor will be on another
+Disjoint Scopes of Serializability                                     machine. A simple test-case which counts on atomicity
+                                                                       with a neighbor in a key-range partitioning will very
+    Each entity is defined as a collection of data with a              likely experience that atomicity during the test
+unique key known to live within a single scope of                      deployment. Only later when redeployment moves the
+serializability. Because it lives within a single scope of             entities across different scopes of serializability will the
+serializability, we are ensured that we may always do                  latent bug emerge as the updates can no longer be atomic.
+atomic transactions within a single entity.                            You can never count on different entity-key-values
+    It is this aspect that warrants giving the “entity” a              residing in the same place!
+different name then an “object”. Objects may or may not                    Put more simply, the lower-layer of the application
+share transactional scopes.         Entities never share               will ensure each entity-key (and its entity) reside on a
+transactional scopes because repartitioning may put them               single machine (or small cluster). Different entities may
+on different machines.                                                 be anywhere.
+Uniquely Keyed Entities                                                    A scale-agnostic programming abstraction must have
+   Code for the upper layer of an application is naturally             the notion of entity as the boundary of atomicity. The
+designed around collections of data with a unique key.                 understanding of the existence of the entity as a
+We see customer-ids, social-security-numbers, product-                 programmatic abstraction, the use of the entity-key, and
+SKUs, and other unique identifiers all the time within                 the clear commitment to assuming a lack of atomicity
+applications. They are used as keys to locate the data                 across entities are essential to providing a scale-agnostic
+implementing the applications.          This is a natural              upper layer to the application.
+paradigm. We observe that the boundary of the disjoint                     Large-scale applications implicitly do this in the
+scope of serializability (i.e. the “entity”) is always                 industry today; we just don’t have a name for the concept
+identified by a unique key in practice.                                of an entity. From an upper-layer app’s perspective, it
+                                                                       must assume that the entity is the scope of serializability.
+Repartitioning and Entities                                            Assuming more will break when the deployment changes.
+    One of our assumptions is that the emerging upper-
+layer is scale-agnostic and the lower-layer decides how                Considering Alternate Indices
+the deployment evolves as requirements for scale change.                   We are accustomed to the ability to address data with
+This means that the location of a specific entity is likely to         multiple keys or indices. For example, sometimes we
+                                                                       reference a customer by social security number,
+Entities are spread across scopes of serializability                   sometimes by credit-card number, and sometimes by
+using either hashing or key-range partitioning.                        street address. If we assume extreme amounts of scaling,
+                                                                       these indices cannot reside on the same machine or a
+                                                                       single large cluster. The data about a single customer
+
+                                           Key = “WBP”                 10
+                                                                          Recall the premise that almost-infinite scaling causes
+  Key = “ABC”                                 Entity                   the number of entitys to inexorably increase but size of the
+     Entity                                                            individual entity remains small enough to fit in one scope
+                       Key = “QLA”          Key = “UNV”                of serializability (i.e. one computer or small cluster).
+                         Entity                Entity
+
+
+                                                                 136
+cannot be known to reside within a single scope of                    3. MESSAGING ACROSS ENTITIES
+serializability! The entity itself can reside within a single
+                                                                          In this section, we consider the means to connect
+scope of serializability. The challenge is that the copies
+                                                                      independent entities using messages.      We examine
+of the information used to create an alternate index must
+                                                                      naming, transactions and messages, look at message
+be assumed to reside in a different scope of serializability!
+                                                                      delivery semantics, and consider the impact of
+    Consider guaranteeing the alternate index resides in
+                                                                      repartioning the location of entities on these message
+the same scope of serializability. When almost-infinite
+                                                                      delivery semantics.
+scaling kicks in and the set of entities is smeared across
+gigantic numbers of machines, the primary index and                   Messages to Communicate across Entities
+alternate index information must reside within the same                   If you can’t update the data across two entities in the
+scope of serializability. How do we ensure that? The                  same transaction, you need a mechanism to update the
+only way to ensure they both live within the same scope is            data in different transactions. The connection between the
+to begin locating the alternate index using the primary               entities is via a message.
+index! That takes us to the same scope of serializability.
+                                                                      Asynchronous with Respect to Sending Transactions
+If we start without the primary index and have to search
+all of the scopes of serializability, each alternate index                Since messages are across entities, the data associated
+lookup must examine an almost-infinite number of scopes               with the decision to send the message is in one entity and
+as it looks for the match to the alternate key! This will             the destination of the message in another entity. By the
+eventually become untenable!                                          definition of an entity, we must assume that they cannot
+                                                                      be atomically updated.
+  Different keys (primary entity-key versus alternate                     It would be horribly complex for an application
+  keys) cannot be collocated or updated atomically.
+                                                                      developer to send a message while working on a
+                                                                      transaction, have the message sent, and then the
+                                                                      transaction abort. This would mean that you have no
+    Entities indexed              Entity keys indexed                 memory of causing something to happen and yet it does
+     by unique key                 by secondary key
+                                                                      happen! For this reason, transactional enqueuing of
+                                              Key
+                                  Key
+
+                                        Key
+
+
+
+                                                    Key
+
+                                                          Key
+
+
+
+
+                                                                      messages is de rigueur.
+
+    The only logical alternative is to do a two step lookup.                    Entity-A                     Entity-B
+First, we lookup the alternate key and that yields the
+entity-key. Second, we access the entity using the entity-
+key. This is very much like inside a relational database as                  Transaction T1
+it uses two steps to access a record via an alternate key.
+But our premise of almost-infinite scaling means the two
+indices (primary and alternate) cannot be known to reside                                                Transaction T2
+in the same scope of serializability!
+The scale-agnostic application program can’t atomically
+update an entity and its alternate index! The upper-layer                 If the message cannot be seen at the destination until
+scale-agnostic application must be designed to understand             after the sending transaction commits, we see the message
+that alternate indices may be out of sync with the entity             as asynchronous with respect to the sending transaction.
+accessed with its primary index (i.e. entity-key).                    Each entity advances to a new state with a transaction.
+    What in the past has been managed automatically as                Messages are the stimuli coming from one transaction and
+alternate indices must now be managed manually by the                 arriving into a new entity causing transactions.
+application. Workflow-style updates via asynchronous                  Naming the Destination of Messages
+messaging are all that is left to the almost-infinite scale               Consider the programming of the scale-agnostic part
+application. Reading of the data that was previously kept             of an application as one entity wants to send a message to
+as alternate indices must now be done with an                         another entity. The location of the destination entity is
+understanding that this is potentially out of sync with the           not known to the scale-agnostic code. The entity-key is.
+entity implementing the primary representation of the                     It falls on the scale-aware part of the application to
+data.    The functionality previously implemented as                  correlate the entity-key to the location of the entity.
+alternate indices is now harder. It is a fact of life in the
+big cruel world of huge systems!                                      Repartitioning and Message Delivery
+                                                                          When the scale-agnostic part of the application sends a
+                                                                      message, the lower-level scale-aware portion hunts down
+                                                                      the destination and delivers the message at-least-once.
+                                                                          As the system scales, entities move.           This is
+                                                                      commonly called repartitioning. The location of the data
+
+
+
+                                                                137
+for the entity and, hence, the destination for the message           Messages versus Methods
+may be in flux. Sometimes, messages will chase to the
+old location only to find out the pesky entity has been sent             Method calls are typically synchronous with respect to
+elsewhere. Now, the message will have to follow.                     the calling thread. They are also synchronous with
+    As entities move, the clarity of a first-in-first-out            respect to the calling object’s transaction. While the
+queue between the sender and the destination is                      called object may or may not be atomically coupled with
+occasionally disrupted. Messages are repeated. Later                 the calling object, the typical method call does not
+messages arrive before earlier ones. Life gets messier.              atomically record the intent to invoke a message and
+    For these reasons, we see scale-agnostic applications            guarantee the at-least-once invocation of the called
+are evolving to support idempotent processing of all                 message. Some systems wrap message-sending into a
+application-visible messaging11. This implies reordering             method call and I consider those to be messages, not
+in message delivery, too.                                            methods.
+                                                                         We don’t address the differences in marshalling and
+                                                                     binding that usually separate messaging from methods.
+4. ENTITIES, SOA, AND OBJECTS
+                                                                     We simply point out that transactional boundaries
+    This section contrasts the ideas in this paper to those          mandate asynchrony not usually found with method calls.
+of object orientation and service orientation.
+                                                                     Entities and Service Oriented Architectures
+Entities and Object Instances
+                                                                         Everything discussed in this paper is supportive of
+    One may ask: “How is an entity different than an                 SOA. Most SOA implementations embrace independent
+object instance?” The answer is not black and white.                 transaction scopes across services.
+Objects have many forms, some of which are entities and                  The major enhancement to SOA presented here is the
+others which are not.          There are two important               notion that each service may confront almost-infinite
+clarifications that must be made to consider an object to            scaling within itself and some observations about what
+be an entity.                                                        that means. These observations apply across services in a
+    First, the data encapsulated by the object must be               SOA and within those individual services where they are
+strictly disjoint from all other data. Second, that disjoint         designed to independently scale.
+data may never be atomically updated with any other data.
+    Some object systems have ambiguous encapsulation                 5. ACTIVITIES: COPING WITH MESSY
+of database data. To the extent these are not crisp and
+diligently enforced; these objects are not entities as
+                                                                        MESSAGES
+defined herein. Sometimes, materialized views and                        This section discusses means to cope with the
+alternate indices are used. These won’t last when your               challenges of message retries and reordering. We
+system attempts to scale and your objects aren’t entities.           introduce the notion of an activity as the local information
+    Many object systems allow transaction scopes to span             needed to manage a relationship with a partner entity.
+objects. This programmatic convenience obviates most of              Retries and Idempotence
+the challenges described in this paper. Unfortunately, that              Since any message ever sent may be delivered
+doesn’t work under almost-infinite scaling unless your               multiple times, we need a discipline in the application to
+transactionally-coupled objects are always collocated12.             cope with repeated messages. While it is possible to build
+To do this, we need to assign them a common key to                   low-level support for the elimination of duplicate
+ensure co-location and then realize the two                          messages, in an almost-infinite scaling environment, the
+transactionally-coupled objects are part of the same                 low-level support would need to know about entities. The
+entity!                                                              knowledge of which messages have been delivered to the
+    Objects are great but they are a different abstraction.          entity must travel with the entity when it moves due to
+                                                                     repartitioning. In practice, the low-level management of
+                                                                     this knowledge rarely occurs; messages may be delivered
+                                                                     more than once.
+                                                                         Typically, the scale-agnostic (higher-level) portion of
+11
+                                                                     the application must implement mechanisms to ensure
+    It is common that scale-aware applications are not               that the incoming message is idempotent. This is not
+initially designed for idempotence and re-ordering of                essential to the nature of the problem. Duplicate
+messages. At first, small scale deployments do not                   elimination could certainly be built into the scale-aware
+exhibit these subtle problems and work fine. Only as time            parts of the application. So far, this is not yet available.
+passes and their deployments expand do the problems                  Hence, we consider what the poor developer of the scale-
+manifest and the applications respond to handle them.                agnostic application must implement.
+12
+   Alternatively, you could forget about collocation and
+use two phase commit. Per our assumptions, we assert
+natural selection will kick in eliminating this problem…
+
+
+
+                                                               138
+Defining Idempotence of Substantive Behavior                         returned. After all, we don’t know if the original sender
+    The processing of a message is idempotent if a                   has received the reply or not.
+subsequent execution of the processing does not perform              Activities: Managing State for Each Partner
+a substantive change to the entity. This is an amorphous                 To track relationships and the messages received, each
+definition which leaves open to the application the                  entity within the scale-agnostic application must
+specification of what is and what is not substantive.                somehow remember state information about its partners.
+    If a message does not change the invoked entity but              It must capture this state on a partner by partner basis.
+only reads information, its processing is idempotent. We             Let’s name this state an activity. Each entity may have
+consider this to be true even if a log record describing the         many activities if it interacts with many other entities.
+read is written. The log record is not substantive to the            Activities track the interactions with each partner.
+behaviour of the entity. The definition of what is and
+what is not substantive is application specific.13
+                                                                                    Entity-X          Activities are simple.
+Natural Idempotence                                                                                 They are what an entity
+    To accomplish idempotence, it is essential that the                 Msg-A                       remembers about other
+message does not cause substantive side-effects. Some                                             entities it works with. This
+messages provoke no substantive work any time they are                  Msg-B                     includes knowledge about
+processed. These are naturally idempotent.                                                            received messages.
+    A message that only reads some data from an entity is
+naturally idempotent. What if the processing of a                        Each entity comprises a set of activities and, perhaps,
+message does change the entity but not in a way that is              some other data that spans the activities.
+substantive? Those, too, would be naturally idempotent.              Consider the processing of an order comprising many
+    Now, it gets harder. The work implied by some                    items for purchase. Reserving inventory for shipment of
+messages actually cause substantive changes. These                   each separate item will be a separate activity. There will
+messages are not naturally idempotent. The application               be an entity for the order and separate entities for each
+must include mechanisms to ensure that these, too, are               item managed by the warehouse. Transactions cannot be
+idempotent. This means remembering in some fashion                   assumed across these entities.
+that the message has been processed so that subsequent               Within the order, each inventory item will be separately
+attempts make no substantive change.14                               managed. The messaging protocol must be separately
+    It is the processing of messages that are not naturally          managed. The per-inventory-item data contained within
+idempotent that we consider next.                                    the order-entity is an activity. While it is not named as
+Remembering Messages as State                                        such, this pattern frequently exists in large-scale apps.
+    To ensure the idempotent processing of messages that                 In an almost-infinitely scaled application, you need to
+are not naturally idempotent, the entity must remember               be very clear about relationships because you can’t just do
+they have been processed. This knowledge is state. The               a query to figure out what is related. Everything must be
+state accumulates as messages are processed.                         formally knit together using a web of two-party
+    In addition to remembering that a message has been               relationships. The knitting is with the entity-keys.
+processed, if a reply is required, the same reply must be            Because the partner is a long ways away, you have to
+                                                                     formally manage your understanding of the partners state
+13                                                                   as new knowledge of the partner arrives. The local
+   In the database community, we frequently use this                 information that you know about a distant partner is
+technique. For example, in a physiological logging                   referred to as an activity.
+(ARIES-style) system, a logical undo of a transaction will
+leave the system with the same records as before the
+                                                                                                               Entity-A
+transaction. In doing so, the layout of the pages in the
+Btree may be different. This is not substantive to the
+record-level interpretation of the contents of the Btree.
+14                                                                                     Entity-C
+   Note that it is hard (but certainly doable) to build the              Entity-B
+plumbing to eliminate duplicates as messages flow
+between fine-grained entities. Most durable duplicate                    Entity-D
+elimination is done on queues with a coarser granularity
+than the entity.      Migrating the state for duplicate
+elimination with the entity isn’t commonly available.
+Hence, a common pattern is that the scale-agnostic
+application contains application specific logic to ensure            If an entity works with many partners, it will have
+redundant processing of messages has no substantive                  many activities. These are one per partner.
+impact on the entity.
+
+
+
+                                                               139
+Ensuring At-Most-Once Acceptance via Activities                       workflow if it needs to reach agreement across multiple
+                                                                      entities.
+    Processing messages that are not naturally idempotent
+                                                                      Think about the style of interactions common across
+requires ensuring each message is processed at-most-once
+                                                                      businesses. Contracts between businesses include time
+(i.e. the substantive impact of the message must happen
+                                                                      commitments, cancellation clauses, reserved resources,
+at-most-once). To do this, there must be some unique
+                                                                      and much more. The semantics of uncertainty is wrapped
+characteristic of the message that is remembered to ensure
+                                                                      up in the behaviour of the business functionality. While
+it will not be processed more than once.
+                                                                      more complicated to implement than simply using
+    The entity must durably remember the transition from
+                                                                      distributed transactions, it is how the real world works…
+a message being OK to process into the state where the
+message will not have substantive impact.                             Again, this is simply an argument for workflow.
+    Typically, an entity will use its activities to implement         Activities and the Management of Uncertainty
+this state management on a partner by partner basis. This
+is essential because sometimes an entity supports many                    Entities sometimes accept uncertainty as they interact
+different partners and each will pass through a pattern of            with other entities. This uncertainty must be managed on
+messages associated with that relationship. By leveraging             a partner-by-partner basis and one can visualize that as
+a per-partner collection of state, the programmer can                 being reified in the activity state for the partner.
+focus on the per-partner relationship.                                    Many times, uncertainty is represented by relationship.
+    The assertion is that by focusing in on the per-partner           It is necessary to track it by partner. As each partner
+information, it is easier to build scalable applications.             advances into a new state, the activity tracks this.
+One example is in the implementation of support for                   If an ordering system reserves inventory from a
+idempotent message processing.                                        warehouse, the warehouse allocates the inventory without
+                                                                      knowing if it will be used. That is accepting uncertainty.
+6. ACTIVITIES:              COPING           WITHOUT                  Later on, the warehouse finds out if the reserved
+                                                                      inventory will be needed. This resolves the uncertainty.
+   ATOMICITY
+                                                                      The warehouse inventory manager must keep relationship
+    This section addresses how wildly scalable system
+                                                                      data for each order encumbering its items. As it connects
+make decisions without distributed transactions.
+                                                                      items and orders, these will be organized by item. Within
+    The emphasis of this section is that it is hard work to
+                                                                      each item will be information about outstanding orders
+manage distributed agreement. In addition, though, in an
+                                                                      against that item. Each of these activities within the item
+almost-infinitely scalable environment, the representation
+of uncertainty must be done in a fine-grained fashion that            (one per order) manages the uncertainty of the order.
+is oriented around per-partner relationships. This data is            Performing Tentative Business Operations
+managed within entities using the notion of an activity.                  To reach an agreement across entities, one entity has
+Uncertainty at a Distance                                             to ask another to accept some uncertainty. This is done
+    The absence of distributed transactions means we                  by sending a message which requests a commitment but
+must accept uncertainty as we attempt to come to                      leaves open the possibility of cancellation. This is called
+decisions across different entities. It is unavoidable that           a tentative operation and it represented by a message
+decisions across distributed systems involve accepting                flowing between two entities. At the end of this step, one
+uncertainty for a while15. When distributed transactions              of the entities agrees to abide by the wishes of the other16.
+can be used, that uncertainty is manifest in the locks held           Tentative Operations, Confirmation, and Cancellation
+on data and is managed by the transaction manager.                        Essential to a tentative operation, is the right to cancel.
+    In a system which cannot count on distributed                     Sometimes, the entity that requested the tentative
+transactions, the management of uncertainty must be                   operation decides it is not going to proceed forward. That
+implemented in the business logic. The uncertainty of the             is a cancelling operation. When the right to cancel is
+outcome is held in the business semantics rather than in              released, that is a confirming operation. Every tentative
+the record lock. This is simply workflow. Nothing                     operation eventually confirms or cancels.
+magic, just that we can’t use distributed transaction so we               When an entity agrees to perform a tentative
+need to use workflow.                                                 operation, it agrees to let another entity decide the
+    The assumptions that lead us to entities and messages,            outcome. This is accepting uncertainty and adds to the
+lead us to the conclusion that the scale-agnostic                     general confusion experience by that entity.                As
+application must manage uncertainty itself using                      confirmations and cancellations arrive, that decreases
+15                                                                    16
+   At the time of writing this paper, funny action at a                 This is the simple case. In some cases, the operations
+distance has not been proven and we are limited by the                can be partially handled. In other cases, time-outs and/or
+speed of light. There ain’t no such thing as simultaneity             reneging can cause even more problems. Unfortunately,
+at a distance…                                                        the real world is not pretty.
+
+
+
+                                                                140
+uncertainty. It is normal to proceed through life with ever          are observed. Based upon these general patterns, new
+increasing and decreasing uncertainty as old problems get            facilities are built empowering easier construction of
+resolved and new ones arrive at your lap.                            business logic.
+    Again, this is simply workflow but it is fine-grained                In the 1970s, many large-scale applications struggled
+workflow with entities as the participants.                          with the difficulties of handling the multiplexing of
+Uncertainty and Almost-Infinite Scaling                              multiple online terminals while providing business
+                                                                     solutions. Emerging patterns of terminal control were
+    The interesting aspect of this for scaling is the                captured and some high-end applications evolved into TP-
+observation that the management of uncertainty usually               monitors. Eventually, these patterns were repeated in the
+revolves around two-party agreements. It is frequently               creation of developed-from-scratch TP-monitors. These
+the case that multiple two-party agreements happen. Still,           platforms allowed the business-logic developers to focus
+these are knit together as a web of fine-grained two-party           on what they do best: develop business logic.
+agreements using entity-keys as the links and activities to              Today, we see new design pressures foisted onto
+track the known state of a distant partner.                          programmers that simply want to solve business
+Consider a house purchase and the relationships with the             problems. Their realities are taking them into a world of
+escrow company. The buyer enters into an agreement of                almost-infinite scaling and forcing them into design
+trust with the escrow company. So does the seller, the               problems largely unrelated to the real business at hand.
+mortgage company, and all the other parties involved in                  Unfortunately, programmers striving to solve business
+the transaction.                                                     goals like eCommerce, supply-chain-management,
+When you go to sign papers to buy a house, you do not                financial, and health-care applications increasingly need
+know the outcome of the deal. You accept that, until                 to think about scaling without distributed transactions.
+escrow closes, you are uncertain. The only party with                They do this because attempts to use distributed
+control over the decision-making is the escrow company.              transactions are too fragile and perform poorly.
+This is a hub-and-spoke collection of two-party                          We are at a juncture where the patterns for building
+relationships that are used to get a large set of parties to         these applications can be seen but no one is yet applying
+agree without use of distributed transactions.                       these patterns consistently. This paper argues that these
+                                                                     nascent patterns can be applied more consistently in the
+    When you consider almost-infinite scaling, it is
+                                                                     hand-crafted development of applications designed for
+interesting to think about two-party relationships. By
+                                                                     almost-infinite scaling. Furthermore, in a few years we
+building up from two-party tentative/cancel/confirm (just
+                                                                     are likely to see the development of new middleware or
+like traditional workflow) we see the basis for how
+                                                                     platforms which provide automated management of these
+distributed agreement is achieved. Just as in the escrow
+                                                                     applications and eliminate the scaling challenges for
+company, many entities may participate in an agreement
+                                                                     applications developed within a stylized programming
+through composition.
+                                                                     paradigm. This is strongly parallel to the emergence of
+    Because the relationships are two-party, the simple
+                                                                     TP-monitors in the 1970s.
+concept of an activity as “stuff I remember about that
+                                                                         In this paper, we have introduced and named a couple
+partner” becomes a basis for managing enormous
+                                                                     of formalisms emerging in large-scale applications:
+systems. Even when the data is stored in entities and you
+don’t know where the data lives and must assume it is far             Entities are collections of named (keyed) data which
+away, it can be programmed in a scale-agnostic way.                       may be atomically updated within the entity but never
+    Real world almost-infinite scale applications would                   atomically updated across entities.
+love the luxury of a global scope of serializability as is            Activities comprise the collection of state within the
+promised by two phase commit and other related                            entities used to manage messaging relationships with
+algorithms. Unfortunately, the fragility of these leads to                a single partner entity.
+unacceptable pressure on availability.         Instead, the          Workflow to reach decisions, as have been discussed for
+management of the uncertainty of the tentative work is               many years, functions within activities within entities. It
+foisted clearly into the hands of the developer of the               is the fine-grained nature of workflow that is surprising as
+scale-agnostic application. It must be handled as reserved           one looks at almost-infinite scaling.
+inventory, allocations against credit lines, and other                   It is argued that many applications are implicitly
+application specific concepts.                                       designing with both entities and activities today. They are
+                                                                     simply not formalized nor are they consistently used.
+7. CONCLUSIONS                                                       Where the use is inconsistent, bugs are found and
+    As usual, the computer industry is in flux. One                  eventually patched. By discussing and consistently using
+emerging trend is for an application to scale to sizes that          these patterns, better large-scale applications can be built
+do not fit onto a single machine or tightly-coupled set of           and, as an industry, we can get closer to building solutions
+machines. As we have always seen, specific solutions for             that allow business-logic programmers to concentrate on
+a single application emerge first and then general patterns          the business-problems rather than the problems of scale.
+
+
+
+
+                                                               141
+

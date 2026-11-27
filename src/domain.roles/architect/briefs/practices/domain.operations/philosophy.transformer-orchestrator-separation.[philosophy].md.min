@@ -1,0 +1,8 @@
+# philosophy.transformer-orchestrator-separation
+
+transformers and communicators are vocabulary: words with precise definitions. orchestrators are sentences composed of them. decode-friction in an orchestrator spells a word letter by letter mid-sentence: "the c-a-t sat on the m-a-t"
+- `slug.split('.')[0]!` → `asKeyrackKeyOrg({ slug })`
+- `user.age >= 18 && user.verified && !user.suspended` → `isEligibleForPremiumFeatures({ user })`
+- `users.filter(…).sort(…)` → `getAllActiveUserEmails({ users })`
+compiler view: the leaves are the instruction set; inline decode in an orchestrator is inline assembly
+abstraction is not only for reuse — it makes code readable at the call site, where humans and robots spend their read-time

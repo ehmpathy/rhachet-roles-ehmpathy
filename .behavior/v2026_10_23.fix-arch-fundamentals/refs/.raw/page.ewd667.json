@@ -1,0 +1,49 @@
+{
+  "source": {
+    "id": "page.ewd667",
+    "kind": "page",
+    "url": "https://www.cs.utexas.edu/~EWD/transcriptions/EWD06xx/EWD667.html",
+    "keywords": [
+      "natural language",
+      "formal",
+      "foolish",
+      "precis"
+    ]
+  },
+  "urlFinal": "https://www.cs.utexas.edu/~EWD/transcriptions/EWD06xx/EWD667.html",
+  "status": 200,
+  "fetchedAt": "2026-11-23T16:06:29.666Z",
+  "title": "E.W.Dijkstra Archive: On the foolishness of \"natural language programming\". (EWD 667)",
+  "meta": [],
+  "windows": [
+    {
+      "keyword": "natural language",
+      "window": "EWD 667 On the foolishness of \"natural language programming\". Since the early days of automatic computing we have had people that have felt it as a shortcoming that programming required the care and accuracy that is characteristic for the use of any formal symbolism. They blamed the mechanical slave for its strict obedience with which it carried out its given instructions, even if a moment's thought would have revealed that th"
+    },
+    {
+      "keyword": "natural language",
+      "window": "evious generation should know better, are no longer able to use their native tongue effectively, even for purposes for which it is pretty adequate. (You have only to look at the indeed alarming amount of on close reading meaningless verbiage in scientific articles, technical reports, government publications etc.) This phenomenon —known as \"The New Illiteracy\"— should discourage those believers in natural language programming that lack the technical insight needed to predict its failure. (End of remark.) From one gut feeling I derive much consolation: I suspect that machines to be programmed in our native tongues —be it Dutch, English, American, French, German, or Swahili— are as damned difficult to make as they would be to use. Plataanstraat 5 5671 AL NUENEN The Netherlands prof.dr.Edsge"
+    },
+    {
+      "keyword": "formal",
+      "window": "EWD 667 On the foolishness of \"natural language programming\". Since the early days of automatic computing we have had people that have felt it as a shortcoming that programming required the care and accuracy that is characteristic for the use of any formal symbolism. They blamed the mechanical slave for its strict obedience with which it carried out its given instructions, even if a moment's thought would have revealed that those instructions contained an obvious mistake. \"But a moment is a long time, and thought is a painful process.\" (A.E.Housman). They eagerly hoped and waited for more sensible machinery that would refuse to embark on such"
+    },
+    {
+      "keyword": "formal",
+      "window": "ong results, and, when judging the relative merits of programming languages, some still seem to equate \"the ease of programming\" with the ease of making undetected mistakes.) The (abstract) machine corresponding to a programming language remained, however, a faithful slave, i.e. the nonsensible automaton perfectly capable of carrying out nonsensical instructions. Programming remained the use of a formal symbolism and, as such, continued to require the care and accuracy required before. In order to make machines significantly easier to use, it has been proposed (to try) to design machines that we could instruct in our native tongues. this would, admittedly, make the machines much more complicated, but, it was argued, by letting the machine carry a larger share of the burden, life would bec"
+    },
+    {
+      "keyword": "formal",
+      "window": "d before. In order to make machines significantly easier to use, it has been proposed (to try) to design machines that we could instruct in our native tongues. this would, admittedly, make the machines much more complicated, but, it was argued, by letting the machine carry a larger share of the burden, life would become easier for us. It sounds sensible provided you blame the obligation to use a formal symbolism as the source of your difficulties. But is the argument valid? I doubt. We know in the meantime that the choice of an interface is not just a division of (a fixed amount of) labour, because the work involved in co-operating and communicating across the interface has to be added. We know in the meantime —from sobering experience, I may add— that a change of interface can easily in"
+    },
+    {
+      "keyword": "foolish",
+      "window": "EWD 667 On the foolishness of \"natural language programming\". Since the early days of automatic computing we have had people that have felt it as a shortcoming that programming required the care and accuracy that is characteristic for the use of any formal symbolism. They blamed the mechanical slave for its strict obedience with which it carried out its given instructions, even if a moment's thought would have"
+    },
+    {
+      "keyword": "precis",
+      "window": "s shows how justified this challenge is. Greek mathematics got stuck because it remained a verbal, pictorial activity, Moslem \"algebra\", after a timid attempt at symbolism, died when it returned to the rhetoric style, and the modern civilized world could only emerge —for better or for worse— when Western Europe could free itself from the fetters of medieval scholasticism —a vain attempt at verbal precision!— thanks to the carefully, or at least consciously designed formal symbolisms that we owe to people like Vieta, Descartes, Leibniz, and (later) Boole. The virtue of formal texts is that their manipulations, in order to be legitimate, need to satisfy only a few simple rules; they are, when you come to think of it, an amazingly effective tool for ruling out all sorts of nonsense that, whe"
+    }
+  ],
+  "textLength": 6473
+}

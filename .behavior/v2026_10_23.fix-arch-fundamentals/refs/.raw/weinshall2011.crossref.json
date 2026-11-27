@@ -1,0 +1,160 @@
+{
+  "source": {
+    "id": "weinshall2011",
+    "kind": "crossref",
+    "query": "Weinshall-Margel Shapard Overlooked factors in the analysis of parole decisions PNAS 2011"
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Weinshall-Margel%20Shapard%20Overlooked%20factors%20in%20the%20analysis%20of%20parole%20decisions%20PNAS%202011&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T19:30:37.918Z",
+  "items": [
+    {
+      "publisher": "National Academy of Sciences",
+      "issue": "42",
+      "DOI": "10.1073/pnas.1110910108",
+      "type": "journal-article",
+      "title": [
+        "Overlooked factors in the analysis of parole decisions"
+      ],
+      "volume": "108",
+      "author": [
+        {
+          "given": "Keren",
+          "family": "Weinshall-Margel",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Israeli Courts Research Division, The Supreme Court, Jerusalem 91950, Israel; and"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "John",
+          "family": "Shapard",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Federal Judicial Center, Washington, DC 20002"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Proceedings of the National Academy of Sciences"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            2011,
+            10,
+            10
+          ]
+        ]
+      }
+    },
+    {
+      "publisher": "National Academy of Sciences",
+      "issue": "42",
+      "DOI": "10.1073/pnas.1112190108",
+      "type": "journal-article",
+      "title": [
+        "Reply to Weinshall-Margel and Shapard: Extraneous factors in judicial decisions persist"
+      ],
+      "volume": "108",
+      "author": [
+        {
+          "given": "Shai",
+          "family": "Danziger",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Tel-Aviv University, Tel-Aviv 69978, Israel;"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Jonathan",
+          "family": "Levav",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Stanford University, Stanford, CA 94305; and"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Liora",
+          "family": "Avnaim-Pesso",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Ben Gurion University of the Negev, Beer-Sheva 84105, Israel"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Proceedings of the National Academy of Sciences"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            2011,
+            10,
+            10
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.4324/9781315721965-45",
+      "title": [
+        "FACTORS INFLUENCING PAROLE DECISIONS"
+      ],
+      "container-title": [
+        "Corrections in the Community"
+      ],
+      "page": "196-198",
+      "issued": {
+        "date-parts": [
+          [
+            2011,
+            3,
+            9
+          ]
+        ]
+      },
+      "publisher": "Routledge",
+      "type": "book-chapter"
+    }
+  ]
+}

@@ -1,0 +1,121 @@
+{
+  "source": {
+    "id": "lamport2015",
+    "kind": "crossref",
+    "query": "Who builds a house without drawing blueprints Lamport Communications of the ACM 2015",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Who%20builds%20a%20house%20without%20drawing%20blueprints%20Lamport%20Communications%20of%20the%20ACM%202015&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T16:05:40.984Z",
+  "items": [
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "4",
+      "DOI": "10.1145/2736348",
+      "type": "journal-article",
+      "page": "38-41",
+      "title": [
+        "Who builds a house without drawing blueprints?"
+      ],
+      "volume": "58",
+      "author": [
+        {
+          "given": "Leslie",
+          "family": "Lamport",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Microsoft Research"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Communications of the ACM"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            2015,
+            3,
+            23
+          ]
+        ]
+      }
+    },
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "6",
+      "DOI": "10.1145/2771951",
+      "type": "journal-article",
+      "page": "71-76",
+      "title": [
+        "Turing lectureThe computer science of concurrency"
+      ],
+      "volume": "58",
+      "author": [
+        {
+          "given": "Leslie",
+          "family": "Lamport",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Communications of the ACM"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            2015,
+            5,
+            21
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.21236/ad1000590",
+      "title": [
+        "White House Communications Agency (WHCA) Presidential Voice Communications Rack Mount System Mechanical Drawing Package"
+      ],
+      "author": [
+        {
+          "given": "Steven P",
+          "family": "Callaway",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            2015,
+            11,
+            1
+          ]
+        ]
+      },
+      "publisher": "Defense Technical Information Center",
+      "type": "report"
+    }
+  ]
+}

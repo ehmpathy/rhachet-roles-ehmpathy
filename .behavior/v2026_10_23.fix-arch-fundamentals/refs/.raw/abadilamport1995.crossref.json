@@ -1,0 +1,170 @@
+{
+  "source": {
+    "id": "abadilamport1995",
+    "kind": "crossref",
+    "query": "Abadi Lamport Conjoining specifications 1995",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Abadi%20Lamport%20Conjoining%20specifications%201995&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:11:28.124Z",
+  "items": [
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "3",
+      "DOI": "10.1145/203095.201069",
+      "type": "journal-article",
+      "page": "507-535",
+      "title": [
+        "Conjoining specifications"
+      ],
+      "volume": "17",
+      "author": [
+        {
+          "given": "Martín",
+          "family": "Abadi",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Digital Equipment Corp., Palo Alto, CA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Leslie",
+          "family": "Lamport",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Digital Equipment Corp., Palo Alto, CA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "ACM Transactions on Programming Languages and Systems"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1995,
+            5
+          ]
+        ]
+      }
+    },
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "1",
+      "DOI": "10.1145/151646.151649",
+      "type": "journal-article",
+      "page": "73-132",
+      "title": [
+        "Composing specifications"
+      ],
+      "volume": "15",
+      "author": [
+        {
+          "given": "Martín",
+          "family": "Abadi",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Digital Equipment Corp., Palo Alto, CA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Leslie",
+          "family": "Lamport",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Digital Equipment Corp., Palo Alto, CA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "ACM Transactions on Programming Languages and Systems"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1993,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.1007/3-540-52559-9_59",
+      "title": [
+        "Composing specifications"
+      ],
+      "author": [
+        {
+          "given": "Martín",
+          "family": "Abadi",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Leslie",
+          "family": "Lamport",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Lecture Notes in Computer Science",
+        "Stepwise Refinement of Distributed Systems Models, Formalisms, Correctness"
+      ],
+      "page": "1-41",
+      "issued": {
+        "date-parts": [
+          [
+            1990
+          ]
+        ]
+      },
+      "publisher": "Springer Berlin Heidelberg",
+      "type": "book-chapter"
+    }
+  ]
+}

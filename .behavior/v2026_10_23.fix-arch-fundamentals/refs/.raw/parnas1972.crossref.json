@@ -1,0 +1,116 @@
+{
+  "source": {
+    "id": "parnas1972",
+    "kind": "crossref",
+    "query": "Parnas On the criteria to be used in decomposing systems into modules 1972",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Parnas%20On%20the%20criteria%20to%20be%20used%20in%20decomposing%20systems%20into%20modules%201972&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:15:40.974Z",
+  "items": [
+    {
+      "DOI": "10.21236/ad0773837",
+      "title": [
+        "On the Criteria to Be Used in Decomposing Systems into Modules"
+      ],
+      "author": [
+        {
+          "given": "D. L.",
+          "family": "Parnas",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1971,
+            8,
+            1
+          ]
+        ]
+      },
+      "publisher": "Defense Technical Information Center",
+      "type": "report"
+    },
+    {
+      "DOI": "10.1007/978-3-642-48354-7_20",
+      "title": [
+        "On the Criteria to Be Used in Decomposing Systems into Modules"
+      ],
+      "author": [
+        {
+          "given": "David L.",
+          "family": "Parnas",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Pioneers and Their Contributions to Software Engineering"
+      ],
+      "page": "479-498",
+      "issued": {
+        "date-parts": [
+          [
+            1972
+          ]
+        ]
+      },
+      "publisher": "Springer Berlin Heidelberg",
+      "type": "book-chapter"
+    },
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "12",
+      "DOI": "10.1145/361598.361623",
+      "type": "journal-article",
+      "page": "1053-1058",
+      "title": [
+        "On the criteria to be used in decomposing systems into modules"
+      ],
+      "volume": "15",
+      "author": [
+        {
+          "given": "D. L.",
+          "family": "Parnas",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Carnegie-Mellon Univ., Pittsburgh, PA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Communications of the ACM"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1972,
+            12
+          ]
+        ]
+      }
+    }
+  ]
+}

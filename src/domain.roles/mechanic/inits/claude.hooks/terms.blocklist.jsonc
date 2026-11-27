@@ -12,15 +12,13 @@
       "why": "overloaded and vague - conflates format, canonical, sanitize, scale, case, encode, resolve, collapse, expand purposes",
       "alt": ["asX pattern: asE164, asIso8601, asLowercase, asTrimmed, asComparable, asExplicit, asExpanded, as${DomainObject}, as${DomainObject}${Variant} (e.g., asIsoPriceHuman)"]
     },
+    // .note = one record for `dryrun` and `dry-run`, at one fork. each form is spelled whole, never
+    //         `dry-?run`: the term's own text must still match the joined gate ([case27])
     {
-      "term": "dryrun",
+      "term": "dryrun|dry-run",
+      "label": "dryrun · dry-run",
       "why": "boolean creates double negatives (dryRun: false) and limits extensibility to other modes",
-      "alt": ["mode: 'PLAN' | 'APPLY'", "mode: 'PLAN' | 'VALIDATE' | 'DIFF' | 'APPLY'"]
-    },
-    {
-      "term": "dry-run",
-      "why": "boolean creates double negatives and limits extensibility to other modes",
-      "alt": ["--mode plan", "--mode apply"]
+      "alt": ["mode: 'PLAN' | 'APPLY'", "mode: 'PLAN' | 'VALIDATE' | 'DIFF' | 'APPLY'", "--mode plan", "--mode apply"]
     },
     {
       "term": "existing",
@@ -46,6 +44,80 @@
       "term": "staging",
       "why": "gerund + overloaded - is it a specific environment or an alias for the concept of environment? stage = staging? a phase? the act?",
       "alt": ["prep", "environment", "access"]
+    },
+    // .note = one record for `state`, `states`, and `useState`: each record costs one grep on a
+    //         tripped write, so one regex covers the three forms at one fork (see the forkbudget test)
+    // .note = each alt names ONE sense, with no inner comma, so the joined list reads one sense per item
+    // .note = `label` renders in place of the regex, so a human reads the forms, not the pattern
+    {
+      "term": "(use)?states?",
+      "label": "state · states · useState",
+      "why": "overloaded - names a region, a stored value, a status, a scenario, in-memory data, and a verb; useState hides where its value persists",
+      "alt": ["region", "record or snapshot (a stored value)", "status", "scenario or condition", "data or cache", "declare or say", "a wrapper hook named for where the value persists"]
+    },
+    // .note = `.map(` and `Map` trip this record too: the hook greps every write and cannot tell
+    //         code from prose. an identifier we do not name is exempt (rule.forbid.term=map), so
+    //         retry the write unchanged
+    {
+      "term": "maps?",
+      "label": "map · maps",
+      "why": "overloaded - names a key-value lookup, a per-element transform, a correspondence, a grid over axes, a plan, a layout, and a representation",
+      "alt": ["lookup or index (`usersByUuid`)", "cast via an as* transformer", "correspondence table", "the dimensions or the product table", "plan or milestones", "graph or diagram", "description"]
+    },
+    {
+      "term": "models?|modell?ed",
+      "label": "model · models · modeled",
+      "why": "overloaded - names a brain, a schema, a domain object, a picture in a head, an exemplar, a solver formulation, and a verb",
+      "alt": ["brain (an llm)", "schema or table", "the domain objects", "mental picture or expectation", "exemplar or demo", "formulation (for a solver)", "declare or describe (the verb)"]
+    },
+    // .note = `stores?` passes `stored`, `storage`, and `restore`: only the bare noun and verb are banned
+    {
+      "term": "stores?",
+      "label": "store · stores",
+      "why": "overloaded - names a database, a cache, a client-side data container, a shop, and a verb",
+      "alt": ["storage (where data persists)", "database", "cache", "a data container named for what it contains", "shop", "persist or set (the verb)"]
+    },
+    // .note = `property|properties` passes `proper` and `properly`; compounds like `hasOwnProperty`
+    //         and `toHaveProperty` pass too, since a camel hump has no word boundary. each form is
+    //         spelled whole, so the term's own text still matches the joined gate ([case27])
+    {
+      "term": "property|properties",
+      "label": "property · properties",
+      "why": "overloaded - names a field on an object, a trait of an entity, real estate, a possession, and a law a generative test checks",
+      "alt": ["field or attribute (on an object)", "key (in a lookup)", "trait (what an entity has: atomicity)", "residence or parcel (real estate)", "asset (what someone owns)", "law (what a generative test checks)"]
+    },
+    // .note = bans `hold`, `holds`, and `held` in every sense — the status (`status: 'HELD'`) and
+    //         the verb alike. the hook matches case-insensitively, so `HELD` and `Hold` trip it too.
+    //         the -ing form is a gerund, banned on its own record. `bound: segment` blocks it inside
+    //         identifiers too: `onHold`, `isHeld`, `holdUntil`, `on_hold`, `HELD_AT`. `withheld`,
+    //         `uphold`, `threshold`, `holder`, and `household` pass. there is always a more precise
+    //         word than hold: each sense has its own
+    {
+      "term": "holds?|held",
+      "bound": "segment",
+      "label": "hold · holds · held",
+      "why": "overloaded - names a status that awaits an outcome, a lock acquired, a possession kept, a container's contents, a claim believed, a law still true, a payment authorized, a pause, and a vote or session that ran; as a status it names only that a grip exists and says naught of the outcome it awaits",
+      "alt": ["the status the domain expert says — one per case, never one for all (a reservation that awaits confirm or cancel: TENTATIVE, helland 2007 · a task that awaits its run: QUEUED · a card authorized, not yet captured: AUTHORIZED)", "is true or stays true (a rule, right now)", "preserves or maintains (an operation that keeps a rule true)", "contains or has (what a container has inside)", "owns (the part that owns the data)", "lock or reserve (a grip acquired)", "keep or own (a possession)", "blocks or stops (a gate)", "pause or delay (a release, a stop)", "believe or claim (a belief)", "keep in mind or track (what a reader must recall)", "survives or withstands (a design under stress)", "ran (a vote or a session)"]
+    },
+    // .note = `bound: segment` blocks `row` inside identifiers too: `rowCount`, `getRowCount`,
+    //         `userRows`, `row_id`, `ROW_COUNT`. `arrow`, `throw`, `throwError`, and `rowdy` pass.
+    //         every database unit is a record — relational, document, dynamodb alike; records and
+    //         columns are the peers on the database side. a library api that names a row (`result.rowCount`)
+    //         or a sql keyword retries unchanged
+    {
+      "term": "rows?",
+      "bound": "segment",
+      "label": "row · rows",
+      "why": "names one storage engine's unit where the domain and every other engine say record; also a line of a ui grid or a prose table, a line of seats, a quarrel, and a verb (row a boat)",
+      "alt": ["record (a unit of any database: relational, document, dynamodb)", "entry or line (a table in prose, a ui grid)", "pessimistic lock (a lock on one record)"]
+    },
+    // .note = `folds?|folded` passes `folder`, `scaffold`, and `unfold`: the hook's \b…\b keeps the
+    //         bare word only. there is always a more intuitive word than fold
+    {
+      "term": "folds?|folded",
+      "label": "fold · folds · folded",
+      "why": "overloaded and opaque - names a reduce over a list, a conclusion drawn from events, a blend of two parts, a collapse of an editor region, a crease, a concession, and a pen for sheep",
+      "alt": ["materialize or conclude (an entity from its events: the conclusion)", "reduce, sum, or total (over a list)", "merge or blend (two parts into one)", "collapse (an editor region)", "absorb (a concern into a reply)", "crease (paper)", "concede or quit (a hand, a business)"]
     }
   ]
 }

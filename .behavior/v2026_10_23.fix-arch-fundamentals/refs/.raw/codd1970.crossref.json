@@ -1,0 +1,120 @@
+{
+  "source": {
+    "id": "codd1970",
+    "kind": "crossref",
+    "query": "Codd A relational model of data for large shared data banks 1970",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Codd%20A%20relational%20model%20of%20data%20for%20large%20shared%20data%20banks%201970&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:16:02.911Z",
+  "items": [
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "6",
+      "DOI": "10.1145/362384.362685",
+      "type": "journal-article",
+      "page": "377-387",
+      "title": [
+        "A relational model of data for large shared data banks"
+      ],
+      "volume": "13",
+      "author": [
+        {
+          "given": "E. F.",
+          "family": "Codd",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "IBM Research Lab, San Jose, CA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Communications of the ACM"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1970,
+            6
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.7551/mitpress/12274.003.0034",
+      "title": [
+        "A Relational Model of Large Shared Data Banks (1970)"
+      ],
+      "author": [
+        {
+          "given": "Edgar F.",
+          "family": "Codd",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Ideas That Created the Future"
+      ],
+      "page": "307-320",
+      "issued": {
+        "date-parts": [
+          [
+            2021,
+            2,
+            2
+          ]
+        ]
+      },
+      "publisher": "The MIT Press",
+      "type": "book-chapter"
+    },
+    {
+      "DOI": "10.1007/978-3-642-59412-0_16",
+      "title": [
+        "A Relational Model of Data for Large Shared Data Banks"
+      ],
+      "author": [
+        {
+          "given": "E. F.",
+          "family": "Codd",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Software Pioneers"
+      ],
+      "page": "263-294",
+      "issued": {
+        "date-parts": [
+          [
+            2002
+          ]
+        ]
+      },
+      "publisher": "Springer Berlin Heidelberg",
+      "type": "book-chapter"
+    }
+  ]
+}

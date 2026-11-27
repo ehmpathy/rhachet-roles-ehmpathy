@@ -259,7 +259,7 @@ print_global_corrupt_note() {
 # ⇒ 🎯 one state, two descriptions, and the drift was already real rather than
 #        hypothetical. ⚠️ the same shape as the `rm`/`rm -r` disagreement one
 #        round earlier, on the same pair of surfaces — which is the reactive
-#        trigger `rule.prefer.most-common-denominator` waits for: **lift on
+#        trigger `rule.require.most-common-denominator` waits for: **lift on
 #        proven reuse, and two sites that have already diverged are proof.**
 #
 # .why the SPLIT rather than one function = the gate (`ORG_BLOCK_CORRUPT`) is
@@ -602,7 +602,7 @@ SPONSOR_PROVENANCE_GIT_CONFIG="git config (this machine)"
 #        never emit, preserved verbatim by the reader meant to distrust it.
 #
 #        ⇒ the lift is REACTIVE, not speculative — two sites that had already
-#        diverged is the proof `rule.prefer.most-common-denominator` asks for,
+#        diverged is the proof `rule.require.most-common-denominator` asks for,
 #        and one shared transformer makes the symmetry structural rather than
 #        a property two files must each remember to hold.
 as_identity_trimmed() {

@@ -1,0 +1,22 @@
+{
+  "source": {
+    "id": "page.mactutor-sylvester",
+    "kind": "page",
+    "url": "https://mathshistory.st-andrews.ac.uk/Biographies/Sylvester/",
+    "keywords": [
+      "invariant"
+    ]
+  },
+  "urlFinal": "https://mathshistory.st-andrews.ac.uk/Biographies/Sylvester/",
+  "status": 200,
+  "fetchedAt": "2026-11-23T12:56:29.864Z",
+  "title": "James Joseph Sylvester (1814 - 1897) - Biography - MacTutor History of Mathematics",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "James Joseph Sylvester - Biography"
+    }
+  ],
+  "windows": [],
+  "textLength": 15060
+}

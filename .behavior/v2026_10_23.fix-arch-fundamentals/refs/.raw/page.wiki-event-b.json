@@ -1,0 +1,49 @@
+{
+  "source": {
+    "id": "page.wiki-event-b",
+    "kind": "page",
+    "url": "https://en.wikipedia.org/wiki/Event-B",
+    "keywords": [
+      "invariant",
+      "refinement",
+      "Abrial"
+    ]
+  },
+  "urlFinal": "https://en.wikipedia.org/wiki/B-Method#Event-B",
+  "status": 200,
+  "fetchedAt": "2026-11-23T13:30:27.576Z",
+  "title": "B-Method - Wikipedia",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "B-Method - Wikipedia"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "refinement",
+      "window": "tents B-Method 4 languages Article Talk Read Edit View history Save Tools From Wikipedia, the free encyclopedia (Redirected from Event-B) The B-Method is a method of software development based on B, a tool-supported formal method based on an abstract machine notation, used in the development of computer software.[1][2] Compared to the Z notation, B is slightly more low-level and more focused on refinement to code rather than just formal specification — hence it is easier to correctly implement a specification written in B than one in Z. In particular, there is good tool support for this. The same language is used in specification, design, and programming. Mechanisms include encapsulation and data locality. Historyedit Jean-Raymond Abrial, the originator of the B-Method and Event-B B wa"
+    },
+    {
+      "keyword": "refinement",
+      "window": "o support the use of the B notation, and he helped to complete a number of B-related projects. Event-Bedit Subsequently, another formal method called Event-B[14][15][16] has been developed based on the B-Method, supported by the Rodin Platform.[17][18] Event-B is a formal method aimed at system-level modelling and analysis. Features of Event-B are the use of set theory for modelling, the use of refinement to represent systems at different levels of abstraction, and the use of mathematical proof for verifying consistency between these refinement levels. The main componentsedit The B notation depends on set theory and first order logic to specify different levels of software description covering the complete cycle of project development. Abstract machineedit In the first and the most a"
+    },
+    {
+      "keyword": "refinement",
+      "window": "od called Event-B[14][15][16] has been developed based on the B-Method, supported by the Rodin Platform.[17][18] Event-B is a formal method aimed at system-level modelling and analysis. Features of Event-B are the use of set theory for modelling, the use of refinement to represent systems at different levels of abstraction, and the use of mathematical proof for verifying consistency between these refinement levels. The main componentsedit The B notation depends on set theory and first order logic to specify different levels of software description covering the complete cycle of project development. Abstract machineedit In the first and the most abstract version, which is called the Abstract Machine, the designer should specify the goal of the design. Refinementedit Then, during a refi"
+    },
+    {
+      "keyword": "Abrial",
+      "window": "ation, B is slightly more low-level and more focused on refinement to code rather than just formal specification — hence it is easier to correctly implement a specification written in B than one in Z. In particular, there is good tool support for this. The same language is used in specification, design, and programming. Mechanisms include encapsulation and data locality. Historyedit Jean-Raymond Abrial, the originator of the B-Method and Event-B B was originally developed in the 1980s by Jean-Raymond Abrial[3][4] in France and the UK.[5] B is related to the Z notation (also originated by Abrial) and supports the development of programming language code from specifications. B has been used in major safety-critical system applications in Europe (such as the automatic Paris Métro lines 14 a"
+    },
+    {
+      "keyword": "Abrial",
+      "window": "tion — hence it is easier to correctly implement a specification written in B than one in Z. In particular, there is good tool support for this. The same language is used in specification, design, and programming. Mechanisms include encapsulation and data locality. Historyedit Jean-Raymond Abrial, the originator of the B-Method and Event-B B was originally developed in the 1980s by Jean-Raymond Abrial[3][4] in France and the UK.[5] B is related to the Z notation (also originated by Abrial) and supports the development of programming language code from specifications. B has been used in major safety-critical system applications in Europe (such as the automatic Paris Métro lines 14 and 1 and the Ariane 5 rocket).[6][7][8] It has robust, commercially available tool support for specification"
+    },
+    {
+      "keyword": "Abrial",
+      "window": "Z. In particular, there is good tool support for this. The same language is used in specification, design, and programming. Mechanisms include encapsulation and data locality. Historyedit Jean-Raymond Abrial, the originator of the B-Method and Event-B B was originally developed in the 1980s by Jean-Raymond Abrial[3][4] in France and the UK.[5] B is related to the Z notation (also originated by Abrial) and supports the development of programming language code from specifications. B has been used in major safety-critical system applications in Europe (such as the automatic Paris Métro lines 14 and 1 and the Ariane 5 rocket).[6][7][8] It has robust, commercially available tool support for specification, design, proof and code generation. Ib Holm Sørensen [dk], leader of the B-Toolkit deve"
+    }
+  ],
+  "textLength": 14167
+}

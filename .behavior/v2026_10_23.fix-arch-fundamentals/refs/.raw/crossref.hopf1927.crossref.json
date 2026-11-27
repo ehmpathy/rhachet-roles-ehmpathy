@@ -1,0 +1,117 @@
+{
+  "source": {
+    "id": "crossref.hopf1927",
+    "kind": "crossref",
+    "query": "Hopf Elementare Bemerkungen uber die Losungen partieller Differentialgleichungen zweiter Ordnung vom elliptischen Typus",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Hopf%20Elementare%20Bemerkungen%20uber%20die%20Losungen%20partieller%20Differentialgleichungen%20zweiter%20Ordnung%20vom%20elliptischen%20Typus&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T22:21:23.830Z",
+  "items": [
+    {
+      "publisher": "Springer Science and Business Media LLC",
+      "issue": "1",
+      "DOI": "10.1007/bf01292602",
+      "type": "journal-article",
+      "page": "127-160",
+      "title": [
+        "Reihenentwicklungen nach Eigenfunktionen linearer partieller Differentialgleichungen zweiter Ordnung vom elliptischen Typus"
+      ],
+      "volume": "3",
+      "author": [
+        {
+          "given": "Leon",
+          "family": "Lichtenstein",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Mathematische Zeitschrift"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1919,
+            12
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.1007/978-3-319-16859-3_9",
+      "title": [
+        "Über die Lösungen der linearen partiellen Differentialgleichungen zweiter Ordnung vom elliptischen Typus"
+      ],
+      "author": [
+        {
+          "given": "William",
+          "family": "Feller",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Selected Papers I"
+      ],
+      "page": "117-133",
+      "issued": {
+        "date-parts": [
+          [
+            2015
+          ]
+        ]
+      },
+      "publisher": "Springer International Publishing",
+      "type": "book-chapter"
+    },
+    {
+      "publisher": "Springer Science and Business Media LLC",
+      "issue": "1",
+      "DOI": "10.1007/bf01455908",
+      "type": "journal-article",
+      "page": "661-721",
+      "title": [
+        "�ber den Zusammenhang zwischen der Eindeutigkeit und L�sbarkeit partieller Differentialgleichungen zweiter Ordnung vom elliptischen Typus"
+      ],
+      "volume": "106",
+      "author": [
+        {
+          "given": "J.",
+          "family": "Schauder",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Mathematische Annalen"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1932,
+            12
+          ]
+        ]
+      }
+    }
+  ]
+}

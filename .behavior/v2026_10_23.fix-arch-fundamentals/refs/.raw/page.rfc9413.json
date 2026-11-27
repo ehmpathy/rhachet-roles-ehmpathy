@@ -1,0 +1,62 @@
+{
+  "source": {
+    "id": "page.rfc9413",
+    "kind": "page",
+    "url": "https://www.rfc-editor.org/rfc/rfc9413.html",
+    "keywords": [
+      "robustness principle",
+      "liberal",
+      "conservative",
+      "de facto"
+    ]
+  },
+  "urlFinal": "https://www.rfc-editor.org/rfc/rfc9413.html",
+  "status": 200,
+  "fetchedAt": "2026-11-23T16:08:18.766Z",
+  "title": "RFC 9413: Maintaining Robust Protocols",
+  "meta": [
+    {
+      "name": "description",
+      "content": "\n       The main goal of the networking standards process is to enable the long-term\ninteroperability of protocols. This document describes active protocol\nmaintenance, a means to accomplish that goal. By evolving specifications and\nimplementations, it is possible to reduce ambiguity over time and create a\nhealthy ecosystem. \n       The robustness principle, often phrased as \"be conservative in what you send,\nand liberal in what you accept\", has long guided the design and implementation\nof Internet protocols. However, it has been interpreted in a variety of ways.\nWhile some interpretations help ensure the health of the Internet, others can\nnegatively affect interoperability over time. When a protocol is actively\nmaintained, protocol designers and implementers can avoid these pitfalls. \n    "
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "robustness principle",
+      "window": "s: M. Thomson D. Schinazi RFC 9413 Maintaining Robust Protocols Abstract The main goal of the networking standards process is to enable the long-term interoperability of protocols. This document describes active protocol maintenance, a means to accomplish that goal. By evolving specifications and implementations, it is possible to reduce ambiguity over time and create a healthy ecosystem. The robustness principle, often phrased as \"be conservative in what you send, and liberal in what you accept\", has long guided the design and implementation of Internet protocols. However, it has been interpreted in a variety of ways. While some interpretations help ensure the health of the Internet, others can negatively affect interoperability over time. When a protocol is actively maintained, proto"
+    },
+    {
+      "keyword": "robustness principle",
+      "window": "arefully, as they describe your rights and restrictions with respect to this document. ▲ Table of Contents 1. Introduction There is good evidence to suggest that many important protocols are routinely maintained beyond their inception. In particular, a sizable proportion of IETF activity is dedicated to the stewardship of existing protocols. This document first discusses hazards in applying the robustness principle too broadly (see Section 2) and offers an alternative strategy for handling interoperability problems in deployments (see Section 5). Ideally, protocol implementations can be actively maintained so that unexpected conditions are proactively identified and resolved. Some deployments might still need to apply short-term mitigations for deployments that cannot be easily updated,"
+    },
+    {
+      "keyword": "robustness principle",
+      "window": "ility problems in deployments (see Section 5). Ideally, protocol implementations can be actively maintained so that unexpected conditions are proactively identified and resolved. Some deployments might still need to apply short-term mitigations for deployments that cannot be easily updated, but such cases need not be permanent. This is discussed further in Section 5. 2. Protocol Robustness The robustness principle has been hugely influential in shaping the design of the Internet. As stated in the IAB document \"Architectural Principles of the Internet\" [RFC1958], the robustness principle advises to: Be strict when sending and tolerant when receiving. Implementations must follow specifications precisely when sending to the network, and tolerate faulty input from the network. When in doub"
+    },
+    {
+      "keyword": "liberal",
+      "window": "e main goal of the networking standards process is to enable the long-term interoperability of protocols. This document describes active protocol maintenance, a means to accomplish that goal. By evolving specifications and implementations, it is possible to reduce ambiguity over time and create a healthy ecosystem. The robustness principle, often phrased as \"be conservative in what you send, and liberal in what you accept\", has long guided the design and implementation of Internet protocols. However, it has been interpreted in a variety of ways. While some interpretations help ensure the health of the Internet, others can negatively affect interoperability over time. When a protocol is actively maintained, protocol designers and implementers can avoid these pitfalls. Status of This Memo"
+    },
+    {
+      "keyword": "liberal",
+      "window": "nt and purpose. The earliest form of the principle in the RFC Series (the Internet Protocol specification [RFC0760]) is preceded by a sentence that reveals a motivation for the principle: While the goal of this specification is to be explicit about the protocol there is the possibility of differing interpretations. In general, an implementation should be conservative in its sending behavior, and liberal in its receiving behavior. This formulation of the principle expressly recognizes the possibility that the specification could be imperfect. This contextualizes the principle in an important way. Imperfect specifications are unavoidable, largely because it is more important to proceed to implementation and deployment than it is to perfect a specification. A protocol benefits greatly from"
+    },
+    {
+      "keyword": "conservative",
+      "window": "ining Robust Protocols Abstract The main goal of the networking standards process is to enable the long-term interoperability of protocols. This document describes active protocol maintenance, a means to accomplish that goal. By evolving specifications and implementations, it is possible to reduce ambiguity over time and create a healthy ecosystem. The robustness principle, often phrased as \"be conservative in what you send, and liberal in what you accept\", has long guided the design and implementation of Internet protocols. However, it has been interpreted in a variety of ways. While some interpretations help ensure the health of the Internet, others can negatively affect interoperability over time. When a protocol is actively maintained, protocol designers and implementers can avoid th"
+    },
+    {
+      "keyword": "conservative",
+      "window": "d provides valuable insights into its intent and purpose. The earliest form of the principle in the RFC Series (the Internet Protocol specification [RFC0760]) is preceded by a sentence that reveals a motivation for the principle: While the goal of this specification is to be explicit about the protocol there is the possibility of differing interpretations. In general, an implementation should be conservative in its sending behavior, and liberal in its receiving behavior. This formulation of the principle expressly recognizes the possibility that the specification could be imperfect. This contextualizes the principle in an important way. Imperfect specifications are unavoidable, largely because it is more important to proceed to implementation and deployment than it is to perfect a speci"
+    },
+    {
+      "keyword": "de facto",
+      "window": "ess principle enters a pathological feedback cycle. Over time: Implementations progressively add logic to constrain how data is transmitted or to permit variations in what is received. Errors in implementations or confusion about semantics are permitted or ignored. These errors can become entrenched, forcing other implementations to be tolerant of those errors. A flaw can become entrenched as a de facto standard. Any implementation of the protocol is required to replicate the aberrant behavior, or it is not interoperable. This is both a consequence of tolerating the unexpected and a product of a natural reluctance to avoid fatal error conditions. Ensuring interoperability in this environment is often referred to as aiming to be \"bug-for-bug compatible\". For example, in TLS [TLS], extens"
+    },
+    {
+      "keyword": "de facto",
+      "window": "e successfully deployed. This ensures that most deployments are tolerant of the same non-compliant behavior. This happens because interoperability requirements for protocol implementations are set by other deployments. Specifications and test suites -- where they exist -- can guide the initial development of implementations. Ultimately, the need to interoperate with deployed implementations is a de facto conformance test suite that can supersede any formal protocol definition. For widely used protocols, the massive scale of the Internet makes large-scale interoperability testing infeasible for all but a privileged few. The cost of building a new implementation using reverse engineering increases as the number of implementations and bugs increases. Worse, the set of tweaks necessary for w"
+    }
+  ],
+  "textLength": 32939
+}

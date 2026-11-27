@@ -1,0 +1,13 @@
+[
+  { "id": "page.postgres-explicit-locking-advisory", "kind": "page", "url": "https://www.postgresql.org/docs/current/explicit-locking.html", "keywords": ["Advisory Locks", "application-defined", "session level", "transaction level", "Table-Level Locks", "ACCESS EXCLUSIVE"] },
+  { "id": "page.postgres-functions-advisory", "kind": "page", "url": "https://www.postgresql.org/docs/current/functions-admin.html", "keywords": ["pg_advisory_lock", "pg_advisory_xact_lock", "session-level"] },
+  { "id": "page.mysql-locking-functions", "kind": "page", "url": "https://dev.mysql.com/doc/refman/8.4/en/locking-functions.html", "keywords": ["GET_LOCK", "advisory", "application"] },
+  { "id": "page.mysql-innodb-locking-reads", "kind": "page", "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-locking-reads.html", "keywords": ["FOR UPDATE", "FOR SHARE", "locks set"] },
+  { "id": "page.mssql-sp-getapplock", "kind": "page", "url": "https://learn.microsoft.com/en-us/sql/relational-databases/system-stored-procedures/sp-getapplock-transact-sql", "keywords": ["lock on an application resource", "@LockOwner", "Session"] },
+  { "id": "page.oracle-dbms-lock", "kind": "page", "url": "https://docs.oracle.com/en/database/oracle/oracle-database/19/arpls/DBMS_LOCK.html", "keywords": ["user-defined", "lock"] },
+  { "id": "page.pgbouncer-features", "kind": "page", "url": "https://www.pgbouncer.org/features.html", "keywords": ["advisory", "transaction pooling", "session pooling"] },
+  { "id": "page.fowler-pessimistic-offline-lock", "kind": "page", "url": "https://martinfowler.com/eaaCatalog/pessimisticOfflineLock.html", "keywords": ["pessimistic", "lock"] },
+  { "id": "page.fowler-optimistic-offline-lock-2", "kind": "page", "url": "https://martinfowler.com/eaaCatalog/optimisticOfflineLock.html", "keywords": ["conflict", "rolling back"] },
+  { "id": "page.kleppmann2016-distributed-locking-full", "kind": "page", "url": "https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html", "keywords": ["efficiency", "correctness", "fencing"] },
+  { "id": "gray1976", "kind": "crossref", "query": "Gray Lorie Putzolu Traiger Granularity of locks and degrees of consistency in a shared data base 1976", "keywords": [] }
+]

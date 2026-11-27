@@ -1,0 +1,49 @@
+{
+  "source": {
+    "id": "page.richardson-idempotent-consumer",
+    "kind": "page",
+    "url": "https://microservices.io/patterns/communication-style/idempotent-consumer.html",
+    "keywords": [
+      "idempotent",
+      "message ID",
+      "duplicate"
+    ]
+  },
+  "urlFinal": "https://microservices.io/patterns/communication-style/idempotent-consumer.html",
+  "status": 200,
+  "fetchedAt": "2026-11-24T05:41:47.085Z",
+  "title": "Pattern: Idempotent Consumer",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "Microservices Pattern: Pattern: Idempotent Consumer"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "idempotent",
+      "window": "Microservice Architecture Patterns Articles Presentations Adopt Refactoring Testing Modernization Help About Pattern: Idempotent Consumer pattern Context In an enterprise application, it’s usually a good idea to use a message broker that guarantees at-least once delivery. At-least once delivery guarantees that a message broker will deliver a message to a consumer even if errors occur. One side-effect, however, is that the consumer can be invoked repeatedly for the same message. Consequently, a consumer must"
+    },
+    {
+      "keyword": "idempotent",
+      "window": "mpotent Consumer pattern Context In an enterprise application, it’s usually a good idea to use a message broker that guarantees at-least once delivery. At-least once delivery guarantees that a message broker will deliver a message to a consumer even if errors occur. One side-effect, however, is that the consumer can be invoked repeatedly for the same message. Consequently, a consumer must be idempotent: the outcome of processing the same message repeatedly must be the same as processing the message once. If a consumer is not idempotent, multiple invocations can cause bugs. For example, a consumer of an AccountDebited message that subtracts the debit amount from the current balance would calculate the incorrect balance. Problem How does a message consumer handle duplicate messages co"
+    },
+    {
+      "keyword": "idempotent",
+      "window": "least once delivery. At-least once delivery guarantees that a message broker will deliver a message to a consumer even if errors occur. One side-effect, however, is that the consumer can be invoked repeatedly for the same message. Consequently, a consumer must be idempotent: the outcome of processing the same message repeatedly must be the same as processing the message once. If a consumer is not idempotent, multiple invocations can cause bugs. For example, a consumer of an AccountDebited message that subtracts the debit amount from the current balance would calculate the incorrect balance. Problem How does a message consumer handle duplicate messages correctly? Solution Make a consumer idempotent by having it record the IDs of processed messages in the database. When processing a mess"
+    },
+    {
+      "keyword": "message ID",
+      "window": "mount from the current balance would calculate the incorrect balance. Problem How does a message consumer handle duplicate messages correctly? Solution Make a consumer idempotent by having it record the IDs of processed messages in the database. When processing a message, a consumer can detect and discard duplicates by querying the database. There are a couple of different places to store the message IDs. One option is for the consumer to use a separate PROCESSED_MESSAGES table. The other option is for the consumer to store the IDs in the business entities that it creates or updates. Here’s how a consumer can use the PROCESSED_MESSAGES table: After starting the database transaction, the message handler inserts the message’s ID into the PROCESSED_MESSAGE table. Since the (subscriberId"
+    },
+    {
+      "keyword": "duplicate",
+      "window": ", a consumer must be idempotent: the outcome of processing the same message repeatedly must be the same as processing the message once. If a consumer is not idempotent, multiple invocations can cause bugs. For example, a consumer of an AccountDebited message that subtracts the debit amount from the current balance would calculate the incorrect balance. Problem How does a message consumer handle duplicate messages correctly? Solution Make a consumer idempotent by having it record the IDs of processed messages in the database. When processing a message, a consumer can detect and discard duplicates by querying the database. There are a couple of different places to store the message IDs. One option is for the consumer to use a separate PROCESSED_MESSAGES table. The other option is for the"
+    },
+    {
+      "keyword": "duplicate",
+      "window": "use bugs. For example, a consumer of an AccountDebited message that subtracts the debit amount from the current balance would calculate the incorrect balance. Problem How does a message consumer handle duplicate messages correctly? Solution Make a consumer idempotent by having it record the IDs of processed messages in the database. When processing a message, a consumer can detect and discard duplicates by querying the database. There are a couple of different places to store the message IDs. One option is for the consumer to use a separate PROCESSED_MESSAGES table. The other option is for the consumer to store the IDs in the business entities that it creates or updates. Here’s how a consumer can use the PROCESSED_MESSAGES table: After starting the database transaction, the message h"
+    }
+  ],
+  "textLength": 4589
+}

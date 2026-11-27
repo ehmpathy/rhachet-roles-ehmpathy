@@ -1,0 +1,172 @@
+{
+  "source": {
+    "id": "abelsonsussman1985",
+    "kind": "crossref",
+    "query": "Abelson Sussman Structure and Interpretation of Computer Programs",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Abelson%20Sussman%20Structure%20and%20Interpretation%20of%20Computer%20Programs&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-25T02:42:09.588Z",
+  "items": [
+    {
+      "publisher": "JSTOR",
+      "issue": "3",
+      "DOI": "10.2307/3679579",
+      "type": "journal-article",
+      "page": "81",
+      "title": [
+        "Structure and Interpretation of Computer Programs"
+      ],
+      "volume": "9",
+      "author": [
+        {
+          "given": "Christopher",
+          "family": "Fry",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        },
+        {
+          "given": "Harold",
+          "family": "Abelson",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        },
+        {
+          "given": "Gerald",
+          "family": "Sussman",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        },
+        {
+          "given": "Julie",
+          "family": "Sussman",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Computer Music Journal"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1985
+          ]
+        ]
+      }
+    },
+    {
+      "publisher": "Cambridge University Press (CUP)",
+      "issue": "2",
+      "DOI": "10.1017/s0956796801223983",
+      "type": "journal-article",
+      "page": "253-262",
+      "title": [
+        "<i>Structure and Interpretation of Computer Programs, 2nd Ed</i>\n                    by Abelson and \nSussman, with Sussman, MIT Press, 1996, ISBN 0-262-51087-1, 657pp."
+      ],
+      "volume": "11",
+      "author": [
+        {
+          "given": "ALAN",
+          "family": "WOOD",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Journal of Functional Programming"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            2001,
+            3
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.1007/978-3-662-01039-6",
+      "title": [
+        "Struktur und Interpretation von Computerprogrammen"
+      ],
+      "author": [
+        {
+          "given": "Harold",
+          "family": "Abelson",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Gerald Jay",
+          "family": "Sussman",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Julie",
+          "family": "Sussman",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1991
+          ]
+        ]
+      },
+      "publisher": "Springer Berlin Heidelberg",
+      "type": "book"
+    }
+  ]
+}

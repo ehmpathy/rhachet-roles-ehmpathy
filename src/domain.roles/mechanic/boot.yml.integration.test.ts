@@ -307,8 +307,20 @@ describe('boot.yml consistency', () => {
               ),
           );
 
+          // briefs a `not:` glob keeps out of the boot on purpose are accounted for
+          const notBootPaths = new Set(
+            fg.sync(
+              bootYmlTestKit
+                .collectAllBriefNotGlobs({ bootYml })
+                .map((bootPath) =>
+                  bootYmlTestKit.asOnDiskBriefPath({ bootPath }),
+                ),
+              { cwd: briefsDir, onlyFiles: true },
+            ),
+          );
+
           const unaccounted = briefFilesOnDisk.filter(
-            (file) => !allBootPaths.has(file),
+            (file) => !allBootPaths.has(file) && !notBootPaths.has(file),
           );
 
           // readme files at directory roots are not expected in boot.yml

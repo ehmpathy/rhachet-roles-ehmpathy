@@ -78,4 +78,4 @@ const cloudProvider = 'aws'; // amazon provides cloud services as an agent
 
 #### .see also
 - `rule.require.ubiqlang` — consistent terminology
-- `rule.forbid.term-script` — another term precision rule
+- `rule.forbid.term=script` — another term precision rule

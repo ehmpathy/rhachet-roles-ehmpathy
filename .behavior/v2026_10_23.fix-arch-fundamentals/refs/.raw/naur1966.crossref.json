@@ -1,0 +1,122 @@
+{
+  "source": {
+    "id": "naur1966",
+    "kind": "crossref",
+    "query": "Naur Proof of algorithms by general snapshots 1966",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Naur%20Proof%20of%20algorithms%20by%20general%20snapshots%201966&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:11:24.863Z",
+  "items": [
+    {
+      "publisher": "Springer Science and Business Media LLC",
+      "issue": "4",
+      "DOI": "10.1007/bf01966091",
+      "type": "journal-article",
+      "page": "310-316",
+      "title": [
+        "Proof of algorithms by general snapshots"
+      ],
+      "volume": "6",
+      "author": [
+        {
+          "given": "Peter",
+          "family": "Naur",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "BIT"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1966,
+            7
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.1007/978-94-011-1793-7_3",
+      "title": [
+        "Proof of Algorithms by General Snapshots"
+      ],
+      "author": [
+        {
+          "given": "Peter",
+          "family": "Naur",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Studies in Cognitive Systems",
+        "Program Verification"
+      ],
+      "page": "57-64",
+      "issued": {
+        "date-parts": [
+          [
+            1993
+          ]
+        ]
+      },
+      "publisher": "Springer Netherlands",
+      "type": "book-chapter"
+    },
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "3",
+      "DOI": "10.1145/365230.365260",
+      "type": "journal-article",
+      "page": "176-179",
+      "title": [
+        "Program translation viewed as a general data processing problem"
+      ],
+      "volume": "9",
+      "author": [
+        {
+          "given": "Peter",
+          "family": "Naur",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "A/S Regnecentralen, Copenhagen, Denmark"
+            }
+          ],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Communications of the ACM"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1966,
+            3
+          ]
+        ]
+      }
+    }
+  ]
+}

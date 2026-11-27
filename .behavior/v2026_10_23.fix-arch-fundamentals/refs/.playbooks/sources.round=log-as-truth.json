@@ -1,0 +1,6 @@
+[
+  { "id": "page.kleppmann2015-database-inside-out", "kind": "page", "url": "https://martin.kleppmann.com/2015/03/04/turning-the-database-inside-out.html", "keywords": ["log", "materialized view", "replication", "source of truth", "cache"] },
+  { "id": "page.kreps2013-the-log", "kind": "page", "url": "http://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying", "keywords": ["state machine replication", "table", "changelog", "materialized", "source of truth", "replica"] },
+  { "id": "page.kreps2013-the-log.wayback", "kind": "page", "url": "https://web.archive.org/web/2014/http://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying", "keywords": ["replication", "table", "changelog", "materialized", "source of truth", "replica", "duality"] },
+  { "id": "pdf.helland2015-immutability", "kind": "pdf", "url": "http://www.cidrdb.org/cidr2015/Papers/CIDR15_Paper16.pdf", "keywords": ["truth is the log", "cached subset", "accountants", "append-only", "immutable"] }
+]

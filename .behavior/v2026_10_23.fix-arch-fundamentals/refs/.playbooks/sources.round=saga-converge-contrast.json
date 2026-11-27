@@ -1,0 +1,9 @@
+[
+  { "id": "page.hohpe2005-coffee-shop", "kind": "page", "url": "https://www.enterpriseintegrationpatterns.com/ramblings/18_starbucks.html", "keywords": ["two-phase commit", "compensat", "write-off", "retry", "exception"] },
+  { "id": "page.hohpe-process-manager", "kind": "page", "url": "https://www.enterpriseintegrationpatterns.com/patterns/messaging/ProcessManager.html", "keywords": ["Process Manager", "state", "central"] },
+  { "id": "pdf.helland2007-life-beyond", "kind": "pdf", "url": "https://www.cidrdb.org/cidr2007/papers/cidr07p15.pdf", "keywords": [] },
+  { "id": "pdf.helland-campbell2009-quicksand", "kind": "pdf", "url": "https://arxiv.org/pdf/0909.1788", "keywords": [] },
+  { "id": "pdf.helland2005-data-outside-inside", "kind": "pdf", "url": "https://www.cidrdb.org/cidr2005/papers/P12.pdf", "keywords": [] },
+  { "id": "page.azure-compensating-transaction", "kind": "page", "url": "https://learn.microsoft.com/en-us/azure/architecture/patterns/compensating-transaction", "keywords": ["compensat", "undo", "eventually consistent"] },
+  { "id": "page.azure-saga", "kind": "page", "url": "https://learn.microsoft.com/en-us/azure/architecture/patterns/saga", "keywords": ["compensat", "two-phase", "anomal", "isolation"] }
+]

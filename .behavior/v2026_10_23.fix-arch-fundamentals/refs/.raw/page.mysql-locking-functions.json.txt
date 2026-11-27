@@ -1,0 +1,200 @@
+MySQL :: MySQL 8.4 Reference Manual :: 14.14 Locking Functions
+https://dev.mysql.com/doc/refman/8.4/en/locking-functions.html
+fetched 2026-11-27T11:32:08.261Z
+
+Skip to Main Content
+The world's most popular open source database
+Contact MySQL
+Login  |  Register
+Documentation
+MySQL Server
+ 
+MySQL Enterprise
+ 
+Workbench
+ 
+InnoDB Cluster
+ 
+MySQL NDB Cluster
+ 
+Connectors
+ 
+More
+MySQL.com
+Downloads
+Developer Zone
+   
+ 
+Documentation Home
+MySQL 8.4 Reference Manual
+Preface and Legal Notices
+General Information
+Installing MySQL
+Upgrading MySQL
+Downgrading MySQL
+Tutorial
+MySQL Programs
+MySQL Server Administration
+Security
+Backup and Recovery
+Optimization
+Language Structure
+Character Sets, Collations, Unicode
+Data Types
+Functions and Operators
+Built-In Function and Operator Reference
+Loadable Function Reference
+Type Conversion in Expression Evaluation
+Operators
+Flow Control Functions
+Numeric Functions and Operators
+Date and Time Functions
+String Functions and Operators
+Full-Text Search Functions
+Cast Functions and Operators
+XML Functions
+Bit Functions and Operators
+Encryption and Compression Functions
+Locking Functions
+Information Functions
+Spatial Analysis Functions
+JSON Functions
+Replication Functions
+Aggregate Functions
+Window Functions
+Performance Schema Functions
+Internal Functions
+Miscellaneous Functions
+Precision Math
+SQL Statements
+MySQL Data Dictionary
+The InnoDB Storage Engine
+Alternative Storage Engines
+Replication
+Group Replication
+MySQL Shell
+Using MySQL as a Document Store
+InnoDB Cluster
+InnoDB ReplicaSet
+MySQL NDB Cluster 8.4
+Partitioning
+Stored Objects
+INFORMATION_SCHEMA Tables
+MySQL Performance Schema
+MySQL sys Schema
+Connectors and APIs
+MySQL Enterprise Edition
+MySQL Workbench
+MySQL on OCI Marketplace
+Telemetry
+MySQL 8.4 Frequently Asked Questions
+Error Messages and Common Problems
+Indexes
+MySQL Glossary
+Related Documentation
+MySQL 8.4 Release Notes
+
+Download this Manual
+PDF (US Ltr) - 40.2Mb
+PDF (A4) - 40.3Mb
+Man Pages (TGZ) - 261.9Kb
+Man Pages (Zip) - 367.5Kb
+Info (Gzip) - 4.0Mb
+Info (Zip) - 4.0Mb
+
+
+
+
+version 8.4 
+MySQL 8.4 Reference Manual  /  Functions and Operators  /  Locking Functions
+14.14 Locking Functions
+
+This section describes functions used to manipulate user-level locks.
+
+Table 14.19 Locking Functions
+
+Name	Description
+GET_LOCK()	Get a named lock
+IS_FREE_LOCK()	Whether the named lock is free
+IS_USED_LOCK()	Whether the named lock is in use; return connection identifier if true
+RELEASE_ALL_LOCKS()	Release all current named locks
+RELEASE_LOCK()	Release the named lock
+
+
+
+GET_LOCK(str,timeout)
+
+Tries to obtain a lock with a name given by the string str, using a timeout of timeout seconds. A negative timeout value means infinite timeout. The lock is exclusive. While held by one session, other sessions cannot obtain a lock of the same name.
+
+Returns 1 if the lock was obtained successfully, 0 if the attempt timed out (for example, because another client has previously locked the name), or NULL if an error occurred (such as running out of memory or the thread was killed with mysqladmin kill).
+
+A lock obtained with GET_LOCK() is released explicitly by executing RELEASE_LOCK() or implicitly when your session terminates (either normally or abnormally). Locks obtained with GET_LOCK() are not released when transactions commit or roll back.
+
+GET_LOCK() is implemented using the metadata locking (MDL) subsystem. Multiple simultaneous locks can be acquired and GET_LOCK() does not release any existing locks. For example, suppose that you execute these statements:
+
+SELECT GET_LOCK('lock1',10);
+SELECT GET_LOCK('lock2',10);
+SELECT RELEASE_LOCK('lock2');
+SELECT RELEASE_LOCK('lock1');
+
+The second GET_LOCK() acquires a second lock and both RELEASE_LOCK() calls return 1 (success).
+
+It is even possible for a given session to acquire multiple locks for the same name. Other sessions cannot acquire a lock with that name until the acquiring session releases all its locks for the name.
+
+Uniquely named locks acquired with GET_LOCK() appear in the Performance Schema metadata_locks table. The OBJECT_TYPE column says USER LEVEL LOCK and the OBJECT_NAME column indicates the lock name. In the case that multiple locks are acquired for the same name, only the first lock for the name registers a row in the metadata_locks table. Subsequent locks for the name increment a counter in the lock but do not acquire additional metadata locks. The metadata_locks row for the lock is deleted when the last lock instance on the name is released.
+
+The capability of acquiring multiple locks means there is the possibility of deadlock among clients. When this happens, the server chooses a caller and terminates its lock-acquisition request with an ER_USER_LOCK_DEADLOCK error. This error does not cause transactions to roll back.
+
+MySQL enforces a maximum length on lock names of 64 characters.
+
+GET_LOCK() can be used to implement application locks or to simulate record locks. Names are locked on a server-wide basis. If a name has been locked within one session, GET_LOCK() blocks any request by another session for a lock with the same name. This enables clients that agree on a given lock name to use the name to perform cooperative advisory locking. But be aware that it also enables a client that is not among the set of cooperating clients to lock a name, either inadvertently or deliberately, and thus prevent any of the cooperating clients from locking that name. One way to reduce the likelihood of this is to use lock names that are database-specific or application-specific. For example, use lock names of the form db_name.str or app_name.str.
+
+If multiple clients are waiting for a lock, the order in which they acquire it is undefined. Applications should not assume that clients acquire the lock in the same order that they issued the lock requests.
+
+GET_LOCK() is unsafe for statement-based replication. A warning is logged if you use this function when binlog_format is set to STATEMENT.
+
+Since GET_LOCK() establishes a lock only on a single mysqld, it is not suitable for use with NDB Cluster, which has no way of enforcing an SQL lock across multiple MySQL servers. See Section 25.2.7.10, “Limitations Relating to Multiple NDB Cluster Nodes”, for more information.
+
+Caution
+
+With the capability of acquiring multiple named locks, it is possible for a single statement to acquire a large number of locks. For example:
+
+INSERT INTO ... SELECT GET_LOCK(t1.col_name) FROM t1;
+
+These types of statements may have certain adverse effects. For example, if the statement fails part way through and rolls back, locks acquired up to the point of failure still exist. If the intent is for there to be a correspondence between rows inserted and locks acquired, that intent is not satisfied. Also, if it is important that locks are granted in a certain order, be aware that result set order may differ depending on which execution plan the optimizer chooses. For these reasons, it may be best to limit applications to a single lock-acquisition call per statement.
+
+A different locking interface is available as either a plugin service or a set of loadable functions. This interface provides lock namespaces and distinct read and write locks, unlike the interface provided by GET_LOCK() and related functions. For details, see Section 7.6.9.1, “The Locking Service”.
+
+IS_FREE_LOCK(str)
+
+Checks whether the lock named str is free to use (that is, not locked). Returns 1 if the lock is free (no one is using the lock), 0 if the lock is in use, and NULL if an error occurs (such as an incorrect argument).
+
+This function is unsafe for statement-based replication. A warning is logged if you use this function when binlog_format is set to STATEMENT.
+
+IS_USED_LOCK(str)
+
+Checks whether the lock named str is in use (that is, locked). If so, it returns the connection identifier of the client session that holds the lock. Otherwise, it returns NULL.
+
+This function is unsafe for statement-based replication. A warning is logged if you use this function when binlog_format is set to STATEMENT.
+
+RELEASE_ALL_LOCKS()
+
+Releases all named locks held by the current session and returns the number of locks released (0 if there were none)
+
+This function is unsafe for statement-based replication. A warning is logged if you use this function when binlog_format is set to STATEMENT.
+
+RELEASE_LOCK(str)
+
+Releases the lock named by the string str that was obtained with GET_LOCK(). Returns 1 if the lock was released, 0 if the lock was not established by this thread (in which case the lock is not released), and NULL if the named lock did not exist. The lock does not exist if it was never obtained by a call to GET_LOCK() or if it has previously been released.
+
+The DO statement is convenient to use with RELEASE_LOCK(). See Section 15.2.3, “DO Statement”.
+
+This function is unsafe for statement-based replication. A warning is logged if you use this function when binlog_format is set to STATEMENT.
+
+
+
+ PREV   HOME   UP   NEXT 
+   © 2026 Oracle
+   
+
+

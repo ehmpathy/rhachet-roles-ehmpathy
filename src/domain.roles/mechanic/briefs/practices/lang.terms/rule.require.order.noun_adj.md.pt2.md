@@ -1,7 +1,7 @@
 ### .rule = require-order-noun-adj
 
 #### .what
-always use `[noun][state/adjective]` order for variable and property names
+always use `[noun][status/adjective]` order for variable and property names
 
 #### .pattern
 ```
@@ -12,7 +12,7 @@ always use `[noun][state/adjective]` order for variable and property names
 
 #### .why
 - **autocomplete groups** — `user*` reveals all user variants in scope
-- **scan efficiency** — the noun (the *what*) comes first; the state (the *which*) comes second
+- **scan efficiency** — the noun (the *what*) comes first; the status (the *which*) comes second
 - **gerund elimination** — past participles replace gerunds naturally (`userFound` not `existingUser`)
 - **domain clarity** — forces you to name the noun before you qualify it
 
@@ -27,7 +27,7 @@ always use `[noun][state/adjective]` order for variable and property names
 | `beforeState` | `stateBefore` |
 | `afterState` | `stateAfter` |
 
-##### state qualifiers (past participles)
+##### status qualifiers (past participles)
 | 👎 bad | 👍 good |
 |--------|---------|
 | `existingUser` | `userFound` |
@@ -58,7 +58,7 @@ userAfter
 userCurrent
 ```
 
-##### consistent mental model
+##### consistent mental picture
 - first: *what entity?* → `user`, `invoice`, `record`
 - then: *which one?* → `Found`, `Created`, `Before`, `After`
 

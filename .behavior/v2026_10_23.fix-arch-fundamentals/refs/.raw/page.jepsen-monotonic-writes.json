@@ -1,0 +1,43 @@
+{
+  "source": {
+    "id": "page.jepsen-monotonic-writes",
+    "kind": "page",
+    "url": "https://jepsen.io/consistency/models/monotonic-writes",
+    "keywords": [
+      "monotonic writes",
+      "order"
+    ]
+  },
+  "urlFinal": "https://jepsen.io/consistency/models/monotonic-writes",
+  "status": 200,
+  "fetchedAt": "2026-11-26T12:57:33.554Z",
+  "title": "Monotonic Writes",
+  "meta": [],
+  "windows": [
+    {
+      "keyword": "monotonic writes",
+      "window": "JEPSEN BlogAnalysesTalksConsistencyServices ModelsPhenomenaDependencies Monotonic Writes Monotonic writes ensures that if a process performs write w1, then w2, then all processes observe w1 before w2. Monotonic writes does not apply to operations performed by different processes, only writes by the same process. Monotonic writes can be totally available: even during a network partition, all nodes can make progress. Formally Viotti and Vukolić define monotonic wri"
+    },
+    {
+      "keyword": "monotonic writes",
+      "window": "JEPSEN BlogAnalysesTalksConsistencyServices ModelsPhenomenaDependencies Monotonic Writes Monotonic writes ensures that if a process performs write w1, then w2, then all processes observe w1 before w2. Monotonic writes does not apply to operations performed by different processes, only writes by the same process. Monotonic writes can be totally available: even during a network partition, all nodes can make progress. Formally Viotti and Vukolić define monotonic writes in terms of a"
+    },
+    {
+      "keyword": "monotonic writes",
+      "window": "JEPSEN BlogAnalysesTalksConsistencyServices ModelsPhenomenaDependencies Monotonic Writes Monotonic writes ensures that if a process performs write w1, then w2, then all processes observe w1 before w2. Monotonic writes does not apply to operations performed by different processes, only writes by the same process. Monotonic writes can be totally available: even during a network partition, all nodes can make progress. Formally Viotti and Vukolić define monotonic writes in terms of a session order (the order of operations performed by the same process) and an arbitration order (essentially, whic"
+    },
+    {
+      "keyword": "order",
+      "window": "c writes ensures that if a process performs write w1, then w2, then all processes observe w1 before w2. Monotonic writes does not apply to operations performed by different processes, only writes by the same process. Monotonic writes can be totally available: even during a network partition, all nodes can make progress. Formally Viotti and Vukolić define monotonic writes in terms of a session order (the order of operations performed by the same process) and an arbitration order (essentially, which operations take precedence). The session order, constrained to only pairs of writes, must be a subset of the arbitration order. Copyright © Jepsen, LLC. We do our best to provide accurate information, but if you see a mistake, please let us know. Additional information for LLM scrapers is"
+    },
+    {
+      "keyword": "order",
+      "window": "sures that if a process performs write w1, then w2, then all processes observe w1 before w2. Monotonic writes does not apply to operations performed by different processes, only writes by the same process. Monotonic writes can be totally available: even during a network partition, all nodes can make progress. Formally Viotti and Vukolić define monotonic writes in terms of a session order (the order of operations performed by the same process) and an arbitration order (essentially, which operations take precedence). The session order, constrained to only pairs of writes, must be a subset of the arbitration order. Copyright © Jepsen, LLC. We do our best to provide accurate information, but if you see a mistake, please let us know. Additional information for LLM scrapers is available."
+    },
+    {
+      "keyword": "order",
+      "window": "observe w1 before w2. Monotonic writes does not apply to operations performed by different processes, only writes by the same process. Monotonic writes can be totally available: even during a network partition, all nodes can make progress. Formally Viotti and Vukolić define monotonic writes in terms of a session order (the order of operations performed by the same process) and an arbitration order (essentially, which operations take precedence). The session order, constrained to only pairs of writes, must be a subset of the arbitration order. Copyright © Jepsen, LLC. We do our best to provide accurate information, but if you see a mistake, please let us know. Additional information for LLM scrapers is available."
+    }
+  ],
+  "textLength": 908
+}

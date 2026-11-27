@@ -1,0 +1,528 @@
+{
+  "index": {
+    "id": "links.fowler-event-narrative",
+    "url": "https://martinfowler.com/eaaDev/EventNarrative.html"
+  },
+  "urlFinal": "https://martinfowler.com/eaaDev/EventNarrative.html",
+  "status": 200,
+  "title": "Focusing on Events",
+  "fetchedAt": "2026-11-26T14:43:32.526Z",
+  "links": [
+    {
+      "text": "",
+      "href": "https://martinfowler.com/"
+    },
+    {
+      "text": "",
+      "href": "https://martinfowler.com/eaaDev/EventNarrative.html#navmenu-bottom"
+    },
+    {
+      "text": "Refactoring",
+      "href": "https://refactoring.com/"
+    },
+    {
+      "text": "Agile",
+      "href": "https://martinfowler.com/agile.html"
+    },
+    {
+      "text": "Architecture",
+      "href": "https://martinfowler.com/architecture"
+    },
+    {
+      "text": "About",
+      "href": "https://martinfowler.com/aboutMe.html"
+    },
+    {
+      "text": "Thoughtworks",
+      "href": "https://www.thoughtworks.com/engineering"
+    },
+    {
+      "text": "",
+      "href": "https://martinfowler.com/feed.atom"
+    },
+    {
+      "text": "",
+      "href": "https://www.twitter.com/martinfowler"
+    },
+    {
+      "text": "",
+      "href": "https://toot.thoughtworks.com/@mfowler"
+    },
+    {
+      "text": "",
+      "href": "https://www.linkedin.com/in/martin-fowler-com/"
+    },
+    {
+      "text": "",
+      "href": "https://bsky.app/profile/martinfowler.com"
+    },
+    {
+      "text": "Architecture",
+      "href": "https://martinfowler.com/architecture"
+    },
+    {
+      "text": "Refactoring",
+      "href": "https://refactoring.com/"
+    },
+    {
+      "text": "Agile",
+      "href": "https://martinfowler.com/agile.html"
+    },
+    {
+      "text": "Delivery",
+      "href": "https://martinfowler.com/delivery.html"
+    },
+    {
+      "text": "Microservices",
+      "href": "https://martinfowler.com/microservices"
+    },
+    {
+      "text": "Data",
+      "href": "https://martinfowler.com/data"
+    },
+    {
+      "text": "Testing",
+      "href": "https://martinfowler.com/testing"
+    },
+    {
+      "text": "DSL",
+      "href": "https://martinfowler.com/dsl.html"
+    },
+    {
+      "text": "About",
+      "href": "https://martinfowler.com/aboutMe.html"
+    },
+    {
+      "text": "Books",
+      "href": "https://martinfowler.com/books"
+    },
+    {
+      "text": "FAQ",
+      "href": "https://martinfowler.com/faq.html"
+    },
+    {
+      "text": "Videos",
+      "href": "https://martinfowler.com/videos.html"
+    },
+    {
+      "text": "Content Index",
+      "href": "https://martinfowler.com/tags"
+    },
+    {
+      "text": "Fragments",
+      "href": "https://martinfowler.com/fragments"
+    },
+    {
+      "text": "Board Games",
+      "href": "https://martinfowler.com/boardgames"
+    },
+    {
+      "text": "Photography",
+      "href": "https://martinfowler.com/photos"
+    },
+    {
+      "text": "Home",
+      "href": "https://thoughtworks.com/"
+    },
+    {
+      "text": "Insights",
+      "href": "https://thoughtworks.com/insights"
+    },
+    {
+      "text": "Careers",
+      "href": "https://thoughtworks.com/careers"
+    },
+    {
+      "text": "Radar",
+      "href": "https://thoughtworks.com/radar"
+    },
+    {
+      "text": "Engineering",
+      "href": "https://www.thoughtworks.com/engineering"
+    },
+    {
+      "text": "RSS",
+      "href": "https://martinfowler.com/feed.atom"
+    },
+    {
+      "text": "Mastodon",
+      "href": "https://toot.thoughtworks.com/@mfowler"
+    },
+    {
+      "text": "LinkedIn",
+      "href": "https://www.linkedin.com/in/martin-fowler-com/"
+    },
+    {
+      "text": "Bluesky",
+      "href": "https://bsky.app/profile/martinfowler.com"
+    },
+    {
+      "text": "X",
+      "href": "https://www.twitter.com/martinfowler"
+    },
+    {
+      "text": "BGG",
+      "href": "https://boardgamegeek.com/blog/13064/martins-7th-decade"
+    },
+    {
+      "text": "Top",
+      "href": "https://martinfowler.com/eaaDev/EventNarrative.html#top"
+    },
+    {
+      "text": "Representing an Event",
+      "href": "https://martinfowler.com/eaaDev/EventNarrative.html#RepresentingAnEvent"
+    },
+    {
+      "text": "Using events to collaborate",
+      "href": "https://martinfowler.com/eaaDev/EventNarrative.html#UsingEventsToCollaborate"
+    },
+    {
+      "text": "Event Sourcing",
+      "href": "https://martinfowler.com/eaaDev/EventNarrative.html#EventSourcing"
+    },
+    {
+      "text": "Handling Events",
+      "href": "https://martinfowler.com/eaaDev/EventNarrative.html#HandlingEvents"
+    },
+    {
+      "text": "Events and Commands",
+      "href": "https://martinfowler.com/eaaDev/EventNarrative.html#EventsAndCommands"
+    },
+    {
+      "text": "",
+      "href": "https://martinfowler.com/"
+    },
+    {
+      "text": "Martin Fowler",
+      "href": "https://martinfowler.com/"
+    },
+    {
+      "text": "Representing an Event",
+      "href": "https://martinfowler.com/eaaDev/EventNarrative.html#RepresentingAnEvent"
+    },
+    {
+      "text": "Using events to collaborate",
+      "href": "https://martinfowler.com/eaaDev/EventNarrative.html#UsingEventsToCollaborate"
+    },
+    {
+      "text": "Event Sourcing",
+      "href": "https://martinfowler.com/eaaDev/EventNarrative.html#EventSourcing"
+    },
+    {
+      "text": "Handling Events",
+      "href": "https://martinfowler.com/eaaDev/EventNarrative.html#HandlingEvents"
+    },
+    {
+      "text": "Events and Commands",
+      "href": "https://martinfowler.com/eaaDev/EventNarrative.html#EventsAndCommands"
+    },
+    {
+      "text": "Further Enterprise Application Architecture development",
+      "href": "https://martinfowler.com/eaaDev"
+    },
+    {
+      "text": "Event Messages",
+      "href": "http://www.enterpriseintegrationpatterns.com/EventMessage.html"
+    },
+    {
+      "text": "Domain Event",
+      "href": "https://martinfowler.com/eaaDev/DomainEvent.html"
+    },
+    {
+      "text": "Time Points",
+      "href": "https://martinfowler.com/eaaDev/TimePoint.html"
+    },
+    {
+      "text": "Time Points",
+      "href": "https://martinfowler.com/eaaDev/TimePoint.html"
+    },
+    {
+      "text": "Time Points",
+      "href": "https://martinfowler.com/eaaDev/TimePoint.html"
+    },
+    {
+      "text": "Domain Events",
+      "href": "https://martinfowler.com/eaaDev/DomainEvent.html"
+    },
+    {
+      "text": "Domain Events",
+      "href": "https://martinfowler.com/eaaDev/DomainEvent.html"
+    },
+    {
+      "text": "Event Collaboration",
+      "href": "https://martinfowler.com/eaaDev/EventCollaboration.html"
+    },
+    {
+      "text": "Event Collaboration",
+      "href": "https://martinfowler.com/eaaDev/EventCollaboration.html"
+    },
+    {
+      "text": "Event Collaboration",
+      "href": "https://martinfowler.com/eaaDev/EventCollaboration.html"
+    },
+    {
+      "text": "Event Collaboration",
+      "href": "https://martinfowler.com/eaaDev/EventCollaboration.html"
+    },
+    {
+      "text": "Event Collaboration",
+      "href": "https://martinfowler.com/eaaDev/EventCollaboration.html"
+    },
+    {
+      "text": "Event Collaboration",
+      "href": "https://martinfowler.com/eaaDev/EventCollaboration.html"
+    },
+    {
+      "text": "Event Collaboration",
+      "href": "https://martinfowler.com/eaaDev/EventCollaboration.html"
+    },
+    {
+      "text": "Event Collaboration",
+      "href": "https://martinfowler.com/eaaDev/EventCollaboration.html"
+    },
+    {
+      "text": "Event Collaboration",
+      "href": "https://martinfowler.com/eaaDev/EventCollaboration.html"
+    },
+    {
+      "text": "Event Sourcing",
+      "href": "https://martinfowler.com/eaaDev/EventSourcing.html"
+    },
+    {
+      "text": "Event Sourcing",
+      "href": "https://martinfowler.com/eaaDev/EventSourcing.html"
+    },
+    {
+      "text": "Domain Events",
+      "href": "https://martinfowler.com/eaaDev/DomainEvent.html"
+    },
+    {
+      "text": "Parallel Models",
+      "href": "https://martinfowler.com/eaaDev/ParallelModel.html"
+    },
+    {
+      "text": "Domain Events",
+      "href": "https://martinfowler.com/eaaDev/DomainEvent.html"
+    },
+    {
+      "text": "Parallel Models",
+      "href": "https://martinfowler.com/eaaDev/ParallelModel.html"
+    },
+    {
+      "text": "Event Sourcing",
+      "href": "https://martinfowler.com/eaaDev/EventSourcing.html"
+    },
+    {
+      "text": "Parallel Models",
+      "href": "https://martinfowler.com/eaaDev/ParallelModel.html"
+    },
+    {
+      "text": "Parallel Models",
+      "href": "https://martinfowler.com/eaaDev/ParallelModel.html"
+    },
+    {
+      "text": "Parallel Models",
+      "href": "https://martinfowler.com/eaaDev/ParallelModel.html"
+    },
+    {
+      "text": "Event Sourcing",
+      "href": "https://martinfowler.com/eaaDev/EventSourcing.html"
+    },
+    {
+      "text": "Parallel Model",
+      "href": "https://martinfowler.com/eaaDev/ParallelModel.html"
+    },
+    {
+      "text": "Retroactive Event",
+      "href": "https://martinfowler.com/eaaDev/RetroactiveEvent.html"
+    },
+    {
+      "text": "Event Sourcing",
+      "href": "https://martinfowler.com/eaaDev/EventSourcing.html"
+    },
+    {
+      "text": "Event Sourcing",
+      "href": "https://martinfowler.com/eaaDev/EventSourcing.html"
+    },
+    {
+      "text": "Parallel Models",
+      "href": "https://martinfowler.com/eaaDev/ParallelModel.html"
+    },
+    {
+      "text": "Event Collaboration",
+      "href": "https://martinfowler.com/eaaDev/EventCollaboration.html"
+    },
+    {
+      "text": "Event Sourcing",
+      "href": "https://martinfowler.com/eaaDev/EventSourcing.html"
+    },
+    {
+      "text": "Event Sourcing",
+      "href": "https://martinfowler.com/eaaDev/EventSourcing.html"
+    },
+    {
+      "text": "Event Sourcing",
+      "href": "https://martinfowler.com/eaaDev/EventSourcing.html"
+    },
+    {
+      "text": "Event Sourcing",
+      "href": "https://martinfowler.com/eaaDev/EventSourcing.html"
+    },
+    {
+      "text": "Event Sourcing",
+      "href": "https://martinfowler.com/eaaDev/EventSourcing.html"
+    },
+    {
+      "text": "Event Sourcing",
+      "href": "https://martinfowler.com/eaaDev/EventSourcing.html"
+    },
+    {
+      "text": "Agreement Dispatcher",
+      "href": "https://martinfowler.com/eaaDev/AgreementDispatcher.html"
+    },
+    {
+      "text": "Command",
+      "href": "http://www.amazon.com/exec/obidos/tg/detail/-/0201633612"
+    },
+    {
+      "text": "Event Message",
+      "href": "http://www.enterpriseintegrationpatterns.com/EventMessage.html"
+    },
+    {
+      "text": "Command",
+      "href": "http://www.amazon.com/exec/obidos/tg/detail/-/0201633612"
+    },
+    {
+      "text": "[Gang of Four]",
+      "href": "https://www.amazon.com/gp/product/0201633612/ref=as_li_tl?ie=UTF8&camp=1789&creative=9325&creativeASIN=0201633612&linkCode=as2&tag=martinfowlerc-20"
+    },
+    {
+      "text": "[hohpe-woolf]",
+      "href": "https://www.amazon.com/gp/product/0321200683/ref=as_li_tl?ie=UTF8&camp=1789&creative=9325&creativeASIN=0321200683&linkCode=as2&tag=martinfowlerc-20"
+    },
+    {
+      "text": "Command Message",
+      "href": "http://www.enterpriseintegrationpatterns.com/CommandMessage.html"
+    },
+    {
+      "text": "Event Message",
+      "href": "http://www.enterpriseintegrationpatterns.com/EventMessage.html"
+    },
+    {
+      "text": "Architecture",
+      "href": "https://martinfowler.com/architecture"
+    },
+    {
+      "text": "Refactoring",
+      "href": "https://refactoring.com/"
+    },
+    {
+      "text": "Agile",
+      "href": "https://martinfowler.com/agile.html"
+    },
+    {
+      "text": "Delivery",
+      "href": "https://martinfowler.com/delivery.html"
+    },
+    {
+      "text": "Microservices",
+      "href": "https://martinfowler.com/microservices"
+    },
+    {
+      "text": "Data",
+      "href": "https://martinfowler.com/data"
+    },
+    {
+      "text": "Testing",
+      "href": "https://martinfowler.com/testing"
+    },
+    {
+      "text": "DSL",
+      "href": "https://martinfowler.com/dsl.html"
+    },
+    {
+      "text": "About",
+      "href": "https://martinfowler.com/aboutMe.html"
+    },
+    {
+      "text": "Books",
+      "href": "https://martinfowler.com/books"
+    },
+    {
+      "text": "FAQ",
+      "href": "https://martinfowler.com/faq.html"
+    },
+    {
+      "text": "Videos",
+      "href": "https://martinfowler.com/videos.html"
+    },
+    {
+      "text": "Content Index",
+      "href": "https://martinfowler.com/tags"
+    },
+    {
+      "text": "Fragments",
+      "href": "https://martinfowler.com/fragments"
+    },
+    {
+      "text": "Board Games",
+      "href": "https://martinfowler.com/boardgames"
+    },
+    {
+      "text": "Photography",
+      "href": "https://martinfowler.com/photos"
+    },
+    {
+      "text": "Home",
+      "href": "https://thoughtworks.com/"
+    },
+    {
+      "text": "Insights",
+      "href": "https://thoughtworks.com/insights"
+    },
+    {
+      "text": "Careers",
+      "href": "https://thoughtworks.com/careers"
+    },
+    {
+      "text": "Radar",
+      "href": "https://thoughtworks.com/radar"
+    },
+    {
+      "text": "Engineering",
+      "href": "https://www.thoughtworks.com/engineering"
+    },
+    {
+      "text": "RSS",
+      "href": "https://martinfowler.com/feed.atom"
+    },
+    {
+      "text": "Mastodon",
+      "href": "https://toot.thoughtworks.com/@mfowler"
+    },
+    {
+      "text": "LinkedIn",
+      "href": "https://www.linkedin.com/in/martin-fowler-com/"
+    },
+    {
+      "text": "Bluesky",
+      "href": "https://bsky.app/profile/martinfowler.com"
+    },
+    {
+      "text": "X",
+      "href": "https://www.twitter.com/martinfowler"
+    },
+    {
+      "text": "BGG",
+      "href": "https://boardgamegeek.com/blog/13064/martins-7th-decade"
+    },
+    {
+      "text": "",
+      "href": "https://www.thoughtworks.com/engineering"
+    },
+    {
+      "text": "Disclosures",
+      "href": "https://martinfowler.com/aboutMe.html#disclosures"
+    }
+  ]
+}

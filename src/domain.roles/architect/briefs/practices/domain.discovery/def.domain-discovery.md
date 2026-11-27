@@ -19,15 +19,16 @@ who do the work, the objects and events as they exist before any software touche
 does **not** live in any software's description of that domain.
 
 a database schema, an api response, a legacy class name, a screen's field labels — each is
-a *map*, drawn by some engineer under some deadline, lossy and incidental. the real-world
-domain is the *territory*. discovery grounds every term in the territory, never in a map.
+a *description*, written by some engineer under some deadline, lossy and incidental. the
+real-world domain is the *territory*. discovery grounds every term in the territory, never in
+a description of it.
 
 > the map is not the territory. the schema is not the domain.
 
 so when a surf instructor says "a surfer books a lesson," that sentence — from the person
-who lives the domain — is ground truth. the `reservations` table that stores it is a map of
+who lives the domain — is ground truth. the `reservations` table that holds it is a description of
 that truth, and a poor one. name the object `SurfLesson` because the instructor's world
-holds a lesson, **not** `Reservation` because a table happened to store it that way.
+holds a lesson, **not** `Reservation` because a table happened to hold it that way.
 
 the tell: when the code's word and the domain expert's word disagree, the domain expert is
 right. the software named its own convenience, not the domain itself.
@@ -52,7 +53,7 @@ the truth hides under layers that must be dug through:
 
 | the surface (what you see first) | the truth beneath (what discovery unearths) |
 |----------------------------------|---------------------------------------------|
-| the shape a database row imposes | the object the domain actually holds |
+| the shape a database record imposes | the object the domain actually has |
 | the jargon of the last tool used | the word the domain expert actually says |
 | *how* a step is implemented today | *why* the step exists at all |
 | a synonym borrowed under deadline | the one canonical term for the concept |

@@ -2,7 +2,7 @@
 
 ## .what
 
-domain discovery is how we surface a domain's true **objects**, **operations**, and the **ubiquitous language** that names them — before and while you model them in code. you find *what exists in the domain* and *what to call it*, so the code speaks the domain's own words.
+domain discovery is how we surface a domain's true **objects**, **operations**, and the **ubiquitous language** that names them — before and while you declare them in code. you find *what exists in the domain* and *what to call it*, so the code speaks the domain's own words.
 
 ## .why
 
@@ -15,7 +15,7 @@ domain discovery is how we surface a domain's true **objects**, **operations**, 
 
 | kind | what | shaped as |
 |------|------|-----------|
-| domain-objects (dobjs) | the nouns the domain holds — `Surfer`, `SurfLesson`, `WaveReport` | `[...noun][state]?` |
+| domain-objects (dobjs) | the nouns the domain holds — `Surfer`, `SurfLesson`, `WaveReport` | `[...noun][status]?` |
 | domain-operations (dops) | the verbs the domain performs — `genSurfLesson`, `setSurferSkillLevel` | `[verb][...noun]` |
 
 ## .how — the moves
@@ -24,7 +24,7 @@ discovery is a loop of **expand → collect**, run until the space converges (ex
 
 1. **listen to how folks talk.** capture the exact words the people of the domain use — from **both** vantage points. the **expert** (the practitioner who lives the work) gives you the precise, canonical term; adopt it as your dobj/dop. the **layfolk** (the customer, the newcomer, the passer-by) gives you the intuitive, common framing; it reveals where expert jargon obscures and what the plain-sense word for a thing is. where the two agree, you have a strong candidate; where they diverge, you have found a synonym or an overload to settle. do not translate either — adopt.
 2. **name from the motive.** name a term from *why* it exists, not from its mechanism. a motive-first name outlives any one implementation.
-3. **ask the five whys.** take a surface fact and ask "why?" — then ask "why?" of the answer, about five times over. each why strips one layer of mechanism; the answer that no longer shifts is the buried motive. "we store a `reservation` row" → why? → "to hold a slot" → why? → "so a surfer keeps their spot in a lesson" — the dobj was `SurfLesson`, the dop was `holdSurferSlot`, hidden two whys beneath a storage detail. this is how you dig past the surface to the truth `def.domain-discovery` names.
+3. **ask the five whys.** take a surface fact and ask "why?" — then ask "why?" of the answer, about five times over. each why strips one layer of mechanism; the answer that no longer shifts is the buried motive. "we persist a `reservation` record" → why? → "to reserve a slot" → why? → "so a surfer keeps their spot in a lesson" — the dobj was `SurfLesson`, the dop was `genSurferSpot`, hidden two whys beneath a storage detail. this is how you dig past the surface to the truth `def.domain-discovery` names.
 4. **decompose dimensionally.** factor a space into orthogonal axes and walk the product (`howto.dimensional-decomposition`). the axes are candidate attributes; the cells are candidate objects; the forbidden cells are invariants. this move surfaces objects and attributes you would otherwise miss.
 5. **demonstrate the experience as a narrative, then distill to a bdd timeline.** first tell one concrete end-to-end experience as a plain story — "a surfer checks the swell, books a lesson, the instructor confirms, the surfer paddles out…". the raw narrative exposes the domain in motion: recurring nouns are dobjs, events are dops, the state each event changes is an attribute. then distill that story into a **bdd timeline** — ordered given/when/then steps — to refine it: the *given* names the precondition state, the *when* names the dop, the *then* names the resulting state. the narrative discovers; the bdd timeline refines and makes the dops and state transitions precise.
 6. **probe the lifecycle.** for each object, ask what states it moves through and what event drives each move. the transitions are dops; the states are attributes.

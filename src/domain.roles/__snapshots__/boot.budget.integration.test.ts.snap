@@ -1,0 +1,112 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`boot.budget given: [case1] a crafted cost, so each failure renders when: [t0.1] the linked view exceeds its budget then: it names the overage and the cure, without the src-view note 1`] = `
+"✋ ConstraintError: the surfer boot exceeds its budget
+
+{
+  "pathToSpec": ".agent/repo=ehmpathy/role=surfer/boot.yml",
+  "tokens": 15420,
+  "budget": 15000,
+  "over": 420,
+  "hint": [
+    "see where the tokens go: npx rhachet roles cost --what '.agent/repo=ehmpathy/role=surfer/boot.yml' --top 5",
+    "condense a say brief into a \`.min\` twin, or demote one to ref",
+    "of a forbid/require pair, the forbid pole stays say (rule.require.forbid-pole-on-boot-choice)",
+    "raise \`budget.tokens\` only as a deliberate, reviewed call"
+  ]
+}"
+`;
+
+exports[`boot.budget given: [case1] a crafted cost, so each failure renders when: [t0] the boot exceeds its budget then: it names the overage and the cure 1`] = `
+"✋ ConstraintError: the surfer boot exceeds its budget
+
+{
+  "pathToSpec": "src/domain.roles/surfer/boot.yml",
+  "tokens": 15420,
+  "budget": 15000,
+  "over": 420,
+  "hint": [
+    "src view; its <also> counts test files the build drops. the linked case is what a consumer boots",
+    "see where the tokens go: npx rhachet roles cost --what 'src/domain.roles/surfer/boot.yml' --top 5",
+    "condense a say brief into a \`.min\` twin, or demote one to ref",
+    "of a forbid/require pair, the forbid pole stays say (rule.require.forbid-pole-on-boot-choice)",
+    "raise \`budget.tokens\` only as a deliberate, reviewed call"
+  ]
+}"
+`;
+
+exports[`boot.budget given: [case1] a crafted cost, so each failure renders when: [t1] the boot declares no budget then: it names the absent cap, not an overage 1`] = `
+"✋ ConstraintError: the surfer boot declares no budget
+
+{
+  "pathToSpec": "src/domain.roles/surfer/boot.yml",
+  "tokens": 9000,
+  "hint": "pin a cap at the top of the spec: budget: { tokens: <n> }; measure first via npx rhachet roles cost --what 'src/domain.roles/surfer/boot.yml'"
+}"
+`;
+
+exports[`boot.budget given: [case1] a crafted cost, so each failure renders when: [t3.1] the measure prints a budget line in a drifted format then: it fails loud as a malfunction, not as an absent budget 1`] = `
+"💥 MalfunctionError: roles cost output carries no readable budget line; did its format change?
+
+{
+  "output": "├─ tokens  = 9,000\\n├─ budget  = 15,000 toks (60% used)",
+  "hint": "compare the regexes in asBootCost with the current \`npx rhachet roles cost\` output; update the parser to match"
+}"
+`;
+
+exports[`boot.budget given: [case1] a crafted cost, so each failure renders when: [t3] the measure prints no token count then: it fails loud as a malfunction 1`] = `
+"💥 MalfunctionError: roles cost output carries no token count; did its format change?
+
+{
+  "output": "the reef is calm today",
+  "hint": "compare the regexes in asBootCost with the current \`npx rhachet roles cost\` output; update the parser to match"
+}"
+`;
+
+exports[`boot.budget given: [case1] a crafted cost, so each failure renders when: [t4] the linked spec is absent then: it names the fix 1`] = `
+"✋ ConstraintError: linked boot spec absent; the consumer view is ungraded
+
+{
+  "pathToSpec": ".agent/repo=ehmpathy/role=__never-linked__/boot.yml",
+  "hint": "run: npm run prepare:rhachet"
+}"
+`;
+
+exports[`boot.budget given: [case1] a crafted cost, so each failure renders when: [t5] the measure times out then: it names load, not an overage 1`] = `
+"💥 MalfunctionError: the boot measure timed out after 120s; this is load, not an overage
+
+{
+  "pathToSpec": "src/domain.roles/surfer/boot.yml",
+  "command": "npx rhachet roles cost --what 'src/domain.roles/surfer/boot.yml' --top 0",
+  "hint": "rerun the suite alone: rhx git.repo.test --what integration --scope 'path://boot.budget' --mode apply"
+}"
+`;
+
+exports[`boot.budget given: [case1] a crafted cost, so each failure renders when: [t6] the measure exits nonzero then: it names a malfunction and the command to rerun 1`] = `
+"💥 MalfunctionError: the boot measure failed; this is a malfunction, not an overage
+
+{
+  "pathToSpec": "src/domain.roles/surfer/boot.yml",
+  "command": "npx rhachet roles cost --what 'src/domain.roles/surfer/boot.yml' --top 0",
+  "status": 1,
+  "detail": "Command failed: npx rhachet roles cost --what 'src/domain.roles/surfer/boot.yml' --top 0",
+  "hint": "run it by hand to see its output: npx rhachet roles cost --what 'src/domain.roles/surfer/boot.yml' --top 0"
+}"
+`;
+
+exports[`boot.budget given: [case1] a crafted cost, so each failure renders when: [t7.1] the linked view fits, within 2% of its budget then: it warns without the src-view note 1`] = `
+"⚠️ the surfer boot is near its budget
+   ├─ spec: .agent/repo=ehmpathy/role=surfer/boot.yml
+   ├─ tokens: 14,990 / 15,000
+   ├─ headroom: 10 tokens
+   └─ cure: condense a say brief before the next lands; npx rhachet roles cost --what '.agent/repo=ehmpathy/role=surfer/boot.yml' --top 5"
+`;
+
+exports[`boot.budget given: [case1] a crafted cost, so each failure renders when: [t7] the boot fits, within 2% of its budget then: it warns with the headroom left and the cure 1`] = `
+"⚠️ the surfer boot is near its budget
+   ├─ spec: src/domain.roles/surfer/boot.yml
+   ├─ tokens: 14,990 / 15,000
+   ├─ headroom: 10 tokens
+   ├─ note: src view; its <also> counts test files the build drops. the linked case is what a consumer boots
+   └─ cure: condense a say brief before the next lands; npx rhachet roles cost --what 'src/domain.roles/surfer/boot.yml' --top 5"
+`;

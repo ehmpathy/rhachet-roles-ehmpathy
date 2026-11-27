@@ -1,0 +1,78 @@
+{
+  "source": {
+    "id": "page.naur1985",
+    "kind": "page",
+    "url": "https://gist.github.com/onlurking/fc5c81d18cfce9ff81bc968a7f342fb1",
+    "keywords": [
+      "theory",
+      "documentation",
+      "cannot be",
+      "programmers"
+    ]
+  },
+  "urlFinal": "https://gist.github.com/onlurking/fc5c81d18cfce9ff81bc968a7f342fb1",
+  "status": 200,
+  "fetchedAt": "2026-11-23T16:06:18.358Z",
+  "title": "Programming as Theory Building - Peter Naur · GitHub",
+  "meta": [
+    {
+      "name": "description",
+      "content": "Programming as Theory Building - Peter Naur. GitHub Gist: instantly share code, notes, and snippets."
+    },
+    {
+      "name": "og:title",
+      "content": "Programming as Theory Building - Peter Naur"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "theory",
+      "window": "Skip to content Search Gists All gists Back to GitHub Sign in Sign up Instantly share code, notes, and snippets. onlurking/programming-as-theory-building.md Last active Star 410 (410) Fork 49 (49) Code Revisions 3 Stars 410 Forks 49 Embed Clone this repository at &lt;script src=&quot;https://gist.github.com/onlurking/fc5c81d18cfce9ff81bc968a7f342fb1.js&quot;&gt;&lt;/script&gt; Download ZIP Programming as Theory Building - Peter Naur Raw programming-as-theory-building.md Programming as Theory Building Peter Naur Peter Naur's classi"
+    },
+    {
+      "keyword": "theory",
+      "window": "nt Search Gists All gists Back to GitHub Sign in Sign up Instantly share code, notes, and snippets. onlurking/programming-as-theory-building.md Last active Star 410 (410) Fork 49 (49) Code Revisions 3 Stars 410 Forks 49 Embed Clone this repository at &lt;script src=&quot;https://gist.github.com/onlurking/fc5c81d18cfce9ff81bc968a7f342fb1.js&quot;&gt;&lt;/script&gt; Download ZIP Programming as Theory Building - Peter Naur Raw programming-as-theory-building.md Programming as Theory Building Peter Naur Peter Naur's classic 1985 essay \"Programming as Theory Building\" argues that a program is not its source code. A program is a shared mental construct (he uses the word theory) that lives in the minds of the people who work on it. If you lose the people, you lose the program. The code is me"
+    },
+    {
+      "keyword": "theory",
+      "window": "in Sign up Instantly share code, notes, and snippets. onlurking/programming-as-theory-building.md Last active Star 410 (410) Fork 49 (49) Code Revisions 3 Stars 410 Forks 49 Embed Clone this repository at &lt;script src=&quot;https://gist.github.com/onlurking/fc5c81d18cfce9ff81bc968a7f342fb1.js&quot;&gt;&lt;/script&gt; Download ZIP Programming as Theory Building - Peter Naur Raw programming-as-theory-building.md Programming as Theory Building Peter Naur Peter Naur's classic 1985 essay \"Programming as Theory Building\" argues that a program is not its source code. A program is a shared mental construct (he uses the word theory) that lives in the minds of the people who work on it. If you lose the people, you lose the program. The code is merely a written representation of the program, an"
+    },
+    {
+      "keyword": "documentation",
+      "window": "velopment in time corresponding to the changes taking place in the real world activity being matched by the program execution, in other words program modifications. One way of stating the main point I want to make is that programming in this sense primarily must be the programmers’ building up knowledge of a certain kind, knowledge taken to be basically the programmers’ immediate possession, any documentation being an auxiliary, secondary product. As a background of the further elaboration of this view given in the following sections, the remainder of the present section will describe some real experience of dealing with large programs that has seemed to me more and more significant as I have pondered over the problems. In either case the experience is my own or has been communicated to"
+    },
+    {
+      "keyword": "documentation",
+      "window": "mpiler. It has been developed by a group A for a Language L and worked very well on computer X. Now another group B has the task to write a compiler for a language L + M, a modest extension of L, for computer Y. Group B decides that the compiler for L developed by group A will be a good starting point for their design, and get a contract with group A that they will get support in the form of full documentation, including annotated program texts and much additional written design discussion, and also personal advice. The arrangement was effective and group B managed to develop the compiler they wanted. In the present context the significant issue is the importance of the personal advice from group A in the matters that concerned how to implement the extensions M to the language. During the"
+    },
+    {
+      "keyword": "documentation",
+      "window": "anguage. During the design phase group B made suggestions for the manner in which the extensions should be accommodated and submitted them to group A for review. In several major cases it turned out that the solutions suggested by group B were found by group A to make no use of the facilities that were not only inherent in the structure of the existing compiler but were discussed at length in its documentation, and to be based instead on additions to that structure in the form of patches that effectively destroyed its power and simplicity. The members of group A were able to spot these cases instantly and could propose simple and effective solutions, framed entirely within the existing structure. This is an example of how the full program text and additional documentation is insufficient i"
+    },
+    {
+      "keyword": "cannot be",
+      "window": "ena in the world, so as to be able to employ the mathematically expressed rules of the theory properly. The dependence of a theory on a grasp of certain kinds of similarity between situations and events of the real world gives the reason why the knowledge held by someone who has the theory could not, in principle, be expressed in terms of rules. In fact, the similarities in question are not, and cannot be, expressed in terms of criteria, no more than the similarities of many other kinds of objects, such as human faces, tunes, or tastes of wine, can be thus expressed. The Theory To Be Built by the Programmer In terms of Ryle’s notion of theory, what has to be built by the programmer is a theory of how certain affairs of the world will be handled by, or supported by, a computer program. O"
+    },
+    {
+      "keyword": "cannot be",
+      "window": "a new manner. Designing how a modification is best incorporated into an established program depends on the perception of the similarity of the new demand with the operational facilities already built into the program. The kind of similarity that has to be perceived is one between aspects of the world. It only makes sense to the agent who has knowledge of the world, that is to the programmer, and cannot be reduced to any limited set of criteria or rules, for reasons similar to the ones given above why the justification of the program cannot be thus reduced. While the discussion of the present section presents some basic arguments for adopting the Theory Building View of programming, an assessment of the view should take into account to what extent it may contribute to a coherent understan"
+    },
+    {
+      "keyword": "cannot be",
+      "window": "the new demand with the operational facilities already built into the program. The kind of similarity that has to be perceived is one between aspects of the world. It only makes sense to the agent who has knowledge of the world, that is to the programmer, and cannot be reduced to any limited set of criteria or rules, for reasons similar to the ones given above why the justification of the program cannot be thus reduced. While the discussion of the present section presents some basic arguments for adopting the Theory Building View of programming, an assessment of the view should take into account to what extent it may contribute to a coherent understanding of programming and its problems. Such matters will be discussed in the following sections. Problems and Costs of Program Modifications"
+    },
+    {
+      "keyword": "programmers",
+      "window": "n the minds of the people who work on it. If you lose the people, you lose the program. The code is merely a written representation of the program, and it's lossy, so you can't reconstruct a program from its code. Introduction The present discussion is a contribution to the understanding of what programming is. It suggests that programming properly should be regarded as an activity by which the programmers form or achieve a certain kind of insight, a theory, of the matters at hand. This suggestion is in contrast to what appears to be a more common notion, that programming should be regarded as a production of a program and certain other texts. Some of the background of the views presented here is to be found in certain observations of what actually happens to programs and the teams of p"
+    },
+    {
+      "keyword": "programmers",
+      "window": "programmers form or achieve a certain kind of insight, a theory, of the matters at hand. This suggestion is in contrast to what appears to be a more common notion, that programming should be regarded as a production of a program and certain other texts. Some of the background of the views presented here is to be found in certain observations of what actually happens to programs and the teams of programmers dealing with them, particularly in situations arising from unexpected and perhaps erroneous program executions or reactions, and on the occasion of modifications of programs. The difficulty of accommodating such observations in a production view of programming suggests that this view is misleading. The theory building view is presented as an alternative. A more general background of t"
+    },
+    {
+      "keyword": "programmers",
+      "window": "he activity and our attempts to overcome them will give rise to conflicts and frustrations. In the present discussion some of the crucial background experience will first be outlined. This is followed by an explanation of a theory of what programming is, denoted the Theory Building View. The subsequent sections enter into some of the consequences of the Theory Building View. Programming and the Programmers’ Knowledge I shall use the word programming to denote the whole activity of design and implementation of programmed solutions. What I am concerned with is the activity of matching some significant part and aspect of an activity in the real world to the formal symbol manipulation that can be done by a program running on a computer. With such a notion it follows directly that the progra"
+    }
+  ],
+  "textLength": 45744
+}

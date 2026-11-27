@@ -5,7 +5,7 @@
 a file's directory is decided by the **primary noun** of its filename — the noun-head that leads the noun-hierarchy right after the verb. this rule is the deterministic *algorithm* that composes two extant rules into a single, mechanical placement decision:
 
 - `rule.require.group-by-noun-not-verb` — *what* the directory is named (a noun, never a verb)
-- `rule.prefer.most-common-denominator` — *how deep* the directory nests (the most-specific place)
+- `rule.require.most-common-denominator` — *how deep* the directory nests (the most-specific place)
 
 together they answer "which directory does this file go in?" without judgment. this brief makes that answer easy to reach.
 
@@ -18,7 +18,7 @@ together they answer "which directory does this file go in?" without judgment. t
 
 ## .the filename grammar
 
-per `rule.require.treestruct`, a mechanism filename is `[verb][...nounHierarchy][state]?`:
+per `rule.require.treestruct`, a mechanism filename is `[verb][...nounHierarchy][status]?`:
 
 ```
 setStoneAsBlocked
@@ -36,7 +36,7 @@ verb  nounHierarchy = Route → Guard → Review → Peer → Contemplation → 
       primaryNoun path = RouteGuardReviewPeer  →  guard/review/peer/
 ```
 
-the **primary noun** is the noun-head that comes first. when the noun-hierarchy maps onto an extant directory hierarchy, that mapped path IS the directory.
+the **primary noun** is the noun-head that comes first. when the noun-hierarchy matches an extant directory hierarchy, that matched path IS the directory.
 
 ## .the algorithm
 
@@ -133,8 +133,9 @@ ask, in order:
 
 ## .see also
 
+- `rule.forbid.directory.by-secondary-noun` — the forbid twin: the smell, with the cure
 - `rule.require.group-by-noun-not-verb` — the directory is a noun (what)
-- `rule.prefer.most-common-denominator` — nest at the most-specific place (how deep)
+- `rule.require.most-common-denominator` — nest at the most-specific place (how deep)
 - `rule.require.treestruct` — the `[verb][...noun]` filename grammar this reads
 - `rule.require.get-set-gen-verbs` — the verb leads the filename, never the directory
 - `rule.prefer.directory.subdomain-clusters` — the prefer-level counterpart: proactively cluster ops into subdomain dirs

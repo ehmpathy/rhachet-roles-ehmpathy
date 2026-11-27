@@ -1,0 +1,148 @@
+{
+  "source": {
+    "id": "crossref.prandtl1904",
+    "kind": "crossref",
+    "query": "Prandtl Uber Flussigkeitsbewegung bei sehr kleiner Reibung",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Prandtl%20Uber%20Flussigkeitsbewegung%20bei%20sehr%20kleiner%20Reibung&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T22:21:20.767Z",
+  "items": [
+    {
+      "DOI": "10.1007/978-3-662-11836-8_43",
+      "title": [
+        "Über Flüssigkeitsbewegung bei sehr kleiner Reibung"
+      ],
+      "author": [
+        {
+          "given": "Walter",
+          "family": "Tollmien",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Hermann",
+          "family": "Schlichting",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Henry",
+          "family": "Görtler",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "F. W.",
+          "family": "Riegels",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Ludwig Prandtl Gesammelte Abhandlungen"
+      ],
+      "page": "575-584",
+      "issued": {
+        "date-parts": [
+          [
+            1961
+          ]
+        ]
+      },
+      "publisher": "Springer Berlin Heidelberg",
+      "type": "book-chapter"
+    },
+    {
+      "DOI": "10.1007/978-3-662-67462-8_1",
+      "title": [
+        "Über Flüssigkeitsbewegung bei sehr kleiner Reibung (S. 64)"
+      ],
+      "author": [
+        {
+          "given": "Michael",
+          "family": "Eckert",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Klassische Texte der Wissenschaft",
+        "Ludwig Prandtl und die moderne Strömungsforschung"
+      ],
+      "page": "3-13",
+      "issued": {
+        "date-parts": [
+          [
+            2023
+          ]
+        ]
+      },
+      "publisher": "Springer Berlin Heidelberg",
+      "type": "book-chapter"
+    },
+    {
+      "DOI": "10.1007/978-3-540-88837-6_11",
+      "title": [
+        "Das Prandtl-Tomlinson-Modell für trockene Reibung"
+      ],
+      "author": [
+        {
+          "given": "V. L.",
+          "family": "Popov",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Kontaktmechanik und Reibung"
+      ],
+      "page": "153-172",
+      "issued": {
+        "date-parts": [
+          [
+            null
+          ]
+        ]
+      },
+      "publisher": "Springer Berlin Heidelberg",
+      "type": "book-chapter"
+    }
+  ]
+}

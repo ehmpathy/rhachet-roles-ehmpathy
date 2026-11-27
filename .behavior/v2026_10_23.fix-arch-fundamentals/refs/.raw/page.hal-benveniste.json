@@ -1,0 +1,258 @@
+{
+  "source": {
+    "id": "page.hal-benveniste",
+    "kind": "page",
+    "url": "https://inria.hal.science/hal-01178467",
+    "keywords": [
+      "abstract",
+      "assume",
+      "guarantee",
+      "contract"
+    ]
+  },
+  "urlFinal": "https://inria.hal.science/hal-01178467",
+  "status": 200,
+  "fetchedAt": "2026-11-23T13:44:50.997Z",
+  "title": "Contracts for Systems Design: Theory - Inria - Institut national de recherche en sciences et technologies du numérique",
+  "meta": [
+    {
+      "name": "citation_language",
+      "content": "en"
+    },
+    {
+      "name": "DC.language",
+      "content": "en"
+    },
+    {
+      "name": "DC.type",
+      "content": "report"
+    },
+    {
+      "name": "citation_title",
+      "content": "Contracts for Systems Design: Theory"
+    },
+    {
+      "name": "DC.title",
+      "content": "Contracts for Systems Design: Theory"
+    },
+    {
+      "name": "og:title",
+      "content": "Contracts for Systems Design: Theory"
+    },
+    {
+      "name": "DC.identifier",
+      "content": "https://inria.hal.science/hal-01178467"
+    },
+    {
+      "name": "DC.identifier",
+      "content": "hal-01178467"
+    },
+    {
+      "name": "citation_author",
+      "content": "Albert Benveniste"
+    },
+    {
+      "name": "citation_author_institution",
+      "content": "Modélisation hybride & conception par contrats pour les systèmes embarqués multi-physiques"
+    },
+    {
+      "name": "DC.creator",
+      "content": "Albert Benveniste"
+    },
+    {
+      "name": "citation_author",
+      "content": "Benoît Caillaud"
+    },
+    {
+      "name": "citation_author_hal_id",
+      "content": "benoit-caillaud"
+    },
+    {
+      "name": "citation_author_institution",
+      "content": "Modélisation hybride & conception par contrats pour les systèmes embarqués multi-physiques"
+    },
+    {
+      "name": "DC.creator",
+      "content": "Benoît Caillaud"
+    },
+    {
+      "name": "citation_author",
+      "content": "Dejan Nickovic"
+    },
+    {
+      "name": "citation_author_institution",
+      "content": "Austrian Institute of Technology [Vienna]"
+    },
+    {
+      "name": "DC.creator",
+      "content": "Dejan Nickovic"
+    },
+    {
+      "name": "citation_author",
+      "content": "Roberto Passerone"
+    },
+    {
+      "name": "citation_author_institution",
+      "content": "Department of Information Engineering and Computer Science"
+    },
+    {
+      "name": "DC.creator",
+      "content": "Roberto Passerone"
+    },
+    {
+      "name": "citation_author",
+      "content": "Jean-Baptiste Raclet"
+    },
+    {
+      "name": "citation_author_hal_id",
+      "content": "jean-baptiste-raclet"
+    },
+    {
+      "name": "citation_author_institution",
+      "content": "Assistance à la Certification d’Applications DIstribuées et Embarquées"
+    },
+    {
+      "name": "DC.creator",
+      "content": "Jean-Baptiste Raclet"
+    },
+    {
+      "name": "citation_author",
+      "content": "Philipp Reinkemeier"
+    },
+    {
+      "name": "citation_author_institution",
+      "content": "Institute for Information Technology [Oldenburg]"
+    },
+    {
+      "name": "DC.creator",
+      "content": "Philipp Reinkemeier"
+    },
+    {
+      "name": "citation_author",
+      "content": "Alberto Sangiovanni-Vincentelli"
+    },
+    {
+      "name": "citation_author_institution",
+      "content": "Department of Electrical Engineering and Computer Science [Berkeley]"
+    },
+    {
+      "name": "DC.creator",
+      "content": "Alberto Sangiovanni-Vincentelli"
+    },
+    {
+      "name": "citation_author",
+      "content": "Werner Damm"
+    },
+    {
+      "name": "citation_author_institution",
+      "content": "Department für Informatik [Oldenburg]"
+    },
+    {
+      "name": "DC.creator",
+      "content": "Werner Damm"
+    },
+    {
+      "name": "citation_author",
+      "content": "Tom Henzinger"
+    },
+    {
+      "name": "citation_author_institution",
+      "content": "Institute of Science and Technology [Klosterneuburg, Austria]"
+    },
+    {
+      "name": "DC.creator",
+      "content": "Tom Henzinger"
+    },
+    {
+      "name": "citation_author",
+      "content": "Kim Guldstrand Larsen"
+    },
+    {
+      "name": "citation_author_institution",
+      "content": "Center for Embedded Software Systems [Aaborg]"
+    },
+    {
+      "name": "DC.creator",
+      "content": "Kim Guldstrand Larsen"
+    },
+    {
+      "name": "citation_abstract",
+      "content": "Aircrafts, trains, cars, plants, distributed telecommunication military or health care systems,\nand more, involve systems design as a critical step. Complexity has caused system design times and costs\nto go severely over budget so as to threaten the health of entire industrial sectors. Heuristic methods and\nstandard practices do not seem to scale with complexity so that novel design methods and tools based on a\nstrong theoretical foundation are sorely needed. Model-based design as well as other methodologies such\nas layered and compositional design have been used recently but a unified intellectual framework with a\ncomplete design flow supported by formal tools is still lacking.\nRecently an “orthogonal” approach has been proposed that can be applied to all methodologies introduced\nthus far to provide a rigorous scaffolding for verification, analysis and abstraction/refinement: contractbased\ndesign. Several results have been obtained in this domain but a unified treatment of the topic that can\nhelp in putting contract-based design in perspective is missing. This paper intends to provide such treatment\nwhere contracts are precisely defined and characterized so that they can be used in design methodologies\nsuch as the ones mentioned above with no ambiguity. In addition, the paper provides an important link\nbetween interface and contract theories to show similarities and correspondences.\nThis paper is complemented by a companion paper where contract based design is illustrated through\nuse cases."
+    },
+    {
+      "name": "DC.description",
+      "content": "Aircrafts, trains, cars, plants, distributed telecommunication military or health care systems,\nand more, involve systems design as a critical step. Complexity has caused system design times and costs\nto go severely over budget so as to threaten the health of entire industrial sectors. Heuristic methods and\nstandard practices do not seem to scale with complexity so that novel design methods and tools based on a\nstrong theoretical foundation are sorely needed. Model-based design as well as other methodologies such\nas layered and compositional design have been used recently but a unified intellectual framework with a\ncomplete design flow supported by formal tools is still lacking.\nRecently an “orthogonal” approach has been proposed that can be applied to all methodologies introduced\nthus far to provide a rigorous scaffolding for verification, analysis and abstraction/refinement: contractbased\ndesign. Several results have been obtained in this domain but a unified treatment of the topic that can\nhelp in putting contract-based design in perspective is missing. This paper intends to provide such treatment\nwhere contracts are precisely defined and characterized so that they can be used in design methodologies\nsuch as the ones mentioned above with no ambiguity. In addition, the paper provides an important link\nbetween interface and contract theories to show similarities and correspondences.\nThis paper is complemented by a companion paper where contract based design is illustrated through\nuse cases."
+    },
+    {
+      "name": "description",
+      "content": "Aircrafts, trains, cars, plants, distributed telecommunication military or health care systems,\nand more, involve systems design as a critical step. Complexity has caused system design times and costs\nto go severely over budget so as to threaten the health of entire industrial sectors. Heuristic methods and\nstandard practices do not seem to scale with complexity so that novel design methods and tools based on a\nstrong theoretical foundation are sorely needed. Model-based design as well as other methodologies such\nas layered and compositional design have been used recently but a unified intellectual framework with a\ncomplete design flow supported by formal tools is still lacking.\nRecently an “orthogonal” approach has been proposed that can be applied to all methodologies introduced\nthus far to provide a rigorous scaffolding for verification, analysis and abstraction/refinement: contractbased\ndesign. Several results have been obtained in this domain but a unified treatment of the topic that can\nhelp in putting contract-based design in perspective is missing. This paper intends to provide such treatment\nwhere contracts are precisely defined and characterized so that they can be used in design methodologies\nsuch as the ones mentioned above with no ambiguity. In addition, the paper provides an important link\nbetween interface and contract theories to show similarities and correspondences.\nThis paper is complemented by a companion paper where contract based design is illustrated through\nuse cases."
+    },
+    {
+      "name": "citation_keywords",
+      "content": "system design;component based design;contract;interface;ContBasedDesign"
+    },
+    {
+      "name": "DC.subject",
+      "content": "system design;component based design;contract;interface;ContBasedDesign"
+    },
+    {
+      "name": "citation_pdf_url",
+      "content": "https://inria.hal.science/hal-01178467/document"
+    },
+    {
+      "name": "DC.identifier",
+      "content": "https://inria.hal.science/hal-01178467/document"
+    },
+    {
+      "name": "citation_online_date",
+      "content": "2015/07/21"
+    },
+    {
+      "name": "citation_publication_date",
+      "content": "2015"
+    },
+    {
+      "name": "DC.date",
+      "content": "2015"
+    },
+    {
+      "name": "DC.issued",
+      "content": "2015"
+    },
+    {
+      "name": "citation_firstpage",
+      "content": "86"
+    },
+    {
+      "name": "citation_dissertation_institution",
+      "content": "Inria Rennes Bretagne Atlantique ; INRIA"
+    },
+    {
+      "name": "DC.publisher",
+      "content": "Inria Rennes Bretagne Atlantique ; INRIA"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "abstract",
+      "window": "e 4 IRIT-ACADIE - Assistance à la Certification d’Applications DIstribuées et Embarquées 5 OFFIS - Institute for Information Technology [Oldenburg] 6 EECS - Department of Electrical Engineering and Computer Science [Berkeley] 7 Department für Informatik [Oldenburg] 8 IST Austria - Institute of Science and Technology [Klosterneuburg, Austria] 9 CISS - Center for Embedded Software Systems [Aaborg] Abstract en Aircrafts, trains, cars, plants, distributed telecommunication military or health care systems, and more, involve systems design as a critical step. Complexity has caused system design times and costs to go severely over budget so as to threaten the health of entire industrial sectors. Heuristic methods and standard practices do not seem to scale with complexity so that novel design"
+    },
+    {
+      "keyword": "abstract",
+      "window": "del-based design as well as other methodologies such as layered and compositional design have been used recently but a unified intellectual framework with a complete design flow supported by formal tools is still lacking. Recently an “orthogonal” approach has been proposed that can be applied to all methodologies introduced thus far to provide a rigorous scaffolding for verification, analysis and abstraction/refinement: contractbased design. Several results have been obtained in this domain but a unified treatment of the topic that can help in putting contract-based design in perspective is missing. This paper intends to provide such treatment where contracts are precisely defined and characterized so that they can be used in design methodologies such as the ones mentioned above with no am"
+    },
+    {
+      "keyword": "contract",
+      "window": "Search Access content directly Footer HAL Portal Inria Search Upload INRIA.HAL.SCIENCE Web Portal Publications, software... of Inria fellow Academics Home Inria publications Toolbox Documentation Open Science Reports (Research Report) Year : 2015 Contracts for Systems Design: Theory Albert Benveniste (1) , Benoît Caillaud (1) , Dejan Nickovic (2) , Roberto Passerone (3) , Jean-Baptiste Raclet (4) , Philipp Reinkemeier (5) , Alberto Sangiovanni-Vincentelli (6) , Werner Damm (7) , Tom Henzinger (8) , Kim Guldstrand Larsen (9) Show details 1 HYCOMES - Modélisation hybride & conception par contrats pour les systèmes embarqués multi-physiques 2"
+    },
+    {
+      "keyword": "contract",
+      "window": "as other methodologies such as layered and compositional design have been used recently but a unified intellectual framework with a complete design flow supported by formal tools is still lacking. Recently an “orthogonal” approach has been proposed that can be applied to all methodologies introduced thus far to provide a rigorous scaffolding for verification, analysis and abstraction/refinement: contractbased design. Several results have been obtained in this domain but a unified treatment of the topic that can help in putting contract-based design in perspective is missing. This paper intends to provide such treatment where contracts are precisely defined and characterized so that they can be used in design methodologies such as the ones mentioned above with no ambiguity. In addition, th"
+    },
+    {
+      "keyword": "contract",
+      "window": "omplete design flow supported by formal tools is still lacking. Recently an “orthogonal” approach has been proposed that can be applied to all methodologies introduced thus far to provide a rigorous scaffolding for verification, analysis and abstraction/refinement: contractbased design. Several results have been obtained in this domain but a unified treatment of the topic that can help in putting contract-based design in perspective is missing. This paper intends to provide such treatment where contracts are precisely defined and characterized so that they can be used in design methodologies such as the ones mentioned above with no ambiguity. In addition, the paper provides an important link between interface and contract theories to show similarities and correspondences. This paper is com"
+    }
+  ],
+  "textLength": 4512
+}

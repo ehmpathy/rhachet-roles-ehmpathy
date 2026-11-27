@@ -1,0 +1,188 @@
+{
+  "source": {
+    "id": "page.doi-naur1966",
+    "kind": "page",
+    "url": "https://link.springer.com/article/10.1007/BF01966091",
+    "keywords": [
+      "snapshot",
+      "assertion"
+    ]
+  },
+  "urlFinal": "https://link.springer.com/article/10.1007/BF01966091",
+  "status": 200,
+  "fetchedAt": "2026-11-23T13:29:35.904Z",
+  "title": "Proof of algorithms by general snapshots | BIT Numerical Mathematics | Springer Nature Link",
+  "meta": [
+    {
+      "name": "dc.title",
+      "content": "Proof of algorithms by general snapshots"
+    },
+    {
+      "name": "dc.source",
+      "content": "BIT Numerical Mathematics 1966 6:4"
+    },
+    {
+      "name": "dc.format",
+      "content": "text/html"
+    },
+    {
+      "name": "dc.publisher",
+      "content": "Springer"
+    },
+    {
+      "name": "dc.type",
+      "content": "OriginalPaper"
+    },
+    {
+      "name": "dc.language",
+      "content": "En"
+    },
+    {
+      "name": "dc.copyright",
+      "content": "1966 BIT Foundations"
+    },
+    {
+      "name": "dc.rights",
+      "content": "1966 BIT Foundations"
+    },
+    {
+      "name": "dc.rightsAgent",
+      "content": "journalpermissions@springernature.com"
+    },
+    {
+      "name": "dc.description",
+      "content": "A constructive approach to the question of proofs of algorithms is to consider proofs that an object resulting from the execution of an algorithm possesses certain static characteristics. It is shown by an elementary example how this possibility may be used to prove the correctness of an algorithm written in ALGOL 60. The stepping stone of the approach is what is called General Snapshots, i.e. expressions of static conditions existing whenever the execution of the algorithm reaches particular points. General Snapshots are further shown to be useful for constructing algorithms."
+    },
+    {
+      "name": "citation_pdf_url",
+      "content": "https://link.springer.com/content/pdf/10.1007/BF01966091.pdf"
+    },
+    {
+      "name": "citation_fulltext_html_url",
+      "content": "https://link.springer.com/article/10.1007/BF01966091"
+    },
+    {
+      "name": "citation_journal_title",
+      "content": "BIT Numerical Mathematics"
+    },
+    {
+      "name": "citation_journal_abbrev",
+      "content": "BIT"
+    },
+    {
+      "name": "citation_publisher",
+      "content": "Kluwer Academic Publishers"
+    },
+    {
+      "name": "citation_issn",
+      "content": "1572-9125"
+    },
+    {
+      "name": "citation_title",
+      "content": "Proof of algorithms by general snapshots"
+    },
+    {
+      "name": "citation_volume",
+      "content": "6"
+    },
+    {
+      "name": "citation_issue",
+      "content": "4"
+    },
+    {
+      "name": "citation_publication_date",
+      "content": "1966/07"
+    },
+    {
+      "name": "citation_firstpage",
+      "content": "310"
+    },
+    {
+      "name": "citation_lastpage",
+      "content": "316"
+    },
+    {
+      "name": "citation_article_type",
+      "content": "Article"
+    },
+    {
+      "name": "citation_language",
+      "content": "en"
+    },
+    {
+      "name": "dc.identifier",
+      "content": "doi:10.1007/BF01966091"
+    },
+    {
+      "name": "citation_doi",
+      "content": "10.1007/BF01966091"
+    },
+    {
+      "name": "citation_springer_api_url",
+      "content": "http://api.springer.com/xmldata/jats?q=doi:10.1007/BF01966091&api_key="
+    },
+    {
+      "name": "description",
+      "content": "A constructive approach to the question of proofs of algorithms is to consider proofs that an object resulting from the execution of an algorithm possesses"
+    },
+    {
+      "name": "dc.creator",
+      "content": "Naur, Peter"
+    },
+    {
+      "name": "dc.subject",
+      "content": "Computational Mathematics and Numerical Analysis"
+    },
+    {
+      "name": "dc.subject",
+      "content": "Numeric Computing"
+    },
+    {
+      "name": "dc.subject",
+      "content": "Mathematics, general"
+    },
+    {
+      "name": "citation_reference",
+      "content": "citation_journal_title=Proc. IFIP Congress 65; citation_title=Problems in the Theory of Computation; citation_author=J. McCarthy; citation_volume=1; citation_publication_date=1965; citation_pages=219-222; citation_id=CR1"
+    },
+    {
+      "name": "citation_reference",
+      "content": "Most of the work described there is heavily oriented towards the basic theoretical problems of computation. The General Snapshots of the present chapter are related to the state vectors of J. McCarthy: J. McCarthy,A Formal Description of a Subset of ALGOL, Proc. of a Conference on Formal Language Description Languages, Vienna, 1964."
+    },
+    {
+      "name": "citation_reference",
+      "content": "However, the present approach, which is directly applicable in proving and constructing practical programs, is believed to be new. Similar concepts have been developed independently by Robert W. Floyd (unpublished paper, communicated privately)."
+    },
+    {
+      "name": "citation_author",
+      "content": "Naur, Peter"
+    },
+    {
+      "name": "citation_author_institution",
+      "content": "A/S Regnecentralen, Copenhagen, Denmark"
+    },
+    {
+      "name": "citation_cover_date",
+      "content": "1966/07/01"
+    },
+    {
+      "name": "og:title",
+      "content": "Proof of algorithms by general snapshots - BIT Numerical Mathematics"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "snapshot",
+      "window": "ards of data protection. See our privacy policy for more information on the use of your personal data. Manage preferences for further information and to change your choices. Accept all cookies Reject optional cookies Skip to main content Log in Find a journal Publish with us Track your research Search Saved research Cart Home BIT Numerical Mathematics Article Proof of algorithms by general snapshots Published: July 1966 Volume 6, pages 310–316 (1966) Cite this article Save article BIT Numerical Mathematics Aims and scope Submit manuscript Peter Naur 396 Accesses 161 Citations 5 Altmetric Explore all metrics Abstract A constructive approach to the question of proofs of algorithms is to consider proofs that an object resulting from the execution of an algorithm possesses certai"
+    },
+    {
+      "keyword": "snapshot",
+      "window": "metrics Abstract A constructive approach to the question of proofs of algorithms is to consider proofs that an object resulting from the execution of an algorithm possesses certain static characteristics. It is shown by an elementary example how this possibility may be used to prove the correctness of an algorithm written in ALGOL 60. The stepping stone of the approach is what is called General Snapshots, i.e. expressions of static conditions existing whenever the execution of the algorithm reaches particular points. General Snapshots are further shown to be useful for constructing algorithms. This is a preview of subscription content, log in via an institution to check access. Access this article Log in via an institution Subscribe and save Springer+ from $39.99 /Month Receive 10 u"
+    },
+    {
+      "keyword": "snapshot",
+      "window": "m the execution of an algorithm possesses certain static characteristics. It is shown by an elementary example how this possibility may be used to prove the correctness of an algorithm written in ALGOL 60. The stepping stone of the approach is what is called General Snapshots, i.e. expressions of static conditions existing whenever the execution of the algorithm reaches particular points. General Snapshots are further shown to be useful for constructing algorithms. This is a preview of subscription content, log in via an institution to check access. Access this article Log in via an institution Subscribe and save Springer+ from $39.99 /Month Receive 10 units per month Download 1 article/chapter for 1 unit Get selected eBooks for 7 units Cancel anytime View plans Buy Now Buy article P"
+    }
+  ],
+  "textLength": 4617
+}

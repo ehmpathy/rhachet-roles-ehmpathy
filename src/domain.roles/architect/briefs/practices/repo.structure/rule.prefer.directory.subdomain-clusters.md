@@ -23,11 +23,11 @@ file organization is three composed moves:
 
 1. **decompose** into subdomains — factor the domain into its subject nouns (`customer/`, `invoice/`), then sub-subjects (`invoice/lifecycle/`, `lifecycle/draft/`)
 2. **categorize** by sub-noun, not by verb — the directory is the noun; the verb stays in the filename (`[verb][...noun]` treestruct). pairs with `rule.require.group-by-noun-not-verb`
-3. **leaf** at the most-common-denominator — operations start at their most-specific leaf and lift only on proven reuse. pairs with `rule.prefer.most-common-denominator`
+3. **leaf** at the most-common-denominator — operations start at their most-specific leaf and lift only on proven reuse. pairs with `rule.require.most-common-denominator`
 
 ## .kernel — categorization is proactive, not only reactive
 
-`rule.prefer.most-common-denominator` governs *placement*: how far out to nest an op, and when to lift it on reuse — a **reactive** move.
+`rule.require.most-common-denominator` governs *placement*: how far out to nest an op, and when to lift it on reuse — a **reactive** move.
 
 this rule governs *categorization*: proactively sort operations into subdomain dirs to avoid flat-dir sprawl, rather than nest reactively only when reuse forces it. prefer subdomain categories **wherever possible**.
 
@@ -123,5 +123,5 @@ applies to:
 
 - `rule.require.directory.by-primary-noun` — the deterministic per-file placement algorithm (require-level counterpart)
 - `rule.require.group-by-noun-not-verb` — the directory is a noun, never a verb
-- `rule.prefer.most-common-denominator` — nest at the most-specific place; lift on reuse
+- `rule.require.most-common-denominator` — nest at the most-specific place; lift on reuse
 - `rule.require.treestruct` — the `[verb][...noun]` filename grammar

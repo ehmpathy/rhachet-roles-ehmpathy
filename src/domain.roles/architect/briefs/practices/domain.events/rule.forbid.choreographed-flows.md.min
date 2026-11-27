@@ -1,0 +1,9 @@
+# rule.forbid.choreographed-flows
+
+never let a business flow of many steps live only as a cascade of reactions (a reacts to x, emits y; b reacts to y, emits z). one async task owns each outcome whose correctness depends on the chain
+why: the flow lives in no program text · each link is sane, the chain is not · a change breaks it silently · the irreversible act fires on whichever fact arrives first
+not a flow: an independent reaction no outcome depends on (a receipt email on `PaymentRefundedEvent`)
+smell: "what happens after x?" needs a search across repos · a fact emitted only so another can react and emit the next · an irreversible act fired by one fact of a set the outcome needs
+cure: one async task (`pattern=async-task`), in the bound that owns the decision, waits on the facts it needs, decides once every light is green, and publishes its fact. peers react by their own policy; the task orders no one
+enforcement: an outcome whose correctness rests on an unowned cascade = blocker; an irreversible act fired by a reaction = blocker
+full: catalog.of=pattern.event._ (`pattern=choreographed-flow`) · rule.forbid.sagas

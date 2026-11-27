@@ -1,0 +1,133 @@
+{
+  "source": {
+    "id": "lamport1994",
+    "kind": "crossref",
+    "query": "Lamport The temporal logic of actions 1994",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Lamport%20The%20temporal%20logic%20of%20actions%201994&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:15:52.134Z",
+  "items": [
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "3",
+      "DOI": "10.1145/177492.177726",
+      "type": "journal-article",
+      "page": "872-923",
+      "title": [
+        "The temporal logic of actions"
+      ],
+      "volume": "16",
+      "author": [
+        {
+          "given": "Leslie",
+          "family": "Lamport",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Digital Equipment Corp., Palo Alto, CA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "ACM Transactions on Programming Languages and Systems"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1994,
+            5
+          ]
+        ]
+      }
+    },
+    {
+      "publisher": "Oxford University Press (OUP)",
+      "issue": "5",
+      "DOI": "10.1093/logcom/4.5.531",
+      "type": "journal-article",
+      "page": "531-579",
+      "title": [
+        "Actions and Events in Interval Temporal Logic"
+      ],
+      "volume": "4",
+      "author": [
+        {
+          "given": "JAMES F.",
+          "family": "ALLEN",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "GEORGE",
+          "family": "FERGUSON",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Journal of Logic and Computation"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1994
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.1007/3-540-58450-1_52",
+      "title": [
+        "A HOL formalisation of the Temporal Logic of Actions"
+      ],
+      "author": [
+        {
+          "given": "Thomas",
+          "family": "Långbacka",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Lecture Notes in Computer Science",
+        "Higher Order Logic Theorem Proving and Its Applications"
+      ],
+      "page": "332-345",
+      "issued": {
+        "date-parts": [
+          [
+            1994
+          ]
+        ]
+      },
+      "publisher": "Springer Berlin Heidelberg",
+      "type": "book-chapter"
+    }
+  ]
+}

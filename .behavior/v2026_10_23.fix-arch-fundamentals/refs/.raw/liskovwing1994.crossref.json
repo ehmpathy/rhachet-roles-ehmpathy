@@ -1,0 +1,154 @@
+{
+  "source": {
+    "id": "liskovwing1994",
+    "kind": "crossref",
+    "query": "Liskov Wing A behavioral notion of subtyping 1994",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Liskov%20Wing%20A%20behavioral%20notion%20of%20subtyping%201994&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:15:50.498Z",
+  "items": [
+    {
+      "DOI": "10.21236/ada259881",
+      "title": [
+        "Family Values; A Semantic Notion of Subtyping,"
+      ],
+      "author": [
+        {
+          "given": "Barbara",
+          "family": "Liskov",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Jeannette M.",
+          "family": "Wing",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1992,
+            12,
+            17
+          ]
+        ]
+      },
+      "publisher": "Defense Technical Information Center",
+      "type": "report"
+    },
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "6",
+      "DOI": "10.1145/197320.197383",
+      "type": "journal-article",
+      "page": "1811-1841",
+      "title": [
+        "A behavioral notion of subtyping"
+      ],
+      "volume": "16",
+      "author": [
+        {
+          "given": "Barbara H.",
+          "family": "Liskov",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Massachusetts Institute of Technology, Cambridge"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Jeannette M.",
+          "family": "Wing",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Carnegie Mellon Univ., Pittsburgh, PA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "ACM Transactions on Programming Languages and Systems"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1994,
+            11
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.21236/ada367674",
+      "title": [
+        "Behavioral Subtyping Using Invariants and Constraints"
+      ],
+      "author": [
+        {
+          "given": "Barbara H.",
+          "family": "Liskov",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        },
+        {
+          "given": "Jeannette M.",
+          "family": "Wing",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1999,
+            7,
+            1
+          ]
+        ]
+      },
+      "publisher": "Defense Technical Information Center",
+      "type": "report"
+    }
+  ]
+}

@@ -1,0 +1,133 @@
+{
+  "source": {
+    "id": "helland2016",
+    "kind": "crossref",
+    "query": "Helland Life beyond Distributed Transactions ACM Queue 2016",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Helland%20Life%20beyond%20Distributed%20Transactions%20ACM%20Queue%202016&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-24T05:42:19.518Z",
+  "items": [
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "5",
+      "DOI": "10.1145/3012426.3025012",
+      "type": "journal-article",
+      "page": "69-98",
+      "title": [
+        "Life Beyond Distributed Transactions"
+      ],
+      "volume": "14",
+      "author": [
+        {
+          "given": "Pat",
+          "family": "Helland",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Salesforce"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Queue"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            2016,
+            10
+          ]
+        ]
+      }
+    },
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "2",
+      "DOI": "10.1145/3009826",
+      "type": "journal-article",
+      "page": "46-54",
+      "title": [
+        "Life beyond distributed transactions"
+      ],
+      "volume": "60",
+      "author": [
+        {
+          "given": "Pat",
+          "family": "Helland",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Salesforce"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Communications of the ACM"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            2017,
+            1,
+            23
+          ]
+        ]
+      }
+    },
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "2",
+      "DOI": "10.1145/2927299.2953944",
+      "type": "journal-article",
+      "page": "5-15",
+      "title": [
+        "Standing on Distributed Shoulders of Giants"
+      ],
+      "volume": "14",
+      "author": [
+        {
+          "given": "Pat",
+          "family": "Helland",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Salesforce"
+            }
+          ],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Queue"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            2016,
+            3
+          ]
+        ]
+      }
+    }
+  ]
+}

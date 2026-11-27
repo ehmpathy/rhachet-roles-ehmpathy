@@ -1,0 +1,799 @@
+                                               Building on Quicksand
+                Pat Helland                                                                                   Dave Campbell
+         Microsoft Corporation                                                                             Microsoft Corporation
+          One Microsoft Way                                                                                 One Microsoft Way
+       Redmond, WA 98052 USA                                                                             Redmond, WA 98052 USA
+     PHelland@Microsoft.com                                                                            DavidC@Microsoft.com
+
+ABSTRACT                                                                     Keywords
+Reliable systems have always been built out of unreliable                    Fault Tolerance, Eventual           Consistency,     Reconciliation,
+components [1]. Early on, the reliable components were small                 Loose Coupling, Transactions
+such as mirrored disks or ECC (Error Correcting Codes) in core
+memory. These systems were designed such that failures of these              1. Introduction
+small components were transparent to the application. Later, the             There is an interesting connection between fault tolerance,
+size of the unreliable components grew larger and semantic                   offlineable systems, and the need for application-based eventual
+challenges crept into the application when failures occurred.                consistency. As we attempt to run our large scale applications
+Fault tolerant algorithms comprise a set of idempotent sub-                  spread across many systems, we cannot afford the latency to wait
+algorithms. Between these idempotent sub-algorithms, state is                for a backup system to remain in synch with the system actually
+sent across the failure boundaries of the unreliable components.             performing the work. This causes the server systems to look
+The failure of an unreliable component can then be tolerated as a            increasingly like offlineable client applications in that they do not
+takeover by a backup, which uses the last known state and drives             know the authoritative truth.         In turn, these server-based
+forward with a retry of the idempotent sub-algorithm. Classically,           applications are designed to record their intentions and allow the
+this has been done in a linear fashion (i.e. one step at a time).            work to interleave and flow across the replicas. In a properly
+                                                                             designed application, this results in system behavior that is
+As the granularity of the unreliable component grows (from a                 acceptable to the business while being resilient to an increasing
+mirrored disk to a system to a data center), the latency to                  number of system failures.
+communicate with a backup becomes unpalatable. This leads to a
+more relaxed model for fault tolerance. The primary system will              This paper starts by examining the concepts of fault tolerance and
+acknowledge the work request and its actions without waiting to              posits an abstraction for thinking about fault tolerant systems.
+ensure that the backup is notified of the work. This improves the            Next, section 3 examines how fault tolerant systems have
+responsiveness of the system because the user is not delayed                 historically provided the ability to transparently survive failures
+behind a slow interaction with the backup.                                   without special application consideration by using synchronous
+                                                                             checkpointing to send the application state to a backup. In section
+There are two implications of asynchronous state capture:                    4, we begin to examine what happens when we cannot afford the
+1) Everything promised by the primary is probabilistic. There is             latency associated with the synchronous checkpointing of state to
+   always a chance that an untimely failure shortly after the                the backup and, instead, allow the checkpointing of state to be
+   promise results in a backup proceeding without knowledge of               asynchronous. Section 5 examines in much more depth the ways
+   the commitment. Hence, nothing is guaranteed!                             in which an application must be modified to be true to its
+2) Applications must ensure eventual consistency [20]. Since                 semantics while allowing asynchronous checkpointing of the
+   work may be stuck in the primary after a failure and reappear             application state to its backup. Section 6 looks at a couple of
+   later, the processing order for work cannot be guaranteed.                example applications which offer correct behavior while allowing
+Platform designers are struggling to make this easier for their              delays (i.e. asynchrony) in checkpointing state to the backup. In
+applications. Emerging patterns of eventual consistency and                  section 7, we consider the management of resources when the
+probabilistic execution may soon yield a way for applications to             operations may be reordered due to asynchrony. Section 8
+express requirements for a “looser” form of consistency while                examines the relationship between this class of eventual
+providing availability in the face of ever larger failures. As we            consistency and the CAP (Consistency, Availability, and
+will also point out in this paper, the patterns of probabilistic             Partition-tolerance) Theory. Finally, in section 9, we consider
+execution and eventual consistency are applicable to                         some areas for future work.
+intermittently connected application patterns.
+                                                                             2. An Abstraction for Fault Tolerance
+This paper recounts portions of the evolution of these trends,               In section 2, we discuss the broad ideas required to build a fault
+attempts to show the patterns that span these changes, and talks             tolerant system. First, we start by describing the external behavior
+about future directions as we continue to “build on quicksand”.              of the systems we are considering. Next, we describe what it can
+                                                                             mean for these systems to offer transparent fault tolerance and not
+ Permission to make digital or hard copies of all or part of this work for
+ personal or classroom use is granted without fee provided that copies are
+                                                                             require special application consideration to cope with failures.
+ not made or distributed for profit or commercial advantage and that         Then, we quickly consider the issues associated with scalability of
+ copies bear this notice and the full citation on the first page. To copy    these systems. Finally, we briefly discuss the role of transactions
+ otherwise, or republish, to post on servers or to redistribute to lists,    in the composition of these fault tolerant systems.
+ requires prior specific permission and/or a fee.
+ CIDR ‘09, Jn 7-10, 2009, Asilomar, Pacific Grove, CA USA
+ Copyright 2009 ACM 1-58113-000-0/00/0004…$5.00.
+
+
+
+                                                              CIDR Perspectives 2009
+2.1 Modeling “The System”                                                We have observed the pattern in which a fault tolerant algorithm
+In considering interactions with a fault tolerant “system”, we want      is broken into idempotent sub-algorithms. By capturing sufficient
+to look at its behavior as a black-box. From the outside, requests       information between the idempotent steps and sending it across
+are sent into the system for processing. In years past, these            the failure boundary, the overarching algorithm can tolerate faults.
+requests looked like block mode screen input. Nowadays, they             From this perspective, you can imagine stepping across a river
+typically take the form of XML, SOAP, and/or other web-style             from rock to rock, always keeping one foot on solid ground. It is
+requests.                                                                important to realize this provides a linear sequence of steps
+To be robust, these incoming requests are retried by their source.       marching forward through the work.
+In classic fashion, a request is issued and if a timer expires, it is    It turns out that many existing fault tolerant systems use this
+reissued. The fault tolerant server system had better make this          technique to make failures transparent to the application and to the
+work idempotent or the retries would occasionally result in              user. We will explore some examples of these systems.
+duplicative work. In practice, systems evolve to be idempotent as
+designers either anticipate the problem or make changes to fix it.       2.3 Scaling and Idempotent Sub-Algorithms
+                                                                         In [15] one of the authors (Helland) argues that scalable and
+To support this need for idempotence, either each request is             distributed applications need special attention when built without
+submitted with a “uniquifier” that ensures the request is unique         distributed transactions. Distributed transactions (especially using
+(and ensures retries will be associated with the original request),      the Two Phase Commit protocol [3]) result in fragile systems and
+OR the service applies some trick to accomplish the same thing.          reduced availability. For this reason, they are rarely used in
+An example trick is the creation of an MD5 hash of the entire            production systems, particularly when the resource managers span
+incoming request. With extremely high probability, the MD5               trust and authority boundaries. In the paper cited above, it is
+hash is one-to-one correlated with a unique incoming request.            proposed that a scalable application must apply a discipline of
+So, the fault tolerant system processes a sequence of requests           partitioning its data into chunks which can remain on a single
+from an external partner. The requests (and their responses)             node even when repartitioned. Each chunk has a unique key.
+perform some business task or tasks.                                     In the design of fault tolerance systems, we frequently see these
+2.2 Transparent Fault Tolerance                                          idempotent sub-algorithms spread in a distributed fashion around
+Fault tolerant systems comprise many components and their                the network. One pattern that has been emerging is that these
+design goal is to continue functioning when one (or sometimes            idempotent sub-algorithms follow the same co-location as
+more than one) component fails. In this discussion, we will not          described above. All of their data and behavior reside on a single
+consider Byzantine Failures [6] in which a component may                 node even in the presence of repartitioning. The collective data
+behave erroneously (and in the Byzantine analysis, potentially           will be identified with some unique identifier (called a “key” in
+maliciously). Instead, we assume fail fast [8] in which a                [15]) that ensures it remains on exactly one node at a time1.
+component is either functioning correctly or simply stops                2.4 Transactions and Idempotence
+functioning. Fail fast does not address the possibility of               Transactions can make it EASIER to build idempotent sub-
+components deliberately misbehaving. Also, it leaves vague the           algorithms. Atomic transactions are, well, atomic and do not
+question of what happens when a component performs so slowly             expose partial results. By using transactions, many (but not all) of
+that it wreaks havoc on the system. For this discussion, we will         the challenges of creating idempotent behavior are eliminated.
+address some issues present even with the simplifying                    All that remains is to ensure the work is either not started more
+assumptions of fail fast.                                                than once or that a second attempt will detect a successful first
+                                                                         attempt and be innocuous. Some examples of this will be shown.
+                                                                         3. Preserving Transparency While Growing
+                                                                         In this section, we examine how the Tandem NonStop system
+                                                                         implemented transparent fault tolerance by leveraging
+                                                                         synchronous checkpointing across the failure boundaries. We
+                                                                         first consider the Tandem system in approximately 1984 when the
+                                                                         checkpointing strategy involved sending state to the backup as a
+                                                                         part of every individual database WRITE operation. This was
+                                                                         correct but had some performance challenges. In roughly 1985,
+                                                                         the software was modified to a new strategy which had
+                                                                         performance advantages. So, we next examine the behavior of the
+                                                                         Tandem systems in approximately 1986 when the checkpointing
+                                                                         of state was less aggressive but still sufficient to provide the
+                                                                         transparent guarantees. We conclude section 3 with a discussion
+                                                                         of why the change from the 1984 to 1986 versions was an erosion
+                                                                         of the semantics of failures but was an acceptable erosion of the
+                                                                         semantics experienced in a failure.
+
+                                                                         1
+                                                                             More precisely, the data resides on exactly one node when we
+                                                                             ignore the need to do replication underneath the partition…
+                                                                             more on that later.
+
+
+
+                                                          CIDR Perspectives 2009
+3.1 Example 1: Tandem NonStop circa 1984
+The Tandem NonStop System is a shared-nothing multi-processor
+with a message-based interconnect [5]. Each processor has its
+own CPU, memory, access to the messaging busses, and access to
+IO-Controllers. Each IO-controllers is dual ported and can be
+accessed by either of two processors in the system. Pairs of IO-
+Controllers accessed mirrored disks. This hardware architecture,
+combined with the Guardian operating system, Transaction
+Monitoring Facility (TMF), and Disk Process (DP) offered
+industry leading availability [8] for OLTP systems through the
+1980s and continuing today.
+
+
+
+                                                                        It is interesting to note the granularity of the pieces in the
+                                                                        approach to fault tolerance. Each WRTE operation is idempotent
+                                                                        and, circa 1984, was actively checkpointed to the backup DP [4].
+                                                                        The granularity of the failure is a single process or processor. The
+                                                                        granularity of the “idempotent sub-algorithm” is a single WRITE
+                                                                        to the DP which gets checkpointed. Failures of a primary DP do
+                                                                        not necessarily cause a failure of the transaction.
+
+
+
+
+To perform transactional application work, an app runs in one of
+the processes and uses messages to do READS and WRITES to
+the Disk Processes which manage the data and generate log
+records for the transactional log. Work is actively checkpointed2
+for each WRITE to ensure the backup is able to continue in the
+event of a failure of the primary disk processor. At transaction
+commit, all dirtied DPs are asked to flush their log to a centralized
+ADP (Audit Disk Process).                                               3.2 Example 2: Tandem NonStop circa 1986
+                                                                        In 1985, a new software release of the Tandem NonStop Guardian
+                                                                        operating system included a new Disk Process called DP2. This
+                                                                        release offered a number of changes including a dramatic
+                                                                        optimization in the strategy for fault tolerance [7].
+                                                                        DP2, a completely redesigned disk process, had a whole new
+                                                                        approach to checkpointing. The transaction log, describing the
+2
+    A checkpoint is a technique used to manage state in a Process       changes to the state on disk, was also used to describe the changes
+    Pair as described in [12]. Two identical processes run on           that should be known to the backup disk process. In other words,
+    different processors, one the primary and one the backup. A         checkpointing and transaction logging were combined into one
+    checkpoint is a message from the primary to the backup              mechanism. The log would first go to the backup, then to the
+    describing needed state to ensure fault tolerant service.           ADP which would write it on disk.
+
+
+
+                                                         CIDR Perspectives 2009
+A design goal was to allow the changes for a transactional
+WRITE to lollygag within the transactional log in memory of the
+primary DP2 Disk Process. The WRITE to the primary DP2
+could be answered back to the application. Of course, this left
+open the challenge of correctness if a failure wipes out the
+primary DP2 with buffered changes done by uncommitted
+WRITEs. How can this be correct?
+The key to the new approach to correctness in this example was to
+ensure that any in-flight transactions that used a failed primary DP
+would have their transactions aborted. Since all committed
+transactions will have pushed their changes to disk, any loss of the
+memory state when a primary DP fails will only impact an in-
+flight transaction. Since the system automatically aborts any
+relevant in-flight transactions when the primary DP fails,
+correctness is preserved.
+
+
+
+
+                                                                        The new scheme offered a huge performance improvement. A
+                                                                        WRITE to DP2 could be performed without checkpointing to the
+                                                                        backup. This was a dramatic savings in CPU cost and an even
+                                                                        more dramatic savings in latency since the application did not
+                                                                        need to wait for the checkpoint to see the response to the WRITE.
+                                                                        The buffer containing the log entries shifted to being pushed to
+                                                                        the backup (and, indeed, to the ADP) on a periodic basis. This is
+                                                                        much like group commit [11]. It is easy to understand the
+                                                                        efficiency when you think of the difference between a car per
+                                                                        driver racing across town versus a city bus sweeping up all the
+                                                                        passengers every five minutes or so. As described in [11], waiting
+                                                                        to participate in shared buffer writes can, under the right
+                                                                        circumstances, result in a reduction of latency since the overall
+                                                                        system work is reduced. This reduction in work may reduce
+                                                                        system utilization and may more than compensate for the delay.
+                                                                        Looking back at our abstraction for fault tolerance, we see that the
+                                                                        idempotent sub-algorithm has grown from a WRITE to a
+                                                                        transaction. The granule of failure is still a processor and the
+                                                                        application and user barely perceive the change in algorithm.
+                                                                        3.3 An Acceptable Erosion of Behavior
+                                                                        Tandem’s system in 1986 offered significantly better performance
+                                                                        than its predecessor in 1984. Still, there were failures of
+                                                                        processors that would yield different behavior than the previous
+                                                                        release. When a processor failed in the middle of a transaction,
+                                                                        the earlier release would continue forward. Circa 1986, a
+                                                                        processor failure may result in the loss of the ongoing transaction.
+                                                                        While this was technically a change in behavior, there were
+                                                                        reasons why this was acceptable. All along, the system rules for
+                                                                        transactions allowed the transaction to be aborted without
+                                                                        (apparent) cause. Deadlocks, operator decisions, timeouts, and
+This scheme meant that a processor failure would result in more         other reasons could cause transactions to fail. Because of this, the
+transactions aborting. This was a very rare event and was               change was an acceptable erosion of behavior.
+completely within the system rules which allowed transactions to        The 1984 version of the Tandem system implemented
+abort without cause.        Arguably, this change was almost            synchronous WRITES to the backup. The WRITE from the
+transparent to application developers and to users.                     user’s application was not acknowledged until checkpointed.
+                                                                        Circa 1984, the WRITES were asynchronous but the transaction
+                                                                        commit was guaranteed to be synchronously checkpointed across
+                                                                        the failure boundaries.
+
+
+
+
+                                                         CIDR Perspectives 2009
+4. The Creeping Arrival of Asynchrony                                  example, the delay is considered impractical and the transfer of
+In this section, we see the first example of acknowledging the         the state is asynchronous. This results in “faults” in the fault
+incoming request BEFORE ensuring the work is sent to the               tolerance provided for data center failures.
+backup. This is asynchronous checkpointing to the backup.              5. Loosening the Abstraction
+We start with a very simple discussion of “log-shipping” wherein       OK… So, maybe there’s a broader abstraction at play!
+the transaction log is sent to a backup system sometime after the      The old model assumed the work would be processed in exactly
+user request is acknowledged. This is a fundamental change             one order of execution. There was a default “single system of
+which deeply impacts the guarantees made to the user.                  record” form of isolation provided by the classic database system
+After introducing log-shipping, we discuss the takeover semantics      running at the primary. This single history allows for a low-level
+of this approach. Following this, we look at how this asynchrony       READ and WRITE semantic that depends on “replaying history”.
+means we have to revisit our abstraction for fault tolerance.          In this new world, history cannot be exactly replayed and we must
+4.1 Example 3: Log Shipping                                            count on the ability to reorder the work. This means that we
+This example is well known to most readers. A classic database         cannot completely know the accurate state of the system. It also
+system has a process that reads the log and ships it to a backup       means we must move the correctness and reordering semantics up
+data-center. The normal implementation of this mechanism               from being based on system properties (i.e. READ and WRITE)
+commits transactions at the primary system (acknowledging the          to application based business operations.
+user’s commit request) and asynchronously ships the log. The           Section 5 examines a number of different aspects of asynchronous
+backup database replays the log, constantly playing catch-up.          checkpointing and how it impacts application design. We will
+Typically, applications and users are oblivious to log-shipping.       first discuss the impact of asynchrony on our ability to know the
+Unless a fault occurs, the application and the user are fat, dumb,     actual true state of the application. Then, we look at probabilistic
+and happy. When a fault DOES occur, some recent transactions           business rules and how asynchronous checkpointing means we
+are lost as the backup takes-over and provides service.                cannot have definitive enforcement of business rules. We discuss
+                                                                       the impact of commutativity on the business rules. Next, we
+This means that the abstraction described above in section 2           consider partitioning of the work and idempotent operations
+works here except the state is not immediately captured by the         across the partitioned state. After this, we examine the possibility
+backup. Fault tolerance is NOT transparent. It is OK (with low         of having a choice of sometimes performing synchronous
+probability) to completely discard recent work.                        checkpointing of state if the risk for the specific operation is too
+To allow a datacenter failure to be transparent, the log shipping      great.     Next, we consider how the system may handle
+algorithm would need to stall the response to the commit request       unanticipated problems and when human intervention may be
+at the primary until the primary knows the backup has received         required. After that, there is a discussion of how asynchronous
+the log. This delay is unacceptable in most installations and they     enforcement of business rules sometimes results in apologies.
+deal with the low probability chance of losing recent work. The        Finally, we summarize the abstraction by observing that either
+change from a synchronous transfer of state to an asynchronous         you have synchronous checkpoints to your backup or you must
+transfer is an interesting erosion of the basic abstraction and is     sometimes apologize for your behavior…
+another example of where the cost for “consistency at a distance”
+is too high just as it was when tried to stretch 2PC beyond
+                                                                       5.1 Asynchrony and the Truth
+resource managers in the same room.                                    Let’s consider those orphaned transactions dawdling in the belly
+                                                                       of the failed system in the log-shipping example. They are most
+Log-shipping: Our first example where giving a little bit in           certainly out of the picture while the dethroned system (or data
+consistency yields a lot of resilience and scale!                      center) is unavailable. When it does return, the goal of any recov-
+                                                                       ery policy would be to examine the work in the tail of the log and
+4.2 Log Shipping and Takeover Semantics                                determine what the heck to do! The backup system has continued
+Log shipping is asynchronous to the response to the client. This       and there may be challenges when resurrecting the languishing
+inherently opens up a window in which the work is acknowledged         work. The only way this work can be kept is to ensure that the
+to the client but it has not yet been shipped to the backup. A         out-of-order retrying of the work does not break things. In some
+failure of the primary during this window will lock the work           cases, the pending work is simply discarded due to lack of
+inside the primary for an unknown period of time. The backup           designed mechanisms to reclaim it! This is part of the implicit
+will move ahead without knowledge of the locked up work.               consistency model for log-shipping without recovery of lost work.
+In most deployments of log-shipping, this is not considered in the     In the log-shipping example, we see rare cases of work reordering
+application design. It is assumed that this window is rare and that    as it is temporarily lost and then resurrected. In the more general
+it is unnecessary to plan for it. Bad stuff just happens if you get    case, we see independent work performed at disconnected (or
+unlucky. Unfortunately, in most of these systems, a takeover           slowly connected) sites which may get reordered as it becomes
+either requires manual cleanup of the work not transferred from        visible to other systems partnering in the work.
+the primary to the backup or the work is simply lost.
+                                                                       The deeper observation is that two things are coupled:
+4.3 Revisiting the Abstraction                                         1)   The change from synchronous checkpointing to
+So, we’ve seen a basic model for fault tolerance and how it can be          asynchronous to save latency, and
+applied in a few different systems. In the first two examples, the     2)   The loss of a notion of an authoritative truth.
+fallible component was a processor running in the same box as its
+partner. The close proximity of the components allowed for             Back when we had a centralized machine with synchronous
+practical use of synchronous state copying. In the log shipping        checkpointing, we knew the one and only one answer at any given
+
+
+
+                                                        CIDR Perspectives 2009
+point in time. Allowing for work being locked up in an                   This approach is similar to escrow locking as described in [9]. In
+unavailable backup (née primary) means we don’t know the truth.          escrow locking, commutative operations are allowed as long as
+                                                                         they do not violate the constraints of the system. Escrow locking
+5.2 Probabilistic Business Rules                                         was envisaged as a pessimistic locking scheme which crisply
+When we have asynchronous checkpointing, we have windows of              preserved serializable behavior.           Escrow locking was
+failure that mean work may be lost or delayed. When a primary            implemented in Tandem’s NonStop SQL in the late 1980s to
+fails, there may be work stuck inside the primary that has not yet       support high-throughput addition and subtraction.
+been sent to the backup. That work is either lost or delayed.
+                                                                                  WRITES to a database are not commutative!
+If a primary uses asynchronous checkpointing and applies a
+business rule on the incoming work, it is necessarily a                  The layering of an arbitrary application atop a storage
+probabilistic rule. The primary, despite its best intentions cannot      subsystem inhibits reordering. Only when commutative
+know it will be alive to enforce the business rules.                     operations are used can we achieve the desired loose
+                                                                         coupling. Application operations can be commutative.
+When the backup system that participates in the enforcement of
+                                                                         WRITE is not commutative. Storage (i.e. READ and
+these business rules is asynchronously tied to the primary, the
+                                                                         WRITE) is an annoying abstraction…
+enforcement of these rules inevitably becomes probabilistic!
+It is the cost/benefit analysis that values lower latency from           5.4 Idempotence and Partitioned Workflow
+asynchronous checkpointing higher than the risk of slippage in the       It is essential to ensure that the work of a single operation is
+business rule that generalizes the fault tolerant algorithm.             idempotent. This is an important design consideration in the
+                                                                         creation of an application that can handle asynchrony as it
+Distribution + Asynchrony  Probabilities of Enforcement                 tolerates faults and as it allows loose-coupling for latency, scale,
+We are seeing the emergence of applications which take this even         and offline.
+farther by increasing disconnection to achieve the economic              Each operation must occur once (i.e. have the business impact of a
+benefits of loose-coupled parallelism and offline. They are lower        single execution) even as it is processed (or simply logged) at
+latency, more parallel, and more available. They just screw up           multiple replicas. One room reservations must (with high
+more often and sort the mess out later. Sometimes, that’s good!          probability) result in exactly one room set aside for the guest.
+                                                                         One book ordered online should not (very often) result in two
+5.3 Commutativity and Business Rules                                     books delivered to the customer.
+In many applications, it is possible to express the business rules of
+the application and allow different operations to be reordered in        To ensure this, applications typically assign a unique number or
+their execution. When the operations occur on separate systems           ID to the work. This is assigned3 at the ingress to the system (i.e.
+and wind their way to each other, it is essential to preserve these      whichever replica first handles the work). As the work request
+business rules.                                                          rattles around the network, it is easy for a replica to detect that it
+                                                                         has already seen that operation and, hence, not do the work twice.
+Example business rules may be: “Don’t overbook the airplane by
+more than 15%” or “Don’t overdraw the checking account”.                 Sometimes, incoming work stimulates other work. For example,
+                                                                         processing a purchase order may result in scheduling a shipment.
+        Escrow Locking in Serializable Databases                         Two replicas may get overly enthusiastic about the incoming
+Escrow locking is a scheme to increase concurrency while                 purchase order and each schedule a shipment. By uniquely
+preserving classic transactional ACID behavior.                          identifying the purchase order at its ingress to the system, the
+                                                                         irrational exuberance on the part of the replicas can be identified
+If you assume a set of commutative operations (such as
+addition and subtraction), you ensure changes are logged                 as the knowledge sloshes through the network. We will see below
+via “operation logging”. Operation logging does not capture              in the discussions of eventual consistency how this can
+                                                                         (probabilistically) be rectified.
+the before and after images of the value but rather logs
+“Transaction T1 subtracted $10”. If transaction T1 needs to
+be aborted, the system would add $10 rather than restore
+the value that existed in the field before T1. In this fashion,
+the work of multiple transactions can interleave as long as
+they are doing the commutative operations.              If any           3
+                                                                             The experienced reader will realize that this leaves the concern
+transaction dares to READ the value, that does not
+                                                                             for idempotence in the incoming message from the client as
+commute, is annoying, and stops other concurrent work.
+                                                                             captured at the point of ingress. Retries could cause two or
+Escrow locking can be implemented in conjunction with                        more different replicas to charge ahead to help the user. If the
+constraints enforcing business rules. Consider addition and                  work has no side effects (such as simply reading something), it
+subtraction operations with a worst-case minimum and                         is OK to do the work multiple times. If the work has side-
+maximum for the value. The system simply needs to track                      effects, coordination around a cookie or user-id is usually
+the worst case for all the transactions pending commitment.                  performed to eliminate duplicates.
+A new operation will be delayed if it MIGHT cause the value
+                                                                             To avoid duplicate processing, the uniquifier for the request
+to fall out of bounds with the pending work.
+                                                                             should be functionally dependent only on the request as seen by
+Escrow locking offers crisp semantics because it is                          the server system. This is possible if the unique id is generated
+functioning on a centralized location and can enforce the                    outside the server (e.g. a check number as discussed in Section
+worst case outcome of the business rules.                                    6.2) and it is also possible if the server calculates it in a
+                                                                             predictable way as discussed in Section 2.1).
+
+
+
+                                                          CIDR Perspectives 2009
+The unique identifier of the work (the “uniquifier”) has two very         So, consider these three aspects:
+important roles:
+                                                                                Memories: Your local replica has seen what it has seen and
+1)     The uniquifier provides the key for partitioning the work in a            (hopefully) remembers it. The cost of spreading that
+       scalable system.                                                          knowledge includes bandwidth, computation, and latency (in
+2)     The uniquifier allows the system to recognize multiple                    the case where you are waiting for the backup to
+       executions of the same request. In this fashion, they can be              acknowledge your memory of an operation).
+       collapsed and the work becomes idempotent.                               Guesses: Any time an application takes an action based upon
+                                                                                 local information, it may be wrong. This occurs in log-
+5.5 What’s Your Stomach for Risk?                                                shipping systems where the action is logged locally and has
+In all these cases, we started with the assumption that the cost to              only a very high probability of getting to the backup system
+know the truth is prohibitive for the application in question.                   before a crash and take-over. That makes it a good guess but
+Hence, we are designing the system and, especially, the                          it doesn’t make it a sure bet. In any system which allows a
+application running on the system to probably deliver excellent                  degradation of the absolute truth, any action is, at best, a
+service and, occasionally, to violate the business rules of the                  guess. It is simply a matter of business choice as to the
+application.                                                                     quality of the guess.
+Note that that it is possible to have multiple business rules with              Apologies: When a mistake is made (either due to
+different guarantees.     Some operations can choose classic                     replication anomalies or because the FAA grounds your jets
+consistency over availability (i.e. they will slow down, eat the                 and you cannot honor your flight reservations), you
+latency, and make darn sure before promising). Other operations                  apologize. Every business includes apologies. As mentioned
+can be more cavalier. Some examples:                                             above, these may be manual with the software enqueuing the
+      Locally clear a check if the face value is less than $10,000.             problem for human work. Alternatively, application code
+       If it exceeds $10,000, double check with all the replicas to              may issue some apologies for which it has specially designed
+       make sure it clears.                                                      apology code while asking for human help for those
+      Schedule the shipment of a “Harry Potter” book based on a                 apologies beyond its designed cases.
+       local opinion of the inventory. In contrast, the one and only      In a loosely coupled world choosing some level of availability
+       one Gutenberg bible requires strict coordination!                  over consistency, it is best to think of all computing as memories,
+                                                                          guesses, and apologies.
+The major point is that availability (and its cousins offline
+and latency-reduction) may be traded off with classic                     5.8 Synchronous Checkpoints OR Apologies!
+notions of consistency. This tradeoff may frequently be                   So, section 5 is pointing out that there are design options:
+applied across many different aspects at many levels of
+                                                                          1)     You can synchronously checkpoint and incur the latency, or
+granularity within a single application.
+                                                                          2)     You can asynchronously checkpoint, save the latency, and
+5.6 Fussing and Whining (but Not Too Often)                                      experience modified application semantics.
+So, what the heck does the application DO when its business rules         These modified semantics mean that you don’t always know the
+are violated? The application will usually be managing the proba-         precise truth because work can be trapped in a partner. They
+bilities so that this is unlikely (since there is frequently a business   mean you may have to understand that the business rules are
+cost associated with screwing up). Still, this will happen!               enforced probabilistically and may experience reordering. Still,
+The best model for coping with violations of the business rule is:        you have the option of sometimes applying business criterion (e.g.
+                                                                          the check being for more than $10,000) which cause synchronous
+     1. Send the problem to a human (via email or something else),        checkpointing. Also, it is completely viable to allow human
+     2. If that’s too expensive, write some business specific software    intervention in the resolution of some problems if the chance of
+        to reduce the probability that a human needs to be involved.      this occurring is low enough for this to be cost effective.
+While this may sound too simplistic, it is what applications              In summary, all of these choices depend on their business value!
+typically do when dealing with these complex issues. It also
+points out that, in the absence of generalizations of the business        6. Zen and the Art of Eventual Consistency4
+rules, the patterns used by the business operations for                   This section looks in more depth at eventual consistency and how
+commutativity,      and    the    business     complications    of        loosely-coupled applications are built to support this. We start
+overzealousness, it is not possible to speak to the business              with a couple of examples: Amazon’s Dynamo storage with a
+consequences or actions to compensate when your luck is bad.              Shopping Cart application on top of it and a classic bank check
+                                                                          clearing application.      We then talk about applications
+5.7 Memories, Guesses, and Apologies                                      implementing eventual consistency and contrast this with the
+Arguably, all computing really falls into three categories:
+                                                                          difficulties of building eventual consistency in a storage layer.
+memories, guesses, and apologies[16, 19]. The idea is that
+                                                                          Finally, we discuss the importance of an “operation-centric”
+everything is done locally with a subset of the global knowledge.
+                                                                          approach to eventual consistency in which the operations desired
+You know what you know when an action is performed. Since
+                                                                          by the user of the application are recorded and become the
+you have only a subset of the knowledge, your actions are really
+                                                                          foundation for the implementation of eventual consistency.
+only guesses. When your knowledge as a replica increases, you
+may have an “Oh, crap!” moment. Reconciling your actions (as a
+                                                                          4
+replica) with the actions of an evil-twin of yours may result in              We recommend the classic book “Zen and the Art of Motorcycle
+recognition that there’s a mess to clean up. That may involve                 Maintenance” [2]. A looser, more Zen-like, perspective can be
+apologizing for your behavior (or the behavior of a replica).                 helpful in computing and in one’s personal life…
+
+
+
+                                                           CIDR Perspectives 2009
+6.1 Example 4: Shopping Cart and Dynamo                               check. The check is forwarded to you brother-in-law’s bank.
+The Dynamo Storage system [18] is used to support the shopping        Later, when the check bounces, your account is debited $130 (the
+cart store as well as other systems within Amazon. Dynamo is a        original $100 plus $30 bounce fee). Interestingly, the decision to
+replicated blob store implemented with a Dynamic Hash Table           be optimistic is based on YOUR good standing with the bank. A
+(DHT). Dynamo is interesting in many ways including its               less desirable customer (like your brother-in-law) would have a
+conscious choice to support availability over consistency.            hold placed on the money (reserving for a potential bounce) 6.
+Dynamo always accepts a PUT to the store even if this may result      Debits and credits to bank accounts are commutative. There is an
+in an inconsistent GET later on.                                      expressed business rule that the account balance will not drop
+In [18], the interaction from the application to Dynamo is            below zero. If you had spent the $1100 before your brother-in-
+described as a PUT and GET interface. Due to replication              law’s check was returned, your account would have violated the
+anomalies, a GET may return old information. Performing a PUT         business rule when your brother-in-law’s check bounced.
+based on the old information results in parallel versions. A later    Banking policies make this less likely but not impossible. It is a
+GET of this blob may return two sibling (or cousin) versions          business decision on the part of the bank to allow this risk.
+which the shopping cart application must reconcile. Dynamo,           Consider, too, the ledger associated with a bank account. At the
+acting as a storage substrate, may present two or more old            end of the month, a statement is issued. It is not critical that it be
+versions in response to a GET. A subsequent PUT must include a        perfect. Some check floating on midnight of the 31 st of the month
+blob that integrates and reconciles all the presented versions.       may land in this month’s statement or in next month’s statement.
+To do the application level integration, the shopping cart            The monthly statement starts out with a balance. Debits and
+application must record its operations much like a ledger entry. A    credits are applied. Once it is issued, it is permanent and
+deletion of an item from the shopping cart is recorded as an          immutable. Errors in March’s statement may be adjusted in
+operation appended to the cart. These “ADD-TO-CART”,                  April’s statement but March’s statement is never modified.
+“CHANGE-NUMBER”,               and      “DELETE-FROM-CART”            The bank has two jobs to do with the account. First, it needs to
+operations can usually be reconciled when a union of the
+                                                                      decide if a check should clear based upon the best knowledge of
+operations is finally joined together. Very rare anomalies in the
+                                                                      the account’s balance. Second, it needs to meticulously remember
+shopping cart are acceptable since the shopper’s order is verified
+                                                                      all the operations (debits and credits) performed on the account.
+as a part of order submission. Unavailability of the shopping cart
+service is very expensive for Amazon since it results in a drop in
+business and an unsatisfying user experience.
+Dynamo is a storage substrate independent of the shopping cart
+application layered on top of it. Dynamo returns a blob (and
+sometimes two or more blobs) to a GET. When more than one is
+returned, the shopping cart application has to reconcile the
+confusion AND fold in the new operation it was planning for the
+cart. The shopping cart application can do this by understanding
+the contents of the cart as a set of operations. Uniquely
+referenced operations on the items can be unioned together into a
+list with a predictable outcome. This is key to the commutativity
+of operations on the shopping cart. This, in turn, is used to
+provide exceptionally high availability.
+6.2 Example 5: Bank Accounts and Ledgers
+There is a reason for check-numbers on checks. The check
+numbers (combined with the bank-id and account-number)
+provide a unique identifier. Excepting big mistakes (and/or
+fraud), the payee and amount for a specific check are immutable.
+The check enters the banking system with a unique identifier and
+the participants in the loosely-coupled process share information     Imagine a replicated bank system which has two (or more) copies
+in what may be considered an ongoing workflow. 5                      of my bank account, both of which are clearing checks. There is a
+You deposit your brother-in-law’s check for $100 into your bank       small (but present) possibility that multiple checks presented to
+account and, since you’ve been a good customer, there is no hold      different replicas will cause an overdraft that is not detected in
+on the money. Your account’s balance bumps up from $1000 to           time to bounce one of the checks. Each replica that clears a check
+$1100. Your bank account information is associated with the           will remember the check with its check number. Assuming no
+                                                                      replica is permanently destroyed, the information about the check
+                                                                      will be added to the bank statement and funding allocated for it.
+5
+  This mechanism has been used for many years and pre-dates           A very untimely outage could result in the check landing in next
+computerized systems. It was used by our grandparents for the         month’s statement rather than this month but that’s no big deal.
+same reason that we advocate the use of a unique-id that is
+functionally dependent on the incoming request (either by being
+                                                                      6
+part of the request or by being derived from the request). The            It does make sense to base the decision on YOUR standing…
+check-number (along with bank and account number) is a                    It’s the only information available locally to the bank and YOU
+wonderful unique-id.                                                      are more likely to eat the cost than the bank.
+
+
+
+                                                       CIDR Perspectives 2009
+In this banking system, the information about the checks can be         In the Banking example, “debit” and “credit” operations are
+coalesced as the replicas communicate. The usage of check               processed at separate replicas and then shared as soon as possible.
+numbers makes the processing of the check idempotent. The               Again, this is an operation-centric approach which results in
+nature of the operations (i.e. addition and subtraction) ensures the    commutativity of the operations. Allowing the loose-coupled
+work is both commutative AND associative.                               processing of the “debit” and “credit” operations will occasionally
+It is VERY likely that a banking system layered on flakey               (but rarely) result in a cleared check that we hope would have
+computers without raised floors, operators, or backup power             bounced. Still, for many environments, this is an acceptable
+would be more cost effective than a high-priced centralized one.        business expense and may be codified in a business rule for
+As demonstrated above, the dissection of the work into memories,        loosely coupled systems.
+guesses, and apologies is exactly how banks function today.             7. Managing Resources with Asynchrony
+6.3 Eventual Consistency and Applications                               This section looks at how resources are managed in the face of
+In both the Dynamo/ShoppingCart example and in the banking              asynchronous checkpointing and the possibility of independent
+example, uniquely identified work arrives into the system and is        work and potentially redundant work.
+processed by a single replica. The work is propagated to other          First, we consider how resources get allocated across loosely-
+replicas as connectivity allows.                                        coupled systems and whether they are over-booked or over-
+Because the requests are commutative (i.e. reorderable), it is OK       provisioned. After this, we observe that the computers’ opinions
+for them to be processed at different replicas in different orders.     do not necessarily map to the real world in the face of accidents
+The chances are very high that the result will be the same. Also,       and other mistakes. Next, we look at one example pattern of
+the design of each system includes business policies for resolving      conservative (over-provisioned) resource management in the
+what will happen if the different orders of execution result in         “seat-reservation” pattern. Then, we consider the advantage of
+different answers.                                                      making resources similar (or “fungible”) whenever possible.
+                                                                        Following this, we look at the use of unique identifiers in the
+6.4 Eventual Consistency and Storage                                    management of asynchronous requests. Moving along, we
+It is interesting that much of the literature on eventual consistency   consider eventual consistence and asynchronous management of
+focuses on READ and WRITE semantics. For example, a recent              resources. Finally, we consider the patterns that existed in
+paper [20] by Werner Vogels explains many great concepts in the         business before the rise of computers and their use as inspiration
+area of eventual consistency but still couches the discussion in the    in our design of loosely-coupled systems.
+context of clients, storage systems, and updates.
+                                                                        7.1 Over-Booking versus Over-Provisioning
+The Amazon Dynamo paper [18] covers many fascinating topics             As we consider a system with asynchronous checkpointing, we
+and shows how Dynamo is a key-value blob store. Still, section          are considering a system with a probability that two or more
+4.4 on Data Versioning discusses the use of “add to cart” and           replicas will be allocating resources to their users. Since these
+“delete item from cart” and how these operations are captured           replicas will sometimes be incommunicado, we must consider the
+within the blobs being stored by Dynamo. Even if the version            policy used for allocating resources while not in communication.
+histories are reordered, items added to the cart will not be lost       There are two approaches:
+once their stored blob version is collapsed together with the other
+versions. Occasionally deleted items will reappear.                     1)   Over-Provisioning. In this approach, each replica has a fixed
+                                                                             subset of the resources that it may allocate. If there are 1000
+Storage systems alone cannot provide the commutativity we need               books in inventory, each of the two replicas may have 500 to
+to create robust systems that function with asynchronous                     sell. When over-provisioning, a replica cannot make the
+checkpointing. We need the business operations to reorder.                   mistake of allocating a resource that is not truly available to
+Amazon’s Dynamo does not do this by itself. The shopping cart                be allocated. On the other hand, over-provisioning means
+application on top of the Dynamo storage system is responsible for           that there will be excess resources kept within the replicas.
+the semantics of eventual consistency and commutativity.                2)   Over-Booking.        Unlike over-provisioning, over-booking
+The authors think it is time for us to move past the examination of          allows for the possibility that the disconnected replicas will
+eventual consistency in terms of updates and storage systems.                occasionally promise something they cannot deliver. By
+The real action comes when examining application based                       allowing independent allocation without ensuring strict
+operation semantics.                                                         partitioning of the resources, sometimes commitments are
+                                                                             made that cannot be kept. On the other hand, sometimes
+6.5 The “Operation-Centric” Pattern                                          business will be scheduled that would be declined under the
+Both the Dynamo/Shopping-Cart example and the Banking                        strict partitioning of over-provisioning.
+example show the capture of the application’s desires.
+                                                                        It is possible to be conservative and ensure you NEVER have to
+The Shopping-Cart example uses “add-to-cart” and “delete-item-          apologize to your customers. This will, however, sometimes
+from-cart” operations to capture the intention of the user as they      result in you deciding to decline business you would rather have.
+add and delete items from the cart. In the Dynamo blob store, the       You may accept the business on a disconnected replica without
+usage of this operation-centric approach offers resiliency to the       the confidence that you will be able to keep your commitments.
+occasional interleaving of versions that results from replication       You can dynamically slide between these positions (while you are
+combined with choosing availability over consistency. It is             connected) and adjust the probabilities and possibilities.
+interesting to note that operation-centric work can be made
+                                                                        In the face of disconnection, you cannot know the perfect answer
+commutative (with the right operations and the right semantics)
+                                                                        and must adopt a business policy that allows for the tradeoffs that
+where a simple READ/WRITE semantic does not lend itself to
+                                                                        are right for your business!
+commutativity.
+
+
+
+                                                         CIDR Perspectives 2009
+7.2 Computing versus Reality                                           the resources. To avoid this challenge, we need to make a pool of
+In the previous section, we described how over-provisioning of         resources.
+resources means you cannot make the mistake of allocating a            7.4 The Quest for Fungibility
+resource that is not truly available. This is true in that the         As you look at functions in the computing world, you see an ever
+computational resource will not show an allocation for which           increasing categorization of things into fungible buckets. You
+there are no resources. Unfortunately, the real world is not always    can’t reserve room 301 at the Hilton but you can get a king sized
+accurately modeled in the computers (and cannot always be).            non-smoking room.
+Consider a case where the only book in inventory is scheduled for      Consider a pork-belly. What the heck is a pork-belly? It is a term
+delivery. Due to an over-provisioning scheme, there is no              to describe a bunch of pork7. By standardizing a collection of
+confusion about the inventory and the book is promised to a            pork, it is possible to sell a pig before it is grown. The existence
+customer. In preparing the book for shipment, it is run over by        of a pork-belly as a unit of trade has offered powerful financial
+the forklift in the warehouse.           So, over-provisioning         mechanisms in support of the raising and distribution of pigs.
+notwithstanding, you need to apologize!                                Farmers can sell their pigs in advance of their maturation and
+Even if the computer systems are perfect, business includes            moderate their risk.
+apologizing because stuff will go wrong!                               The real world is rife with algorithms for idempotence,
+7.3 The “Seat Reservation” Pattern                                     commutativity, and associativity. They are part of the lubrication
+In certain real world transactions, the resources involved are not     of real world business and of the applications we must support on
+considered fungible. One good example is reserving a seat at a         our fault tolerant platforms. A major trick is to look for
+concert where the actual seat(s) are considered critical to the        mechanisms to create equivalence of the operation or resource.
+buying decision. This sets up a condition where prime seats are        7.5 The Importance of Uniquifiers
+crucial both from the perspective of the supplier and consumer.        One important pattern in the management of asynchrony is the
+One way to implement a correct application which maintains the         usage of the unique identifier in tracking the request through the
+business rule that any seat must either be “available” or “occupied    distributed system. Sometimes the over-zealous replicas will both
+and associated with a valid purchase” is to use a database             do the work for a single request and only later detect that this
+transaction to scope and protect the business rule. This scheme        work has been duplicated. If the work has allocated a fungible
+works if you have a trusted agent handling the purchase. Ticketing     resource, the system needs to detect this and return the
+agents would control the transaction and reserve potentially           redundantly allocated resource. The detection of the redundant
+available seats. If a purchaser reneges, the transaction is rolled     work is made possible by the uniquifier on the request.
+back making the seats available for purchase again.
+                                                                       So, even as we look at the topic of managing resources under
+Online buying situations, where the consumer is in control,            asynchrony, we see the importance of having uniquely identified
+changes the transaction in both space and time in ways that break      requests so we can create idempotent behavior.
+our ticketing system in several ways. First off, in the space
+dimension, the consumer is not a trusted agent. Our transaction        7.6 Eventually We’ll Talk and Be Consistent
+now extends beyond the trust boundary originally established for       As disconnected replicas work independently, they accumulate
+the system business rule. Secondly, in the time dimension, we          operations. This is identical to a replica of the bank account
+have no way to constrain the time in which untrusted agents can        clearing some checks but not others. It is also identical to a blob
+hold our system in an inconsistent state. In this particular           in the Dynamo store having some of the operations to the
+example, untrusted agents could exploit these aspects of the           shopping cart (e.g. “ADD-TO-CART” and “DELETE-FROM-
+system to quickly start a set of transactions against prime seats,     CART”) but missing out on other operations due to the timing of
+making them unavailable to others, and then reselling them at a        management of the replication.
+profit. Seats that are not sold by our unscrupulous agent could be
+                                                                       When the work flows together, a new, more accurate answer is
+released by simply rolling back transactions at no cost.
+                                                                       created. When an application is built to support eventual
+Anyone who has purchased tickets online will recognize the “Seat       consistency, the design should ensure that the order of the work’s
+Reservation” pattern where you can identify potential seats and        arrival at the node is not the determining factor in the outcome.
+then you have a bounded period of time, (typically minutes), to        Replicas that have seen the same work should see the same result,
+complete the transaction. If the transaction is not successfully       independent of the order in which the work has arrived.
+concluded within the time period, the seats are once again marked
+                                                                       As mentioned above, sometimes the operations accumulated by
+as “available”. This is done by using three states for seats:
+                                                                       different replicas result in a violation of the application’s business
+     1.   {“available”}                                                rules. The bank account with independent replicas clearing
+     2.   {“purchase pending”, session-identity}                       checks may find an overdraft on the account that, in a centralized
+     3.   {“purchased”, purchaser-identity}                            system, would have resulted in a bounced check rather than
+Individual database transactions are used to transition from one       clearing too many checks for the available funds. This level of
+state to another and to durably enqueue requests to clean up seats     violation of the business rules becomes a probabilistic analysis
+abandoned in the “purchase pending” state.                             with the application designers choosing their stomach for risk.
+This is an example of sliding the allocation spectrum towards the
+“over-provisioning” side. The seats are considered unique and          7
+                                                                           Wikipedia describes a pork belly as the underside of a pig from
+coordination is mandated between the primary and backup
+                                                                           which bacon is made. A unit of trade is 20 tons of frozen,
+ensuring a conservative (i.e. “over-provisioned”) management of
+                                                                           trimmed bellies. See [21].
+
+
+
+                                                        CIDR Perspectives 2009
+7.7 Back to the Future                                                 8.2 Fault Tolerance on ACID2.0
+Whenever the authors struggle with explaining how to implement         OK, now let’s consider what happens to the concept of fault
+loosely-coupled solutions, we look to how things were done             tolerance when you are NOT shooting for serializability (classic
+before computers. In almost every case, we can find inspiration in     ACID) but rather for the new ACID of Associativity,
+paper forms, pneumatic tubes, and forms filed in triplicate.           Commutativity, Idempotence, and Distribution.
+Consider the lost request and its idempotent execution. In the         If you break the algorithm for the desired work into pieces, each
+past, a form would have multiple carbon copies with a printed          piece must be idempotent (just like in the basic approach to fault
+serial number on top of them. When a purchase-order request was        tolerance). Furthermore, we are considering having the work
+submitted, a copy was kept in the file of the submitter and placed     distributed around the network rather than concentrated within a
+in a folder with the expected date of the response. If the form and    centralized system. The only way to do this while preserving the
+its work were not completed by the expected date, the submitter        old guarantees of classic ACID is with the well documented
+would initiate an inquiry and ask to locate the purchase-order         pessimistic or optimistic concurrency control mechanisms. These
+form in question. Even if the work was lost, the purchase-order        tend to be fragile.
+would be resubmitted without modification to ensure a lack of          When the application is constrained to the additional requirements
+confusion in the processing of the work. You wouldn’t change           of commutativity and associativity, the world gets a LOT easier.
+the number of items being ordered as that may cause confusion.         No longer must the state be checkpointed across failure units in a
+The unique serial number on the top would act as a mechanism to        synchronous fashion. Instead, it is possible to be very lazy about
+ensure the work was not performed twice.                               the sharing of information. This opens up offline, slow links, low
+                                                                       quality datacenters, and more.
+8. CAP and ACID2.0
+As mentioned above, the CAP Theorem [13, 14] states that with          Surprisingly, we find that many common business practices
+Consistency, Availability, and Partition tolerance you can have        comply with these constraints. Looking at the business operations
+any two at once but not three. We do not argue with this.              from the standpoint of how work has traditionally been performed
+                                                                       shows many examples supportive of this approach. It appears we
+What is interesting is that the consistency for this is based upon
+                                                                       in database-land have gotten so attached to our abstractions of
+the classic ACID. That is: Atomic, Consistent, Isolated, and
+                                                                       READ and WRITE that we forgot to look at what normal people
+Durable. The classic ACID has the goal to make the application
+                                                                       do for inspiration.
+perceive that there is exactly one computer and it is doing nothing
+else while this transaction is being processed.                        9. Future Work
+Consider the new ACID (or ACID2.0). The letters stand for:             It seems that it would be of great value to dissect different
+Associative, Commutative, Idempotent, and Distributed [17]. The        applications in business environments to see the recurring
+goal for ACID2.0 is to succeed if the pieces of the work happen:       patterns. What are the operations in play for various applications?
+                                                                       When are they commutative? What practices make the operations
+         At least once,
+                                                                       idempotent?      Are there different solutions that are recast
+         Anywhere in the system,
+                                                                       syntactically in different environments? Is there a taxonomy of
+         In any order.
+                                                                       patterns into which the various solutions can be cast?
+This defines a new KIND of consistency. The individual steps           Our forefathers were VERY smart and were dealing with loosely
+happen at one or more system. The application is explicitly            coupled systems to implement their businesses. They knit the
+tolerant of work happening out of order. It is tolerant of the work    loosely-coupled systems together with messages, telegrams,
+happening more than once per machine, too.                             letters, and the postal system. To cope, they needed reorderable
+Notice that examples 4 (the shopping cart) and 5 (banking) meet        operations. Sometimes, the work was requested twice and this
+this style of consistency.                                             required protocols to implement idempotence. How were these
+                                                                       schemes used to run a railroad and build a Model-T? Are these
+8.1 Fault Tolerance on ACID                                            patterns still there waiting for us to use in our distributed systems?
+To maintain serializability, classic algorithms do one thing at a
+time. All the concurrency mechanisms we know and love work             10. Conclusion
+hard to provide an appearance that one thing happens at a time.        We have reviewed some of the evolution in highly available and
+When considering the fault tolerant abstraction described in           fault tolerant systems. As far as we can see, all reliable systems
+section 2, we see the focus on synchronous checkpointing and a         are built out of a collection of unreliable components which are
+linear history. When correctness is defined by the classic ACID,       stitched together in a fashion that provides service in the face of
+it is essential to provide an ordering amongst the transactions.       the failure of some of these unreliable components. Over time,
+This is, of course, serializability [3, 10, 12].                       the size of the failure unit has gotten larger and larger.
+It is interesting to contrast example #1 (Tandem circa 1984) and       For years, the state of the art in fault tolerant systems provided
+example #2 (Tandem circa 1986).             In example #1, the         crisp transactional behavior by synchronously checkpointing state
+synchronous checkpointing of state to the backup occurs on a           across the failure boundaries. As the size of the failure unit has
+WRITE by WRITE basis. This is correct but not necessarily              increased, the latency involved in synchronous checkpointing has
+highly performant. In example #2, the synchronous capture of           grown to be punitive.
+state is at the completion of the transaction. Intra-transaction       In response to the increased latency, applications have embraced
+concurrency is managed by classic database management                  the asynchronous transmission of state across failure boundaries.
+techniques. Only when completing a transaction is it necessary         That has required new models and patterns of application design.
+ensure the work survives a fault.
+
+
+
+                                                        CIDR Perspectives 2009
+We have attempted to describe the patterns in use by many                  Addison-Wesley Longman (1987). Available for download
+applications today as they cope with failures in widely distributed        from http://research.microsoft.com/~philbe/
+systems. It is the reorderability of work and repeatability of work
+that is essential to allowing successful application execution on      [11] Pat Helland, Harald Sammer, Jim Lyon, Richard Carr, Phil
+top of the chaos of a distributed world in which systems come and           Garrett, Andreas Reuter, Group Commit Timers and High
+go when they feel like it. Application designers instinctively              Volume Transaction Systems, Proceedings of the 2nd
+gravitate to a world of eventual consistency (usually without the           International Workshop on High Performance Transaction
+formalisms to help them get there).                                         Systems, also Lecture Notes in Computer Science, vol 359,
+Finally, we have examined this with respect to the CAP theory               Springer-Verlag, 1987.
+and described how, in this new world, many solutions are
+designed to take a relaxation of classic consistency to preserve       [12] Jim Gray and Andreas Reuter, Transaction Processing:
+both availability and partition tolerance. This relaxed notion of           Concepts and Techniques, Morgan Kaufmann Publishers,
+consistency is very valuable and deserves more academic work.               Inc. 1993.
+
+11. ACKNOWLEDGMENTS                                                    [13] Eric Brewer, Towards Robust Distributed Systems, PODC
+We would like to thank Dexter Barnes and                    Swami           (Principles of Distributed Computing) Keynote (July 2000)
+Sivasubramanian for their comments on this paper.
+                                                                       [14] Seth Gilbert and Nancy Lynch, Brewer’s Conjecture and the
+12. REFERENCES                                                              Feasibility of Consistent, Available, and Partition-Tolerant
+[1] John von Neumann, Probabilistic Logics and the Synthesis of             Web Services, ACM SIGACT News, Volume 33, Issue 2
+    Reliable Organisms from Unreliable Components, Automata                 (June 2002).
+    Studies, Princeton University Press (1956).
+                                                                       [15] Pat Helland, Life Beyond Distributed Transactions an
+[2] Robert M. Pirsig, Zen and the Art of Motorcycle                         Apostate’s Opinion, Conference on Innovative Database
+    Maintenance: An Inquiry into Values. New York, Quill. 25th              Research (CIDR) January 2007.
+    Anniversary Edition, ISBN: 0688171664 (1974).
+                                                                       [16] Pat Helland, Memories, Guesses, and Apologies, Blog entry
+[3] Jim Gray, Notes on Data Base Operating Systems, Lecture                 (May 2007). See
+    Notes in Computer Science (60): 393-481 Springer-Verlag                 http://blogs.msdn.com/pathelland/archive/2007/05/15/memor
+    (1978).                                                                 ies-guesses-and-apologies.aspx
+
+[4] Andrea Borr, Transaction Monitoring in ENCOMPASS,                  [17] Shel Finkelstein invented the clever new acronym for ACID.
+    Proceedings of the 7th VLDB (September 1981).                           Captured in private communication (September 2007).
+
+[5] Joel Bartlett, A NonStop Kernel, Proceedings of the Eighth         [18] Guiseppe DeCandia, Deniz Hastorun, Madan Jampani,
+    Symposium on Operating Systems Principles (SOSP). Pp                    Gunavardhan Kakulapati, Avinash Lakshman, Alex Pilchin,
+    22-29. December, 1981.                                                  Swami Sivasubramanian, Peter Vosshall and Werner Vogels,
+                                                                            “Dynamo: Amazon's Highly Available Key-Value Store”,
+[6] L. Lamport, R. Shostak, and M. Pease, The Byzantine                     21st ACM Symposium on Operating Systems Principles,
+    Generals Problem, ACM Transactions on Programming                       Stevenson, WA, October 2007.
+    Languages and Systems 4 (3): 382-401. (July 1982)
+                                                                       [19] Pat Helland, The Irresistible Forces Meet the Movable
+[7] Andrea Borr, Robustness to Crash in a Distributed                       Objects, Microsoft TechEd Developers EMEA Keynote,
+    Database: A Non Shared-Memory Multi-Processor                           Barcelona,      Spain      (November       2007).         See
+    Approach, Proceedings of the 9th VLDB (September 1984).                 http://blogs.msdn.com/pathelland/archive/2008/05/02/link-
+    Also Tandem Computers TR 84.2                                           to-the-video-of-the-irresistible-forces-meet-the-movable-
+                                                                            objects.aspx
+[8] Jim Gray, Why Do Computers Stop and What Can Be Done
+    About It?, Tandem Computers TR85.7                                 [20] Werner Vogel Eventually Consistent, ACM Queue Vol. 6,
+                                                                            Number 6. October 2008.
+[9] O’Neil, Pat, The Escrow Transactional Method, ACT
+    Transactions on Database Systems (TODS), Volume 11,                [21] Wikipedia. Futures Contract.
+    Issue 4 (December 1986).                                                http://en.wikipedia.org/wiki/Futures_contract
+
+[10] Philip A. Bernstein, Vassos Hadzilacos, Nathan Goodman,
+     Concurrency Control and Recovery in Database Systems.
+
+
+
+
+                                                        CIDR Perspectives 2009
+

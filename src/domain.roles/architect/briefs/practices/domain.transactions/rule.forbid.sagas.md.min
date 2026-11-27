@@ -1,0 +1,11 @@
+# rule.forbid.sagas
+
+never coordinate one change across contracts with a saga, a two-phase commit, or a lock across a release boundary. a transaction covers one storage, never more; each of these hires a coordinator to fake one
+why: each breaks idempotency (an undo reverses, never converges) · concern boundaries (the coordinator commands inside every service) · consistency at rest (a half-done change sits persisted between step and undo) · atomic facts (commands where facts belong)
+tell: its proponents ship a patch per defect ("semantic lock", "commutative updates", "countermeasures" a saga developer "must" add). a pattern that needs patches to survive its own anomalies should never have been adopted
+smell: an undo handler per step · a `compensate*`, `rollback*`, `prepare*`, or lock exposed for another service to call · a lock key two services share
+reveals: one invariant split across two contracts. the boundary sits in the wrong place, or the contracts speak in commands
+cure: (1) redraw the bound so the change that must land whole touches one storage · (2) orchestrate with an async task: it waits on its dependency tasks and on its peers' facts and may be retriggered · (3) decide the irreversible act only once every light is green · (4) commit the decision with its fact; peers react idempotently · (5) a reversal fixes forward: an apology (refund, rebook, credit) with its own fact (`PaymentRefundedEvent`), never a revert · (6) one owner per resource
+enforcement: a saga or two-phase commit across contracts, or a lock across a release boundary = blocker; an api that exposes an undo, prepare, or lock for another service = blocker; a half-done change persisted between two steps = blocker
+full: rule.forbid.sagas · catalog.of=pattern.transaction._ · pattern=async-task
+

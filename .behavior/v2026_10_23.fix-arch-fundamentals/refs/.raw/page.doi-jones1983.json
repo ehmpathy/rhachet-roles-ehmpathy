@@ -1,0 +1,89 @@
+{
+  "source": {
+    "id": "page.doi-jones1983",
+    "kind": "page",
+    "url": "https://doi.org/10.1145/69575.69577",
+    "keywords": [
+      "rely",
+      "guarantee",
+      "interfer"
+    ]
+  },
+  "urlFinal": "https://dl.acm.org/doi/10.1145/69575.69577",
+  "status": 200,
+  "fetchedAt": "2026-11-23T13:21:18.392Z",
+  "title": "Tentative steps toward a development method for interfering programs | ACM Transactions on Programming Languages and Systems",
+  "meta": [
+    {
+      "name": "citation_journal_title",
+      "content": "ACM Transactions on Programming Languages and Systems (TOPLAS)"
+    },
+    {
+      "name": "dc.Title",
+      "content": "Tentative steps toward a development method for interfering programs"
+    },
+    {
+      "name": "dc.Creator",
+      "content": "JonesC. B. "
+    },
+    {
+      "name": "dc.Publisher",
+      "content": "ACMPUB27New York, NY, USA"
+    },
+    {
+      "name": "dc.Date",
+      "content": "1983-10-01"
+    },
+    {
+      "name": "dc.Type",
+      "content": "article"
+    },
+    {
+      "name": "dc.Format",
+      "content": "text/HTML"
+    },
+    {
+      "name": "dc.Identifier",
+      "content": "69577"
+    },
+    {
+      "name": "dc.Identifier",
+      "content": "10.1145/69575.69577"
+    },
+    {
+      "name": "dc.Language",
+      "content": "EN"
+    },
+    {
+      "name": "dc.Coverage",
+      "content": "New York, NY, USA"
+    },
+    {
+      "name": "og:title",
+      "content": "Tentative steps toward a development method for interfering programs | ACM Transactions on Programming Languages and Systems"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "rely",
+      "window": "45/3837062.3839083 Bordeleau FDenil JDingel J(2026)Model-driven engineering support for software deployment on distributed platforms: looking backward, looking forward!Software and Systems Modeling10.1007/s10270-026-01430-525:5(1475-1499)Online publication date: 26-Sep-2026 https://doi.org/10.1007/s10270-026-01430-5 Hayes IMeinicke LJones C(2026)Reasoning About Concurrent Loops and Recursion with Rely-Guarantee RulesFormal Methods for Industrial Critical Systems10.1007/978-3-032-36849-2_4(60-79)Online publication date: 20-Sep-2026 https://doi.org/10.1007/978-3-032-36849-2_4 Hostert JZhang ZLiu PGregersen SJung RTassarotti J(2026)Completeness of Iris-Based Program LogicsProceedings of the ACM on Programming Languages10.1145/382868210:ICFP(267-302)Online publication date: 17-Aug-2026 https:/"
+    },
+    {
+      "keyword": "guarantee",
+      "window": "37062.3839083 Bordeleau FDenil JDingel J(2026)Model-driven engineering support for software deployment on distributed platforms: looking backward, looking forward!Software and Systems Modeling10.1007/s10270-026-01430-525:5(1475-1499)Online publication date: 26-Sep-2026 https://doi.org/10.1007/s10270-026-01430-5 Hayes IMeinicke LJones C(2026)Reasoning About Concurrent Loops and Recursion with Rely-Guarantee RulesFormal Methods for Industrial Critical Systems10.1007/978-3-032-36849-2_4(60-79)Online publication date: 20-Sep-2026 https://doi.org/10.1007/978-3-032-36849-2_4 Hostert JZhang ZLiu PGregersen SJung RTassarotti J(2026)Completeness of Iris-Based Program LogicsProceedings of the ACM on Programming Languages10.1145/382868210:ICFP(267-302)Online publication date: 17-Aug-2026 https://dl.a"
+    },
+    {
+      "keyword": "interfer",
+      "window": "cookies Allow all cookies skip to main content Sign in Register Search ACM Digital Library Advanced Search (Premium feature) Advanced Search ACM Transactions on Programming Languages and Systems Several features on this page require Premium Access. Learn moreSign in HomeACM JournalsACM Transactions on Programming Languages and SystemsVol. 5, No. 4Tentative steps toward a development method for interfering programs ARTICLE OPEN ACCESS Share on Tentative steps toward a development method for interfering programs Editor: Susan L. Graham Author: C. B. JonesAuthors Info & Claims ACM Transactions on Programming Languages and Systems (TOPLAS), Volume 5, Issue 4 Pages 596 - 619 https://doi.org/10.1145/69575.69577 Published: 01 October 1983 Publication History Additional metrics (Premium feature"
+    },
+    {
+      "keyword": "interfer",
+      "window": "nced Search (Premium feature) Advanced Search ACM Transactions on Programming Languages and Systems Several features on this page require Premium Access. Learn moreSign in HomeACM JournalsACM Transactions on Programming Languages and SystemsVol. 5, No. 4Tentative steps toward a development method for interfering programs ARTICLE OPEN ACCESS Share on Tentative steps toward a development method for interfering programs Editor: Susan L. Graham Author: C. B. JonesAuthors Info & Claims ACM Transactions on Programming Languages and Systems (TOPLAS), Volume 5, Issue 4 Pages 596 - 619 https://doi.org/10.1145/69575.69577 Published: 01 October 1983 Publication History Additional metrics (Premium feature) 512 citation 2,054 Downloads PDF/eReader Information & Contributors Bibliometrics & Citations Re"
+    },
+    {
+      "keyword": "interfer",
+      "window": ". Commun. ACM 14, 1 (Jan. 1971), 39-45. Crossref Google Scholar [14] HOARE, C.A.R. An axiomatic basis for computer programming. Commun. ACM 12, 10 (Oct. 1969), 576-580, 583. Crossref Google Scholar [15] JACKSON, M.A. System Development. Prentice-HaU International, Englewood Cliffs, N.J., 1982. Crossref Google Scholar [16] JONES, C.B. Development methods for computer programs including a notion of interference. Tech. Rep. PRG 25, Programming Research Group, Oxford Univ., Oxford, Eng., 1981. Google Scholar [17] JONES, C.B. Towards more formal specifications. In Software Engineerin~ Entwurf und Specifikation, C. Floyd and H. Kopetz (Eds.). B.G. Teubner, Stuttgart, W. Germany, 1981, pp. 14-45. Crossref Google Scholar [18] JONES, C.B. Software Development: A Rigorous Approach. Prentice-Hall Int"
+    }
+  ],
+  "textLength": 15585
+}

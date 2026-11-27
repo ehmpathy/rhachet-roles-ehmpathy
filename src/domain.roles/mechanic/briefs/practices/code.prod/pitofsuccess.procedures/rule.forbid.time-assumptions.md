@@ -89,3 +89,7 @@ await Promise.race([
 ## .note
 
 for test infrastructure, time assumptions are often delegated to base tools (rhx, brain infra) that handle retries.
+
+## .see also
+
+- `catalog.of=pattern.transaction.bound=contract.trait=atomicity.pattern=retry-with-backoff` (architect) — the bounded, jittered retry that replaces a fixed wait

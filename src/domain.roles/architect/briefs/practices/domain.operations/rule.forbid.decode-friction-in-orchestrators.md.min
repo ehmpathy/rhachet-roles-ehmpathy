@@ -1,0 +1,11 @@
+# rule.forbid.decode-friction-in-orchestrators
+
+an orchestrator holds no logic a reader must simulate to grasp. test: "do i have to decode this to know what it produces?" yes → extract to a named operation; no → leave inline
+heuristic: an operation not named by us or an ehmpathy package → wrap it in a domain-named one
+- `slug.split('.')[0]!` → `asKeyrackKeyOrg({ slug })`
+- `items.reduce((s, i) => s + i.amount, 0)` → `computeTotal({ items })`
+- `a && b || c && !d` → `isEligibleForDiscount({ order })`
+- `await stripe.customers.create(…)` → `sdkStripe.setCustomer(…)`
+- `lessons.filter(l => slotsByUuid[l.slotUuid])` → `getAllLessonsWithOpenSlot({ lessons, slots })` — the relation gets a name
+illustrative, not exhaustive: any logic that needs mental simulation counts
+enforcement: decode-friction in an orchestrator = blocker

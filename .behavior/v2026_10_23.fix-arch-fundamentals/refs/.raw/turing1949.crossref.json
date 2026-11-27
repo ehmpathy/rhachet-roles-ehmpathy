@@ -1,0 +1,107 @@
+{
+  "source": {
+    "id": "turing1949",
+    "kind": "crossref",
+    "query": "Turing Checking a large routine 1949",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Turing%20Checking%20a%20large%20routine%201949&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:16:10.079Z",
+  "items": [
+    {
+      "DOI": "10.1016/b978-0-12-386980-7.50019-8",
+      "title": [
+        "Checking a Large Routine"
+      ],
+      "author": [
+        {
+          "given": "S. Barry",
+          "family": "Cooper",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Jan Van",
+          "family": "Leeuwen",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Alan Turing: His Work and Impact"
+      ],
+      "page": "455-463",
+      "issued": {
+        "date-parts": [
+          [
+            2013
+          ]
+        ]
+      },
+      "publisher": "Elsevier",
+      "type": "book-chapter"
+    },
+    {
+      "publisher": "Institution of Engineering and Technology (IET)",
+      "issue": "78",
+      "DOI": "10.1049/sqj.1949.0057",
+      "type": "journal-article",
+      "page": "69",
+      "title": [
+        "Multi-tone methods of routine line checking"
+      ],
+      "volume": "20",
+      "author": [
+        {
+          "given": "I.J.",
+          "family": "Shelley",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Students Quarterly Journal"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1949
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.3403/30307918",
+      "title": [
+        "Reference blocks for routine checking of ultrasonic testing equipment."
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            null
+          ]
+        ]
+      },
+      "publisher": "BSI British Standards",
+      "type": "standard"
+    }
+  ]
+}

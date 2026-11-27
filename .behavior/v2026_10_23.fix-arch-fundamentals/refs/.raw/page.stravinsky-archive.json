@@ -1,0 +1,43 @@
+{
+  "source": {
+    "id": "page.stravinsky-archive",
+    "kind": "page",
+    "url": "https://archive.org/advancedsearch.php?q=title%3A%28poetics+of+music%29+AND+creator%3A%28stravinsky%29&fl%5B%5D=identifier&fl%5B%5D=title&fl%5B%5D=year&rows=10&output=json",
+    "keywords": [
+      "identifier",
+      "poetics"
+    ]
+  },
+  "urlFinal": "https://archive.org/advancedsearch.php?q=title%3A%28poetics+of+music%29+AND+creator%3A%28stravinsky%29&fl%5B%5D=identifier&fl%5B%5D=title&fl%5B%5D=year&rows=10&output=json",
+  "status": 200,
+  "fetchedAt": "2026-11-23T19:31:29.720Z",
+  "title": "",
+  "meta": [],
+  "windows": [
+    {
+      "keyword": "identifier",
+      "window": "{\"responseHeader\":{\"status\":0,\"QTime\":96,\"params\":{\"query\":\"title:(poetics of music) AND creator:stravinsky\",\"qin\":\"title:(poetics of music) AND creator:(stravinsky)\",\"fields\":\"identifier,title,year\",\"wt\":\"json\",\"rows\":10,\"start\":0}},\"response\":{\"numFound\":9,\"start\":0,\"docs\":[{\"identifier\":\"bwb_KU-097-979\",\"title\":\"poetics of music\",\"year\":1947},{\"identifier\":\"poeticsofmusicin0000stra\",\"title\":\"Poetics of music : in the form of six lessons\",\"year\":1947},{\"identifier\":\"poeticsofmusic0000igor_h8n1\",\"title\":\"Poetics of Music\",\"year\":1947},{\"identifier\":\"poeticsofmusicin00st"
+    },
+    {
+      "keyword": "identifier",
+      "window": "{\"responseHeader\":{\"status\":0,\"QTime\":96,\"params\":{\"query\":\"title:(poetics of music) AND creator:stravinsky\",\"qin\":\"title:(poetics of music) AND creator:(stravinsky)\",\"fields\":\"identifier,title,year\",\"wt\":\"json\",\"rows\":10,\"start\":0}},\"response\":{\"numFound\":9,\"start\":0,\"docs\":[{\"identifier\":\"bwb_KU-097-979\",\"title\":\"poetics of music\",\"year\":1947},{\"identifier\":\"poeticsofmusicin0000stra\",\"title\":\"Poetics of music : in the form of six lessons\",\"year\":1947},{\"identifier\":\"poeticsofmusic0000igor_h8n1\",\"title\":\"Poetics of Music\",\"year\":1947},{\"identifier\":\"poeticsofmusicin00stra\",\"title\":\"Poetics of music in the form of six lessons\",\"year\":1960},{\"identifier\":\"poeticsofmusic00"
+    },
+    {
+      "keyword": "identifier",
+      "window": "{\"responseHeader\":{\"status\":0,\"QTime\":96,\"params\":{\"query\":\"title:(poetics of music) AND creator:stravinsky\",\"qin\":\"title:(poetics of music) AND creator:(stravinsky)\",\"fields\":\"identifier,title,year\",\"wt\":\"json\",\"rows\":10,\"start\":0}},\"response\":{\"numFound\":9,\"start\":0,\"docs\":[{\"identifier\":\"bwb_KU-097-979\",\"title\":\"poetics of music\",\"year\":1947},{\"identifier\":\"poeticsofmusicin0000stra\",\"title\":\"Poetics of music : in the form of six lessons\",\"year\":1947},{\"identifier\":\"poeticsofmusic0000igor_h8n1\",\"title\":\"Poetics of Music\",\"year\":1947},{\"identifier\":\"poeticsofmusicin00stra\",\"title\":\"Poetics of music in the form of six lessons\",\"year\":1960},{\"identifier\":\"poeticsofmusic0000igor\",\"title\":\"Poetics of Music\",\"year\":1947},{\"identifier\":\"poeticso"
+    },
+    {
+      "keyword": "poetics",
+      "window": "{\"responseHeader\":{\"status\":0,\"QTime\":96,\"params\":{\"query\":\"title:(poetics of music) AND creator:stravinsky\",\"qin\":\"title:(poetics of music) AND creator:(stravinsky)\",\"fields\":\"identifier,title,year\",\"wt\":\"json\",\"rows\":10,\"start\":0}},\"response\":{\"numFound\":9,\"start\":0,\"docs\":[{\"identifier\":\"bwb_KU-097-979\",\"title\":\"poetics of music\",\"year\":1947},{\"identifier\":\"poeticsofmusicin0000stra\",\"title\":\"Poetics of music : in the form of six lessons\",\"year\":1947},{\"identif"
+    },
+    {
+      "keyword": "poetics",
+      "window": "{\"responseHeader\":{\"status\":0,\"QTime\":96,\"params\":{\"query\":\"title:(poetics of music) AND creator:stravinsky\",\"qin\":\"title:(poetics of music) AND creator:(stravinsky)\",\"fields\":\"identifier,title,year\",\"wt\":\"json\",\"rows\":10,\"start\":0}},\"response\":{\"numFound\":9,\"start\":0,\"docs\":[{\"identifier\":\"bwb_KU-097-979\",\"title\":\"poetics of music\",\"year\":1947},{\"identifier\":\"poeticsofmusicin0000stra\",\"title\":\"Poetics of music : in the form of six lessons\",\"year\":1947},{\"identifier\":\"poeticsofmusic0000igor_h8n1\",\"title\":\"Poetics of M"
+    },
+    {
+      "keyword": "poetics",
+      "window": "{\"responseHeader\":{\"status\":0,\"QTime\":96,\"params\":{\"query\":\"title:(poetics of music) AND creator:stravinsky\",\"qin\":\"title:(poetics of music) AND creator:(stravinsky)\",\"fields\":\"identifier,title,year\",\"wt\":\"json\",\"rows\":10,\"start\":0}},\"response\":{\"numFound\":9,\"start\":0,\"docs\":[{\"identifier\":\"bwb_KU-097-979\",\"title\":\"poetics of music\",\"year\":1947},{\"identifier\":\"poeticsofmusicin0000stra\",\"title\":\"Poetics of music : in the form of six lessons\",\"year\":1947},{\"identifier\":\"poeticsofmusic0000igor_h8n1\",\"title\":\"Poetics of Music\",\"year\":1947},{\"identifier\":\"poeticsofmusicin00stra\",\"title\":\"Poetics of music in the form of six lessons\",\"year\":1960},{\"identifier\":\"poeticsofmusic0000igor\",\"title\":\"Poetics of Music\",\"ye"
+    }
+  ],
+  "textLength": 1204
+}

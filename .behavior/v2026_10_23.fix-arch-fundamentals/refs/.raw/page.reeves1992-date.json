@@ -1,0 +1,102 @@
+{
+  "source": {
+    "id": "page.reeves1992-date",
+    "kind": "page",
+    "url": "https://www.developerdotstar.com/mag/articles/reeves_design.html",
+    "keywords": [
+      "1992",
+      "C++ Journal",
+      "Copyright",
+      "Jack W. Reeves"
+    ]
+  },
+  "urlFinal": "https://www.developerdotstar.com/mag/articles/reeves_design.html",
+  "status": 200,
+  "fetchedAt": "2026-11-23T16:44:24.241Z",
+  "title": "What Is Software Design? by Jack W. Reeves - developer.*, Developer Dot Star",
+  "meta": [
+    {
+      "name": "DC.Creator",
+      "content": "Jack W. Reeves"
+    },
+    {
+      "name": "DC.Subject",
+      "content": "software development"
+    },
+    {
+      "name": "DC.Title",
+      "content": "developer.* - What Is Software Design?"
+    },
+    {
+      "name": "DC.Publisher",
+      "content": "Daniel Read - developer.*"
+    },
+    {
+      "name": "DC.Date",
+      "content": " 2005-02-23"
+    },
+    {
+      "name": "DC.Rights",
+      "content": "Author has granted publication right for publication on the developer.* web site. Author retains copyright. All rights reserved. Please do not use without written permission."
+    },
+    {
+      "name": "DC.Resource Type",
+      "content": "Text"
+    },
+    {
+      "name": "DC.Language",
+      "content": "en"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "1992",
+      "window": "The Independent Magazine for Software Developers Books Articles Blogs Subscribe d.* Gear About Home What Is Software Design? By Jack W. Reeves Published February 23, 2005 Discussion - Printable - PDF This is Part One of Code As Design: Three Essays by Jack W. Reeves. Click here for the introduction. This essay first appeared in the Fall, 1992 issue of C++ Journal. O bject oriented techniques, and C++ in particular, seem to be taking the software world by storm. Numerous articles and books have appeared describing how to apply the new techniques. In general, the questions of whether O-O techniques are just hype have been replaced by questions of how to get the benefits with the least amount of pain. Object oriented techniques have"
+    },
+    {
+      "keyword": "1992",
+      "window": "re development depend upon advances in programming techniques, which in turn mean advances in programming languages. C++ is such an advance. It has exploded in popularity because it is a mainstream programming language that directly supports better software design. C++ is a step in the right direction, but still more advances are needed. ### This essay first appeared in C++ Journal in the Fall, 1992 issue. Copyright ©1992 by Jack W. Reeves. developer.* is grateful to Mr. Reeves for granting the right of this publication. All future rights owned and reserved by Jack W. Reeves. Reprint or distribute only with written permission of the author. This is Part One of Code As Design: Three Essays by Jack W. Reeves. Click here for the introduction. This essay first appeared in the Fall, 1992 iss"
+    },
+    {
+      "keyword": "1992",
+      "window": "pon advances in programming techniques, which in turn mean advances in programming languages. C++ is such an advance. It has exploded in popularity because it is a mainstream programming language that directly supports better software design. C++ is a step in the right direction, but still more advances are needed. ### This essay first appeared in C++ Journal in the Fall, 1992 issue. Copyright ©1992 by Jack W. Reeves. developer.* is grateful to Mr. Reeves for granting the right of this publication. All future rights owned and reserved by Jack W. Reeves. Reprint or distribute only with written permission of the author. This is Part One of Code As Design: Three Essays by Jack W. Reeves. Click here for the introduction. This essay first appeared in the Fall, 1992 issue of C++ Journal. Dis"
+    },
+    {
+      "keyword": "C++ Journal",
+      "window": "The Independent Magazine for Software Developers Books Articles Blogs Subscribe d.* Gear About Home What Is Software Design? By Jack W. Reeves Published February 23, 2005 Discussion - Printable - PDF This is Part One of Code As Design: Three Essays by Jack W. Reeves. Click here for the introduction. This essay first appeared in the Fall, 1992 issue of C++ Journal. O bject oriented techniques, and C++ in particular, seem to be taking the software world by storm. Numerous articles and books have appeared describing how to apply the new techniques. In general, the questions of whether O-O techniques are just hype have been replaced by questions of how to get the benefits with the least amount of pain. Object oriented techniques have been around f"
+    },
+    {
+      "keyword": "C++ Journal",
+      "window": ", real advances in software development depend upon advances in programming techniques, which in turn mean advances in programming languages. C++ is such an advance. It has exploded in popularity because it is a mainstream programming language that directly supports better software design. C++ is a step in the right direction, but still more advances are needed. ### This essay first appeared in C++ Journal in the Fall, 1992 issue. Copyright ©1992 by Jack W. Reeves. developer.* is grateful to Mr. Reeves for granting the right of this publication. All future rights owned and reserved by Jack W. Reeves. Reprint or distribute only with written permission of the author. This is Part One of Code As Design: Three Essays by Jack W. Reeves. Click here for the introduction. This essay first appea"
+    },
+    {
+      "keyword": "C++ Journal",
+      "window": "ssue. Copyright ©1992 by Jack W. Reeves. developer.* is grateful to Mr. Reeves for granting the right of this publication. All future rights owned and reserved by Jack W. Reeves. Reprint or distribute only with written permission of the author. This is Part One of Code As Design: Three Essays by Jack W. Reeves. Click here for the introduction. This essay first appeared in the Fall, 1992 issue of C++ Journal. Discussion - Printable - PDF Jack W. Reeves is a senior software developer with over 30 years experience in the industry. He has worked on systems ranging from simulators for the space shuttle, military command and control systems, air traffic control systems, medical imaging systems, financial data distribution systems, embedded systems, drivers, and utilities. He has exclusivel"
+    },
+    {
+      "keyword": "Copyright",
+      "window": "nt depend upon advances in programming techniques, which in turn mean advances in programming languages. C++ is such an advance. It has exploded in popularity because it is a mainstream programming language that directly supports better software design. C++ is a step in the right direction, but still more advances are needed. ### This essay first appeared in C++ Journal in the Fall, 1992 issue. Copyright ©1992 by Jack W. Reeves. developer.* is grateful to Mr. Reeves for granting the right of this publication. All future rights owned and reserved by Jack W. Reeves. Reprint or distribute only with written permission of the author. This is Part One of Code As Design: Three Essays by Jack W. Reeves. Click here for the introduction. This essay first appeared in the Fall, 1992 issue of C++ Jo"
+    },
+    {
+      "keyword": "Copyright",
+      "window": "gle MSN Are you missing out on RSS? New developer.* Shirts & Accessories Software Engineering Books A Jolt Award Finalist! Software Creativity 2.0 by Robert L. Glass Foreword by Tom DeMarco Buy it now at Amazon.com! A finalist in the 17th Annual Jolt Product Excellence Awards! More Information More Ways to Order Web developer.* Books Articles Blogs Subscribe d.* Gear About Home All content copyright ©2000-2006 by the individual specified authors (and where not specified, copyright by Read Media, LLC). Reprint or redistribute only with written permission from the author and/or developer.*. www.developerdotstar.com"
+    },
+    {
+      "keyword": "Copyright",
+      "window": "ngineering Books A Jolt Award Finalist! Software Creativity 2.0 by Robert L. Glass Foreword by Tom DeMarco Buy it now at Amazon.com! A finalist in the 17th Annual Jolt Product Excellence Awards! More Information More Ways to Order Web developer.* Books Articles Blogs Subscribe d.* Gear About Home All content copyright ©2000-2006 by the individual specified authors (and where not specified, copyright by Read Media, LLC). Reprint or redistribute only with written permission from the author and/or developer.*. www.developerdotstar.com"
+    },
+    {
+      "keyword": "Jack W. Reeves",
+      "window": "The Independent Magazine for Software Developers Books Articles Blogs Subscribe d.* Gear About Home What Is Software Design? By Jack W. Reeves Published February 23, 2005 Discussion - Printable - PDF This is Part One of Code As Design: Three Essays by Jack W. Reeves. Click here for the introduction. This essay first appeared in the Fall, 1992 issue of C++ Journal. O bject oriented techniques, and C++ in particular, seem to be taking the software world by storm. Numerous articles and books have appeared describing how"
+    },
+    {
+      "keyword": "Jack W. Reeves",
+      "window": "The Independent Magazine for Software Developers Books Articles Blogs Subscribe d.* Gear About Home What Is Software Design? By Jack W. Reeves Published February 23, 2005 Discussion - Printable - PDF This is Part One of Code As Design: Three Essays by Jack W. Reeves. Click here for the introduction. This essay first appeared in the Fall, 1992 issue of C++ Journal. O bject oriented techniques, and C++ in particular, seem to be taking the software world by storm. Numerous articles and books have appeared describing how to apply the new techniques. In general, the questions of whether O-O techniques are just hype have been replaced by questions o"
+    },
+    {
+      "keyword": "Jack W. Reeves",
+      "window": "nces in programming techniques, which in turn mean advances in programming languages. C++ is such an advance. It has exploded in popularity because it is a mainstream programming language that directly supports better software design. C++ is a step in the right direction, but still more advances are needed. ### This essay first appeared in C++ Journal in the Fall, 1992 issue. Copyright ©1992 by Jack W. Reeves. developer.* is grateful to Mr. Reeves for granting the right of this publication. All future rights owned and reserved by Jack W. Reeves. Reprint or distribute only with written permission of the author. This is Part One of Code As Design: Three Essays by Jack W. Reeves. Click here for the introduction. This essay first appeared in the Fall, 1992 issue of C++ Journal. Discussion"
+    }
+  ],
+  "textLength": 30615
+}

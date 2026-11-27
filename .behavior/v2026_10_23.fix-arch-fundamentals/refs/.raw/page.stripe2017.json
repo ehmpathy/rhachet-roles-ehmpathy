@@ -1,0 +1,65 @@
+{
+  "source": {
+    "id": "page.stripe2017",
+    "kind": "page",
+    "url": "https://stripe.com/blog/api-versioning",
+    "keywords": [
+      "backwards-incompatible",
+      "version",
+      "compatib"
+    ]
+  },
+  "urlFinal": "https://stripe.com/blog/api-versioning",
+  "status": 200,
+  "fetchedAt": "2026-11-23T16:08:35.861Z",
+  "title": "APIs as infrastructure: future-proofing Stripe with versioning",
+  "meta": [
+    {
+      "name": "description",
+      "content": "APIs as infrastructure: future-proofing Stripe with versioning"
+    },
+    {
+      "name": "og:title",
+      "content": "APIs as infrastructure: future-proofing Stripe with versioning"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "backwards-incompatible",
+      "window": "ectations built into it. If an endpoint returns a boolean field called verified to indicate the status of a bank account, a user might write code like this: ~ If we later replaced the bank account’s verified boolean with a status field that might include the value verified (like we did back in 2014), the code will break because it depends on a field that no longer exists. This type of change is backwards-incompatible, and we avoid making them. Fields that were present before should stay present, and fields should always preserve their same type and name. Not all changes are backwards-incompatible though; for example, it’s safe to add a new API endpoint, or a new field to an existing API endpoint that was never present before. With enough coordination, we might be able to keep users appr"
+    },
+    {
+      "keyword": "backwards-incompatible",
+      "window": "he bank account’s verified boolean with a status field that might include the value verified (like we did back in 2014), the code will break because it depends on a field that no longer exists. This type of change is backwards-incompatible, and we avoid making them. Fields that were present before should stay present, and fields should always preserve their same type and name. Not all changes are backwards-incompatible though; for example, it’s safe to add a new API endpoint, or a new field to an existing API endpoint that was never present before. With enough coordination, we might be able to keep users apprised of changes that we’re about to make and have them update their integrations, but even if that were possible, it wouldn’t be very user-friendly. Like a connected power grid or wat"
+    },
+    {
+      "keyword": "backwards-incompatible",
+      "window": "ing providers maintain old versions might seem at first glance to be beneficial to users, they’re also paying indirectly in the form of reduced progress on improvements. Instead of working on new features, engineering time is diverted to maintaining old code. At Stripe, we implement versioning with rolling versions that are named with the date they’re released (for example, 2017-05-24). Although backwards-incompatible, each one contains a small set of changes that make incremental upgrades relatively easy so that integrations can stay current. The first time a user makes an API request, their account is automatically pinned to the most recent version available, and from then on, every API call they make is assigned that version implicitly. This approach guarantees that users don’t accide"
+    },
+    {
+      "keyword": "version",
+      "window": "pp integrations Code samples Developers blog API status Learn Blog Customer stories Guides Support Get support Managed support plans Professional services Company Product roadmap Sessions annual conference Careers Newsroom Stripe Press About Contact Contact sales Become a partner Blog Engineering Stripe on X APIs as infrastructure: future-proofing Stripe with versioning August 5, 2017 Brandur Leach API Experience When it comes to APIs, change isn’t popular. While software developers are used to iterating quickly and often, API developers lose that flexibility as soon as even one user starts consuming their interface. Many of us are familiar with how the Unix operating system evolved. In 1994, The Unix-Haters Handbook was published containing a long li"
+    },
+    {
+      "keyword": "version",
+      "window": "etter or worse, it established a contract with its users that defined how Unix interfaces behave. Similarly, an API represents a contract for communication that can’t be changed without considerable cooperation and effort. Because so many businesses rely on Stripe as infrastructure, we’ve been thinking about these contracts since Stripe started. To date, we’ve maintained compatibility with every version of our API since the company’s inception in 2011. In this article, we’d like to share how we manage API versions at Stripe. Code written to integrate with an API has certain inherent expectations built into it. If an endpoint returns a boolean field called verified to indicate the status of a bank account, a user might write code like this: ~ If we later replaced the bank account’s veri"
+    },
+    {
+      "keyword": "version",
+      "window": "API represents a contract for communication that can’t be changed without considerable cooperation and effort. Because so many businesses rely on Stripe as infrastructure, we’ve been thinking about these contracts since Stripe started. To date, we’ve maintained compatibility with every version of our API since the company’s inception in 2011. In this article, we’d like to share how we manage API versions at Stripe. Code written to integrate with an API has certain inherent expectations built into it. If an endpoint returns a boolean field called verified to indicate the status of a bank account, a user might write code like this: ~ If we later replaced the bank account’s verified boolean with a status field that might include the value verified (like we did back in 2014), the code will"
+    },
+    {
+      "keyword": "compatib",
+      "window": "nging implications. For better or worse, it established a contract with its users that defined how Unix interfaces behave. Similarly, an API represents a contract for communication that can’t be changed without considerable cooperation and effort. Because so many businesses rely on Stripe as infrastructure, we’ve been thinking about these contracts since Stripe started. To date, we’ve maintained compatibility with every version of our API since the company’s inception in 2011. In this article, we’d like to share how we manage API versions at Stripe. Code written to integrate with an API has certain inherent expectations built into it. If an endpoint returns a boolean field called verified to indicate the status of a bank account, a user might write code like this: ~ If we later replace"
+    },
+    {
+      "keyword": "compatib",
+      "window": "ilt into it. If an endpoint returns a boolean field called verified to indicate the status of a bank account, a user might write code like this: ~ If we later replaced the bank account’s verified boolean with a status field that might include the value verified (like we did back in 2014), the code will break because it depends on a field that no longer exists. This type of change is backwards-incompatible, and we avoid making them. Fields that were present before should stay present, and fields should always preserve their same type and name. Not all changes are backwards-incompatible though; for example, it’s safe to add a new API endpoint, or a new field to an existing API endpoint that was never present before. With enough coordination, we might be able to keep users apprised of chan"
+    },
+    {
+      "keyword": "compatib",
+      "window": "unt’s verified boolean with a status field that might include the value verified (like we did back in 2014), the code will break because it depends on a field that no longer exists. This type of change is backwards-incompatible, and we avoid making them. Fields that were present before should stay present, and fields should always preserve their same type and name. Not all changes are backwards-incompatible though; for example, it’s safe to add a new API endpoint, or a new field to an existing API endpoint that was never present before. With enough coordination, we might be able to keep users apprised of changes that we’re about to make and have them update their integrations, but even if that were possible, it wouldn’t be very user-friendly. Like a connected power grid or water supply, a"
+    }
+  ],
+  "textLength": 16747
+}

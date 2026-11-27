@@ -1,0 +1,57 @@
+{
+  "source": {
+    "id": "page.fowlerlewis2014",
+    "kind": "page",
+    "url": "https://martinfowler.com/articles/microservices.html",
+    "keywords": [
+      "independently deployable",
+      "replaceable",
+      "contract"
+    ]
+  },
+  "urlFinal": "https://martinfowler.com/articles/microservices.html",
+  "status": 200,
+  "fetchedAt": "2026-11-23T16:08:09.660Z",
+  "title": "Microservices",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "Microservices"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "independently deployable",
+      "window": "Refactoring Agile Architecture About Thoughtworks Table of Contents Microservices a definition of this new architectural term The term “Microservice Architecture” has sprung up over the last few years to describe a particular way of designing software applications as suites of independently deployable services. While there is no precise definition of this architectural style, there are certain common characteristics around organization around business capability, automated deployment, intelligence in the endpoints, and decentralized control of languages and data. 25 March 2014 James Lewis James Lewis is a Principal Consultant at Thoughtworks and member of the Technol"
+    },
+    {
+      "keyword": "independently deployable",
+      "window": "ly, however, there's not much information that outlines what the microservice style is and how to do it. In short, the microservice architectural style 1 is an approach to developing a single application as a suite of small services, each running in its own process and communicating with lightweight mechanisms, often an HTTP resource API. These services are built around business capabilities and independently deployable by fully automated deployment machinery. There is a bare minimum of centralized management of these services, which may be written in different programming languages and use different data storage technologies. My Microservices Resource Guide provides links to the best articles, videos, books, and podcasts about microservices. To start explaining the microservice style i"
+    },
+    {
+      "keyword": "independently deployable",
+      "window": "structure, making it harder to keep changes that ought to only affect one module within that module. Scaling requires scaling of the entire application rather than parts of it that require greater resource. Figure 1: Monoliths and Microservices These frustrations have led to the microservice architectural style: building applications as suites of services. As well as the fact that services are independently deployable and scalable, each service also provides a firm module boundary, even allowing for different services to be written in different programming languages. They can also be managed by different teams . We do not claim that the microservice style is novel or innovative, its roots go back at least to the design principles of Unix. But we do think that not enough people consider"
+    },
+    {
+      "keyword": "replaceable",
+      "window": "components, much in the way we see things are made in the physical world. During the last couple of decades we've seen considerable progress with large compendiums of common libraries that are part of most language platforms. When talking about components we run into the difficult definition of what makes a component. Our definition is that a component is a unit of software that is independently replaceable and upgradeable. Microservice architectures will use libraries, but their primary way of componentizing their own software is by breaking down into services. We define libraries as components that are linked into a program and called using in-memory function calls, while services are out-of-process components who communicate with a mechanism such as a web service request, or remote pr"
+    },
+    {
+      "keyword": "replaceable",
+      "window": "hey wrote”(sic) in this excellent presentation delivered at Flowcon in November, 2013. 11: We are being a little disengenuous here. Obviously deploying more services, in more complex topologies is more difficult than deploying a single monolith. Fortunately, patterns reduce this complexity - investment in tooling is still a must though. 12: In fact, Daniel Terhorst-North refers to this style as Replaceable Component Architecture rather than microservices. Since this seems to talk to a subset of the characteristics we prefer the latter. 13: Kent Beck highlights this as one his design principles in Implementation Patterns. 14: And SOA is hardly the root of this history. I remember people saying “we've been doing this for years” when the SOA term appeared at the beginning of the century."
+    },
+    {
+      "keyword": "contract",
+      "window": "n. But if that application is decomposed into multiple services, you can expect many single service changes to only require that service to be redeployed. That's not an absolute, some changes will change service interfaces resulting in some coordination, but the aim of a good microservice architecture is to minimize these through cohesive service boundaries and evolution mechanisms in the service contracts. Another consequence of using services as components is a more explicit component interface. Most languages do not have a good mechanism for defining an explicit Published Interface. Often it's only documentation and discipline that prevents clients breaking a component's encapsulation, leading to overly-tight coupling between components. Services make it easier to avoid this by using e"
+    },
+    {
+      "keyword": "contract",
+      "window": "el one. However, many monoliths don't need this level of performance optimisation nor are DSL's and higher level abstractions that common (to our dismay). Instead monoliths are usually single language and the tendency is to limit the number of technologies in use 8. For the microservice community, overheads are particularly unattractive. That isn't to say that the community doesn't value service contracts. Quite the opposite, since there tend to be many more of them. It's just that they are looking at different ways of managing those contracts. Patterns like Tolerant Reader and Consumer-Driven Contracts are often applied to microservices. These aid service contracts in evolving independently. Executing consumer driven contracts as part of your build increases confidence and provides fast"
+    },
+    {
+      "keyword": "contract",
+      "window": "our dismay). Instead monoliths are usually single language and the tendency is to limit the number of technologies in use 8. For the microservice community, overheads are particularly unattractive. That isn't to say that the community doesn't value service contracts. Quite the opposite, since there tend to be many more of them. It's just that they are looking at different ways of managing those contracts. Patterns like Tolerant Reader and Consumer-Driven Contracts are often applied to microservices. These aid service contracts in evolving independently. Executing consumer driven contracts as part of your build increases confidence and provides fast feedback on whether your services are functioning. Indeed we know of a team in Australia who drive the build of new services with consumer dr"
+    }
+  ],
+  "textLength": 45569
+}

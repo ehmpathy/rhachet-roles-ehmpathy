@@ -1,0 +1,8 @@
+# define.domain-operation-grains
+
+three grains of domain.operation:
+- **transformer** — computes. pure: decode-friction logic, format conversion (`asKeyrackKeyOrg`, `isEligibleForPremiumFeatures`, `asStripeCustomer`). unit test, no mocks
+- **communicator** — commutes. the raw i/o boundary: sdk, dao, service call; owns auth, connection, request and response (`sdkStripe.setCustomer`, `daoInvoice.findByRef`). integration test
+- **orchestrator** — composes. named operation calls only, no decode-friction (`setCustomerInStripe` = `asStripeCustomer` + `sdkStripe.setCustomer`)
+transformers and communicators are the leaves; an orchestrator reads as narrative — each line says what, the leaves hide how
+see also: rule.require.orchestrators-as-narrative · rule.forbid.decode-friction-in-orchestrators

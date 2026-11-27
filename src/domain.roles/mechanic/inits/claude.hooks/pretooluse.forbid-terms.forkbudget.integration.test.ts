@@ -58,9 +58,9 @@ describe('forbid-terms hooks · fork budget', () => {
    * .what = the ratchet for a Write that DOES trip a term
    * .why = the wish's bar governs the clean path; the tripped path still owes a
    *        bound, or the loop it used to hold could creep back unnoticed
-   * .note = measured at 25, against a 54-exec baseline. headroom of 3.
+   * .note = measured at 13, against a 54-exec baseline. headroom of 3.
    */
-  const TRIPPED_RATCHET = 28;
+  const TRIPPED_RATCHET = 16;
 
   /**
    * .what = the ratchet for a gerunds Write that DOES trip a word
@@ -241,7 +241,7 @@ describe('forbid-terms hooks · fork budget', () => {
     tool_name: 'Write',
     tool_input: {
       file_path: 'notes.md',
-      content: 'the surf report holds a clean forecast for dawn patrol.',
+      content: 'the surf report shows a clean forecast for dawn patrol.',
     },
   });
 
@@ -361,10 +361,13 @@ describe('forbid-terms hooks · fork budget', () => {
 
       then('the tripped path stays bounded too', () => {
         // the tripped path costs more than the clean one, and is still no storm.
-        // measured at 25: 10 grep (1 alternation + 9 per-term), 6 jq, and the
-        // nudge write — against a 54-exec baseline whose bulk was 33 jq for
-        // detail. the per-term grep stays: it is what names WHICH term tripped,
-        // and the block message owes that (acceptance #4).
+        // measured at 13 with 16 records: 1 grep (the alternation gate), 5 jq, and
+        // the nudge write — against a 54-exec baseline whose bulk was 33 jq for
+        // detail. the walk that names WHICH term tripped (acceptance #4) matches
+        // each record in-shell, via `[[ =~ ]]`, so it forks naught.
+        // .note = a new record costs zero execs here and on the retry. a rise in
+        //         this count means a fork crept back into the walk: find it, never
+        //         raise the ratchet to fit it
         expect(tally.execs.length).toBeLessThan(TRIPPED_RATCHET);
       });
 
@@ -428,14 +431,15 @@ describe('forbid-terms hooks · fork budget', () => {
     //      see it. its whole effect is a cost, and a cost is visible to exactly
     //      one instrument in this repo — this one. undefended, the next edit
     //      re-sequences the sweep back and no assertion goes red.
-    // measured, never guessed: blocklist 19, gerunds 14. +1 of headroom, on the
-    // same convention RATCHET and TRIPPED_RATCHET use.
+    // measured, never guessed: blocklist 8 (16 records), gerunds 14. +1 of
+    // headroom, on the same convention RATCHET and TRIPPED_RATCHET use. the walk
+    // matches records in-shell, so a new record adds no exec here.
     //
     // ⚠️ these are NOT small, and that is r10's point standing: the retry still
     //    runs the whole detection walk. it saves the sweep and the record write,
     //    never the detect. ⇒ the assertion below pins the RELATION (a retry is
     //    cheaper than a block) rather than a claim that a retry is cheap.
-    const RETRY_RATCHET = { gerunds: 15, blocklist: 20 };
+    const RETRY_RATCHET = { gerunds: 15, blocklist: 9 };
 
     when('[t0] the blocklist hook runs under the shim', () => {
       const tally = useBeforeAll(async () =>

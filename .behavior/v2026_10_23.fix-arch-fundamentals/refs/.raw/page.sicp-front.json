@@ -1,0 +1,19 @@
+{
+  "source": {
+    "id": "page.sicp-front",
+    "kind": "page",
+    "url": "https://mitp-content-server.mit.edu/books/content/sectbyfn/books_pres_0/6515/sicp.zip/full-text/book/book-Z-H-4.html",
+    "keywords": [
+      "Abelson",
+      "Copyright",
+      "1985"
+    ]
+  },
+  "urlFinal": "https://mitp-content-server.mit.edu/books/content/sectbyfn/books_pres_0/6515/sicp.zip/full-text/book/book-Z-H-4.html",
+  "status": 200,
+  "fetchedAt": "2026-11-25T02:40:18.215Z",
+  "title": "Structure and Interpretation of Computer Programs",
+  "meta": [],
+  "windows": [],
+  "textLength": 6040
+}

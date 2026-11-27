@@ -1,0 +1,19 @@
+{
+  "source": {
+    "id": "page.ousterhout2018-deep-module",
+    "kind": "page",
+    "url": "https://www.google.com/search?tbm=bks&q=ousterhout+%22the+best+modules+are+those%22",
+    "keywords": [
+      "best modules",
+      "simple interface",
+      "Philosophy of Software Design"
+    ]
+  },
+  "urlFinal": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3Dousterhout%2B%2522the%2Bbest%2Bmodules%2Bare%2Bthose%2522%26sei%3D0h0Fa8emCLmawbkPzbnAkAY%26udm%3Dbooks&q=EhAmABcAkcfMEKZ7aYsuwE9EGNK7lNgGIjAzKHOdQ4OPV6qIjAa0Dchh5YDw-pCg6_8Tm65TUEJiZSUvf73C30vb_P87an6UPUUyAVJaAUNg8raU1NvOgL_KAQ",
+  "status": 200,
+  "fetchedAt": "2026-11-24T05:17:10.427Z",
+  "title": "https://www.google.com/search?q=ousterhout+%22the+best+modules+are+those%22&sei=0h0Fa8emCLmawbkPzbnAkAY&udm=books",
+  "meta": [],
+  "windows": [],
+  "textLength": 393
+}

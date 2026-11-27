@@ -1,7 +1,7 @@
 # rule.forbid.gerunds
 
 no gerunds (-ing words used as nouns) in names, comments, docs, logs, commits. they blur noun vs verb, hide agency, and signal a lazy placeholder for an unclear domain term
-replace with a verb, an agent, a result, or an explicit state:
+replace with a verb, an agent, a result, or an explicit status:
 | 👎 | 👍 |
 |---|---|
 | existing | found, current, prior |
@@ -13,5 +13,5 @@ replace with a verb, an agent, a result, or an explicit state:
 | missing | absent, lacks |
 | remaining | left, rest |
 | matching | matched, match, fits |
-no exceptions. prefer explicit state (`status === 'active'`)
+no exceptions. prefer explicit status (`status === 'active'`)
 enforcement: gerund usage = blocker (a hook also blocks writes that contain them)

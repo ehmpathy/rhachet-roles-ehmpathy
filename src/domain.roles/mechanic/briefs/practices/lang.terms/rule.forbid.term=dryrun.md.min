@@ -1,41 +1,24 @@
 ## .rule = forbid-term-dryrun
 
 ### .what
-forbid term dryrun (variants: dry-run, dry_run, dryRun)
+forbid term dryrun (variants: dry-run, dry_run, dryRun). never control execution vs preview with a boolean; use mode: 'PLAN' | 'APPLY'
 
 ### .scope
 - code: variable names, function names, parameters, comments
+- every parameter that controls execution vs preview: cli flags, api parameters, internal signatures
 - files: filenames, directory names
 - docs: markdown, briefs, prompts
 - comms: commit messages, pr descriptions
 
 ### .why
 - double negatives: dryRun: false means do it, unclear
-- boolean limits extensibility: can't add modes like VALIDATE or DIFF
+- boolean limits extensibility: can't add modes like VALIDATE or DIFF; an enum explains itself
+- plan | apply aligns with terraform and this repo's `--mode plan` / `--mode apply`
 - unclear semantics: dry run jargon; use self-evident terms like PLAN and APPLY
-
-### .enforcement
-use of dryrun variants = blocker
+- readability at call sites: `mode: 'PLAN'` reads as intent
 
 ### .pattern
-use: mode: 'PLAN' | 'APPLY'
-
-```ts
-// instead of
-const result = await deploy({ dryRun: true });  // 👎
-const result = await deploy({ dryRun: false }); // 👎
-
-// use
-const result = await deploy({ mode: 'PLAN' });  // 👍
-const result = await deploy({ mode: 'APPLY' }); // 👍
-```
-
-### .extensibility
-enum scales: type DeployMode = 'PLAN' | 'VALIDATE' | 'DIFF' | 'APPLY'
-
-```ts
-const result = await deploy({ mode: 'DIFF' });
-```
+use: mode: 'PLAN' | 'APPLY'. enum scales: type DeployMode = 'PLAN' | 'VALIDATE' | 'DIFF' | 'APPLY'
 
 ### .common usecases
 
@@ -54,6 +37,13 @@ const result = await deploy({ mode: 'DIFF' });
 - isDryRun
 - DRY_RUN
 
+### .enforcement
+- use of dryrun variants = blocker
+- a boolean that controls execution vs preview (execute, preview, simulate) = blocker
+
 ### .see also
+- philosophy.why-we-ban-terms
+- rule.forbid.term=dryrun.example=demo
+- rule.prefer.terraform
 - rule.require.ubiqlang
 - rule.forbid.term=normalize

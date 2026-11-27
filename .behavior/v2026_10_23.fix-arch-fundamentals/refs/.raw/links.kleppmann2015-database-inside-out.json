@@ -1,0 +1,352 @@
+{
+  "index": {
+    "id": "links.kleppmann2015-database-inside-out",
+    "url": "https://martin.kleppmann.com/2015/03/04/turning-the-database-inside-out.html"
+  },
+  "urlFinal": "https://martin.kleppmann.com/2015/03/04/turning-the-database-inside-out.html",
+  "status": 200,
+  "title": "Turning the database inside-out with Apache Samza — Martin Kleppmann’s blog",
+  "fetchedAt": "2026-11-26T17:10:33.086Z",
+  "links": [
+    {
+      "text": "Skip to content",
+      "href": "https://martin.kleppmann.com/2015/03/04/turning-the-database-inside-out.html#content"
+    },
+    {
+      "text": "Martin Kleppmann",
+      "href": "https://martin.kleppmann.com/"
+    },
+    {
+      "text": "Student Projects",
+      "href": "https://martin.kleppmann.com/student-projects.html"
+    },
+    {
+      "text": "About/Contact",
+      "href": "https://martin.kleppmann.com/contact.html"
+    },
+    {
+      "text": "Supporters",
+      "href": "https://martin.kleppmann.com/supporters.html"
+    },
+    {
+      "text": "talk",
+      "href": "https://martin.kleppmann.com/2014/09/18/turning-database-inside-out-at-strange-loop.html"
+    },
+    {
+      "text": "Strange Loop 2014",
+      "href": "https://thestrangeloop.com/archive/2014"
+    },
+    {
+      "text": "Confluent blog",
+      "href": "http://blog.confluent.io/2015/03/04/turning-the-database-inside-out-with-apache-samza/"
+    },
+    {
+      "text": "video recording",
+      "href": "https://www.youtube.com/watch?v=fU9hR3kiOK0&list=PLeKd45zvjcDHJxge6VtYUAbYnvd_VNQCx"
+    },
+    {
+      "text": "Apache Samza",
+      "href": "http://samza.apache.org/"
+    },
+    {
+      "text": "Martin Kleppmann",
+      "href": "https://martin.kleppmann.com/"
+    },
+    {
+      "text": "Designing Data-Intensive Applications",
+      "href": "http://dataintensive.net/"
+    },
+    {
+      "text": "Actors",
+      "href": "https://en.wikipedia.org/wiki/Actor_model"
+    },
+    {
+      "text": "channels",
+      "href": "http://clojure.com/blog/2013/06/28/clojure-core-async-channels.html"
+    },
+    {
+      "text": "goroutines",
+      "href": "https://gobyexample.com/goroutines"
+    },
+    {
+      "text": "event sourcing",
+      "href": "http://blog.confluent.io/2015/01/29/making-sense-of-stream-processing/"
+    },
+    {
+      "text": "CREATE INDEX CONCURRENTLY",
+      "href": "http://www.postgresql.org/docs/9.4/static/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY"
+    },
+    {
+      "text": "memcached",
+      "href": "http://memcached.org/"
+    },
+    {
+      "text": "Redis",
+      "href": "http://redis.io/"
+    },
+    {
+      "text": "two hard problems in computer science",
+      "href": "http://martinfowler.com/bliki/TwoHardThings.html"
+    },
+    {
+      "text": "use JavaScript",
+      "href": "http://pgxn.org/dist/plv8/"
+    },
+    {
+      "text": "tools that do this",
+      "href": "http://tungsten-replicator.org/"
+    },
+    {
+      "text": "Apache Kafka",
+      "href": "http://kafka.apache.org/"
+    },
+    {
+      "text": "millions of writes",
+      "href": "https://engineering.linkedin.com/kafka/benchmarking-apache-kafka-2-million-writes-second-three-cheap-machines"
+    },
+    {
+      "text": "cached subset of the log",
+      "href": "http://www.cidrdb.org/cidr2015/Papers/CIDR15_Paper16.pdf"
+    },
+    {
+      "text": "Apache Samza",
+      "href": "http://samza.apache.org/"
+    },
+    {
+      "text": "Event Sourcing",
+      "href": "http://blog.confluent.io/2015/01/29/making-sense-of-stream-processing/"
+    },
+    {
+      "text": "Datalog",
+      "href": "https://www.researchgate.net/profile/Letizia_Tanca/publication/3296132_What_you_always_wanted_to_know_about_Datalog_(and_never_dared_toask)/links/0fcfd50ca2d20473ca000000.pdf"
+    },
+    {
+      "text": "Datomic",
+      "href": "http://www.datomic.com/"
+    },
+    {
+      "text": "Lambda Architecture",
+      "href": "http://manning.com/marz/"
+    },
+    {
+      "text": "applied successfully",
+      "href": "http://www.cidrdb.org/cidr2015/Papers/CIDR15_Paper16.pdf"
+    },
+    {
+      "text": "big balls of mud",
+      "href": "http://www.laputan.org/pub/foote/mud.pdf"
+    },
+    {
+      "text": "undo it",
+      "href": "http://nathanmarz.com/blog/how-to-beat-the-cap-theorem.html"
+    },
+    {
+      "text": "accountants don’t use erasers",
+      "href": "http://blogs.msdn.com/b/pathelland/archive/2007/06/14/accountants-don-t-use-erasers.aspx"
+    },
+    {
+      "text": "squeezes the non-determinism",
+      "href": "http://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying"
+    },
+    {
+      "text": "Facebook’s React",
+      "href": "http://facebook.github.io/react/"
+    },
+    {
+      "text": "Angular",
+      "href": "https://angularjs.org/"
+    },
+    {
+      "text": "Ember",
+      "href": "http://emberjs.com/"
+    },
+    {
+      "text": "Elm",
+      "href": "http://elm-lang.org/"
+    },
+    {
+      "text": "WebSocket",
+      "href": "https://developer.mozilla.org/en/docs/WebSockets"
+    },
+    {
+      "text": "Server-Sent Events",
+      "href": "https://developer.mozilla.org/en-US/docs/Server-sent_events"
+    },
+    {
+      "text": "RxJava",
+      "href": "http://reactivex.io/"
+    },
+    {
+      "text": "announced",
+      "href": "http://rethinkdb.com/blog/realtime-web/"
+    },
+    {
+      "text": "Meteor",
+      "href": "https://www.meteor.com/"
+    },
+    {
+      "text": "Firebase",
+      "href": "https://www.firebase.com/"
+    },
+    {
+      "text": "Designing Data-Intensive Applications",
+      "href": "http://dataintensive.net/"
+    },
+    {
+      "text": "Rethinking caching in web apps",
+      "href": "https://martin.kleppmann.com/2012/10/01/rethinking-caching-in-web-apps.html"
+    },
+    {
+      "text": "logs as a fundamental data abstraction",
+      "href": "http://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying"
+    },
+    {
+      "text": "lambda architecture",
+      "href": "http://radar.oreilly.com/2014/07/questioning-the-lambda-architecture.html"
+    },
+    {
+      "text": "stateful stream processing",
+      "href": "http://radar.oreilly.com/2014/07/why-local-state-is-a-fundamental-primitive-in-stream-processing.html"
+    },
+    {
+      "text": "Tango",
+      "href": "http://research.microsoft.com/pubs/199947/Tango.pdf"
+    },
+    {
+      "text": "Peter Bailis",
+      "href": "http://www.bailis.org/"
+    },
+    {
+      "text": "highly available transactions",
+      "href": "http://www.bailis.org/papers/ramp-sigmod2014.pdf"
+    },
+    {
+      "text": "Immutability Changes Everything",
+      "href": "http://www.cidrdb.org/cidr2015/Papers/CIDR15_Paper16.pdf"
+    },
+    {
+      "text": "putting stream data to work in a company",
+      "href": "http://blog.confluent.io/2015/02/25/stream-data-platform-1/"
+    },
+    {
+      "text": "support me on Patreon",
+      "href": "https://www.patreon.com/martinkl"
+    },
+    {
+      "text": "follow me on Bluesky",
+      "href": "https://bsky.app/profile/martin.kleppmann.com"
+    },
+    {
+      "text": "Mastodon",
+      "href": "https://nondeterministic.computer/@martin"
+    },
+    {
+      "text": "Site RSS feed",
+      "href": "http://feeds.feedburner.com/martinkl"
+    },
+    {
+      "text": "email notification",
+      "href": "https://martinkl.substack.com/"
+    },
+    {
+      "text": "follow me on Bluesky",
+      "href": "https://bsky.app/profile/martin.kleppmann.com"
+    },
+    {
+      "text": "Mastodon",
+      "href": "https://nondeterministic.computer/@martin"
+    },
+    {
+      "text": "RSS feed",
+      "href": "http://feeds.feedburner.com/martinkl"
+    },
+    {
+      "text": "",
+      "href": "http://dataintensive.net/"
+    },
+    {
+      "text": "Designing Data-Intensive Applications",
+      "href": "http://dataintensive.net/"
+    },
+    {
+      "text": "thousands",
+      "href": "https://www.goodreads.com/book/show/23466395-designing-data-intensive-applications"
+    },
+    {
+      "text": "local-first software",
+      "href": "https://www.inkandswitch.com/local-first/"
+    },
+    {
+      "text": "University of Cambridge",
+      "href": "http://www.cst.cam.ac.uk/"
+    },
+    {
+      "text": "support me on Patreon",
+      "href": "https://www.patreon.com/martinkl"
+    },
+    {
+      "text": "Announcing the Centre for Cryptographic Trust Infrastructure (CCTI)",
+      "href": "https://martin.kleppmann.com/2026/10/07/centre-for-cryptographic-trust-infrastructure.html"
+    },
+    {
+      "text": "Prediction: AI will make formal verification go mainstream",
+      "href": "https://martin.kleppmann.com/2025/12/08/ai-formal-verification.html"
+    },
+    {
+      "text": "Pudding: user discovery for anonymity networks",
+      "href": "https://martin.kleppmann.com/2024/07/05/pudding-user-discovery-anonymity-networks.html"
+    },
+    {
+      "text": "2023 year in review",
+      "href": "https://martin.kleppmann.com/2024/01/04/year-in-review.html"
+    },
+    {
+      "text": "Verifying distributed systems with Isabelle/HOL",
+      "href": "https://martin.kleppmann.com/2022/10/12/verifying-distributed-systems-isabelle.html"
+    },
+    {
+      "text": "Full archive",
+      "href": "https://martin.kleppmann.com/archive.html"
+    },
+    {
+      "text": "09 Dec 2026 at 30th Conference on Principles of Distributed Systems (OPODIS)",
+      "href": "https://martin.kleppmann.com/2026/12/09/opodis-keynote.html"
+    },
+    {
+      "text": "24 Sep 2026 at 45th International Symposium on Reliable Distributed Systems (SRDS)",
+      "href": "https://martin.kleppmann.com/2026/09/24/srds-keynote.html"
+    },
+    {
+      "text": "12 Jul 2026 at Local-First Conference",
+      "href": "https://martin.kleppmann.com/2026/07/12/local-first-conf.html"
+    },
+    {
+      "text": "17 Mar 2026 at QCon London",
+      "href": "https://martin.kleppmann.com/2026/03/17/qcon-keynote-geopolitical-risk.html"
+    },
+    {
+      "text": "24 Feb 2026 at Local First (LoFi) meetup",
+      "href": "https://martin.kleppmann.com/2026/02/24/local-first-meetup.html"
+    },
+    {
+      "text": "Full archive",
+      "href": "https://martin.kleppmann.com/talks.html"
+    },
+    {
+      "text": "",
+      "href": "http://creativecommons.org/licenses/by/3.0/"
+    },
+    {
+      "text": "Creative Commons Attribution 3.0 Unported License",
+      "href": "http://creativecommons.org/licenses/by/3.0/"
+    },
+    {
+      "text": "Carrington",
+      "href": "http://carringtontheme.com/"
+    },
+    {
+      "text": "Jekyll",
+      "href": "https://github.com/mojombo/jekyll"
+    }
+  ]
+}

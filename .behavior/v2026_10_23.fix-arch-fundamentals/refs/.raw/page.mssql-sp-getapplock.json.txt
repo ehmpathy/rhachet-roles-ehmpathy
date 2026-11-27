@@ -1,0 +1,442 @@
+sys.sp_getapplock (Transact-SQL) - SQL Server | Microsoft Learn
+https://learn.microsoft.com/en-us/sql/relational-databases/system-stored-procedures/sp-getapplock-transact-sql?view=sql-server-ver17
+fetched 2026-11-27T11:32:17.856Z
+
+Skip to main content
+Skip to Ask Learn chat experience
+Learn
+Documentation
+Training & Labs
+Q&A
+Topics
+Sign in
+SQL
+Overview
+Install
+Secure
+Develop
+More
+Azure Portal
+Download SQL Server
+Version
+SQL Server 2025
+Search
+SQL Server
+Docs navigation tips
+Previous versions 2005-2014
+Overview
+What is SQL Server?
+The Microsoft SQL Database Engine
+Connect to the Database Engine
+What's new?
+Editions and features
+Release notes
+Known issues
+AI
+Business continuity
+Database design
+Development
+Internals & architecture
+Installation
+Migrate & load data
+Manage, monitor, & tune
+Query data
+Reporting & Analytics
+Security
+Tools
+Tutorials
+SQL Server on Linux
+SQL on Azure
+SQL Server on Azure Local
+Azure Arc
+Resources
+Reference
+Database samples
+Errors & events
+Event classes
+Native interfaces
+System catalog views
+System compatibility views
+System dynamic management views and functions
+System functions
+System information schema views
+System stored procedures
+Overview
+Active Geo-Replication
+Spatial indexes
+Catalog
+Change Data Capture
+Change Tracking
+Cursor
+Data Collector
+Database Engine
+Overview
+sp_add_data_file_recover_suspect_db
+sp_addextendedproc
+sp_addextendedproperty
+sp_add_log_file_recover_suspect_db
+sp_addmessage
+sp_addtype
+sp_addumpdevice
+sp_altermessage
+sp_attach_db
+sp_attach_single_file_db
+sp_autostats
+sp_batch_params
+sp_bindefault
+sp_bindrule
+sp_bindsession
+sp_certify_removable
+sp_clean_db_free_space
+sp_clean_db_file_free_space
+sp_configure
+sp_configure_automatic_tuning
+sp_control_plan_guide
+sp_create_plan_guide
+sp_create_plan_guide_from_handle
+sp_create_removable
+sp_createstats
+sp_datatype_info
+sp_db_increased_partitions
+sp_db_vardecimal_storage_format
+sp_dbcmptlevel
+sp_dbmmonitoraddmonitoring
+sp_dbmmonitorchangealert
+sp_dbmmonitorchangemonitoring
+sp_dbmmonitordropalert
+sp_dbmmonitordropmonitoring
+sp_dbmmonitorhelpalert
+sp_dbmmonitorhelpmonitoring
+sp_dbmmonitorresults
+sp_dbmmonitorupdate
+sp_dbremove
+sp_delete_backuphistory
+sp_delete_database_backuphistory
+sp_depends
+sp_describe_first_result_set
+sp_describe_undeclared_parameters
+sp_detach_db
+sp_dropdevice
+sp_dropextendedproc
+sp_dropextendedproperty
+sp_dropmessage
+sp_droptype
+sp_estimate_data_compression_savings
+sp_estimated_rowsize_reduction_for_vardecimal
+sp_executesql
+sp_execute_external_script
+sp_getbindtoken
+sp_getapplock
+sp_get_endpoint_certificate
+sp_get_query_template
+sp_help
+sp_helpconstraint
+sp_helpdb
+sp_helpdevice
+sp_helpextendedproc
+sp_helpfile
+sp_helpfilegroup
+sp_helpindex
+sp_helplanguage
+sp_helpserver
+sp_helpsort
+sp_helpstats
+sp_helptext
+sp_helptrigger
+sp_indexoption
+sp_invalidate_textptr
+sp_invoke_external_rest_endpoint
+sp_lock
+sp_monitor
+sp_persistent_version_cleanup
+sp_procoption
+sp_recompile
+sp_refreshsqlmodule
+sp_refreshview
+sp_releaseapplock
+sp_rename
+sp_renamedb
+sp_resetstatus
+sp_rxpredict
+sp_sequence_get_range
+sp_server_diagnostics
+sp_set_session_context
+sp_setnetname
+sp_settriggerorder
+sp_spaceused
+sp_tableoption
+sp_unbindefault
+sp_unbindrule
+sp_updateextendedproperty
+sp_updatestats
+sp_validname
+sp_who
+sys.sp_flush_log
+sys.sp_xtp_bind_db_resource_pool
+sys.sp_xtp_checkpoint_force_garbage_collection
+sys.sp_xtp_control_proc_exec_stats
+sys.sp_xtp_control_query_exec_stats
+sys.sp_xtp_force_gc
+sys.sp_xtp_merge_checkpoint_files
+sys.sp_xtp_unbind_db_resource_pool
+Database Mail
+Database Maintenance Plan
+Distributed Queries
+FILESTREAM and FileTable
+Full-Text Search & Semantic Search
+General extended
+Log shipping
+Managed backup
+Management Data Warehouse
+MSDTC
+OLE automation
+PolyBase
+Policy-Based Management
+Query Store
+Replication
+Security
+Snapshot Backup
+Fabric mirrored databases
+SQL Server Agent
+Extended Events
+SQL Server Profiler
+Temporal tables
+XML
+System tables
+Transact-SQL (T-SQL) Reference
+xQuery
+Microsoft Learn
+Download PDF
+LearnSQLSQL Server
+Ask Learn
+sys.sp_getapplock (Transact-SQL)
+Summarize this article for me
+In this article
+Syntax
+Arguments
+Return code values
+Remarks
+Show 3 more
+
+Applies to:  SQL Server  Azure SQL Database  Azure SQL Managed Instance  SQL database in Microsoft Fabric
+
+Places a lock on an application resource.
+
+ Transact-SQL syntax conventions
+
+Syntax
+syntaxsql
+Copy
+sys.sp_getapplock
+    [ [ @Resource = ] N'Resource' ]
+    , [ @LockMode = ] 'LockMode'
+    [ , [ @LockOwner = ] 'LockOwner' ]
+    [ , [ @LockTimeout = ] LockTimeout ]
+    [ , [ @DbPrincipal = ] N'DbPrincipal' ]
+[ ; ]
+
+Arguments
+[ @Resource = ] N'Resource'
+
+A string specifying a name that identifies the lock resource. @Resource is nvarchar(255), with a default of NULL. If a resource string is longer than nvarchar(255), the value is truncated to nvarchar(255).
+
+The application must ensure that the resource name is unique. The specified name is hashed internally into a value that can be stored in the SQL Server lock manager.
+
+@Resource is binary-compared, and thus is case-sensitive regardless of the collation settings of the current database.
+
+ Note
+
+After an application lock has been acquired, only the first 32 characters can be retrieved in plain text; the remainder will be hashed.
+
+[ @LockMode = ] 'LockMode'
+
+The lock mode to be obtained for a particular resource. @LockMode is varchar(32), with no default, and is one of the following values:
+
+Shared
+Update
+IntentShared
+IntentExclusive
+Exclusive
+
+For more information, see lock modes.
+
+[ @LockOwner = ] 'LockOwner'
+
+The owner of the lock, which is the @LockOwner value when the lock was requested. @LockOwner is varchar(32), with a default of Transaction. The value can also be Session. When the @LockOwner value is Transaction, by default or specified explicitly, sp_getapplock must be executed from within a transaction.
+
+[ @LockTimeout = ] LockTimeout
+
+A lock timeout value in milliseconds. @LockTimeout is int, and the default value is the same as the value returned by @@LOCK_TIMEOUT. A value of -1 (default) indicates no timeout period (that is, wait forever). To indicate that a lock request should return a return code of -1 instead of waiting for the lock when the request can't be granted immediately, specify 0.
+
+[ @DbPrincipal = ] N'DbPrincipal'
+
+The user, role, or application role that has permissions to an object in a database. @DbPrincipal is sysname, with a default of public. The caller of the function must be a member of database_principal, dbo, or the db_owner fixed database role to call the function successfully.
+
+Return code values
+
+>= 0 (success), or < 0 (failure).
+
+Expand table
+Value	Result
+0	The lock was successfully granted synchronously.
+1	The lock was granted successfully after waiting for other incompatible locks to be released.
+-1	The lock request timed out.
+-2	The lock request was canceled.
+-3	The lock request was chosen as a deadlock victim.
+-999	Indicates a parameter validation or other call error.
+Remarks
+
+Locks placed on a resource are associated with either the current transaction or the current session. Locks associated with the current transaction are released when the transaction commits or rolls back. Locks associated with the session are released when the session is logged out. When the server shuts down for any reason, all locks are released.
+
+The lock resource created by sp_getapplock is created in the current database for the session. Each lock resource is identified by the combined values of:
+
+The database ID of the database containing the lock resource.
+The database principal specified in the @DbPrincipal parameter.
+The lock name specified in the @Resource parameter.
+
+Only a member of the database principal specified in the @DbPrincipal parameter can acquire application locks that specify that principal. Members of the dbo and db_owner fixed database roles are implicitly considered members of all roles.
+
+Locks can be explicitly released with sp_releaseapplock. When an application calls sp_getapplock multiple times for the same lock resource, sp_releaseapplock must be called the same number of times to release the lock. When a lock is opened with the Transaction lock owner, that lock is released when the transaction is committed or rolled back.
+
+If sp_getapplock is called multiple times for the same lock resource, but the lock mode that is specified in any of the requests isn't the same as the existing mode, the effect on the resource is a union of the two lock modes. In most cases, the lock mode is promoted to the stronger of the lock modes, the existing mode, or the newly requested mode. This stronger lock mode is held until the lock is ultimately released even if lock release calls occur before that time.
+
+For example, in the following sequence of calls, the resource is held in Exclusive mode instead of in Shared mode.
+
+SQL
+Copy
+USE AdventureWorks2025;
+GO
+
+BEGIN TRANSACTION;
+
+DECLARE @result AS INT;
+
+EXECUTE
+    @result = sp_getapplock
+    @Resource = 'Form1',
+    @LockMode = 'Shared';
+
+EXECUTE
+    @result = sp_getapplock
+    @Resource = 'Form1',
+    @LockMode = 'Exclusive';
+
+EXECUTE
+    @result = sp_releaseapplock
+    @Resource = 'Form1';
+
+COMMIT TRANSACTION;
+GO
+
+
+A deadlock with an application lock doesn't roll back the transaction that requested the application lock. Any rollback that might be required as a result of the return value must be done manually. So, we recommend that error checking is included in the code, so that if certain values are returned (for example, -3), a ROLLBACK TRANSACTION or alternative action is initiated.
+
+Here's an example:
+
+SQL
+Copy
+USE AdventureWorks2025;
+GO
+
+BEGIN TRANSACTION;
+
+DECLARE @result AS INT;
+
+EXECUTE
+    @result = sp_getapplock
+    @Resource = 'Form1',
+    @LockMode = 'Exclusive';
+
+IF @result = -3
+BEGIN
+    ROLLBACK;
+END
+ELSE
+BEGIN
+    EXECUTE
+        @result = sp_releaseapplock
+        @Resource = 'Form1';
+    COMMIT TRANSACTION;
+END
+GO
+
+
+SQL Server uses the current database ID to qualify the resource. Therefore, if sp_getapplock is executed, even with identical parameter values on different databases, the result is separate locks on separate resources.
+
+Use the sys.dm_tran_locks dynamic management view or the sp_lock system stored procedure to examine lock information, or use SQL Server Profiler to monitor locks.
+
+Permissions
+
+Requires membership in the public fixed database role.
+
+Examples
+
+The following example places a shared lock, which is associated with the current transaction, on the resource Form1 in the AdventureWorks2025 database.
+
+SQL
+Copy
+USE AdventureWorks2025;
+GO
+
+BEGIN TRANSACTION;
+
+DECLARE @result AS INT;
+
+EXECUTE
+    @result = sp_getapplock
+    @Resource = 'Form1',
+    @LockMode = 'Shared';
+
+COMMIT TRANSACTION;
+GO
+
+
+The following example specifies dbo as the database principal.
+
+SQL
+Copy
+BEGIN TRANSACTION;
+
+EXECUTE sp_getapplock
+    @DbPrincipal = 'dbo',
+    @Resource = 'AdventureWorks2025',
+    @LockMode = 'Shared';
+
+COMMIT TRANSACTION;
+GO
+
+Related content
+APPLOCK_MODE (Transact-SQL)
+APPLOCK_TEST (Transact-SQL)
+sys.sp_releaseapplock (Transact-SQL)
+Reading mode disabled
+Feedback
+
+Was this page helpful?
+
+Yes
+No
+Additional resources
+
+Events
+
+FabCon Atlanta
+
+Sep 15, 1 AM - Sep 17, 10 AM
+
+The top Fabric and SQL community-led learning event. Mar 2027. Save $200 with code MSCMTY.
+
+Register
+Last updated on 11/02/2026
+English (United States)
+Your Privacy Choices
+Theme
+AI Disclaimer
+Previous Versions
+Blog
+Contribute
+Privacy
+Consumer Health Privacy
+Terms of Use
+Trademarks
+© Microsoft 2026

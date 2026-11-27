@@ -1,0 +1,70 @@
+{
+  "source": {
+    "id": "page.wiki-hoare-logic",
+    "kind": "page",
+    "url": "https://en.wikipedia.org/wiki/Hoare_logic",
+    "keywords": [
+      "Floyd",
+      "1967",
+      "1969",
+      "invariant"
+    ]
+  },
+  "urlFinal": "https://en.wikipedia.org/wiki/Hoare_logic",
+  "status": 200,
+  "fetchedAt": "2026-11-23T13:30:58.745Z",
+  "title": "Hoare logic - Wikipedia",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "Hoare logic - Wikipedia"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "Floyd",
+      "window": "Jump to content Main menu Search Appearance Donate Create account Log in Toggle the table of contents Hoare logic 17 languages Article Talk Read Edit source View history Save Tools From Wikipedia, the free encyclopedia Hoare logic (also known as Floyd–Hoare logic or Hoare rules) is a formal system with a set of logical rules for reasoning rigorously about the correctness of computer programs. It was proposed in 1969 by the British computer scientist and logician Tony Hoare, and subsequently refined by Hoare and other researchers.[1] The original ideas were seeded by the work of Robert W. Floyd, who had published a similar system[2] for fl"
+    },
+    {
+      "keyword": "Floyd",
+      "window": "the free encyclopedia Hoare logic (also known as Floyd–Hoare logic or Hoare rules) is a formal system with a set of logical rules for reasoning rigorously about the correctness of computer programs. It was proposed in 1969 by the British computer scientist and logician Tony Hoare, and subsequently refined by Hoare and other researchers.[1] The original ideas were seeded by the work of Robert W. Floyd, who had published a similar system[2] for flowcharts. Hoare tripleedit source The central feature of Hoare logic is the Hoare triple. A triple describes how the execution of a piece of code changes the state of the computation. A Hoare triple is of the form { 𝑃 } 𝐶 { 𝑄 } where 𝑃 and 𝑄 are assertions and 𝐶 is a command.[note 1] 𝑃 is named the precondition and 𝑄 the postcondi"
+    },
+    {
+      "keyword": "Floyd",
+      "window": "8] gives the following version of a total correctness rule: 𝑃 ∧ 𝐵 → 0 ≤ 𝑡 , [ 𝑃 ∧ 𝐵 ∧ 𝑡 = 𝑧 ] 𝑆 [ 𝑃 ∧ 𝑡 < 𝑧 ] [ 𝑃 ] 𝚠𝚑𝚒𝚕𝚎 𝐵 𝚍𝚘 𝑆 𝚍𝚘𝚗𝚎 [ 𝑃 ∧ ¬ 𝐵 ] when z is an integer variable that doesn't occur free in P, B, S, or t, and t is an integer expression (Reynolds' variables renamed to fit with this article's settings). Referencesedit source Jump up to: Hoare 1969. Floyd 1967. Lamport, Leslie (1980). \"The 'Hoare logic' of concurrent programs\". Acta Informatica. 14 (1): 21–37. doi:10.1007/BF00289062. ISSN 1432-0525. Clint, M.; Hoare, C. A. R. (1972). \"Program proving: Jumps and functions\". Acta Informatica. 1 (3): 214–224. doi:10.1007/BF00288686. ISSN 1432-0525. Reynolds 2009, Sect. 3.4, p. 64. Huth & Ryan 2004. Apt & Olderog 2019. Reynolds 2009. Biblio"
+    },
+    {
+      "keyword": "1967",
+      "window": "es the following version of a total correctness rule: 𝑃 ∧ 𝐵 → 0 ≤ 𝑡 , [ 𝑃 ∧ 𝐵 ∧ 𝑡 = 𝑧 ] 𝑆 [ 𝑃 ∧ 𝑡 < 𝑧 ] [ 𝑃 ] 𝚠𝚑𝚒𝚕𝚎 𝐵 𝚍𝚘 𝑆 𝚍𝚘𝚗𝚎 [ 𝑃 ∧ ¬ 𝐵 ] when z is an integer variable that doesn't occur free in P, B, S, or t, and t is an integer expression (Reynolds' variables renamed to fit with this article's settings). Referencesedit source Jump up to: Hoare 1969. Floyd 1967. Lamport, Leslie (1980). \"The 'Hoare logic' of concurrent programs\". Acta Informatica. 14 (1): 21–37. doi:10.1007/BF00289062. ISSN 1432-0525. Clint, M.; Hoare, C. A. R. (1972). \"Program proving: Jumps and functions\". Acta Informatica. 1 (3): 214–224. doi:10.1007/BF00288686. ISSN 1432-0525. Reynolds 2009, Sect. 3.4, p. 64. Huth & Ryan 2004. Apt & Olderog 2019. Reynolds 2009. Bibliography"
+    },
+    {
+      "keyword": "1967",
+      "window": "ta Informatica. 1 (3): 214–224. doi:10.1007/BF00288686. ISSN 1432-0525. Reynolds 2009, Sect. 3.4, p. 64. Huth & Ryan 2004. Apt & Olderog 2019. Reynolds 2009. Bibliographyedit source Apt, Krzysztof R.; Olderog, Ernst-Rüdiger (December 2019). \"Fifty years of Hoare's logic\". Formal Aspects of Computing. 31 (6): 759. arXiv:1904.03917. doi:10.1007/s00165-019-00501-3. S2CID 102351597. Floyd, R. W. (1967). \"Assigning meanings to programs\" (PDF). Proceedings of the American Mathematical Society. Symposia on Applied Mathematics. 19: 19–31. Hoare, C. A. R. (October 1969). \"An Axiomatic Basis for Computer Programming\". Communications of the ACM. 12 (10): 576–583. doi:10.1145/363235.363259. S2CID 207726175. Huth, Michael; Ryan, Mark (26 August 2004). Logic in Computer Science: Modelling and reason"
+    },
+    {
+      "keyword": "1969",
+      "window": "Main menu Search Appearance Donate Create account Log in Toggle the table of contents Hoare logic 17 languages Article Talk Read Edit source View history Save Tools From Wikipedia, the free encyclopedia Hoare logic (also known as Floyd–Hoare logic or Hoare rules) is a formal system with a set of logical rules for reasoning rigorously about the correctness of computer programs. It was proposed in 1969 by the British computer scientist and logician Tony Hoare, and subsequently refined by Hoare and other researchers.[1] The original ideas were seeded by the work of Robert W. Floyd, who had published a similar system[2] for flowcharts. Hoare tripleedit source The central feature of Hoare logic is the Hoare triple. A triple describes how the execution of a piece of code changes the state of"
+    },
+    {
+      "keyword": "1969",
+      "window": "t at all. Indeed, one can choose 𝑄 to be false to express that 𝐶 does not terminate. \"Termination\" here and in the rest of this article is meant in the broader sense that computation will eventually be finished, that is, it implies the absence of infinite loops; it does not imply the absence of implementation limit violations (e.g., division by zero), stopping the program prematurely. In his 1969 paper, Hoare used a narrower notion of termination, which also entailed the absence of implementation limit violations, and expressed his preference for the broader notion of termination as it keeps assertions implementation-independent: Another deficiency in the axioms and rules quoted above is that they give no basis for a proof that a program successfully terminates. Failure to terminate"
+    },
+    {
+      "keyword": "1969",
+      "window": "s, for example, the size and speed of the computer, the range of numbers, and the choice of overflow technique. Apart from proofs of the avoidance of infinite loops, it is probably better to prove the “conditional” correctness of a program and rely on an implementation to give a warning if it has had to abandon execution of the program as a result of violation of an implementation limit. — Hoare 1969, pp. 578–579 Rulesedit source Empty statement axiom schemaedit source The empty statement rule asserts that the skip statement does not change the state of the program, thus whatever holds true before skip also holds true afterwards.[note 2] { 𝑃 } 𝚜𝚔𝚒𝚙 { 𝑃 } Assignment axiom schemaedit source The assignment axiom states that, after the assignment, any predicate that was previously t"
+    },
+    {
+      "keyword": "invariant",
+      "window": "} and { 𝚝𝚛𝚞𝚎 } , respectively, to strengthen again the precondition. Informally, the effect of the consequence rule is to \"forget\" that { 𝑥 = 15 } is known at the entry of the else part, since the assignment rule used for the else part doesn't need that information. While ruleedit source { 𝑃 ∧ 𝐵 } 𝑆 { 𝑃 } { 𝑃 } 𝚠𝚑𝚒𝚕𝚎 𝐵 𝚍𝚘 𝑆 𝚍𝚘𝚗𝚎 { ¬ 𝐵 ∧ 𝑃 } Here P is the loop invariant, which is to be preserved by the loop body S. After the loop is finished, this invariant P still holds, and moreover ¬ 𝐵 must have caused the loop to end. As in the conditional rule, B must not have side effects. For example, a proof of { 𝑥 ≤ 10 } 𝚠𝚑𝚒𝚕𝚎 𝑥 < 10 𝚍𝚘 𝑥 := 𝑥 + 1 𝚍𝚘𝚗𝚎 { ¬ 𝑥 < 10 ∧ 𝑥 ≤ 10 } by the while rule requires to prove { 𝑥 ≤ 10 ∧ 𝑥 < 10 }"
+    },
+    {
+      "keyword": "invariant",
+      "window": "e effect of the consequence rule is to \"forget\" that { 𝑥 = 15 } is known at the entry of the else part, since the assignment rule used for the else part doesn't need that information. While ruleedit source { 𝑃 ∧ 𝐵 } 𝑆 { 𝑃 } { 𝑃 } 𝚠𝚑𝚒𝚕𝚎 𝐵 𝚍𝚘 𝑆 𝚍𝚘𝚗𝚎 { ¬ 𝐵 ∧ 𝑃 } Here P is the loop invariant, which is to be preserved by the loop body S. After the loop is finished, this invariant P still holds, and moreover ¬ 𝐵 must have caused the loop to end. As in the conditional rule, B must not have side effects. For example, a proof of { 𝑥 ≤ 10 } 𝚠𝚑𝚒𝚕𝚎 𝑥 < 10 𝚍𝚘 𝑥 := 𝑥 + 1 𝚍𝚘𝚗𝚎 { ¬ 𝑥 < 10 ∧ 𝑥 ≤ 10 } by the while rule requires to prove { 𝑥 ≤ 10 ∧ 𝑥 < 10 } 𝑥 := 𝑥 + 1 { 𝑥 ≤ 10 } , or simplified { 𝑥 < 10 } 𝑥 := 𝑥 + 1 { 𝑥 ≤ 10 } , which"
+    },
+    {
+      "keyword": "invariant",
+      "window": "ion as well as partial correctness. Commonly, square brackets are used here instead of curly braces to indicate the different notion of program correctness. < is a well-founded ordering on the set 𝐷 , [ 𝑃 ∧ 𝐵 ∧ 𝑡 ∈ 𝐷 ∧ 𝑡 = 𝑧 ] 𝑆 [ 𝑃 ∧ 𝑡 ∈ 𝐷 ∧ 𝑡 < 𝑧 ] [ 𝑃 ∧ 𝑡 ∈ 𝐷 ] 𝚠𝚑𝚒𝚕𝚎 𝐵 𝚍𝚘 𝑆 𝚍𝚘𝚗𝚎 [ ¬ 𝐵 ∧ 𝑃 ∧ 𝑡 ∈ 𝐷 ] In this rule, in addition to maintaining the loop invariant, one also proves termination by way of an expression t, called the loop variant, whose value strictly decreases with respect to a well-founded relation < on some domain set D during each iteration. Since < is well-founded, a strictly decreasing chain of members of D can have only finite length, so t cannot keep decreasing forever. (For example, the usual order < is well-founded on positi"
+    }
+  ],
+  "textLength": 19117
+}

@@ -22,6 +22,7 @@ always:
       - briefs/practices/lang.terms/rule.require.order.noun_adj.md
       - briefs/practices/lang.terms/rule.require.ubiqlang.md
       - briefs/practices/lang.terms/rule.require.treestruct.md
+      - briefs/practices/lang.terms/define.constraint.kind=invariant.md
 
       # prose overlay — simplified technical english (asd-ste100, telegraphic)
       - briefs/practices/lang.prose/define.wick-dense.md
@@ -44,21 +45,38 @@ always:
       - briefs/practices/lang.tones/rule.forbid.shouted-readme.md
 
       # term enforcement via hooks — ref only (hooks already block violations)
-      - briefs/practices/lang.terms/rule.forbid.term-dryrun.md
+      - briefs/practices/lang.terms/philosophy.why-we-ban-terms.md
       - briefs/practices/lang.terms/rule.forbid.term=dryrun.md
       - briefs/practices/lang.terms/rule.forbid.term=existing.md
       - briefs/practices/lang.terms/rule.forbid.term=helpers.md
+      - briefs/practices/lang.terms/rule.forbid.term=map.md
+      - briefs/practices/lang.terms/rule.forbid.term=model.md
       - briefs/practices/lang.terms/rule.forbid.term=normalize.md
       - briefs/practices/lang.terms/rule.forbid.term=resolve.md
-      - briefs/practices/lang.terms/rule.forbid.term-script.md
+      - briefs/practices/lang.terms/rule.forbid.term=state.md
+      - briefs/practices/lang.terms/rule.forbid.term=store.md
+      - briefs/practices/lang.terms/rule.forbid.term=property.md
+      - briefs/practices/lang.terms/rule.forbid.term=hold.md
+      - briefs/practices/lang.terms/rule.forbid.term=row.md
+      - briefs/practices/lang.terms/rule.forbid.term=fold.md
+      - briefs/practices/lang.terms/rule.forbid.term=nothing.md
+      - briefs/practices/lang.terms/rule.forbid.term=staging.md
+      - briefs/practices/lang.terms/rule.forbid.term=script.md
 
       # supplements and references
       - briefs/practices/lang.terms/rule.forbid.flag-pr.md
       - briefs/practices/lang.terms/rule.prefer.term-supplier.md
       - briefs/practices/lang.terms/rule.prefer.kind-over-type.md
+      - briefs/practices/lang.terms/rule.prefer.converge-contrast.md
+      - briefs/practices/lang.terms/rule.prefer.occurred-observed.md
+      - briefs/practices/lang.terms/rule.prefer.root-leaf.md
       - briefs/practices/lang.terms/rule.require.order.noun_adj.md.pt2.md
       - briefs/practices/lang.terms/define.exec-vs-apply.md
       - briefs/practices/lang.terms/define.prodcode-testcode.terms=prodcode_vs_testcode.md
+
+    # term-ban examples: read on demand, each path computable from its rule's see-also
+    not:
+      - briefs/practices/lang.terms/rule.forbid.term=*.example=*
 
   skills:
     say:
@@ -168,6 +186,7 @@ subject.code.prod:
       - briefs/practices/code.prod/evolvable.domain.objects/rule.forbid.nullable-without-reason.md
       - briefs/practices/code.prod/evolvable.domain.objects/rule.forbid.undefined-attributes.md
       - briefs/practices/code.prod/evolvable.domain.objects/rule.require.immutable-refs.md
+      - briefs/practices/code.prod/evolvable.domain.objects/rule.require.domain-event-suffix.md
 
       # domain operations
       - briefs/practices/code.prod/evolvable.domain.operations/rule.require.sync-filename-opname.md
@@ -188,7 +207,6 @@ subject.code.prod:
       # procedures (pit of success)
       - briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.nonidempotent-mutations.md
       - briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.undefined-inputs.md
-      - briefs/practices/code.prod/pitofsuccess.procedures/rule.require.idempotent-procedures.md
       - briefs/practices/code.prod/pitofsuccess.procedures/rule.require.immutable-vars.md
 
       # typedefs
@@ -230,6 +248,7 @@ subject.code.prod:
       # require twins — the forbid peer stays say (it names the violation; it carries the cure)
       - briefs/practices/code.prod/pitofsuccess.typedefs/rule.require.assure-via-type-checks.md
       - briefs/practices/code.prod/readable.narrative/rule.require.named-transformers.md
+      - briefs/practices/code.prod/pitofsuccess.procedures/rule.require.idempotent-procedures.md
 
       # glossaries — the require pole, full detail; the forbid pole above is say
       - briefs/practices/code.prod/consistent.glossaries/rule.require.iso-time.md
@@ -323,6 +342,7 @@ subject.arch:
       - briefs/practices/code.prod/evolvable.domain.objects/rule.forbid.nullable-without-reason.md
       - briefs/practices/code.prod/evolvable.domain.objects/rule.forbid.undefined-attributes.md
       - briefs/practices/code.prod/evolvable.domain.objects/rule.require.immutable-refs.md
+      - briefs/practices/code.prod/evolvable.domain.objects/rule.require.domain-event-suffix.md
 
     ref:
       - briefs/practices/code.prod/evolvable.architecture/rule.prefer.wet-over-dry.md
@@ -334,7 +354,7 @@ subject.flow:
       - briefs/practices/work.flow/rule.require.trust-but-verify.md
       - briefs/practices/work.flow/rule.prefer.scouts-honor.md
       - briefs/practices/work.flow/diagnose/rule.require.clamp-edge-cases.md
-      - briefs/practices/work.flow/refactor/rule.require.review-test-changes.md
+      - briefs/practices/work.flow/refactor/rule.forbid.test-edit-without-named-proof.md
       - briefs/practices/work.flow/release/rule.require.commit-scopes.md
       - briefs/practices/work.flow/release/rule.require.watch-release-after-push.md
       - briefs/practices/work.flow/release/rule.require.git-release-confidence.md
@@ -347,6 +367,8 @@ subject.flow:
     ref:
       # peers — clamp-edge-cases carries test-covered-repairs; the sedreplace skill carries its rule
       - briefs/practices/work.flow/diagnose/rule.require.test-covered-repairs.md
+      # require twin — test-edit-without-named-proof stays say (it names the violation; it carries the cure)
+      - briefs/practices/work.flow/refactor/rule.require.review-test-changes.md
       - briefs/practices/work.flow/refactor/rule.prefer.sedreplace-for-renames.md
 
       - briefs/practices/work.flow/diagnose/howto.bisect.[lesson].md

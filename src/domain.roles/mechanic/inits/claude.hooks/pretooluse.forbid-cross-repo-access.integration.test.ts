@@ -722,7 +722,7 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
     );
   });
 
-  // .why = the vision named binary files as a cost of the no-escape-hatch
+  // .why = the vision named binary files as a cost of the no-unbundle
   //        choice: `git.repo.get lines` reads text, so a binary peer file has
   //        no clean sanctioned read. it was named and then never revisited —
   //        the behavior was ASSUMED, never verified. this pins what actually

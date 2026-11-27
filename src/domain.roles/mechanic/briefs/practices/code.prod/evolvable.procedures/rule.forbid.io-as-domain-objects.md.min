@@ -37,12 +37,6 @@ export const sendInvoice = async (
   context: { emailService: EmailService },
 ): Promise<{ sent: boolean; sentAt: string | null }> => { /* ... */ };
 ```
-```ts
-export const generateMonthlyReport = async (
-  input: { customerId: string; month: string; year: number },
-  context: { reportDao: ReportDao },
-): Promise<{ report: Report; generatedAt: string }> => { /* ... */ };
-```
 
 #### .enforcement
 - domain objects for input/output shapes = BLOCKER

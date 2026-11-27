@@ -20,7 +20,7 @@ exports[`forbid-terms hooks · fork budget given: [case1] a clean Write that tri
 exports[`forbid-terms hooks · fork budget given: [case2] a Write that DOES trip a term when: [t0] the blocklist hook runs under the shim then: the breakdown is snapshotted 1`] = `
 {
   "cat": 1,
-  "grep": 10,
+  "grep": 1,
   "jq": 5,
   "mkdir": 1,
   "mv": 1,
@@ -49,7 +49,7 @@ exports[`forbid-terms hooks · fork budget given: [case2] a Write that DOES trip
 exports[`forbid-terms hooks · fork budget given: [case5] a permitted RETRY, inside the nudge window when: [t0] the blocklist hook runs under the shim then: the breakdown is snapshotted 1`] = `
 {
   "cat": 1,
-  "grep": 10,
+  "grep": 1,
   "jq": 4,
   "sed": 1,
   "sha256sum": 1,

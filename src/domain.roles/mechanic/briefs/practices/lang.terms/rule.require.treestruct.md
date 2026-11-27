@@ -1,10 +1,10 @@
 .tactic = name:treestruct
 
-.what = enforce `[verb][...noun]` for mechanisms and `[...noun][state]?` for resources
+.what = enforce `[verb][...noun]` for mechanisms and `[...noun][status]?` for resources
 .where:
   - `verb` = exactly one lead verb (e.g., `gen`, `set`, `get`, `map`)
   - `...noun` = hierarchy of nouns that reflects the domain treestruct
-  - `state` = optional suffix that represents state or outcome (e.g., `Updated`, `Found`, `After`, `Draft`)
+  - `status` = optional suffix that names a status or outcome (e.g., `Updated`, `Found`, `After`, `Draft`)
   - this tactic applies to all named functions, types, files, folders, and slugs
 
 .why:
@@ -18,11 +18,11 @@
       - use format: `[Verb][...NounHierarchy]`
       - the verb must come **first**, and be **exactly one** action (e.g., `gen`, `set`, `get`, `map`, `submit`)
       - e.g., `genStepImagineViaTemplate`, `setCustomerPhone`, `mapJobQuoteToEstimate`
-    - For **resources** (stateful data, outcomes, snapshots):
-      - use format: `[...NounHierarchy][State]?`
-      - the optional `State` suffix:
+    - For **resources** (stored data, outcomes, snapshots):
+      - use format: `[...NounHierarchy][Status]?`
+      - the optional `Status` suffix:
         - is used to disambiguate multiple forms (e.g., `InvoiceDraft` vs `InvoiceFinal`)
-        - is typically a past participle or state label (e.g., `Found`, `After`, `Draft`)
+        - is typically a past participle or status label (e.g., `Found`, `After`, `Draft`)
         - may be omitted if the base noun already implies a single clear definition
       - e.g., `contentFound`, `customer`, `invoiceDraft`
 
@@ -32,12 +32,12 @@
       - `genStepImagineViaTemplate`   // generates a StitchStepImagine from a template
       - `setCustomerPhone`            // sets the customer's phone number
       - `mapGitRepoToWorkspace`       // maps a Git repo into a workspace domain
-      - `getInvoiceFinalizedState`    // retrieves the final state of an invoice
+      - `getInvoiceFinalizedStatus`   // retrieves the final status of an invoice
 
       // resources
       - `contentFound`                // content retrieved from a source
       - `customer`                    // single canonical term for a user of services
-      - `invoiceDraft`                // invoice in editable state
+      - `invoiceDraft`                // invoice in editable status
       - `invoice`                     // base noun with implicit sense
 
     .negative:

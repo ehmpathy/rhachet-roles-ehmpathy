@@ -1,0 +1,73 @@
+{
+  "source": {
+    "id": "page.haerder-reuter1983-acm",
+    "kind": "page",
+    "url": "https://dl.acm.org/doi/10.1145/289.291",
+    "keywords": [
+      "atomicity",
+      "consistency",
+      "isolation",
+      "durability"
+    ]
+  },
+  "urlFinal": "https://dl.acm.org/doi/10.1145/289.291",
+  "status": 200,
+  "fetchedAt": "2026-11-26T13:19:18.765Z",
+  "title": "Principles of transaction-oriented database recovery | ACM Computing Surveys",
+  "meta": [
+    {
+      "name": "citation_journal_title",
+      "content": "ACM Computing Surveys (CSUR)"
+    },
+    {
+      "name": "dc.Title",
+      "content": "Principles of transaction-oriented database recovery"
+    },
+    {
+      "name": "dc.Creator",
+      "content": "HaerderTheo "
+    },
+    {
+      "name": "dc.Creator",
+      "content": "ReuterAndreas "
+    },
+    {
+      "name": "dc.Publisher",
+      "content": "ACMPUB27New York, NY, USA"
+    },
+    {
+      "name": "dc.Date",
+      "content": "1983-12-02"
+    },
+    {
+      "name": "dc.Type",
+      "content": "article"
+    },
+    {
+      "name": "dc.Format",
+      "content": "text/HTML"
+    },
+    {
+      "name": "dc.Identifier",
+      "content": "291"
+    },
+    {
+      "name": "dc.Identifier",
+      "content": "10.1145/289.291"
+    },
+    {
+      "name": "dc.Language",
+      "content": "EN"
+    },
+    {
+      "name": "dc.Coverage",
+      "content": "New York, NY, USA"
+    },
+    {
+      "name": "og:title",
+      "content": "Principles of transaction-oriented database recovery | ACM Computing Surveys"
+    }
+  ],
+  "windows": [],
+  "textLength": 6271
+}

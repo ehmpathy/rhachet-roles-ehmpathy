@@ -1,0 +1,70 @@
+{
+  "source": {
+    "id": "page.azure-saga",
+    "kind": "page",
+    "url": "https://learn.microsoft.com/en-us/azure/architecture/patterns/saga",
+    "keywords": [
+      "compensat",
+      "two-phase",
+      "anomal",
+      "isolation"
+    ]
+  },
+  "urlFinal": "https://learn.microsoft.com/en-us/azure/architecture/patterns/saga",
+  "status": 200,
+  "fetchedAt": "2026-11-26T13:57:55.990Z",
+  "title": "Saga Design Pattern - Azure Architecture Center | Microsoft Learn",
+  "meta": [
+    {
+      "name": "description",
+      "content": "Learn how to use the Saga design pattern to help ensure data consistency on distributed transactions in microservices architectures."
+    },
+    {
+      "name": "og:title",
+      "content": "Saga Design Pattern - Azure Architecture Center"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "compensat",
+      "window": "cture Migration Develop Learn Azure More Portal Get started with Azure Search Azure Architecture Center Browse all Architectures Architecture icons What's new Application architecture fundamentals Introduction Architecture styles Design patterns Overview Ambassador Anti-Corruption Layer Asynchronous Request-Reply Backends for Frontends Bulkhead Cache-Aside Choreography Circuit Breaker Claim Check Compensating Transaction Competing Consumers Compute Resource Consolidation CQRS Deployment Stamps Event Sourcing External Configuration Store Federated Identity Gatekeeper Gateway Aggregation Gateway Offloading Gateway Routing Geode Health Endpoint Monitoring Idempotent Consumer Index Table Leader Election Materialized View Messaging Bridge Pipes and Filters Priority Queue Publisher-Subscriber Qu"
+    },
+    {
+      "keyword": "compensat",
+      "window": "ctions pattern Summarize this article for me In this article Context and problem Solution Problems and considerations When to use this pattern Show 2 more Maintain data consistency in distributed systems by coordinating a sequence of local transactions across multiple services. Each service performs its operation and triggers the next step through events or messages. If a step fails, a series of compensating transactions undoes the changes that the completed steps made. Context and problem A transaction represents a unit of work, which can include multiple operations. Within a transaction, an event refers to a state change that affects an entity. A command encapsulates all information needed to perform an action or trigger a subsequent event. Transactions must adhere to the principles"
+    },
+    {
+      "keyword": "compensat",
+      "window": "e commit protocol, are often better suited for the Saga pattern. Solution The Saga pattern manages transactions by breaking them into a sequence of local transactions. Each local transaction: Completes its work atomically within a single service. Updates the service's database. Initiates the next transaction via an event or message. If a local transaction fails, the saga performs a series of compensating transactions to reverse the changes that the preceding local transactions made. Key concepts in the Saga pattern Compensable transactions can be undone or compensated for by other transactions with the opposite effect. If a step in the saga fails, compensating transactions undo the changes that the compensable transactions made. Pivot transactions serve as the point of no return in"
+    },
+    {
+      "keyword": "two-phase",
+      "window": "dependently. Failures in one service are isolated from other services. Despite these advantages, this architecture complicates cross-service data consistency. Traditional database guarantees like ACID aren't directly applicable to multiple independently managed data stores. Because of these limitations, architectures that rely on interprocess communication, or traditional transaction models like two-phase commit protocol, are often better suited for the Saga pattern. Solution The Saga pattern manages transactions by breaking them into a sequence of local transactions. Each local transaction: Completes its work atomically within a single service. Updates the service's database. Initiates the next transaction via an event or message. If a local transaction fails, the saga performs a se"
+    },
+    {
+      "keyword": "anomal",
+      "window": "operation doesn't alter the outcome. For more information, see Idempotent Consumer pattern. Need for monitoring and tracking sagas: Monitoring and tracking the workflow of a saga are essential tasks to maintain operational oversight. Limitations of compensating transactions: Compensating transactions might not always succeed, which can leave the system in an inconsistent state. Potential data anomalies in sagas Data anomalies are inconsistencies that can occur when sagas operate across multiple services. Because each service manages its own data, called participant data, there's no built-in isolation across services. This setup can result in data inconsistencies or durability problems, such as partially applied updates or conflicts between services. Typical problems include: Lost upd"
+    },
+    {
+      "keyword": "anomal",
+      "window": "the outcome. For more information, see Idempotent Consumer pattern. Need for monitoring and tracking sagas: Monitoring and tracking the workflow of a saga are essential tasks to maintain operational oversight. Limitations of compensating transactions: Compensating transactions might not always succeed, which can leave the system in an inconsistent state. Potential data anomalies in sagas Data anomalies are inconsistencies that can occur when sagas operate across multiple services. Because each service manages its own data, called participant data, there's no built-in isolation across services. This setup can result in data inconsistencies or durability problems, such as partially applied updates or conflicts between services. Typical problems include: Lost updates: When one saga modif"
+    },
+    {
+      "keyword": "anomal",
+      "window": "hen one saga modifies data without considering changes made by another saga, it results in overwritten or missing updates. Dirty reads: When a saga or transaction reads data that another saga has modified, but the modification isn't complete. Fuzzy, or nonrepeatable, reads: When different steps in a saga read inconsistent data because updates occur between the reads. Strategies to address data anomalies To reduce or prevent these anomalies, consider the following countermeasures: Semantic lock: Use application-level locks when a saga's compensable transaction uses a semaphore to indicate that an update is in progress. Commutative updates: Design updates so that they can be applied in any order while still producing the same result. This approach helps reduce conflicts between sagas."
+    },
+    {
+      "keyword": "isolation",
+      "window": "ndoes the changes that the completed steps made. Context and problem A transaction represents a unit of work, which can include multiple operations. Within a transaction, an event refers to a state change that affects an entity. A command encapsulates all information needed to perform an action or trigger a subsequent event. Transactions must adhere to the principles of atomicity, consistency, isolation, and durability (ACID). Atomicity: All operations succeed or no operations succeed. Consistency: Data transitions from one valid state to another valid state. Isolation: Concurrent transactions yield the same results as sequential transactions. Durability: Changes persist after they're committed, even when failures occur. In a single service, transactions follow ACID principles because"
+    },
+    {
+      "keyword": "isolation",
+      "window": "n, an event refers to a state change that affects an entity. A command encapsulates all information needed to perform an action or trigger a subsequent event. Transactions must adhere to the principles of atomicity, consistency, isolation, and durability (ACID). Atomicity: All operations succeed or no operations succeed. Consistency: Data transitions from one valid state to another valid state. Isolation: Concurrent transactions yield the same results as sequential transactions. Durability: Changes persist after they're committed, even when failures occur. In a single service, transactions follow ACID principles because they operate within a single database. However, it can be more complex to achieve ACID compliance across multiple services. Challenges in microservices architectures M"
+    },
+    {
+      "keyword": "isolation",
+      "window": "maintain operational oversight. Limitations of compensating transactions: Compensating transactions might not always succeed, which can leave the system in an inconsistent state. Potential data anomalies in sagas Data anomalies are inconsistencies that can occur when sagas operate across multiple services. Because each service manages its own data, called participant data, there's no built-in isolation across services. This setup can result in data inconsistencies or durability problems, such as partially applied updates or conflicts between services. Typical problems include: Lost updates: When one saga modifies data without considering changes made by another saga, it results in overwritten or missing updates. Dirty reads: When a saga or transaction reads data that another saga has"
+    }
+  ],
+  "textLength": 12787
+}

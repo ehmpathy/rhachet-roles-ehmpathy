@@ -1,0 +1,121 @@
+{
+  "source": {
+    "id": "liskovguttag1986",
+    "kind": "crossref",
+    "query": "Liskov Guttag Abstraction and Specification in Program Development 1986",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Liskov%20Guttag%20Abstraction%20and%20Specification%20in%20Program%20Development%201986&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-25T02:42:06.269Z",
+  "items": [
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "3",
+      "DOI": "10.1145/12923.1013575",
+      "type": "journal-article",
+      "page": "79-81",
+      "title": [
+        "Book review: Abstraction and Specification in Program Development by Barbara Liskov and John Guttag (MIT Press/McGraw-Hill, 1988, 469 pages, ISBN 0-262-12112-3)"
+      ],
+      "volume": "11",
+      "author": [
+        {
+          "given": "Dan",
+          "family": "Conde",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "ACM SIGSOFT Software Engineering Notes"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1986,
+            7
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.1007/bfb0014684",
+      "title": [
+        "Notes on type abstraction"
+      ],
+      "author": [
+        {
+          "given": "John",
+          "family": "Guttag",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Lecture Notes in Computer Science",
+        "Program Construction"
+      ],
+      "page": "593-616",
+      "issued": {
+        "date-parts": [
+          [
+            1979
+          ]
+        ]
+      },
+      "publisher": "Springer Berlin Heidelberg",
+      "type": "book-chapter"
+    },
+    {
+      "DOI": "10.1145/1283920.1962421",
+      "title": [
+        "The Power of Abstraction"
+      ],
+      "author": [
+        {
+          "given": "Barbara",
+          "family": "Liskov",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Massachusetts Institute of Technology"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "ACM Turing award lectures"
+      ],
+      "page": "2008",
+      "issued": {
+        "date-parts": [
+          [
+            2011,
+            3,
+            24
+          ]
+        ]
+      },
+      "publisher": "ACM",
+      "type": "book-chapter"
+    }
+  ]
+}

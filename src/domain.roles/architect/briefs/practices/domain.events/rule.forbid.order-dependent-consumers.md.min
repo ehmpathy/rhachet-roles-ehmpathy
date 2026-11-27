@@ -1,0 +1,8 @@
+# rule.forbid.order-dependent-consumers
+
+never let a consumer's result depend on the order its facts arrive in. expect facts out of order, late, and twice
+why: no order is promised — a retry, a second partition, a replay, a late publisher reorder the stream · it is correct only by luck, then corrupts records with no error · it forces a rewind (`rule.forbid.retroactive-replay`)
+smell: last write wins by arrival (an upsert with no version guard) · `lesson.status = fact.status` with no guarded edge · a handler that throws or drops a fact when its predecessor is absent · correctness that rests on one queue, one partition, or a sequence across streams
+cure: key on the fact, version on `observedAt` — apply only a newer version (`pattern=latest-version-wins`, `pattern=idempotent-consumer`) · move each status by a guarded edge (`pattern=guarded-status-transitions`) · a fact that needs another waits via an async task, or carries what it needs · prove it: deliver one set shuffled, reversed, and repeated; assert the same records
+enforcement: records that differ by arrival order = blocker; an upsert from a fact with no version guard = blocker; no out-of-order test = nitpick
+full: catalog.of=pattern.event._ (facet `order`)

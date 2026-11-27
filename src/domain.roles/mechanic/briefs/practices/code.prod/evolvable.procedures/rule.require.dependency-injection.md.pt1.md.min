@@ -1,74 +1,13 @@
-## brief.ergonomist.dependency-injection
+## rule.require.dependency-injection
 
-### topic: dependency injection why pass dependencies instead of hardcode
-
----
-
-### goal
-build flexible, testable, decoupled software via explicit dependencies.
-
----
-
-### what it is
-dependency injection = pass function/class needs from outside.
-
-example:
+pass dependencies in, never hardcode them: a procedure says "give me what i need" via the paved `(input, context)` contract
 ```ts
-// 👍 dependency injection via context
 export const upsert = async (
   { cost }: { cost: JobLeadCost },
-  context: { dbConnection: DatabaseConnection, log: LogMethods },
+  context: { dbConnection: DatabaseConnection; log: LogMethods },
 ) => {
-  context.log.debug("began.upsert", { cost });
-  const updated = await context.dbConnection.query('SELECT * FROM ...');
-  await emitJobLeadCostSetEvent(updated, context);
-  return updated;
+  context.log.debug('began.upsert', { cost });
+  return context.dbConnection.query('SELECT * FROM ...');
 };
 ```
-- function doesn’t build tools; needs passed in for testability.
-
----
-
-### paved pattern: (input, context)
-dependency injection via standard contract:
-```ts
-export const doThing = async (
-  input: SomeInput,
-  context: { db: Db; log: Logger }
-) => { ... }
-```
-- dependencies in context; keeps input clean.
-
----
-
-### why it matters
-- testability: swap dependencies with mocks
-- flexibility: change implementations easily
-- separation: business logic doesn’t manage tools
-- explicitness: visible system wires
-- reusability: logic works with different tools
-
----
-
-### core principle
-do not make decisions deep inside; let outer layers inject. keep policies separate from behaviors.
-
----
-
-### mental model
-dependency injection = plug in tool instead of build one every time. procedures say: "give me what i need".
-
----
-
-### practical benefits
-| without di | with di |
-|------------|---------|
-| hardcoded database | database via parameters |
-| requires real api in tests | inject mock for tests |
-| logic tied to tools | logic with any tool |
-| hard to switch | swappable with setup |
-
----
-
-### final synthesis
-inject dependencies for test, scale, evolve. builds pure, decoupled, testable systems by remove shared state and found effects. enables modularity via external dependencies.
+why: testable (inject a fake) · flexible (swap the implementation) · explicit (the wires show) · reusable (the logic runs with any tool). outer layers decide; inner logic behaves

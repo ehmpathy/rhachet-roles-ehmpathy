@@ -1,0 +1,6 @@
+# rule.forbid.implicit-invariants
+
+never let correctness rest on a domain invariant no inventory entry declares. implicit, it lives in one head, one guard, or one test — the next writer, human or robot, cannot see it to keep it
+smell: a guard or test that holds a domain rule with no entry to cite (no `[i00n]`) · a comment "this must never exceed stock" · a review "why can this never go negative?" with no entry to point at
+cure — walk `rule.require.invariant-before-operation`: (1) declare it in `inventory.of=invariant`: statement, baseline, boundary cases, in domain words (`howto.itemize-constraints._`) · (2) name each break path: race, retry, second write path, bad input, partial failure · (3) enforce each, structural first: type, domain object, one write path, storage constraint, optimistic lock · (4) prove each break case with a test that cites the id, red without its enforcement. the entry never names the enforcement
+enforcement: a write whose correctness rests on an undeclared invariant = blocker; a test or guard that holds a domain rule with no entry to cite = blocker

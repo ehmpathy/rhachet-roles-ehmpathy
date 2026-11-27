@@ -1,0 +1,56 @@
+{
+  "source": {
+    "id": "page.kleppmann2016-distributed-locking",
+    "kind": "page",
+    "url": "https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html",
+    "keywords": [
+      "fencing",
+      "pause",
+      "lease"
+    ]
+  },
+  "urlFinal": "https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html",
+  "status": 200,
+  "fetchedAt": "2026-11-26T12:56:24.329Z",
+  "title": "How to do distributed locking — Martin Kleppmann’s blog",
+  "meta": [],
+  "windows": [
+    {
+      "keyword": "fencing",
+      "window": "0 seconds [8]. This means that an application process may send a write request, and it may reach the storage server a minute later when the lease has already expired. Even in well-managed networks, this kind of thing can happen. You simply cannot make any assumptions about timing, which is why the code above is fundamentally unsafe, no matter what lock service you use. Making the lock safe with fencing The fix for this problem is actually pretty simple: you need to include a fencing token with every write request to the storage service. In this context, a fencing token is simply a number that increases (e.g. incremented by the lock service) every time a client acquires the lock. This is illustrated in the following diagram: Client 1 acquires the lease and gets a token of 33, but then i"
+    },
+    {
+      "keyword": "fencing",
+      "window": "it may reach the storage server a minute later when the lease has already expired. Even in well-managed networks, this kind of thing can happen. You simply cannot make any assumptions about timing, which is why the code above is fundamentally unsafe, no matter what lock service you use. Making the lock safe with fencing The fix for this problem is actually pretty simple: you need to include a fencing token with every write request to the storage service. In this context, a fencing token is simply a number that increases (e.g. incremented by the lock service) every time a client acquires the lock. This is illustrated in the following diagram: Client 1 acquires the lease and gets a token of 33, but then it goes into a long pause and the lease expires. Client 2 acquires the lease, gets a"
+    },
+    {
+      "keyword": "fencing",
+      "window": ". Even in well-managed networks, this kind of thing can happen. You simply cannot make any assumptions about timing, which is why the code above is fundamentally unsafe, no matter what lock service you use. Making the lock safe with fencing The fix for this problem is actually pretty simple: you need to include a fencing token with every write request to the storage service. In this context, a fencing token is simply a number that increases (e.g. incremented by the lock service) every time a client acquires the lock. This is illustrated in the following diagram: Client 1 acquires the lease and gets a token of 33, but then it goes into a long pause and the lease expires. Client 2 acquires the lease, gets a token of 34 (the number always increases), and then sends its write to the storag"
+    },
+    {
+      "keyword": "pause",
+      "window": "{ var file = storage.readFile(filename); var updated = updateContents(file, data); storage.writeFile(filename, updated); } finally { lock.release(); } } Unfortunately, even if you have a perfect lock service, the code above is broken. The following diagram shows how you can end up with corrupted data: In this example, the client that acquired the lock is paused for an extended period of time while holding the lock – for example because the garbage collector (GC) kicked in. The lock has a timeout (i.e. it is a lease), which is always a good idea (otherwise a crashed client could end up holding a lock forever and never releasing it). However, if the GC pause lasts longer than the lease expiry period, and the client doesn’t realise that it has expire"
+    },
+    {
+      "keyword": "pause",
+      "window": "ws how you can end up with corrupted data: In this example, the client that acquired the lock is paused for an extended period of time while holding the lock – for example because the garbage collector (GC) kicked in. The lock has a timeout (i.e. it is a lease), which is always a good idea (otherwise a crashed client could end up holding a lock forever and never releasing it). However, if the GC pause lasts longer than the lease expiry period, and the client doesn’t realise that it has expired, it may go ahead and make some unsafe change. This bug is not theoretical: HBase used to have this problem [3,4]. Normally, GC pauses are quite short, but “stop-the-world” GC pauses have sometimes been known to last for several minutes [5] – certainly long enough for a lease to expire. Even so-call"
+    },
+    {
+      "keyword": "pause",
+      "window": "has a timeout (i.e. it is a lease), which is always a good idea (otherwise a crashed client could end up holding a lock forever and never releasing it). However, if the GC pause lasts longer than the lease expiry period, and the client doesn’t realise that it has expired, it may go ahead and make some unsafe change. This bug is not theoretical: HBase used to have this problem [3,4]. Normally, GC pauses are quite short, but “stop-the-world” GC pauses have sometimes been known to last for several minutes [5] – certainly long enough for a lease to expire. Even so-called “concurrent” garbage collectors like the HotSpot JVM’s CMS cannot fully run in parallel with the application code – even they need to stop the world from time to time [6]. You cannot fix this problem by inserting a check on"
+    },
+    {
+      "keyword": "lease",
+      "window": "Skip to content Martin Kleppmann Student Projects About/Contact Supporters How to do distributed locking Published by Martin Kleppmann on 08 Feb 2016. As part of the research for my book, I came across an algorithm called Redlock on the Redis website. The algorithm claims to implement fault-tolerant distributed locks (or rather, leases [1]) on top of Redis, and the page asks for feedback from people who are into distributed systems. The algorithm instinctively set off some alarm bells in the back of my mind, so I spent a bit of time thinking about it and writing up these notes. Since there are already over 10 independent implementations of Redlock and we don’t know who is already relying on this algorithm, I thought it w"
+    },
+    {
+      "keyword": "lease",
+      "window": "multi-threaded application. It’s a more complicated beast, due to the problem that different nodes and the network can all fail independently in various ways. For example, say you have an application in which a client needs to update a file in shared storage (e.g. HDFS or S3). A client first acquires the lock, then reads the file, makes some changes, writes the modified file back, and finally releases the lock. The lock prevents two clients from performing this read-modify-write cycle concurrently, which would result in lost updates. The code might look something like this: // THIS CODE IS BROKEN function writeData(filename, data) { var lock = lockService.acquireLock(filename); if (!lock) { throw 'Failed to acquire lock'; } try { var file = storage.readF"
+    },
+    {
+      "keyword": "lease",
+      "window": "The code might look something like this: // THIS CODE IS BROKEN function writeData(filename, data) { var lock = lockService.acquireLock(filename); if (!lock) { throw 'Failed to acquire lock'; } try { var file = storage.readFile(filename); var updated = updateContents(file, data); storage.writeFile(filename, updated); } finally { lock.release(); } } Unfortunately, even if you have a perfect lock service, the code above is broken. The following diagram shows how you can end up with corrupted data: In this example, the client that acquired the lock is paused for an extended period of time while holding the lock – for example because the garbage collector (GC) kicked in. The lock has a timeout (i.e. it is a lease), which is al"
+    }
+  ],
+  "textLength": 24808
+}

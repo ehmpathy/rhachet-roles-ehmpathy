@@ -1,0 +1,27 @@
+diff --git a/dist/domain.roles/playwright/skills/browser.action.ts b/dist/domain.roles/playwright/skills/browser.action.ts
+index 8dc409e93ff099fc969c2911fee8abb563245240..a13d6b711d3975da292ed737a1a9c62710318136 100644
+--- a/dist/domain.roles/playwright/skills/browser.action.ts
++++ b/dist/domain.roles/playwright/skills/browser.action.ts
+@@ -3,6 +3,8 @@
+  * .why = enables playbook execution via CLI with proper error handle
+  */
+ import { BadRequestError } from 'helpful-errors';
++import { resolve as asPathAbsolute } from 'node:path';
++import { pathToFileURL } from 'node:url';
+ 
+ import {
+   type ConnectedBrowser,
+@@ -91,8 +93,11 @@ const runBrowserAction = async (args: {
+   session: string;
+ }): Promise<void> => {
+   try {
+-    // dynamic import of playbook module
+-    const playbookModule = await import(args.playbook);
++    // dynamic import of playbook module, read relative to the caller's cwd
++    // .note = a bare import() reads a relative specifier against this module's own dir
++    const playbookModule = await import(
++      pathToFileURL(asPathAbsolute(process.cwd(), args.playbook)).href
++    );
+     if (typeof playbookModule.action !== 'function') {
+       BadRequestError.throw('playbook must export an action function', {
+         playbook: args.playbook,

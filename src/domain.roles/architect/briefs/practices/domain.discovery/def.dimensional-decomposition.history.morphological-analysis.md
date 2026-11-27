@@ -35,7 +35,7 @@ break a problem into its **independent parameters** (dimensions), list the possi
 | support | wheels, tracks, hull, wings |
 | passengers | 1, 2–4, 5+ |
 
-one value per row yields a concept — air / solar / wings / 1 → a solar-powered single-seat aircraft. with 3×4×4×3 = 144 configurations, you surface options no ad-hoc brainstorm would reach.
+one value per parameter yields a concept — air / solar / wings / 1 → a solar-powered single-seat aircraft. with 3×4×4×3 = 144 configurations, you surface options no ad-hoc brainstorm would reach.
 
 ## .why it is useful
 

@@ -1,0 +1,57 @@
+{
+  "source": {
+    "id": "page.krakovna2020",
+    "kind": "page",
+    "url": "https://deepmind.google/discover/blog/specification-gaming-the-flip-side-of-ai-ingenuity/",
+    "keywords": [
+      "specification gaming",
+      "literal",
+      "intended"
+    ]
+  },
+  "urlFinal": "https://deepmind.google/blog/specification-gaming-the-flip-side-of-ai-ingenuity/",
+  "status": 200,
+  "fetchedAt": "2026-11-23T16:07:24.345Z",
+  "title": "Specification gaming: the flip side of AI ingenuity — Google DeepMind",
+  "meta": [
+    {
+      "name": "description",
+      "content": "Specification gaming is a behaviour that satisfies the literal specification of an objective without achieving the intended outcome. We have all had experiences with specification gaming, even if not…"
+    },
+    {
+      "name": "og:title",
+      "content": "Specification gaming: the flip side of AI ingenuity"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "specification gaming",
+      "window": "Skip to main content Google DeepMind April 21, 2020 Research Specification gaming: the flip side of AI ingenuity Victoria Krakovna, Jonathan Uesato, Vladimir Mikulik, Matthew Rahtz, Tom Everitt, Ramana Kumar, Zac Kenton, Jan Leike, Shane Legg Share Specification gaming is a behaviour that satisfies the literal specification of an objective without achieving the intended outcome. We have all had experiences with specification gaming, even if not by this n"
+    },
+    {
+      "keyword": "specification gaming",
+      "window": "Skip to main content Google DeepMind April 21, 2020 Research Specification gaming: the flip side of AI ingenuity Victoria Krakovna, Jonathan Uesato, Vladimir Mikulik, Matthew Rahtz, Tom Everitt, Ramana Kumar, Zac Kenton, Jan Leike, Shane Legg Share Specification gaming is a behaviour that satisfies the literal specification of an objective without achieving the intended outcome. We have all had experiences with specification gaming, even if not by this name. Readers may have heard the myth of King Midas and the golden touch, in which the king asks that anything he touches be turned to gold - but soon finds that even food and drink turn to me"
+    },
+    {
+      "keyword": "specification gaming",
+      "window": "nt Google DeepMind April 21, 2020 Research Specification gaming: the flip side of AI ingenuity Victoria Krakovna, Jonathan Uesato, Vladimir Mikulik, Matthew Rahtz, Tom Everitt, Ramana Kumar, Zac Kenton, Jan Leike, Shane Legg Share Specification gaming is a behaviour that satisfies the literal specification of an objective without achieving the intended outcome. We have all had experiences with specification gaming, even if not by this name. Readers may have heard the myth of King Midas and the golden touch, in which the king asks that anything he touches be turned to gold - but soon finds that even food and drink turn to metal in his hands. In the real world, when rewarded for doing well on a homework assignment, a student might copy another student to get the right answers, rather than"
+    },
+    {
+      "keyword": "literal",
+      "window": "Skip to main content Google DeepMind April 21, 2020 Research Specification gaming: the flip side of AI ingenuity Victoria Krakovna, Jonathan Uesato, Vladimir Mikulik, Matthew Rahtz, Tom Everitt, Ramana Kumar, Zac Kenton, Jan Leike, Shane Legg Share Specification gaming is a behaviour that satisfies the literal specification of an objective without achieving the intended outcome. We have all had experiences with specification gaming, even if not by this name. Readers may have heard the myth of King Midas and the golden touch, in which the king asks that anything he touches be turned to gold - but soon finds that even food and drink turn to metal in his hands. In the real world, when rewarded for"
+    },
+    {
+      "keyword": "intended",
+      "window": "Skip to main content Google DeepMind April 21, 2020 Research Specification gaming: the flip side of AI ingenuity Victoria Krakovna, Jonathan Uesato, Vladimir Mikulik, Matthew Rahtz, Tom Everitt, Ramana Kumar, Zac Kenton, Jan Leike, Shane Legg Share Specification gaming is a behaviour that satisfies the literal specification of an objective without achieving the intended outcome. We have all had experiences with specification gaming, even if not by this name. Readers may have heard the myth of King Midas and the golden touch, in which the king asks that anything he touches be turned to gold - but soon finds that even food and drink turn to metal in his hands. In the real world, when rewarded for doing well on a homework assignment, a student might copy an"
+    },
+    {
+      "keyword": "intended",
+      "window": "world, when rewarded for doing well on a homework assignment, a student might copy another student to get the right answers, rather than learning the material - and thus exploit a loophole in the task specification. This problem also arises in the design of artificial agents. For example, a reinforcement learning agent can find a shortcut to getting lots of reward without completing the task as intended by the human designer. These behaviours are common, and we have collected around 60 examples so far (aggregating existing lists and ongoing contributions from the AI community). In this post, we review possible causes for specification gaming, share examples of where this happens in practice, and argue for further work on principled approaches to overcoming specification problems. Let's"
+    },
+    {
+      "keyword": "intended",
+      "window": "ive, specification gaming is a good sign - the agent has found a novel way to achieve the specified objective. These behaviours demonstrate the ingenuity and power of algorithms to find ways to do exactly what we tell them to do. However, when we want an agent to actually stack Lego blocks, the same ingenuity can pose an issue. Within the broader scope of building aligned agents that achieve the intended outcome in the world, specification gaming is problematic, as it involves the agent exploiting a loophole in the specification at the expense of the intended outcome. These behaviours are caused by misspecification of the intended task, rather than any flaw in the RL algorithm. In addition to algorithm design, another necessary component of building aligned agents is reward design. Desig"
+    }
+  ],
+  "textLength": 11823
+}

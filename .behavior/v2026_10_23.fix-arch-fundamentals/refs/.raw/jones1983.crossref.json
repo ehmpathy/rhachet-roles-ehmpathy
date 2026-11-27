@@ -1,0 +1,118 @@
+{
+  "source": {
+    "id": "jones1983",
+    "kind": "crossref",
+    "query": "Jones Tentative steps toward a development method for interfering programs 1983",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Jones%20Tentative%20steps%20toward%20a%20development%20method%20for%20interfering%20programs%201983&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:15:44.942Z",
+  "items": [
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "4",
+      "DOI": "10.1145/69575.69577",
+      "type": "journal-article",
+      "page": "596-619",
+      "title": [
+        "Tentative steps toward a development method for interfering programs"
+      ],
+      "volume": "5",
+      "author": [
+        {
+          "given": "C. B.",
+          "family": "Jones",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Manchester University"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "ACM Transactions on Programming Languages and Systems"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1983,
+            10
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.1007/3-540-15239-3_14",
+      "title": [
+        "Jones: Development of interfering programs"
+      ],
+      "container-title": [
+        "Lecture Notes in Computer Science",
+        "A Survey of Verification Techniques for Parallel Programs"
+      ],
+      "page": "17-25",
+      "issued": {
+        "date-parts": [
+          [
+            1985
+          ]
+        ]
+      },
+      "publisher": "Springer Berlin Heidelberg",
+      "type": "book-chapter"
+    },
+    {
+      "DOI": "10.1093/oso/9780195085754.003.0011",
+      "title": [
+        "Moving from Catchments to Cognition: Tentative Steps Toward a Larger Archaeological Context for GIS"
+      ],
+      "author": [
+        {
+          "given": "Vincent",
+          "family": "Gaffney",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Helen",
+          "family": "Watson",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Anthropology, Space, and Geographic Information Systems"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1996,
+            10,
+            3
+          ]
+        ]
+      },
+      "publisher": "Oxford University Press",
+      "type": "book-chapter"
+    }
+  ]
+}

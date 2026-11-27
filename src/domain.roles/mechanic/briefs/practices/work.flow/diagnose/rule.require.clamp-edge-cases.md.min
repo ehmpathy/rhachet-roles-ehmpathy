@@ -5,6 +5,7 @@ every defect fix clamps its edge case: a regression test that fails before the f
 - treat the defect as an edge-case class (boundary, stale ref, empty input, race), not a point event
 - the repro that proves the fix IS the clamp — keep it
 - prove the clamp bites
+- broke an invariant? name it in the clamp's title; clamp its break case
 
 ## .prove it bites
 1. fix lands, clamp green

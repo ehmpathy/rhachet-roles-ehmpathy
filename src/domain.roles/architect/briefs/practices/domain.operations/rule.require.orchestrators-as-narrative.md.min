@@ -1,0 +1,10 @@
+# rule.require.orchestrators-as-narrative
+
+an orchestrator reads as narrative: each line tells what happens, never how
+```ts
+const emails = getAllActiveUserEmails({ users: input.users });
+const canAccess = isEligibleForPremiumFeatures({ user: input.user });
+if (canAccess) await context.sdkEmail.sendBulk({ to: emails, subject: 'Update' });
+```
+never machine code: no inline `.filter(…).sort(…)` pipelines or compound booleans in the orchestrator body
+enforcement: orchestrator with decode-friction = blocker

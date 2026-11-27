@@ -1,0 +1,100 @@
+Focusing on Events
+https://martinfowler.com/eaaDev/EventNarrative.html
+fetched 2026-11-26T14:46:32.506Z
+
+ 
+Refactoring
+Agile
+Architecture
+About
+Thoughtworks
+Table of Contents
+Focusing on Events
+
+25 January 2006
+
+Martin Fowler
+CONTENTS
+Representing an Event
+Using events to collaborate
+Event Sourcing
+Handling Events
+Events and Commands
+
+This is part of the Further Enterprise Application Architecture development writing that I was doing in the mid 2000’s. Sadly too many other things have claimed my attention since, so I haven’t had time to work on them further, nor do I see much time in the foreseeable future. As such this material is very much in draft form and I won’t be doing any corrections or updates until I’m able to find time to work on it again.
+
+One of the longest running ways to think about an enterprise application is as a system that reacts to events from the outside world. This is a way of thinking that became established in the structured design community in the second half of the 80's. You hear of it now under the banner of “Event-Driven Architecture”.
+
+This style of thinking concentrates on looking at a system's interaction with its world as transmissions of events. Inputs understood by forming an event list that describes each possible input to the system tied to an event in the outside world. Similarly the system announces any significant changes to itself by signaling events to outside systems.
+
+Looking at system events like this is something that can be part of the design process for a system. A good example of this was the technique of event partitioning used in later forms of structured analysis. It can also be baked into a system in the implementation, by explicitly creating event objects and feeding them into some handler for processing.
+
+Focusing our eyes on events like this has generated a lot of interest for integrating multiple systems - this is the driving point of event driven architecture. By using Event Messages you can easily decouple senders and receivers both in terms of identity (you broadcast events without caring who responds to them) and time (events can be queued and forwarded when the receiver is ready to process them). Such architectures offer a great deal for scalability and modifiability due to this loose coupling.
+
+In this section, however, I'm not so interested in these combinations - valuable as they are. Rather I'm interested on what an event focus does for a single application. As I've seen these I've noticed a number of interesting characteristics which have yielded some very interesting opportunities. Many of these have been rather fragmentary, and as a result I've had great difficulty organizing them in my mind. But there are opportunities here for some very interesting functionality which isn't usually the kind of thing that's offered in applications.
+
+Representing an Event
+
+I've talked about events rather loosely so far, but as we dig a little deeper we need to look events rather more closely. In essence a Domain Event signals something that has happened in the outside world that is of interest to the application. It's transmitted to the application in some data structure, carrying with it the data that describes the event - I call this the source data. Events can come from various places - messaging system, user-interface, triggers on database tables.
+
+Events have very different source data, since they can represent many different things. However two important things that events should have are Time Points. There are two distinct Time Points that we should always consider: the time the event occurred and the time the system noticed the event. (In a complex system there may even be several noticing times.) These Time Points correspond closely to the notions of actual and record that I talk about in the temporal patterns.
+
+As well as source data the events may also carry processing data which describes what we've done with the event. It's important to distinguish between the two. In particular an event's source data is immutable - it's what we know of what happened, and we can't easily change it. (There's a catch here, we may get incorrect source data, I'll come to that shortly.)
+
+Since Domain Events are objects, they are easy to record. It usually makes sense to log Domain Events and keep a record of them, if nothing else it makes a fine audit trail.
+
+Using events to collaborate
+
+We are used to dividing programs into multiple components that collaborate together. (I'm using the vague 'component' word here deliberately since in this context I mean many things: including objects within a program and multiple processes communicating across a network.) The most common way of making them collaborate is a request/response style. If a customer object wants some data from a salesman object, it invokes a method on the salesman object to ask it for that data.
+
+Another style of collaboration is Event Collaboration. In this style you never have one component asking another to do anything, instead each component signals an event when anything changes. Other components listen to that event and react however they wish to. The well-known observer pattern is an example of Event Collaboration.
+
+Event Collaboration changes a number of assumptions about objects carry out their responsibilities. In particular it changes the responsibilities around storing state. With request/response collaboration, we strive to have only one component store a particular peice of data, other components then ask that component for the data when it needs it. With event collaboration every component stores all the data it needs and listens to update events for that data. With request/response collaboration, the component that stores data is usually responsible for updating it, in Event Collaboration the component responsible for updating some data need not store it at all, all it has to do is ensure events are raised on the updates.
+
+Event Collaboration isn't mandatory when using events in applications, also the choice between Event Collaboration and request/response isn't an exclusive choice. Commonly I see a mix of the two styles, with request/response usually dominating.
+
+Event Collaboration results in very loose coupling which makes it particularly easy to add new components to a system without needing to modify existing components. The downside of Event Collaboration is that it's very hard to understand the collaboration. Request/response collaborations are specified in some form of code that shows the entire flow, Event Collaboration is much more implicit - which makes it much harder to debug when something unexpected happens.
+
+Event Sourcing
+
+But we can go further than an audit trail, into to some very interesting territory. The enabler for this occurs when all changes to a system are caused by events - an approach that I call Event Sourcing. Another way of looking at this is that Event Sourcing happens when we can entirely derive the state of an application by processing the log of Domain Events.
+
+This situation opens up some interesting opportunities, some functional some implementation. An immediate implementation opportunity is to keep the entire state of the application in-memory, dispensing entirely with a persistent database. If the application crashes, re-run the events - perhaps from a periodic snapshot of the application state. Systems may choose to do this for performance reasons or simplicity reasons - removing persistence logic from a system can greatly reduce the effort to build and maintain it. Of course not every system can go this route, but it's a useful option for some.
+
+Since our application state is entirely defined by the events we've processed, we can build alternative application states - which I call Parallel Models - by processing alternative lists of Domain Events. In particular these allow us to go back in time, building the application state at a past time in order examine why someone did what they did, or compare changes between the past and the present. As well as investigate the past they also allow us to consider things that haven't happened by exploring alternative event streams. What would have happened on Thursday had that storm only knocked out O'Hare airport for an hour instead of two? How would our operations be different if we shift our delivery cycle from once to twice per day?
+
+Parallel Models are not common in enterprise applications, but they are very familiar to the developers of enterprise applications. Source-code control systems, an essential part of any developer's toolkit, are systems that use Event Sourcing to produce Parallel Models on demand. These Parallel Models may be historic or allow multiple realities through branching. As a result source-code control systems can provide a valuable metaphor to explore the benefits and problems of Parallel Models.
+
+Another interesting thing we can do by manipulating an event stream is to deal with consequences of incorrect information. As I indicated earlier, event source data is immutable. We can't change that which we've received and processed. But what if what we received was wrong? If we are using Event Sourcing what we can do is go back to the the point where the event occurred and build a new Parallel Model that captures what should have happened - essentially replacing that incorrect event with a new Retroactive Event. In fact it can be surprisingly easy to entirely automate this process, which normally takes some involved and expensive manual work.
+
+So Event Sourcing sounds wonderful - do they have it at Safeways? Sadly there is a catch, indeed several catches. The simplest catch is the programming model - getting every update to a system in the form of a persistable event is awkward, particularly for heavily interactive systems. It's also unnatural, so it takes a bit of getting used to.
+
+But the real difficulty of Event Sourcing is hooking up to external systems that aren't centered on events. To replay events you need to be able to query external systems' past states. You have to avoid sending out duplicate updates to downstream systems. Source-code control systems, the paragon of Parallel Models, avoid this because they don't have to do this kind of dynamic integration. But many enterprise applications are as much about integration as they are about their own work, so these problems loom large.
+
+The problems aren't insurmountable. Depending on how much alternative processing you are doing, the degree of integration with external systems, and the degree to which those external systems themselves use events and Event Collaboration; they may be worth solving. Even without the the more fancy consequences of Event Sourcing designing a system that way provides excellent audit capabilities together with a base that allows you to move in a more sophisticated direction later on. Retrofitting Event Sourcing looks like it would be very messy (and I say that because I haven't come across a system that has retrofitted itself that way).
+
+Another thing to consider is that the whole system does not have to use Event Sourcing. Indeed mostly I've seen Event Sourcing where it's been used for part of a system - mostly the accounting side. Indeed previous attempts to write up these patterns were in terms of accounting because that's where I had seen it. Accounting also helps alleviate some of the problems of Event Sourcing as well as requiring the kind of strong auditing that Event Sourcing provides.
+
+Handling Events
+
+Whether events carry all a system's updates or only some, they present some interesting alternatives how to organize the processing logic that handles them.
+
+One particularly interesting style is the use of a dispatcher object which interrogates the event's source data to determine which actual performer object will process the event. This allows the performer objects to be simple while the dispatcher contains no business logic other than what is needed to find the correct performer.
+
+Conceptually there are many ways in which you can organize a dispatcher like this, but one recurring style I've seen is the Agreement Dispatcher. Here the central organizing feature of the dispatch mechanism is a contractual agreement that governs the context of the event. A sale made to a customer might be governed an on-going contract, or an implicit agreement that states common sales policies with occasional customers. This style encourages a sequence of delegations where the dispatcher interrogates the event to find which agreement to send it to, and the agreement object carries a further set of condition checking and the chain continues until a we reach the final performer.
+
+The strength is that much of the logic of matching of performer and event can be set up in inter-object relationships - in effect as data. This allows the system a great deal of configurability. In particular, by including time in this web of object relationships, we can deal with another common problem in event handling - coping with updates to business rules.
+
+Events and Commands
+
+In this discussion I refer to encapsulating all changes to an application state through events, I could easily state all of this using the word (and pattern) 'Command'. Events clearly share most of the properties of commands - the ability to have their own lifetime, to be queued and executed, event reversal is the same as command undo.
+
+One reason for using event is that the term is as widely used in the field for this kind of behavior. It's common hear terms such as event driven architecture and Event Message.
+
+In the end I went with event because I think there's a subtle, but important set of associations that come with it. People think of a command as encapsulating a request - with a command you tell a system to do X. Events, however, just communicate that something happened - with an event you let a system know that Y has happened. Another difference is that you think of broadcasting events to everyone who may be interested but sending commands only the a specific receiver. When it comes to actual behavior it doesn't really matter. The polymorphic reaction of a system to an X command need be no different to a Y event. Yet I think the naming does affect how people think about events and what kind of events they create.
+
+Command is a classic pattern described in [Gang of Four]. You should also look at [hohpe-woolf] for the contrast between Command Message and Event Message.
+
+Significant Revisions
+
+© Martin Fowler | Disclosures

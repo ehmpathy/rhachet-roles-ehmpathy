@@ -1,0 +1,9 @@
+# rule.forbid.command-messages
+
+never let one of our services change another's resources by a path that skips the owner's domain operations, or that hides the order. a peer may call an endpoint that exposes one of the owner's domain operations: the owner keeps its invariants, and its refusal reaches the caller at once
+forbidden: past the contract — a write to a peer's dao or tables, an endpoint that exposes dao access (`svcPayments.upsertPayment`) · overt, asynchronous — `RefundPayment` on the bus, a task enqueued into a peer's queue (no refusal reaches the sender) · disguised — an order dressed as a fact: `RefundRequiredEvent`, `BoardReleaseNeededEvent`
+not a command: a peer's call to an endpoint that exposes the owner's domain operation (`svcPayments.refundPayment`) · an actor's request at a service's own entrypoint · a call to a vendor about one's own resource there · a task a service enqueues for itself · a read
+smell: an imperative name on the bus (`Refund*`, `Send*`) · a peer client with a dao method · `*RequiredEvent`, `*NeededEvent`, `*RequestedEvent`, `Should*Event` · a sender that waits on the bus for a reply
+cure: call the owner's domain operation through its endpoint, and handle its refusal · or publish your own fact (`LessonCanceledEvent`, via `pattern=transactional-outbox`) and let the owner decide by its own policy; its outcome is a fact too (`PaymentRefundedEvent` | `RefundDeclinedEvent`)
+enforcement: a write to a peer's storage, or an endpoint that exposes dao access = blocker; an imperative message or a task enqueued into a peer's queue = blocker; an event named for a need = blocker
+full: catalog.of=pattern.event._ (`pattern=command-message`, `pattern=consumer-decides`) · rule.forbid.sagas

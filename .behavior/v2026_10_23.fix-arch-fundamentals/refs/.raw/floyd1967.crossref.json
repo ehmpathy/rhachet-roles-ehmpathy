@@ -1,0 +1,101 @@
+{
+  "source": {
+    "id": "floyd1967",
+    "kind": "crossref",
+    "query": "Floyd Assigning meanings to programs 1967",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Floyd%20Assigning%20meanings%20to%20programs%201967&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:11:24.486Z",
+  "items": [
+    {
+      "DOI": "10.1090/psapm/019/0235771",
+      "title": [
+        "Assigning meanings to programs"
+      ],
+      "author": [
+        {
+          "given": "Robert W.",
+          "family": "Floyd",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Proceedings of Symposia in Applied Mathematics",
+        "Mathematical Aspects of Computer Science"
+      ],
+      "page": "19-32",
+      "issued": {
+        "date-parts": [
+          [
+            1967
+          ]
+        ]
+      },
+      "publisher": "American Mathematical Society",
+      "type": "other"
+    },
+    {
+      "DOI": "10.1007/978-94-011-1793-7_4",
+      "title": [
+        "Assigning Meanings to Programs"
+      ],
+      "author": [
+        {
+          "given": "Robert W.",
+          "family": "Floyd",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Studies in Cognitive Systems",
+        "Program Verification"
+      ],
+      "page": "65-81",
+      "issued": {
+        "date-parts": [
+          [
+            1993
+          ]
+        ]
+      },
+      "publisher": "Springer Netherlands",
+      "type": "book-chapter"
+    },
+    {
+      "DOI": "10.1017/cbo9780511624162.014",
+      "title": [
+        "Refinement"
+      ],
+      "container-title": [
+        "The B-Book"
+      ],
+      "page": "501-550",
+      "issued": {
+        "date-parts": [
+          [
+            1996,
+            10,
+            10
+          ]
+        ]
+      },
+      "publisher": "Cambridge University Press",
+      "type": "book-chapter"
+    }
+  ]
+}

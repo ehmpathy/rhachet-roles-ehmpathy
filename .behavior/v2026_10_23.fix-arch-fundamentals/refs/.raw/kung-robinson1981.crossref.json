@@ -1,0 +1,150 @@
+{
+  "source": {
+    "id": "kung-robinson1981",
+    "kind": "crossref",
+    "query": "Kung Robinson On optimistic methods for concurrency control 1981",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Kung%20Robinson%20On%20optimistic%20methods%20for%20concurrency%20control%201981&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-24T05:42:15.839Z",
+  "items": [
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "2",
+      "DOI": "10.1145/319566.319567",
+      "type": "journal-article",
+      "page": "213-226",
+      "title": [
+        "On optimistic methods for concurrency control"
+      ],
+      "volume": "6",
+      "author": [
+        {
+          "given": "H. T.",
+          "family": "Kung",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Carnegie-Mellon Univ., Pittsburgh, PA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "John T.",
+          "family": "Robinson",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Carnegie-Mellon Univ., Pittsburgh, PA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "ACM Transactions on Database Systems"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1981,
+            6
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.1109/vldb.1979.718150",
+      "title": [
+        "On Optimistic Methods For Concurrency Control"
+      ],
+      "author": [
+        {
+          "given": "H.T.",
+          "family": "King",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Carnegie-Mellon University"
+            }
+          ],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        },
+        {
+          "given": "J.T.",
+          "family": "Robinson",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Fifth International Conference on Very Large Data Bases, 1979."
+      ],
+      "page": "351-351",
+      "issued": {
+        "date-parts": [
+          [
+            1979
+          ]
+        ]
+      },
+      "publisher": "IEEE",
+      "type": "proceedings-article"
+    },
+    {
+      "DOI": "10.1109/spdp.1990.143540",
+      "title": [
+        "Optimistic regulation of concurrency"
+      ],
+      "author": [
+        {
+          "given": "A.D.",
+          "family": "Robinson",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Proceedings of the Second IEEE Symposium on Parallel and Distributed Processing 1990"
+      ],
+      "page": "235-242",
+      "issued": {
+        "date-parts": [
+          [
+            null
+          ]
+        ]
+      },
+      "publisher": "IEEE Comput. Soc. Press",
+      "type": "proceedings-article"
+    }
+  ]
+}

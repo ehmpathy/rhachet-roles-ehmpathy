@@ -1,0 +1,235 @@
+{
+  "source": {
+    "id": "brooks1987",
+    "kind": "crossref",
+    "query": "No Silver Bullet Essence and Accidents of Software Engineering Brooks Computer 1987",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=No%20Silver%20Bullet%20Essence%20and%20Accidents%20of%20Software%20Engineering%20Brooks%20Computer%201987&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T16:05:38.826Z",
+  "items": [
+    {
+      "publisher": "Institute of Electrical and Electronics Engineers (IEEE)",
+      "issue": "4",
+      "DOI": "10.1109/mc.1987.1663532",
+      "type": "journal-article",
+      "page": "10-19",
+      "title": [
+        "No Silver Bullet Essence and Accidents of Software Engineering"
+      ],
+      "volume": "20",
+      "author": [
+        {
+          "family": "Brooks",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Computer"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1987,
+            4
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.1145/1297846.1297973",
+      "title": [
+        "\"No silver bullet\" reloaded"
+      ],
+      "author": [
+        {
+          "given": "Steven D.",
+          "family": "Fraser",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Cisco Systems, San Jose, CA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "suffix": "Jr.",
+          "given": "Frederick P.",
+          "family": "Brooks",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "UNC: Chapel Hill, Chapel Hill, NC"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Martin",
+          "family": "Fowler",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "ThoughtWorks, Boston, MA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Ricardo",
+          "family": "Lopez",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "QUALCOMM, San Diego, CA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Aki",
+          "family": "Namioka",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Cisco Systems, Seattle, WA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Linda",
+          "family": "Northrop",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "SEI (CMU), Pittsburgh, PA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "David Lorge",
+          "family": "Parnas",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "University of Limerick, Limerick, Ireland"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "David",
+          "family": "Thomas",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Bedarra Labs, Ottawa, ON, Canada"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Companion to the 22nd ACM SIGPLAN conference on Object-oriented programming systems and applications companion"
+      ],
+      "page": "1026-1030",
+      "issued": {
+        "date-parts": [
+          [
+            2007,
+            10,
+            20
+          ]
+        ]
+      },
+      "publisher": "ACM",
+      "type": "proceedings-article"
+    },
+    {
+      "publisher": "Springer Science and Business Media LLC",
+      "issue": "4",
+      "DOI": "10.1023/a:1009793700999",
+      "type": "journal-article",
+      "page": "333-338",
+      "title": [
+        "Meta Analysis—A Silver Bullet—for Meta-Analysts"
+      ],
+      "volume": "2",
+      "author": [
+        {
+          "given": "Andy",
+          "family": "Brooks",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Empirical Software Engineering"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1997,
+            12
+          ]
+        ]
+      }
+    }
+  ]
+}

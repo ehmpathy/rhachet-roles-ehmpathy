@@ -16,7 +16,7 @@ forbid decode-friction inline in orchestrators. all logic that requires mental s
 logic that requires you to mentally simulate what it produces:
 
 - array access with positional semantics: `slug.split('.')[0]!`
-- reduce/fold operations: `items.reduce((s, i) => s + i.amount, 0)`
+- reduce operations: `items.reduce((s, i) => s + i.amount, 0)`
 - filter/map/sort pipelines: `.filter(...).map(...).sort()`
 - complex boolean expressions: `a && b || c && !d`
 - regex extractions: `str.match(/pattern/)[1]`

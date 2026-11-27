@@ -1,0 +1,56 @@
+{
+  "source": {
+    "id": "page.aip180",
+    "kind": "page",
+    "url": "https://google.aip.dev/180",
+    "keywords": [
+      "backwards compatib",
+      "breaking",
+      "major version"
+    ]
+  },
+  "urlFinal": "https://google.aip.dev/180",
+  "status": 200,
+  "fetchedAt": "2026-11-23T16:08:25.121Z",
+  "title": "AIP-180: Backwards compatibility",
+  "meta": [],
+  "windows": [
+    {
+      "keyword": "backwards compatib",
+      "window": "AIPs Browse AIPs News FAQ Contributing API Linter View on GitHub AIPs View on GitHub API Improvement Proposals General AIPs Backwards compatibility AIP-180 Backwards compatibility APIs are fundamentally contracts with users, and users often write code against APIs that is then launched into a production service with the expectation that it continues to work (unless the API has a stability level that indicates otherwise). Therefore, it is important to understand what constitutes a backwards compatible change and what c"
+    },
+    {
+      "keyword": "backwards compatib",
+      "window": "AIPs Browse AIPs News FAQ Contributing API Linter View on GitHub AIPs View on GitHub API Improvement Proposals General AIPs Backwards compatibility AIP-180 Backwards compatibility APIs are fundamentally contracts with users, and users often write code against APIs that is then launched into a production service with the expectation that it continues to work (unless the API has a stability level that indicates otherwise). Therefore, it is important to understand what constitutes a backwards compatible change and what constitutes a backwards incompati"
+    },
+    {
+      "keyword": "backwards compatib",
+      "window": "Improvement Proposals General AIPs Backwards compatibility AIP-180 Backwards compatibility APIs are fundamentally contracts with users, and users often write code against APIs that is then launched into a production service with the expectation that it continues to work (unless the API has a stability level that indicates otherwise). Therefore, it is important to understand what constitutes a backwards compatible change and what constitutes a backwards incompatible change. Guidance Existing client code must not be broken by a service updating to a new minor or patch release. Old clients must be able to work against newer servers (with the same major version number). Important: It is not always clear whether a change is compatible or not. The guidance here should be treated as indica"
+    },
+    {
+      "keyword": "breaking",
+      "window": "e. In situations where this can allow users to specify conflicting values for the same semantic idea, the behavior must be clearly specified. Moving components between files Existing components must not be moved between files. Moving a component from one proto file to another within the same package is wire compatible, however, the code generated for languages like C++ or Python will result in breaking change since import and #include will no longer point to the correct code location. Moving into oneofs Existing fields must not be moved into or out of a oneof. This is a backwards-incompatible change in the Go protobuf stubs. Changing the type of fields Existing fields and messages must not have their type changed, even if the new type is wire-compatible, because type changes alter g"
+    },
+    {
+      "keyword": "breaking",
+      "window": "ce import and #include will no longer point to the correct code location. Moving into oneofs Existing fields must not be moved into or out of a oneof. This is a backwards-incompatible change in the Go protobuf stubs. Changing the type of fields Existing fields and messages must not have their type changed, even if the new type is wire-compatible, because type changes alter generated code in a breaking way. Changing string length APIs should avoid increasing the upper bound for the size or limit (if accepted as input) of string fields. APIs should treat expected size upper bound increases as incompatible changes (see Changing resource names as an example). APIs may pad out values with filler characters if reserving a consistent size is necessary, but this must be documented if done."
+    },
+    {
+      "keyword": "breaking",
+      "window": "er bound for the size or limit (if accepted as input) of string fields. APIs should treat expected size upper bound increases as incompatible changes (see Changing resource names as an example). APIs may pad out values with filler characters if reserving a consistent size is necessary, but this must be documented if done. Changing resource names A resource must not change its name. Unlike most breaking changes, this affects major versions as well: in order for a client to expect to use v2.0 access a resource that was created in v1.0 or vice versa, the same resource name must be used in both versions. More subtly, the set of valid resource names should not change either, for the following reasons: If resource name formats become more restrictive, a request that would previously have su"
+    },
+    {
+      "keyword": "major version",
+      "window": "ontinues to work (unless the API has a stability level that indicates otherwise). Therefore, it is important to understand what constitutes a backwards compatible change and what constitutes a backwards incompatible change. Guidance Existing client code must not be broken by a service updating to a new minor or patch release. Old clients must be able to work against newer servers (with the same major version number). Important: It is not always clear whether a change is compatible or not. The guidance here should be treated as indicative, rather than as a comprehensive list of every possible change. There are three distinct types of compatibility to consider: Source compatibility: Code written against a previous version must compile against a newer version, and successfully run with a"
+    },
+    {
+      "keyword": "major version",
+      "window": "API which has a more limited scope (for example, an API which is only called by client code written by the same team as the API producer, or deployed in a way which can enforce updates) should carefully consider its own compatibility requirements. Adding components In general, new components (interfaces, methods, messages, fields, enums, or enum values) may be added to existing APIs in the same major version. However, keep the following guidelines in mind when doing this: Code written against the previous surface (and thus is unaware of the new components) must continue to be treated the same way as before. New required fields must not be added to existing request messages or resources. Any field being populated by clients must have a default behavior matching the behavior before the f"
+    },
+    {
+      "keyword": "major version",
+      "window": "ts) to enter a situation where generated code will conflict. Service owners should be aware of subtleties in the tooling they or their users are likely to use (and tool authors should endeavor to avoid such subtleties if possible). Removing or renaming components Existing components (interfaces, methods, messages, fields, enums, or enum values) must not be removed from existing APIs in the same major version. Removing a component is a backwards incompatible change. Important: Renaming a component is semantically equivalent to \"remove and add\". In cases where these sorts of changes are desirable, a service may add the new component, but must not remove the existing one. In situations where this can allow users to specify conflicting values for the same semantic idea, the behavior must be"
+    }
+  ],
+  "textLength": 12089
+}

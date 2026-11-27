@@ -1,0 +1,6 @@
+# rule.avoid.unitemized-constraints
+
+avoid a constraint declared outside its inventory — in a comment, jsdoc, test name, readme, or pr description. declared (so not implicit), but not itemized: no entry, no id, no one place to list or cite it; two comments drift; a comment dies with its code
+smell: "invariant:" / "assumption:" / "guarantee:" in a comment with no id · a test named for a domain rule with no `[i00n]` / `[a00n]` / `[g00n]`
+cure: itemize it — one entry in its inventory (`howto.itemize-constraints._`), then cite the id where the comment was: `// enforces [i002] — one board per surfer per slot`
+enforcement: a constraint declared outside its inventory = nitpick

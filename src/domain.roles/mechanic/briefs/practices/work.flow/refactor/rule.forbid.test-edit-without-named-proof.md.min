@@ -1,0 +1,11 @@
+# rule.forbid.test-edit-without-named-proof
+
+never weaken, delete, or re-snapshot an assertion to turn a red test green unless you name what the test proves. no name → the test is right; fix the code
+name one:
+- glue — an implementation contract (call order, shape, dao write); most tests; named in words. kept → fix the code · replaced → retire the test with it; say which contract went. an assertion on what an entry governs is never glue
+- a domain invariant (`[i001]`): kept → fix the code · amended → entry first, then test
+- a guarantee (`[g001]`, acceptance): kept → fix the code · amended → entry first, then test; release-note the break
+a domain rule no entry names → derive it (implicit invariant or assumption, or deduced from the entries), record, act; unclear → best-guess, record, itemize a fulcrum; never halt to ask
+why: the test edit is cheap, so a robot under pressure takes it; the green suite hides the defect
+enforcement: an assertion weakened, deleted, or re-snapshotted with no proof named = blocker; an invariant or guarantee amended in the test, not its entry = blocker
+full: rule.require.review-test-changes (twin) · philosophy.invariants-are-the-source (architect)

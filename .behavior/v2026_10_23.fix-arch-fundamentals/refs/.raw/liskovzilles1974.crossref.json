@@ -1,0 +1,153 @@
+{
+  "source": {
+    "id": "liskovzilles1974",
+    "kind": "crossref",
+    "query": "Liskov Zilles Programming with abstract data types 1974",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Liskov%20Zilles%20Programming%20with%20abstract%20data%20types%201974&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:11:25.825Z",
+  "items": [
+    {
+      "DOI": "10.1145/800233.807045",
+      "title": [
+        "Programming with abstract data types"
+      ],
+      "author": [
+        {
+          "given": "Barbara",
+          "family": "Liskov",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Stephen",
+          "family": "Zilles",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Proceedings of the ACM SIGPLAN symposium on Very high level languages  -"
+      ],
+      "page": "50-59",
+      "issued": {
+        "date-parts": [
+          [
+            1974
+          ]
+        ]
+      },
+      "publisher": "ACM Press",
+      "type": "proceedings-article"
+    },
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "4",
+      "DOI": "10.1145/942572.807045",
+      "type": "journal-article",
+      "page": "50-59",
+      "title": [
+        "Programming with abstract data types"
+      ],
+      "volume": "9",
+      "author": [
+        {
+          "given": "Barbara",
+          "family": "Liskov",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Stephen",
+          "family": "Zilles",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "ACM SIGPLAN Notices"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1974,
+            3,
+            28
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.7551/mitpress/12274.003.0041",
+      "title": [
+        "Programming with Abstract Data Types (1974)"
+      ],
+      "author": [
+        {
+          "given": "Barbara",
+          "family": "Liskov",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Stephen",
+          "family": "Zilles",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Ideas That Created the Future"
+      ],
+      "page": "387-398",
+      "issued": {
+        "date-parts": [
+          [
+            2021,
+            2,
+            2
+          ]
+        ]
+      },
+      "publisher": "The MIT Press",
+      "type": "book-chapter"
+    }
+  ]
+}

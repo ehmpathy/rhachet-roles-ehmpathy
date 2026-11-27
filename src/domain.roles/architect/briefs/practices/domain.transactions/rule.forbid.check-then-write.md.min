@@ -1,0 +1,7 @@
+# rule.forbid.check-then-write
+
+never read a record, check an invariant in code, then write, with no structural enforcement at the write — two callers read the same record, both pass, both write
+smell: a `get`, an `if`, then a `set` on one invariant, with no transaction, version, constraint, or lock
+cure — the storage enforces it at the write: a unique key on the natural key (retry → findsert) · an optimistic lock on the record (race → second write fails, retries) · one transaction or a check constraint (records in one storage) · a pessimistic lock (high contention). prove it: two writes at once, exactly one wins
+enforcement: read → check → write with no structural enforcement = blocker
+full: rule.require.invariant-before-operation · catalog.of=pattern.transaction._

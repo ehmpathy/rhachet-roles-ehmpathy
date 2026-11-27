@@ -65,3 +65,9 @@ export const getCustomerInvoices = ({ customerId }: { customerId: string }) => {
 };
 ```
 
+
+## .see also
+
+- `catalog.of=tactic.abstraction.kind=_.verb=set.tactic=separate` (architect) — the same cut at the scale of a decision: separate what changes for different reasons
+- `catalog.of=tactic.abstraction.kind=_.verb=set.tactic=gather` (architect) — its other half: gather what changes for the same reason
+- `catalog.of=tactic.abstraction.kind=contract.verb=set.tactic=decorate` (architect) — the abstraction tactic this rule enforces for a cross-cut concern: add it from outside, never woven in

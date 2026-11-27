@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`briefs.shared given: [case1] the briefs across every role when: [t0] they are scanned for links then: the roster is snapshotted, so a reviewer sees each link 1`] = `
+[
+  {
+    "linkPath": "mechanic/briefs/practices/lang.terms/define.constraint.kind=invariant.md",
+    "ownerPath": "architect/briefs/practices/domain.constraints/define.constraint.kind=invariant.md",
+  },
+  {
+    "linkPath": "mechanic/briefs/practices/lang.terms/define.constraint.kind=invariant.md.min",
+    "ownerPath": "architect/briefs/practices/domain.constraints/define.constraint.kind=invariant.md.min",
+  },
+]
+`;

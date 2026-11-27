@@ -1,0 +1,8 @@
+# rule.avoid.asymmetric-term-pairs
+
+avoid a pair of complementary terms whose halves differ in shape, length, or stem — the reader cannot see the two as counterparts
+smell: shape (`read` / `setInto`: bare verb vs verb + preposition) · length (`get` / `retrieve`, 3 / 8: a gap past ~2 chars) · stem (`encode` / `unpack`: no shared root)
+cure: swap one half for the synonym that closes each gap — `getFrom` / `setInto` (7/7) · `get` / `set` · `encode` / `decode` · `converge` / `contrast`. a domain word that resists every symmetric synonym stays (`ref.reviewer.dont-bikeshed-terms`)
+enforcement: a shape, length, or stem mismatch where a symmetric pair reads clearly = nitpick; a length gap past the ~2-char floor = blocker (per the prefer twin)
+full: rule.prefer.symmetric-term-pairs
+

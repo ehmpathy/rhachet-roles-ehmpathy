@@ -1,0 +1,356 @@
+{
+  "source": {
+    "id": "bailis2014",
+    "kind": "crossref",
+    "query": "Bailis Fekete Franklin Ghodsi Hellerstein Stoica Coordination avoidance in database systems",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Bailis%20Fekete%20Franklin%20Ghodsi%20Hellerstein%20Stoica%20Coordination%20avoidance%20in%20database%20systems&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:15:59.269Z",
+  "items": [
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "3",
+      "DOI": "10.14778/2735508.2735509",
+      "type": "journal-article",
+      "page": "185-196",
+      "title": [
+        "Coordination avoidance in database systems"
+      ],
+      "volume": "8",
+      "author": [
+        {
+          "given": "Peter",
+          "family": "Bailis",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "UC Berkeley"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Alan",
+          "family": "Fekete",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "University of Sydney"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Michael J.",
+          "family": "Franklin",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "UC Berkeley"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Ali",
+          "family": "Ghodsi",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "UC Berkeley"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Joseph M.",
+          "family": "Hellerstein",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "UC Berkeley"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Ion",
+          "family": "Stoica",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "UC Berkeley"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Proceedings of the VLDB Endowment"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            2014,
+            11
+          ]
+        ]
+      }
+    },
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "3",
+      "DOI": "10.1145/2909870",
+      "type": "journal-article",
+      "page": "1-45",
+      "title": [
+        "Scalable Atomic Visibility with RAMP Transactions"
+      ],
+      "volume": "41",
+      "author": [
+        {
+          "given": "Peter",
+          "family": "Bailis",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Stanford University, Stanford, CA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Alan",
+          "family": "Fekete",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "University of Sydney, NSW, Australia"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Ali",
+          "family": "Ghodsi",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "UC Berkeley, CA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Joseph M.",
+          "family": "Hellerstein",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "UC Berkeley, CA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Ion",
+          "family": "Stoica",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "UC Berkeley, CA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "ACM Transactions on Database Systems"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            2016,
+            7,
+            18
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.1145/2723372.2737784",
+      "title": [
+        "Feral Concurrency Control"
+      ],
+      "author": [
+        {
+          "given": "Peter",
+          "family": "Bailis",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "UC Berkeley, Berkeley, CA, USA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Alan",
+          "family": "Fekete",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "University of Sydney, Sydney, Australia"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Michael J.",
+          "family": "Franklin",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "UC Berkeley, Berkeley, CA, USA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Ali",
+          "family": "Ghodsi",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "UC Berkeley, Berkeley, CA, USA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Joseph M.",
+          "family": "Hellerstein",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "UC Berkeley, Berkeley, CA, USA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Ion",
+          "family": "Stoica",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "UC Berkeley, Berkeley, CA, USA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Proceedings of the 2015 ACM SIGMOD International Conference on Management of Data"
+      ],
+      "page": "1327-1342",
+      "issued": {
+        "date-parts": [
+          [
+            2015,
+            5,
+            27
+          ]
+        ]
+      },
+      "publisher": "ACM",
+      "type": "proceedings-article"
+    }
+  ]
+}

@@ -1,0 +1,437 @@
+{
+  "source": {
+    "id": "benveniste2018",
+    "kind": "crossref",
+    "query": "Benveniste Caillaud Nickovic Passerone Contracts for system design 2018",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Benveniste%20Caillaud%20Nickovic%20Passerone%20Contracts%20for%20system%20design%202018&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:16:00.970Z",
+  "items": [
+    {
+      "DOI": "10.1561/9781680834031",
+      "title": [
+        "Contracts for System Design"
+      ],
+      "author": [
+        {
+          "given": "Albert",
+          "family": "Benveniste",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Benoît",
+          "family": "Caillaud",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Dejan",
+          "family": "Nickovic",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Roberto",
+          "family": "Passerone",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Jean-Baptiste",
+          "family": "Raclet",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Philipp",
+          "family": "Reinkemeier",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Alberto",
+          "family": "Sangiovanni-Vincentelli",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Werner",
+          "family": "Damm",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Thomas A.",
+          "family": "Henzinger",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Kim G.",
+          "family": "Larsen",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            2018
+          ]
+        ]
+      },
+      "publisher": "now Publishers Inc",
+      "type": "monograph"
+    },
+    {
+      "publisher": "Emerald",
+      "issue": "2-3",
+      "DOI": "10.1561/1000000053",
+      "type": "journal-article",
+      "page": "124-400",
+      "title": [
+        "Contracts for System Design"
+      ],
+      "volume": "12",
+      "author": [
+        {
+          "given": "Albert",
+          "family": "Benveniste",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "INRIA, Rennes,",
+              "place": [
+                "France"
+              ]
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Benoît",
+          "family": "Caillaud",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "INRIA, Rennes,",
+              "place": [
+                "France"
+              ]
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Dejan",
+          "family": "Nickovic",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Austrian Institute of Technology"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Roberto",
+          "family": "Passerone",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "University of Trento ,",
+              "place": [
+                "Italy"
+              ]
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Jean-Baptiste",
+          "family": "Raclet",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "IRIT , Toulouse,",
+              "place": [
+                "France"
+              ]
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Philipp",
+          "family": "Reinkemeier",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Offis , Oldenburg,",
+              "place": [
+                "Germany"
+              ]
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Alberto",
+          "family": "Sangiovanni-Vincentelli",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "University of California at Berkeley"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Werner",
+          "family": "Damm",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Offis and University of Oldenburg ,",
+              "place": [
+                "Germany"
+              ]
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Thomas A.",
+          "family": "Henzinger",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "IST Austria , Klosterneuburg"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Kim G.",
+          "family": "Larsen",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Aalborg University ,",
+              "place": [
+                "Denmark"
+              ]
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Foundations and Trends® in Electronic Design Automation"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            2018,
+            3,
+            28
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.1109/acsd.2009.22",
+      "title": [
+        "Why Are Modalities Good for Interface Theories?"
+      ],
+      "author": [
+        {
+          "given": "Jean-Baptiste",
+          "family": "Raclet",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Eric",
+          "family": "Badouel",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Albert",
+          "family": "Benveniste",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Benoît",
+          "family": "Caillaud",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Roberto",
+          "family": "Passerone",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "2009 Ninth International Conference on Application of Concurrency to System Design"
+      ],
+      "page": "119-127",
+      "issued": {
+        "date-parts": [
+          [
+            2009,
+            7
+          ]
+        ]
+      },
+      "publisher": "IEEE",
+      "type": "proceedings-article"
+    }
+  ]
+}

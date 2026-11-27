@@ -1,0 +1,61 @@
+{
+  "source": {
+    "id": "page.ietf-idempotency-key-header",
+    "kind": "page",
+    "url": "https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/",
+    "keywords": [
+      "Idempotency-Key",
+      "fault-tolerant",
+      "retr"
+    ]
+  },
+  "urlFinal": "https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/",
+  "status": 200,
+  "fetchedAt": "2026-11-26T12:56:09.132Z",
+  "title": "draft-ietf-httpapi-idempotency-key-header-09 - The Idempotency-Key HTTP Header Field",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "The Idempotency-Key HTTP Header Field"
+    },
+    {
+      "name": "description",
+      "content": "The Idempotency-Key HTTP Header Field "
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "Idempotency-Key",
+      "window": "Skip to main content Datatracker Sign in The Idempotency-Key HTTP Header Field draft-ietf-httpapi-idempotency-key-header-09 Status IESG evaluation record IESG writeups Email expansions History Versions: 00 01 02 03 04 05 06 07 08 09 00 01 00 01 02 03 04 05 06 07 08 09 Nov 2020 Jul 2021 May 2022 Nov 2022 Jul 2023 Nov 2023 May 2024 Feb 2025 Oct 2025 Oct 2026 draft-idempotency-header draft-ietf-httpapi-idempotency-key-header Document Type Acti"
+    },
+    {
+      "keyword": "Idempotency-Key",
+      "window": "Skip to main content Datatracker Sign in The Idempotency-Key HTTP Header Field draft-ietf-httpapi-idempotency-key-header-09 Status IESG evaluation record IESG writeups Email expansions History Versions: 00 01 02 03 04 05 06 07 08 09 00 01 00 01 02 03 04 05 06 07 08 09 Nov 2020 Jul 2021 May 2022 Nov 2022 Jul 2023 Nov 2023 May 2024 Feb 2025 Oct 2025 Oct 2026 draft-idempotency-header draft-ietf-httpapi-idempotency-key-header Document Type Active Internet-Draft (httpapi WG) Authors Jayadeba Jen"
+    },
+    {
+      "keyword": "Idempotency-Key",
+      "window": "to main content Datatracker Sign in The Idempotency-Key HTTP Header Field draft-ietf-httpapi-idempotency-key-header-09 Status IESG evaluation record IESG writeups Email expansions History Versions: 00 01 02 03 04 05 06 07 08 09 00 01 00 01 02 03 04 05 06 07 08 09 Nov 2020 Jul 2021 May 2022 Nov 2022 Jul 2023 Nov 2023 May 2024 Feb 2025 Oct 2025 Oct 2026 draft-idempotency-header draft-ietf-httpapi-idempotency-key-header Document Type Active Internet-Draft (httpapi WG) Authors Jayadeba Jena , Sanjay Dalal , Dmitrii Tishkin Last updated 2026-11-21 Replaces draft-idempotency-header RFC stream Internet Engineering Task Force (IETF) Intended RFC status (None) Formats txt html xml htmlized bibtex bibxml Additional resources GitHub Repository Mailing list discussion Stream"
+    },
+    {
+      "keyword": "fault-tolerant",
+      "window": "D. Tishkin 21 November 2026 The Idempotency-Key HTTP Header Field draft-ietf-httpapi-idempotency-key-header-09 Abstract The HTTP Idempotency-Key request header field can be used to make non-idempotent HTTP methods such as POST or PATCH fault-tolerant. About This Document This note is to be removed before publishing as an RFC. Status information for this document may be found at https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key- header/. Discussion of this document takes place on the HTTPAPI Working Group mailing list (mailto:httpapi@ietf.org), which is archived at https://mailarchive.ie"
+    },
+    {
+      "keyword": "fault-tolerant",
+      "window": "[Page 2] Internet-Draft The Idempotency-Key HTTP Header Field November 2026 1. Introduction In mathematics and computer science, an idempotent operation is one that can be applied multiple times without changing the result beyond the initial application. It does not matter if the operation is called only once or tens of times over. Idempotency is important in building fault-tolerant HTTP APIs. An HTTP request method is considered idempotent if the intended effect on the server of multiple identical requests with that method is the same as the effect for a single such request. Per [RFC9110], the methods OPTIONS, HEAD, GET, PUT and DELETE are idempotent while methods POST and PATCH are not. Let's say a client of an HTTP API wants to create (o"
+    },
+    {
+      "keyword": "retr",
+      "window": "can result in duplication or incorrect updates. Consider a scenario where the client sent a POST request to the server, but the request timed out. The client is left uncertain about the status of the resource. It doesn't know if the resource was created or updated, or if the server even completed processing the request. Furthermore, the client does not know if it can safely retry the request. 1.1. Notational Conventions The key words \"MUST\", \"MUST NOT\", \"REQUIRED\", \"SHALL\", \"SHALL NOT\", \"SHOULD\", \"SHOULD NOT\", \"RECOMMENDED\", \"NOT RECOMMENDED\", \"MAY\", and \"OPTIONAL\" in this document are to be interpreted as described in BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all capitals, as shown here. The term \"resource\" is to be interpr"
+    },
+    {
+      "keyword": "retr",
+      "window": "as described in BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all capitals, as shown here. The term \"resource\" is to be interpreted as defined in Section 3.1 of [RFC9110], that is, identified by a URI. 2. The Idempotency-Key HTTP Request Header Field An idempotency key is a unique value generated by the client which the resource uses to recognize subsequent retries of the same request. The Idempotency-Key HTTP request header field carries this value. 2.1. Syntax Idempotency-Key is an Item Structured Header Field [RFC9651]. Its value MUST be a String (Section 3.3.3 of [RFC9651]). Jena, et al. Expires 25 May 2027 [Page 3] Internet-Draft The Idempotency-Key HTTP Header Field November 2026 2.2. Uni"
+    },
+    {
+      "keyword": "retr",
+      "window": "Generate idempotency fingerprint if required. * Enforce idempotency (see below) 2.6. Idempotency Enforcement * First time request (idempotency key and fingerprint has not been seen) The resource SHOULD process the request normally and respond with an appropriate response and status code. * Duplicate request (idempotency key and fingerprint has been seen) Retry The request was retried after the original request completed. The resource SHOULD respond with a response consistent with the request being completed according to the user's intent. Concurrent Request The request was retried before the original request completed. The resource SHOULD respond with a resource conflict error. See Error Scenarios for"
+    }
+  ],
+  "textLength": 27842
+}

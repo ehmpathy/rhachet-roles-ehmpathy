@@ -1,0 +1,117 @@
+{
+  "source": {
+    "id": "page.doi-alpern1985",
+    "kind": "page",
+    "url": "https://www.sciencedirect.com/science/article/pii/0020019085900560",
+    "keywords": [
+      "abstract",
+      "safety",
+      "liveness"
+    ]
+  },
+  "urlFinal": "https://www.sciencedirect.com/science/article/abs/pii/0020019085900560",
+  "status": 200,
+  "fetchedAt": "2026-11-23T13:44:14.219Z",
+  "title": "Defining liveness - ScienceDirect",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "Defining liveness"
+    },
+    {
+      "name": "dc.identifier",
+      "content": "10.1016/0020-0190(85)90056-0"
+    },
+    {
+      "name": "citation_pii",
+      "content": "0020019085900560"
+    },
+    {
+      "name": "citation_issn",
+      "content": "0020-0190"
+    },
+    {
+      "name": "citation_volume",
+      "content": "21"
+    },
+    {
+      "name": "citation_lastpage",
+      "content": "185"
+    },
+    {
+      "name": "citation_issue",
+      "content": "4"
+    },
+    {
+      "name": "citation_doi",
+      "content": "10.1016/0020-0190(85)90056-0"
+    },
+    {
+      "name": "citation_publisher",
+      "content": "Elsevier"
+    },
+    {
+      "name": "citation_firstpage",
+      "content": "181"
+    },
+    {
+      "name": "citation_title",
+      "content": "Defining liveness"
+    },
+    {
+      "name": "citation_journal_title",
+      "content": "Information Processing Letters"
+    },
+    {
+      "name": "citation_type",
+      "content": "JOUR"
+    },
+    {
+      "name": "citation_article_type",
+      "content": "Full-length article"
+    },
+    {
+      "name": "citation_publication_date",
+      "content": "1985/10/07"
+    },
+    {
+      "name": "citation_online_date",
+      "content": "2003/03/05"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "abstract",
+      "window": "o main content Skip to article LeapSpace Journals & Books Information Processing Letters Date: 7 October 1985 Show more Research article Get rights and content Defining liveness☆ Bowen Alpern , Fred B. Schneider Show more Cite Add to Mendeley Share 10.1016/0020-0190(85)90056-0 Access through your organization Purchase PDF Article preview Recommended articles Cited by (836) Metrics Article preview Abstract References (11) Abstract A formal definition for liveness properties is proposed. It is argued that this definition captures the intuition that liveness properties stipulate that ‘something good’ eventually happens during execution. A topological characterization of safety and liveness is given. Every property is shown to be the intersection of a safety property and a liveness property. K"
+    },
+    {
+      "keyword": "abstract",
+      "window": "ticle LeapSpace Journals & Books Information Processing Letters Date: 7 October 1985 Show more Research article Get rights and content Defining liveness☆ Bowen Alpern , Fred B. Schneider Show more Cite Add to Mendeley Share 10.1016/0020-0190(85)90056-0 Access through your organization Purchase PDF Article preview Recommended articles Cited by (836) Metrics Article preview Abstract References (11) Abstract A formal definition for liveness properties is proposed. It is argued that this definition captures the intuition that liveness properties stipulate that ‘something good’ eventually happens during execution. A topological characterization of safety and liveness is given. Every property is shown to be the intersection of a safety property and a liveness property. Keywords Liveness; absolut"
+    },
+    {
+      "keyword": "safety",
+      "window": "0 Access through your organization Purchase PDF Article preview Recommended articles Cited by (836) Metrics Article preview Abstract References (11) Abstract A formal definition for liveness properties is proposed. It is argued that this definition captures the intuition that liveness properties stipulate that ‘something good’ eventually happens during execution. A topological characterization of safety and liveness is given. Every property is shown to be the intersection of a safety property and a liveness property. Keywords Liveness; absolute liveness; uniform liveness; safety; property; topology; concurrency; semantics Previous article in this issue Next article in this issue Organizational access Get full-text access by signing in with your organisation Access through your organization"
+    },
+    {
+      "keyword": "safety",
+      "window": "es Cited by (836) Metrics Article preview Abstract References (11) Abstract A formal definition for liveness properties is proposed. It is argued that this definition captures the intuition that liveness properties stipulate that ‘something good’ eventually happens during execution. A topological characterization of safety and liveness is given. Every property is shown to be the intersection of a safety property and a liveness property. Keywords Liveness; absolute liveness; uniform liveness; safety; property; topology; concurrency; semantics Previous article in this issue Next article in this issue Organizational access Get full-text access by signing in with your organisation Access through your organization Other access options Purchase PDF Need help with access? References (11) B. Alper"
+    },
+    {
+      "keyword": "safety",
+      "window": "or liveness properties is proposed. It is argued that this definition captures the intuition that liveness properties stipulate that ‘something good’ eventually happens during execution. A topological characterization of safety and liveness is given. Every property is shown to be the intersection of a safety property and a liveness property. Keywords Liveness; absolute liveness; uniform liveness; safety; property; topology; concurrency; semantics Previous article in this issue Next article in this issue Organizational access Get full-text access by signing in with your organisation Access through your organization Other access options Purchase PDF Need help with access? References (11) B. Alpern et al. A note on safety without stuttering (1985) L. Lamport Proving the correctness of multipr"
+    },
+    {
+      "keyword": "liveness",
+      "window": "Skip to main content Skip to article LeapSpace Journals & Books Information Processing Letters Date: 7 October 1985 Show more Research article Get rights and content Defining liveness☆ Bowen Alpern , Fred B. Schneider Show more Cite Add to Mendeley Share 10.1016/0020-0190(85)90056-0 Access through your organization Purchase PDF Article preview Recommended articles Cited by (836) Metrics Article preview Abstract References (11) Abstract A formal definition for liveness properties is proposed. It is argued that this definition captures the intuition that liveness propert"
+    },
+    {
+      "keyword": "liveness",
+      "window": "Information Processing Letters Date: 7 October 1985 Show more Research article Get rights and content Defining liveness☆ Bowen Alpern , Fred B. Schneider Show more Cite Add to Mendeley Share 10.1016/0020-0190(85)90056-0 Access through your organization Purchase PDF Article preview Recommended articles Cited by (836) Metrics Article preview Abstract References (11) Abstract A formal definition for liveness properties is proposed. It is argued that this definition captures the intuition that liveness properties stipulate that ‘something good’ eventually happens during execution. A topological characterization of safety and liveness is given. Every property is shown to be the intersection of a safety property and a liveness property. Keywords Liveness; absolute liveness; uniform liveness; saf"
+    },
+    {
+      "keyword": "liveness",
+      "window": "ontent Defining liveness☆ Bowen Alpern , Fred B. Schneider Show more Cite Add to Mendeley Share 10.1016/0020-0190(85)90056-0 Access through your organization Purchase PDF Article preview Recommended articles Cited by (836) Metrics Article preview Abstract References (11) Abstract A formal definition for liveness properties is proposed. It is argued that this definition captures the intuition that liveness properties stipulate that ‘something good’ eventually happens during execution. A topological characterization of safety and liveness is given. Every property is shown to be the intersection of a safety property and a liveness property. Keywords Liveness; absolute liveness; uniform liveness; safety; property; topology; concurrency; semantics Previous article in this issue Next article in"
+    }
+  ],
+  "textLength": 4675
+}

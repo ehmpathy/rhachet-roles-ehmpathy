@@ -1,0 +1,19 @@
+{
+  "source": {
+    "id": "page.liskovguttag1986-openlibrary",
+    "kind": "page",
+    "url": "https://openlibrary.org/search.json?q=abstraction+and+specification+in+program+development&fields=title,author_name,publisher,first_publish_year,isbn",
+    "keywords": [
+      "Liskov",
+      "Guttag",
+      "first_publish_year"
+    ]
+  },
+  "urlFinal": "https://openlibrary.org/search.json?q=abstraction+and+specification+in+program+development&fields=title,author_name,publisher,first_publish_year,isbn",
+  "status": 502,
+  "fetchedAt": "2026-11-25T02:41:50.492Z",
+  "title": "Hmm...",
+  "meta": [],
+  "windows": [],
+  "textLength": 89
+}
