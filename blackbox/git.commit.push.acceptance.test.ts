@@ -66,6 +66,17 @@ describe('git.commit.push, via rhachet', () => {
         expect(result.stdout).toContain('--mode plan|apply');
         expect(result.stdout).toContain('--auth as-ehmpath|as-human');
       });
+      then('it names the paved verbs that edit the pr after it is open', () => {
+        expect(result.stdout).toContain('to edit the pr after it is open');
+        expect(result.stdout).toContain('rhx git.pull.title set');
+        expect(result.stdout).toContain('rhx git.pull.description set');
+        expect(result.stdout).toMatch(
+          /rhx git\.pull\.title set .*when the scope outgrew the title/,
+        );
+        expect(result.stdout).toMatch(
+          /rhx git\.pull\.description set .*when the body no longer tells the work/,
+        );
+      });
       then('the help is snapped', () => {
         expect(asSkillRender(result)).toMatchSnapshot();
       });

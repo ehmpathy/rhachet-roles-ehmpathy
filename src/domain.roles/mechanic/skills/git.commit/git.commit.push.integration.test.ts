@@ -3352,7 +3352,7 @@ exec /usr/bin/git "$@"
 
   given('[case31] --help short-circuits before any keyrack fetch', () => {
     when('[t0] a fake rhachet records if it is ever called', () => {
-      then('--help exits 0 with usage and never touches keyrack', () => {
+      then('--help names usage and pr edit verbs, never hits keyrack', () => {
         const tempDir = setupTempRepo({
           meterState: { uses: 3, held: true },
           branch: 'turtle/feature',
@@ -3389,6 +3389,18 @@ exit 1
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('usage: git.commit.push');
         expect(result.stdout).toContain('--auth as-ehmpath|as-human');
+        // push never rewrites an open pr, so --help must name the paved edit
+        // verbs; else a driver edits its pr with raw gh, unsigned
+        expect(result.stdout).toContain('to edit the pr after it is open');
+        expect(result.stdout).toContain('rhx git.pull.title set');
+        expect(result.stdout).toContain('rhx git.pull.description set');
+        // each verb shares its line with the moment to reach for it
+        expect(result.stdout).toMatch(
+          /rhx git\.pull\.title set .*when the scope outgrew the title/,
+        );
+        expect(result.stdout).toMatch(
+          /rhx git\.pull\.description set .*when the body no longer tells the work/,
+        );
         // the decisive assertion: --help never invoked keyrack
         expect(fs.existsSync(sentinel)).toBe(false);
         // lock the human-visible --help contract so a reworded or dropped flag
@@ -3396,6 +3408,31 @@ exit 1
         expect(result.stdout).toMatchSnapshot();
         expect(result.stderr).toMatchSnapshot();
       });
+    });
+  });
+
+  given('[case42] the booted header names the pr edit verbs', () => {
+    when('[t0] a driver reads the header its session boots', () => {
+      then(
+        'the guarantee block names git.pull.title set and git.pull.description set',
+        () => {
+          // the header boots as `say` in every mechanic session, so it reaches a
+          // driver that pushes via git.commit.set --push and never reads this help
+          // the header is the run of comment lines atop the file; cut at the first code line
+          const lines = fs.readFileSync(pushScriptPath, 'utf-8').split('\n');
+          const headerEnd = lines.findIndex((line) => !line.startsWith('#'));
+          const header = lines.slice(0, headerEnd).join('\n');
+
+          // fail loud if the cut did not land, else the help text below could pass the asserts
+          expect(headerEnd).toBeGreaterThan(0);
+          expect(header).not.toContain('echo');
+
+          expect(header).toContain('never rewrites an open pr');
+          expect(header).toContain('git.pull.title set');
+          expect(header).toContain('git.pull.description set');
+          expect(header).toMatchSnapshot();
+        },
+      );
     });
   });
 

@@ -15,6 +15,7 @@
 #     holds the commit grant (even at 0 left); a push never ships — a release
 #     needs git.release.uses
 #   - never pushes to main/master
+#   - never rewrites an open pr; edit it via git.pull.title set / git.pull.description set
 #   - opens the pr --auth as-ehmpath (default, keyrack) or as-human (gh login)
 #   - a new pr body ends in one seaturtle line; claude and co-author lines stripped
 #   - an enrolled clone then watches the pr; a failed watch never fails the push
@@ -105,6 +106,13 @@ while [[ $# -gt 0 ]]; do
       echo "  --pr-title-fallback \"...\"    fallback pr title when no commits on branch yet"
       echo "  --debug                      show verbose debug output"
       echo "  --help, -h                   show this help"
+      echo ""
+      echo "to edit the pr after it is open:"
+      echo "  push opens a pr only when the branch has none open; it never rewrites an open pr's title or body"
+      echo "  rhx git.pull.title set --from <path|@stdin>         when the scope outgrew the title"
+      echo "  rhx git.pull.description set --from <path|@stdin>   when the body no longer tells the work"
+      echo "  each plans first; add --mode apply to write"
+      echo "  never raw \`gh\` to edit a pr: the paved verbs write under the credential that opened it, and sign the body"
       exit 0
       ;;
     --repo|--role|--skill)
