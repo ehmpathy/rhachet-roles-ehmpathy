@@ -1,0 +1,37 @@
+{
+  "source": {
+    "id": "page.doi-floyd1967",
+    "kind": "page",
+    "url": "https://www.ams.org/books/psapm/019/",
+    "keywords": [
+      "Floyd",
+      "meanings",
+      "1967",
+      "Mathematical Aspects"
+    ]
+  },
+  "urlFinal": "https://pubs.ams.org/ebooks/psapm/019/",
+  "status": 200,
+  "fetchedAt": "2026-11-23T13:44:37.006Z",
+  "title": "Mathematical Aspects of Computer Science",
+  "meta": [],
+  "windows": [
+    {
+      "keyword": "Floyd",
+      "window": "cy Okay Proceedings of Symposia in Applied Mathematics Mathematical Aspects of Computer Science Edited by:J. T. Schwartz Digital content for Mathematical Aspects of Computer Science Toggle favorite Full PDF Table Of Contents Front/Back Matter View this volume's front and back matter PDF Articles J. A. Robinson — A review of automatic theorem-proving [ MR 0241195 ] Chapter PDF pp. 1 - 18 Robert W. Floyd — Assigning meanings to programs [ MR 0235771 ] Chapter PDF pp. 19 - 32 John McCarthy and James Painter — Correctness of a compiler for arithmetic expressions [ MR 0242403 ] Chapter PDF pp. 33 - 41 J. Hartmanis — Context-free languages and Turing machine computations [ MR 0235938 ] Chapter PDF pp. 42 - 51 Susumu Kuno — Computer analysis of natural languages Chapter PDF pp. 52 - 110 P. Swinne"
+    },
+    {
+      "keyword": "meanings",
+      "window": "s of Symposia in Applied Mathematics Mathematical Aspects of Computer Science Edited by:J. T. Schwartz Digital content for Mathematical Aspects of Computer Science Toggle favorite Full PDF Table Of Contents Front/Back Matter View this volume's front and back matter PDF Articles J. A. Robinson — A review of automatic theorem-proving [ MR 0241195 ] Chapter PDF pp. 1 - 18 Robert W. Floyd — Assigning meanings to programs [ MR 0235771 ] Chapter PDF pp. 19 - 32 John McCarthy and James Painter — Correctness of a compiler for arithmetic expressions [ MR 0242403 ] Chapter PDF pp. 33 - 41 J. Hartmanis — Context-free languages and Turing machine computations [ MR 0235938 ] Chapter PDF pp. 42 - 51 Susumu Kuno — Computer analysis of natural languages Chapter PDF pp. 52 - 110 P. Swinnerton-Dyer — The us"
+    },
+    {
+      "keyword": "Mathematical Aspects",
+      "window": "This website uses cookies to ensure you get the best experience on our website. Learn more about our privacy policy Okay Proceedings of Symposia in Applied Mathematics Mathematical Aspects of Computer Science Edited by:J. T. Schwartz Digital content for Mathematical Aspects of Computer Science Toggle favorite Full PDF Table Of Contents Front/Back Matter View this volume's front and back matter PDF Articles J. A. Robinson — A review of automatic theorem-proving [ MR 0241195 ] Chapter PDF pp. 1 - 18 Robert W. Floyd — Assigning meanings to programs [ MR 0235771 ] C"
+    },
+    {
+      "keyword": "Mathematical Aspects",
+      "window": "This website uses cookies to ensure you get the best experience on our website. Learn more about our privacy policy Okay Proceedings of Symposia in Applied Mathematics Mathematical Aspects of Computer Science Edited by:J. T. Schwartz Digital content for Mathematical Aspects of Computer Science Toggle favorite Full PDF Table Of Contents Front/Back Matter View this volume's front and back matter PDF Articles J. A. Robinson — A review of automatic theorem-proving [ MR 0241195 ] Chapter PDF pp. 1 - 18 Robert W. Floyd — Assigning meanings to programs [ MR 0235771 ] Chapter PDF pp. 19 - 32 John McCarthy and James Painter — Correctness of a compiler for"
+    }
+  ],
+  "textLength": 2247
+}

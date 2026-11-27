@@ -1,0 +1,8 @@
+# rule.forbid.multiplicative-composition
+
+never let a part reach past another part's declared promise. a caller that reads a callee's internals, or leans on behavior it never declared, multiplies its cases by the callee's: "combine additively, rather than multiplicatively" (dijkstra, EWD 288)
+seam = a call across an owner or module boundary: operation → dao, one domain → another, a contract
+smell: a caller reads another part's storage, private fields, or dao around its operation (`getLessonInvoice` filters the reservation records that `setLessonReservation` owns) · a caller leans on an undeclared sort order, error text, default, or side effect · a reader must open two parts to know what one does · a seam no test crosses
+cure — compose additively: one home per invariant (the part that owns the data owns the rule) · a small declared promise (`getAllPaidLessonReservations`) · trust the promise, never the body · one test per seam: order, units, the empty case, the error shape
+enforcement: a read of another part's internals = blocker; a seam with no test that crosses it = blocker; a lean on undeclared behavior = nitpick
+full: rule.require.compose-additively

@@ -1,0 +1,61 @@
+{
+  "source": {
+    "id": "page.wikipedia-double-entry",
+    "kind": "page",
+    "url": "https://en.wikipedia.org/wiki/Double-entry_bookkeeping",
+    "keywords": [
+      "Pacioli",
+      "debit",
+      "equal"
+    ]
+  },
+  "urlFinal": "https://en.wikipedia.org/wiki/Double-entry_bookkeeping",
+  "status": 200,
+  "fetchedAt": "2026-11-24T05:42:13.580Z",
+  "title": "Double-entry bookkeeping - Wikipedia",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "Double-entry bookkeeping - Wikipedia"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "Pacioli",
+      "window": "wanted to participate. From then on, most if not all international fairs used this system. However, only Italian bankers and merchants used double-entry bookkeeping outside of these international events until later writings spread the system across Europe.[9] In the course of the late 15th to 16th century, double-entry bookkeeping as a system was recorded and refined through the writings of Luca Pacioli, Domenico Manzoni, Barolomeo Fontana, the accountant Alvise Casanova[10], the erudite Giovanni Antonio Tagliente, and others. Benedetto Cotrugli (Benedikt Kotruljević), a Ragusan merchant and ambassador to Naples, described double-entry bookkeeping in his treatise Della mercatura e del mercante perfetto. Although it was originally written in 1458, no manuscript older than 1475 is known to"
+    },
+    {
+      "keyword": "Pacioli",
+      "window": "erchant and ambassador to Naples, described double-entry bookkeeping in his treatise Della mercatura e del mercante perfetto. Although it was originally written in 1458, no manuscript older than 1475 is known to remain, and the treatise was not printed until 1573. The printer shortened and altered Cotrugli's treatment of double-entry bookkeeping, obscuring the history of the subject.[11][12] Luca Pacioli, a Franciscan friar and collaborator of Leonardo da Vinci, first codified the system in his mathematics textbook Summa de arithmetica, geometria, proportioni et proportionalità published in Venice in 1494.[13] Pacioli is often called the \"father of accounting\" because he was the first to publish a detailed description of the double-entry system, thus enabling others to study and use it.[14"
+    },
+    {
+      "keyword": "Pacioli",
+      "window": ", and the treatise was not printed until 1573. The printer shortened and altered Cotrugli's treatment of double-entry bookkeeping, obscuring the history of the subject.[11][12] Luca Pacioli, a Franciscan friar and collaborator of Leonardo da Vinci, first codified the system in his mathematics textbook Summa de arithmetica, geometria, proportioni et proportionalità published in Venice in 1494.[13] Pacioli is often called the \"father of accounting\" because he was the first to publish a detailed description of the double-entry system, thus enabling others to study and use it.[14][15][16] After Pacioli and the diffusion of these methods through the international trade fairs, the double-entry system spread widely through Europe. Though attempts by state governments to standardize double-entry"
+    },
+    {
+      "keyword": "debit",
+      "window": "a This article needs more citations. Please help improve this article by adding citations to reliable sources. Unsourced material may be challenged and removed. Find sources: \"Double-entry bookkeeping\" – news · newspapers · books · scholar · JSTOR (December 2013) (Learn how and when to remove this message) Bookkeeping Key concepts DaybooksDouble-entryGeneral ledgerT AccountsTrial balanceJournalDebits and creditsChart of accountsPetty cashImprest systemBank reconciliationLedgerSingle-entryBookkeepingAssetsLiabilitiesEquityIncomeExpensesDepreciationAccrualsPrepaymentsVAT/GST Financial statements Balance sheetIncome statement Related professions AccountantAccounting technicianAccounts clerk vte Double-entry bookkeeping, also known as double-entry accounting, is a method of bookkeepin"
+    },
+    {
+      "keyword": "debit",
+      "window": "Single-entryBookkeepingAssetsLiabilitiesEquityIncomeExpensesDepreciationAccrualsPrepaymentsVAT/GST Financial statements Balance sheetIncome statement Related professions AccountantAccounting technicianAccounts clerk vte Double-entry bookkeeping, also known as double-entry accounting, is a method of bookkeeping in which every financial transaction is recorded with equal and opposite entries (debits and credits) - thus \"balancing the books\".[1][2] The purpose of double-entry bookkeeping is to maintain accuracy in financial records and allow detection of errors or fraud.[3] The basis of double-entry bookkeeping is the accounting equation: A s s e t s = L i a b i l i t i e s + E q u i t y Every transaction recorded will keep this equation in balance. For example, a company can buy a n"
+    },
+    {
+      "keyword": "debit",
+      "window": "quation: A s s e t s = L i a b i l i t i e s + E q u i t y Every transaction recorded will keep this equation in balance. For example, a company can buy a new piece of equipment (increasing an asset), it can spend cash (reducing an asset) or take on a loan (increasing a liability). Based upon where an account sits within the accounting equation determines its normal balance - in this example, a debit to assets increases assets, whereas a credit to liabilities increases liabilities. The use of double-entry bookkeeping is a standard process for tracking business transactions that improves the ability of the users of financial information to read, process, and understand the financial picture of a company's operations. As the complexity and volume of transactions increases, companies use l"
+    },
+    {
+      "keyword": "equal",
+      "window": "temBank reconciliationLedgerSingle-entryBookkeepingAssetsLiabilitiesEquityIncomeExpensesDepreciationAccrualsPrepaymentsVAT/GST Financial statements Balance sheetIncome statement Related professions AccountantAccounting technicianAccounts clerk vte Double-entry bookkeeping, also known as double-entry accounting, is a method of bookkeeping in which every financial transaction is recorded with equal and opposite entries (debits and credits) - thus \"balancing the books\".[1][2] The purpose of double-entry bookkeeping is to maintain accuracy in financial records and allow detection of errors or fraud.[3] The basis of double-entry bookkeeping is the accounting equation: A s s e t s = L i a b i l i t i e s + E q u i t y Every transaction recorded will keep this equation in balance. For ex"
+    },
+    {
+      "keyword": "equal",
+      "window": ", credit what goes out. Personal accounts: Debit the receiver, credit the giver. Nominal accounts: Debit expenses and losses, credit incomes and gains.[25] Accounting equation approachedit Also known as the American approach, this method records transactions on the basis of the accounting equation[26] : A s s e t s = L i a b i l i t i e s + E q u i t y The accounting equation is a statement of equality between the debits and the credits. The rules of debit and credit depend on the nature of an account. For the purpose of the accounting equation approach, all the accounts are classified into the following five types: assets, capital, liabilities, revenues/incomes, or expenses/losses. If there is an increase or decrease in a set of accounts, there will be equal decrease or increase in an"
+    },
+    {
+      "keyword": "equal",
+      "window": "ting equation is a statement of equality between the debits and the credits. The rules of debit and credit depend on the nature of an account. For the purpose of the accounting equation approach, all the accounts are classified into the following five types: assets, capital, liabilities, revenues/incomes, or expenses/losses. If there is an increase or decrease in a set of accounts, there will be equal decrease or increase in another set of accounts. Classification in German-language bookkeepingedit German-language textbooks classify accounts by their relation to the balance sheet and the income statement.[27] Balance sheet accounts (Bestandskonten), divided into asset accounts and liability and equity accounts, start with the opening balance of a period, record increases and decreases d"
+    }
+  ],
+  "textLength": 23767
+}

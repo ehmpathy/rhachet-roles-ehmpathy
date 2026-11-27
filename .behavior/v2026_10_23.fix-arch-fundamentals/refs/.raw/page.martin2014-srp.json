@@ -1,0 +1,40 @@
+{
+  "source": {
+    "id": "page.martin2014-srp",
+    "kind": "page",
+    "url": "https://blog.cleancoder.com/uncle-bob/2014/05/08/SingleReponsibilityPrinciple.html",
+    "keywords": [
+      "Gather together",
+      "Separate those things",
+      "reason to change"
+    ]
+  },
+  "urlFinal": "https://blog.cleancoder.com/uncle-bob/2014/05/08/SingleReponsibilityPrinciple.html",
+  "status": 200,
+  "fetchedAt": "2026-11-25T02:39:25.881Z",
+  "title": "Clean Coder Blog",
+  "meta": [],
+  "windows": [
+    {
+      "keyword": "Gather together",
+      "window": "rs and managers feel when we break things they care about that they did not ask us to change. This is the reason we do not put SQL in JSPs. This is the reason we do not generate HTML in the modules that compute results. This is the reason that business rules should not know the database schema. This is the reason we separate concerns. Another wording for the Single Responsibility Principle is: Gather together the things that change for the same reasons. Separate those things that change for different reasons. If you think about this you’ll realize that this is just another way to define cohesion and coupling. We want to increase the cohesion between things that change for the same reasons, and we want to decrease the coupling between those things that change for different reasons. How"
+    },
+    {
+      "keyword": "Separate those things",
+      "window": "t they did not ask us to change. This is the reason we do not put SQL in JSPs. This is the reason we do not generate HTML in the modules that compute results. This is the reason that business rules should not know the database schema. This is the reason we separate concerns. Another wording for the Single Responsibility Principle is: Gather together the things that change for the same reasons. Separate those things that change for different reasons. If you think about this you’ll realize that this is just another way to define cohesion and coupling. We want to increase the cohesion between things that change for the same reasons, and we want to decrease the coupling between those things that change for different reasons. However, as you think about this principle, remember that the re"
+    },
+    {
+      "keyword": "reason to change",
+      "window": ", Meilir Page-Jones and many others. In the late 1990s I tried to consolidate these notions into a principle, which I called: The Single Responsibility Principle. (I have this vague feeling that I stole the name of this principle from Bertrand Meyer, but I have not been able to confirm that.) The Single Responsibility Principle (SRP) states that each software module should have one and only one reason to change. This sounds good, and seems to align with Parnas’ formulation. However it begs the question: What defines a reason to change? Some folks have wondered whether a bug-fix qualifies as a reason to change. Others have wondered whether refactorings are reasons to change. These questions can be answered by pointing out the coupling between the term “reason to change” and “responsibili"
+    },
+    {
+      "keyword": "reason to change",
+      "window": "The Single Responsibility Principle. (I have this vague feeling that I stole the name of this principle from Bertrand Meyer, but I have not been able to confirm that.) The Single Responsibility Principle (SRP) states that each software module should have one and only one reason to change. This sounds good, and seems to align with Parnas’ formulation. However it begs the question: What defines a reason to change? Some folks have wondered whether a bug-fix qualifies as a reason to change. Others have wondered whether refactorings are reasons to change. These questions can be answered by pointing out the coupling between the term “reason to change” and “responsibility”. Certainly the code is not responsible for bug fixes or refactoring. Those things are the responsibility of the programme"
+    },
+    {
+      "keyword": "reason to change",
+      "window": "the name of this principle from Bertrand Meyer, but I have not been able to confirm that.) The Single Responsibility Principle (SRP) states that each software module should have one and only one reason to change. This sounds good, and seems to align with Parnas’ formulation. However it begs the question: What defines a reason to change? Some folks have wondered whether a bug-fix qualifies as a reason to change. Others have wondered whether refactorings are reasons to change. These questions can be answered by pointing out the coupling between the term “reason to change” and “responsibility”. Certainly the code is not responsible for bug fixes or refactoring. Those things are the responsibility of the programmer, not of the program. But if that is the case, what is the program responsib"
+    }
+  ],
+  "textLength": 13155
+}

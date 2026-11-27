@@ -1,0 +1,54 @@
+{
+  "source": {
+    "id": "page.wiki-abstraction-inversion",
+    "kind": "page",
+    "url": "https://en.wikipedia.org/wiki/Abstraction_inversion",
+    "keywords": [
+      "Abstraction inversion",
+      "anti-pattern",
+      "Ada",
+      "coined"
+    ]
+  },
+  "urlFinal": "https://en.wikipedia.org/wiki/Abstraction_inversion",
+  "status": 200,
+  "fetchedAt": "2026-11-25T02:42:02.439Z",
+  "title": "Abstraction inversion - Wikipedia",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "Abstraction inversion - Wikipedia"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "Abstraction inversion",
+      "window": "Jump to content Main menu Search Appearance Donate Create account Log in Toggle the table of contents Abstraction inversion 5 languages Article Talk Read Edit View history Save Tools From Wikipedia, the free encyclopedia hide This article has multiple issues. Please help improve it or discuss these issues on the talk page. (Learn how and when to remove these messages) This article may contain excessive or irrelevant examples. (October 2013) This article may contain original research. (May 2009)"
+    },
+    {
+      "keyword": "Abstraction inversion",
+      "window": "nguages Article Talk Read Edit View history Save Tools From Wikipedia, the free encyclopedia hide This article has multiple issues. Please help improve it or discuss these issues on the talk page. (Learn how and when to remove these messages) This article may contain excessive or irrelevant examples. (October 2013) This article may contain original research. (May 2009) In computer programming, abstraction inversion is an anti-pattern arising when users of a construct need functions implemented within it but not exposed by its interface. The result is that the users re-implement the required functions in terms of the interface, which in its turn uses the internal implementation of the same functions. This may result in implementing lower-level features in terms of higher-level ones, thus"
+    },
+    {
+      "keyword": "Abstraction inversion",
+      "window": "inversion is an anti-pattern arising when users of a construct need functions implemented within it but not exposed by its interface. The result is that the users re-implement the required functions in terms of the interface, which in its turn uses the internal implementation of the same functions. This may result in implementing lower-level features in terms of higher-level ones, thus the term 'abstraction inversion'. Possible ill-effects are: The user of such a re-implemented function may seriously underestimate its running-costs. The user of the construct is forced to obscure their implementation with complex mechanical details. Many users attempt to solve the same problem, increasing the risk of error. Examplesedit Alleged examples from professional programming circles include: In"
+    },
+    {
+      "keyword": "anti-pattern",
+      "window": "it View history Save Tools From Wikipedia, the free encyclopedia hide This article has multiple issues. Please help improve it or discuss these issues on the talk page. (Learn how and when to remove these messages) This article may contain excessive or irrelevant examples. (October 2013) This article may contain original research. (May 2009) In computer programming, abstraction inversion is an anti-pattern arising when users of a construct need functions implemented within it but not exposed by its interface. The result is that the users re-implement the required functions in terms of the interface, which in its turn uses the internal implementation of the same functions. This may result in implementing lower-level features in terms of higher-level ones, thus the term 'abstraction inver"
+    },
+    {
+      "keyword": "anti-pattern",
+      "window": "mming in Lua : 2.3 - Numbers Accessed 2009-10-12. lua-users c2: Bitwise Operators Accessed 2013-01-15. sourcefrog : Tom Lord on Subversion[link removed] Title bar customization - Windows apps | Microsoft Learn External linksedit Abstraction Inversion at Portland Pattern Repository - extensive discussion, much of it taking \"abstraction inversion\" in the sense of \"concealed complexity\" Category: Anti-patterns This page was last edited on 25 July 2026, at 04:57 (UTC). Page was rendered with Parsoid. Text is available under the Creative Commons Attribution-ShareAlike 4.0 License; additional terms may apply. By using this site, you agree to the Terms of Use and Privacy Policy. Wikipedia® is a registered trademark of the Wikimedia Foundation, Inc., a non-profit organization. Privacy policy Ab"
+    },
+    {
+      "keyword": "Ada",
+      "window": "bstraction inversion'. Possible ill-effects are: The user of such a re-implemented function may seriously underestimate its running-costs. The user of the construct is forced to obscure their implementation with complex mechanical details. Many users attempt to solve the same problem, increasing the risk of error. Examplesedit Alleged examples from professional programming circles include: In Ada, choice of the rendezvous construct as a synchronisation primitive forced programmers to implement simpler constructs such as semaphores on the more complex basis.[1] Applesoft BASIC and Lua (when configured for desktop computers) have a floating-point as the base numeric type.[2][3] While Applesoft did implement integer arithmetic, it was implemented on top of floating-point arithmetic, and n"
+    },
+    {
+      "keyword": "Ada",
+      "window": "eet lookup functions to replicate the functionality of a database Using variant data types as loop counters in Microsoft Visual Basic where an integer type is also available. See alsoedit Leaky abstraction Referencesedit Critique of DIN Kernel Lisp Definition Version 1.2, footnote 2 Archived 2018-05-06 at the Wayback Machine - says (without references) that the term derives from critiques of the Ada rendezvous, appears to be one of the earliest uses. lua-users c2: Floating Point Accessed 2009-10-12. Programming in Lua : 2.3 - Numbers Accessed 2009-10-12. lua-users c2: Bitwise Operators Accessed 2013-01-15. sourcefrog : Tom Lord on Subversion[link removed] Title bar customization - Windows apps | Microsoft Learn External linksedit Abstraction Inversion at Portland Pattern Repository -"
+    }
+  ],
+  "textLength": 5029
+}

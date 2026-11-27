@@ -1,0 +1,57 @@
+{
+  "source": {
+    "id": "page.wiki-design-by-contract",
+    "kind": "page",
+    "url": "https://en.wikipedia.org/wiki/Design_by_contract",
+    "keywords": [
+      "1986",
+      "Meyer",
+      "invariant"
+    ]
+  },
+  "urlFinal": "https://en.wikipedia.org/wiki/Design_by_contract",
+  "status": 200,
+  "fetchedAt": "2026-11-23T13:30:20.931Z",
+  "title": "Design by contract - Wikipedia",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "Design by contract - Wikipedia"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "1986",
+      "window": "ing), the inverse approach is taken, meaning that the server component tests that all relevant preconditions hold true (before, or while, processing the client component's request) and replies with a suitable error message if not. Historyedit The term was coined by Bertrand Meyer in connection with his design of the Eiffel programming language and first described in various articles starting in 1986[1][2][3] and the two successive editions (1988, 1997) of his book Object-Oriented Software Construction. Eiffel Software applied for trademark registration for Design by Contract in December 2003, and it was granted in December 2004.[4][5] The current owner of this trademark is Eiffel Software.[6][7] Design by contract has its roots in work on formal verification, formal specification and Ho"
+    },
+    {
+      "keyword": "1986",
+      "window": ", among other uses. See alsoedit Component-based software engineering Correctness (computer science) Defensive programming Fail-fast system Formal methods Hoare logic Modular programming Program derivation Program refinement Strong typing Test-driven development Typestate analysis Notesedit Meyer, Bertrand: Design by Contract, Technical Report TR-EI-12/CO, Interactive Software Engineering Inc., 1986 Meyer, Bertrand: Design by Contract, in Advances in Object-Oriented Software Engineering, eds. D. Mandrioli and B. Meyer, Prentice Hall, 1991, pp. 1–50 Meyer, Bertrand: \"Applying \"Design by Contract\"\", in Computer (IEEE), 25, 10, October 1992, pp. 40–51. \"United States Patent and Trademark Office registration for \"DESIGN BY CONTRACT\"\". Archived from the original on 2016-12-21. Retrieved 20"
+    },
+    {
+      "keyword": "Meyer",
+      "window": "d as required for that operation. Where this assumption is considered too risky (as in multi-channel or distributed computing), the inverse approach is taken, meaning that the server component tests that all relevant preconditions hold true (before, or while, processing the client component's request) and replies with a suitable error message if not. Historyedit The term was coined by Bertrand Meyer in connection with his design of the Eiffel programming language and first described in various articles starting in 1986[1][2][3] and the two successive editions (1988, 1997) of his book Object-Oriented Software Construction. Eiffel Software applied for trademark registration for Design by Contract in December 2003, and it was granted in December 2004.[4][5] The current owner of this tradem"
+    },
+    {
+      "keyword": "Meyer",
+      "window": "em has the method qualifiers :before, :after and :around that allow writing contracts as auxiliary methods, among other uses. See alsoedit Component-based software engineering Correctness (computer science) Defensive programming Fail-fast system Formal methods Hoare logic Modular programming Program derivation Program refinement Strong typing Test-driven development Typestate analysis Notesedit Meyer, Bertrand: Design by Contract, Technical Report TR-EI-12/CO, Interactive Software Engineering Inc., 1986 Meyer, Bertrand: Design by Contract, in Advances in Object-Oriented Software Engineering, eds. D. Mandrioli and B. Meyer, Prentice Hall, 1991, pp. 1–50 Meyer, Bertrand: \"Applying \"Design by Contract\"\", in Computer (IEEE), 25, 10, October 1992, pp. 40–51. \"United States Patent and Trade"
+    },
+    {
+      "keyword": "Meyer",
+      "window": "g other uses. See alsoedit Component-based software engineering Correctness (computer science) Defensive programming Fail-fast system Formal methods Hoare logic Modular programming Program derivation Program refinement Strong typing Test-driven development Typestate analysis Notesedit Meyer, Bertrand: Design by Contract, Technical Report TR-EI-12/CO, Interactive Software Engineering Inc., 1986 Meyer, Bertrand: Design by Contract, in Advances in Object-Oriented Software Engineering, eds. D. Mandrioli and B. Meyer, Prentice Hall, 1991, pp. 1–50 Meyer, Bertrand: \"Applying \"Design by Contract\"\", in Computer (IEEE), 25, 10, October 1992, pp. 40–51. \"United States Patent and Trademark Office registration for \"DESIGN BY CONTRACT\"\". Archived from the original on 2016-12-21. Retrieved 2009-06-"
+    },
+    {
+      "keyword": "invariant",
+      "window": "heme Design by contract (DbC), also known as contract programming, programming by contract and design-by-contract programming, is an approach for designing software. It prescribes that software designers should define formal, precise and verifiable interface specifications for software components, which extend the ordinary definition of abstract data types with preconditions, postconditions and invariants. These specifications are referred to as \"contracts\", in accordance with a conceptual metaphor with the conditions and obligations of business contracts. The DbC approach assumes all client components that invoke an operation on a server component will meet the preconditions specified as required for that operation. Where this assumption is considered too risky (as in multi-channel or"
+    },
+    {
+      "keyword": "invariant",
+      "window": "n for the client, and a benefit for the supplier (the method itself), as it frees it from having to handle cases outside of the precondition. Guarantee a certain property on exit: the method's postcondition—an obligation for the supplier, and obviously a benefit (the main benefit of calling the method) for the client. Maintain a certain property, assumed on entry and guaranteed on exit: the class invariant. The contract is semantically equivalent to a Hoare triple which formalises the obligations. This can be summarised by the \"three questions\" that the designer must repeatedly answer in the contract: What does the contract expect? What does the contract guarantee? What does the contract maintain? Many programming languages have facilities to make assertions like these. However, DbC con"
+    },
+    {
+      "keyword": "invariant",
+      "window": "of a contract extends down to the method/procedure level; the contract for each method will normally contain the following pieces of information:[citation needed] Acceptable and unacceptable input values or types, and their meanings Return values or types, and their meanings Error and exception condition values or types that can occur, and their meanings Side effects Preconditions Postconditions Invariants (more rarely) Performance guarantees, e.g. for time or space used Subclasses in an inheritance hierarchy are allowed to weaken preconditions (but not strengthen them) and strengthen postconditions and invariants (but not weaken them). These rules approximate behavioural subtyping. All class relationships are between client classes and supplier classes. A client class is obliged to mak"
+    }
+  ],
+  "textLength": 13386
+}

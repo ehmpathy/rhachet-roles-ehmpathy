@@ -1,0 +1,7 @@
+# rule.require.invariant-before-operation
+
+before you design or write an operation that writes, in order: (1) **invariant** — one line, on the object it governs; (2) **break paths** — a race, a retry, a second write path, a bad input, a partial failure; (3) **enforcement per path** — structural first, one may stop several; (4) **proof** — a test per break case, red without its enforcement. then write the operation
+why: the invariant picks the enforcements, the tests, and the code; the break paths become a checklist a reviewer reads in one line
+no invariant fits the whole? decompose until each part owns one, then test the seams
+enforcement: a write with no declared invariant = blocker; break path with no enforcement = blocker; enforcement with no proof = blocker
+forbid twins: rule.forbid.scattered-invariant-guards · rule.forbid.check-then-write

@@ -47,8 +47,8 @@ gerund usage = **BLOCKER**
 | `handling` | `handle`, `handler` | verb or agent |
 | `loading` | `load`, `loader`, `loaded` | verb, agent, or result |
 | `running` | `run`, `runner`, `active` | verb, agent, or state |
-| `pending` | `queued`, `awaited`, `unresolved` | explicit state |
-| `missing` | `absent`, `notFound`, `lacks` | explicit state or verb |
+| `pending` | `queued`, `awaited`, `unresolved` | explicit status |
+| `missing` | `absent`, `notFound`, `lacks` | explicit status or verb |
 | `remaining` | `left`, `rest`, `residual` | noun or adjective |
 | `matching` | `matched`, `match`, `fits` | result, noun, or verb |
 | `composing` | `composer`, `compose` | agent or verb |
@@ -74,6 +74,6 @@ const errorHandler = createHandler();       // agent noun
 
 #### .note: zero exceptions
 - no -ing form is acceptable — not as a noun, not in a verb phrase, not in a compound name
-- `isRunning` → `status === 'active'` (explicit state)
+- `isRunning` → `status === 'active'` (explicit status)
 - `startProcessing()` → `startProcess()` or `process()`
 - a word that merely ends near -ing is not one: `context.brain.repl.imagine` ends in -ine

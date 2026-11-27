@@ -1,0 +1,61 @@
+{
+  "source": {
+    "id": "page.postgres-explicit-locking",
+    "kind": "page",
+    "url": "https://www.postgresql.org/docs/current/explicit-locking.html",
+    "keywords": [
+      "FOR UPDATE",
+      "row-level locks",
+      "deadlock"
+    ]
+  },
+  "urlFinal": "https://www.postgresql.org/docs/current/explicit-locking.html",
+  "status": 200,
+  "fetchedAt": "2026-11-24T05:41:13.267Z",
+  "title": "PostgreSQL: Documentation: 19: 13.3. Explicit Locking",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "13.3. Explicit Locking"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "FOR UPDATE",
+      "window": "Lock) Conflicts with the ACCESS EXCLUSIVE lock mode only. The SELECT command acquires a lock of this mode on referenced tables. In general, any query that only reads a table and does not modify it will acquire this lock mode. ROW SHARE (RowShareLock) Conflicts with the EXCLUSIVE and ACCESS EXCLUSIVE lock modes. The SELECT command acquires a lock of this mode on all tables on which one of the FOR UPDATE, FOR NO KEY UPDATE, FOR SHARE, or FOR KEY SHARE options is specified (in addition to ACCESS SHARE locks on any other tables that are referenced without any explicit FOR ... locking option). ROW EXCLUSIVE (RowExclusiveLock) Conflicts with the SHARE, SHARE ROW EXCLUSIVE, EXCLUSIVE, and ACCESS EXCLUSIVE lock modes. The commands UPDATE, DELETE, INSERT, and MERGE acquire this lock mode on"
+    },
+    {
+      "keyword": "FOR UPDATE",
+      "window": "ithout CONCURRENTLY) commands. REPACK also acquires this lock mode. When run with CONCURRENTLY, REPACK acquires it only while swapping the table and index files. Many forms of ALTER INDEX and ALTER TABLE also acquire a lock at this level. This is also the default lock mode for LOCK TABLE statements that do not specify a mode explicitly. Tip Only an ACCESS EXCLUSIVE lock blocks a SELECT (without FOR UPDATE/SHARE) statement. Once acquired, a lock is normally held until the end of the transaction. But if a lock is acquired after establishing a savepoint, the lock is released immediately if the savepoint is rolled back to. This is consistent with the principle that ROLLBACK cancels all effects of the commands since the savepoint. The same holds for locks acquired within a PL/pgSQL exception"
+    },
+    {
+      "keyword": "FOR UPDATE",
+      "window": "tion can hold conflicting locks on the same row, even in different subtransactions; but other than that, two transactions can never hold conflicting locks on the same row. Row-level locks do not affect data querying; they block only writers and lockers to the same row. Row-level locks are released at transaction end or during savepoint rollback, just like table-level locks. Row-Level Lock Modes FOR UPDATE FOR UPDATE causes the rows retrieved by the SELECT statement to be locked as though for update. This prevents them from being locked, modified or deleted by other transactions until the current transaction ends. That is, other transactions that attempt UPDATE, DELETE, SELECT FOR UPDATE, SELECT FOR NO KEY UPDATE, SELECT FOR SHARE or SELECT FOR KEY SHARE of these rows will be blocked unt"
+    },
+    {
+      "keyword": "row-level locks",
+      "window": "6: PostgreSQL 19 Released! Documentation → PostgreSQL 19 Supported Versions: Current (19) / 18 / 17 / 16 / 15 Development Versions: devel Unsupported versions: 14 / 13 / 12 / 11 / 10 / 9.6 / 9.5 / 9.4 / 9.3 / 9.2 / 9.1 / 9.0 / 8.4 / 8.3 / 8.2 / 8.1 / 8.0 / 7.4 / 7.3 13.3. Explicit Locking Prev Up Chapter 13. Concurrency Control Home Next 13.3. Explicit Locking 13.3.1. Table-Level Locks 13.3.2. Row-Level Locks 13.3.3. Page-Level Locks 13.3.4. Deadlocks 13.3.5. Advisory Locks PostgreSQL provides various lock modes to control concurrent access to data in tables. These modes can be used for application-controlled locking in situations where MVCC does not give the desired behavior. Also, most PostgreSQL commands automatically acquire locks of appropriate modes to ensure that referenced tabl"
+    },
+    {
+      "keyword": "row-level locks",
+      "window": ". Table 13.2. Conflicting Lock Modes Requested Lock Mode Existing Lock Mode ACCESS SHARE ROW SHARE ROW EXCL. SHARE UPDATE EXCL. SHARE SHARE ROW EXCL. EXCL. ACCESS EXCL. ACCESS SHARE X ROW SHARE X X ROW EXCL. X X X X SHARE UPDATE EXCL. X X X X X SHARE X X X X X SHARE ROW EXCL. X X X X X X EXCL. X X X X X X X ACCESS EXCL. X X X X X X X X 13.3.2. Row-Level Locks In addition to table-level locks, there are row-level locks, which are listed as below with the contexts in which they are used automatically by PostgreSQL. See Table 13.3 for a complete table of row-level lock conflicts. Note that a transaction can hold conflicting locks on the same row, even in different subtransactions; but other than that, two transactions can never hold conf"
+    },
+    {
+      "keyword": "row-level locks",
+      "window": "sting Lock Mode ACCESS SHARE ROW SHARE ROW EXCL. SHARE UPDATE EXCL. SHARE SHARE ROW EXCL. EXCL. ACCESS EXCL. ACCESS SHARE X ROW SHARE X X ROW EXCL. X X X X SHARE UPDATE EXCL. X X X X X SHARE X X X X X SHARE ROW EXCL. X X X X X X EXCL. X X X X X X X ACCESS EXCL. X X X X X X X X 13.3.2. Row-Level Locks In addition to table-level locks, there are row-level locks, which are listed as below with the contexts in which they are used automatically by PostgreSQL. See Table 13.3 for a complete table of row-level lock conflicts. Note that a transaction can hold conflicting locks on the same row, even in different subtransactions; but other than that, two transactions can never hold conflicting locks on the same row. Row-level locks do not affect d"
+    },
+    {
+      "keyword": "deadlock",
+      "window": "eSQL 19 Supported Versions: Current (19) / 18 / 17 / 16 / 15 Development Versions: devel Unsupported versions: 14 / 13 / 12 / 11 / 10 / 9.6 / 9.5 / 9.4 / 9.3 / 9.2 / 9.1 / 9.0 / 8.4 / 8.3 / 8.2 / 8.1 / 8.0 / 7.4 / 7.3 13.3. Explicit Locking Prev Up Chapter 13. Concurrency Control Home Next 13.3. Explicit Locking 13.3.1. Table-Level Locks 13.3.2. Row-Level Locks 13.3.3. Page-Level Locks 13.3.4. Deadlocks 13.3.5. Advisory Locks PostgreSQL provides various lock modes to control concurrent access to data in tables. These modes can be used for application-controlled locking in situations where MVCC does not give the desired behavior. Also, most PostgreSQL commands automatically acquire locks of appropriate modes to ensure that referenced tables are not dropped or modified in incompatible wa"
+    },
+    {
+      "keyword": "deadlock",
+      "window": "FOR UPDATE X X X X 13.3.3. Page-Level Locks In addition to table and row locks, page-level share/exclusive locks are used to control read/write access to table pages in the shared buffer pool. These locks are released immediately after a row is fetched or updated. Application developers normally need not be concerned with page-level locks, but they are mentioned here for completeness. 13.3.4. Deadlocks The use of explicit locking can increase the likelihood of deadlocks, wherein two (or more) transactions each hold locks that the other wants. For example, if transaction 1 acquires an exclusive lock on table A and then tries to acquire an exclusive lock on table B, while transaction 2 has already exclusive-locked table B and now wants an exclusive lock on table A, then neither one can"
+    },
+    {
+      "keyword": "deadlock",
+      "window": "row locks, page-level share/exclusive locks are used to control read/write access to table pages in the shared buffer pool. These locks are released immediately after a row is fetched or updated. Application developers normally need not be concerned with page-level locks, but they are mentioned here for completeness. 13.3.4. Deadlocks The use of explicit locking can increase the likelihood of deadlocks, wherein two (or more) transactions each hold locks that the other wants. For example, if transaction 1 acquires an exclusive lock on table A and then tries to acquire an exclusive lock on table B, while transaction 2 has already exclusive-locked table B and now wants an exclusive lock on table A, then neither one can proceed. PostgreSQL automatically detects deadlock situations and reso"
+    }
+  ],
+  "textLength": 17463
+}

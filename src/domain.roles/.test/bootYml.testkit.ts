@@ -6,7 +6,7 @@ import { parse as parseYaml } from 'yaml';
  * .why = shared contract for every parse/collect/find operation below
  */
 export interface BootYmlSubject {
-  briefs?: { say?: string[]; ref?: string[] };
+  briefs?: { say?: string[]; ref?: string[]; not?: string[] };
   skills?: { say?: string[]; ref?: string[] };
 }
 
@@ -32,6 +32,17 @@ const collectAllBriefPaths = (input: { bootYml: BootYml }): string[] => {
     if (subject.briefs?.ref) paths.push(...subject.briefs.ref);
   }
   return paths;
+};
+
+/**
+ * .what = collect the `not:` globs from boot.yml across all subjects
+ * .why = a `not:` glob names briefs kept out of the boot on purpose (read on demand), so a
+ *        completeness check counts them as accounted for, never as forgotten
+ */
+const collectAllBriefNotGlobs = (input: { bootYml: BootYml }): string[] => {
+  return Object.values(input.bootYml).flatMap(
+    (subject) => subject.briefs?.not ?? [],
+  );
 };
 
 /**
@@ -128,11 +139,12 @@ const asOnDiskBriefPath = (input: { bootPath: string }): string => {
  * .what = shared boot.yml test utilities, consumed by every role's boot.yml.test.ts
  * .why = a role's boot.yml shape and validation rules are identical; a bundled kit
  *        keeps parse/collect/find logic in one maintained place instead of a
- *        hand-copied fork per role (rule.prefer.most-common-denominator)
+ *        hand-copied fork per role (rule.require.most-common-denominator)
  */
 export const bootYmlTestKit = {
   parse,
   collectAllBriefPaths,
+  collectAllBriefNotGlobs,
   collectAlwaysSayBriefPaths,
   collectBriefPathsPerSubject,
   findDuplicateBriefPaths,

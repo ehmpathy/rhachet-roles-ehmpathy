@@ -1,0 +1,23 @@
+{
+  "source": {
+    "id": "page.ousterhout2018-pass-through",
+    "kind": "page",
+    "url": "https://www.google.com/search?tbm=bks&q=ousterhout+%22a+pass-through+method+is%22",
+    "keywords": [
+      "pass-through",
+      "Philosophy of Software Design"
+    ]
+  },
+  "urlFinal": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3Dousterhout%2B%2522a%2Bpass-through%2Bmethod%2Bis%2522%26sei%3DzR0Fa6maEaGZwt0P09CUsQU%26udm%3Dbooks&q=EhAmABcAkcfMEKZ7aYsuwE9EGM67lNgGIjBeuaYpjVgCBoeX9n7OluT-pE7LjyX7QT8gjVjzBpJ-t8kjq8DhNnN-NnGCWqrSGIgyAVJaAUNg6erx0ruu9Z-hAQ",
+  "status": 200,
+  "fetchedAt": "2026-11-24T05:17:05.664Z",
+  "title": "https://www.google.com/search?q=ousterhout+%22a+pass-through+method+is%22&sei=zR0Fa6maEaGZwt0P09CUsQU&udm=books",
+  "meta": [],
+  "windows": [
+    {
+      "keyword": "pass-through",
+      "window": "About this page Our systems have detected unusual traffic from your computer network. This page checks to see if it's really you sending the requests, and not a robot. Why did this happen? IP address: 2600:1700:91c7:cc10:a67b:698b:2ec0:4f44 Time: 2026-11-24T05:17:02Z URL: https://www.google.com/search?q=ousterhout+%22a+pass-through+method+is%22&sei=zR0Fa6maEaGZwt0P09CUsQU&udm=books"
+    }
+  ],
+  "textLength": 391
+}

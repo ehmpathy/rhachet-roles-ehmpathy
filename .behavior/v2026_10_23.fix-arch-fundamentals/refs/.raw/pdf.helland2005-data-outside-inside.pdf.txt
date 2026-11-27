@@ -1,0 +1,579 @@
+                    Data on the Outside versus Data on the Inside
+
+                                                                  Pat Helland
+                                                         Microsoft Corporation
+                                                          One Microsoft Way
+                                                             Redmond, WA
+                                                                 USA
+                                                        PHelland@Microsoft.com
+
+
+                             Abstract
+                                                                            1.1 Service Oriented Architectures
+     Recently, a lot of interest has been shown in
+                                                                            Service Oriented Architecture characterizes a collection
+     SOA (Service Oriented Architectures). In these
+                                                                            of independent and autonomous services. Each service
+     systems, there are multiple services each with its
+                                                                            comprises a chunk of code and data that is private to that
+     own code and data, and ability to operate
+                                                                            service. Services are different than the classic application
+     independently of its partners. In particular,
+                                                                            living in a silo and interacting only with humans in that
+     atomic transactions with two-phase commit do
+                                                                            they are interconnected with messages to other services.
+     not occur across multiple services because this
+                                                                                Services communicate with each other exclusively
+     necessitates holding locks while another service
+                                                                            through messages. No knowledge of the partner service is
+     decides the outcome of the transaction. This
+                                                                            shared other than the message formats and the sequences
+     paper proposes there are a number of seminal
+                                                                            of the messages that are expected. It is explicitly allowed
+     differences between data inside a service and
+                                                                            (and, indeed, expected) that the partner service may be
+     data sent into the space outside of the service
+                                                                            implemented with heterogeneous technology at all levels
+     boundary. We then consider objects, SQL, and
+                                                                            of the stack including hardware, operating system,
+     XML as different representations of data. Each
+                                                                            database, middleware, and/or application vendor or
+     of these models has strengths and weaknesses
+                                                                            implementation team.
+     when applied to the inside and outside of the
+                                                                                The essence of SOA lies in independent services
+     service boundary. The paper concludes that the
+                                                                            which are interconnected with messaging.
+     strength of each of these models in one area is
+     derived from essential characteristics underlying                      1.2 Bounding Trust via Encapsulation
+     its weakness in the other area.
+                                                                            Services interact via a collection of messages whose
+1. Introduction                                                             formats (schema) and business semantics are well
+                                                                            defined. Each service will only do limited things for its
+Service Oriented Architectures (SOA) is an exciting topic                   partner services based upon the well defined message.
+of discussion lately. While we can easily look to the past                      The act of defining a limited set of behaviors provides
+and see examples of large enterprise solutions that we can                  a very firm encapsulation of the service. The only way to
+now characterize as SOA, the discussion of this                             interact with the service is via the prescribed messages
+applications style as a design paradigm is relatively                       each of which will invoke application logic to decide if
+recent. This section attempts to describe what is meant by                  and when to access the data encapsulated within the
+SOA and introduces the notions of data residing inside                      service. Data is, in general, never allowed out of a service
+services and data residing outside services.                                unless it is processed by application logic.
+                                                                              When approaching your bank’s ATM, you are
+                                                                              accustomed to only having a fixed set of operations to
+Permission to copy without fee all or part of this material is granted        be performed (e.g. withdrawal, deposit, etc.). Banks
+provided that the copies are not made or distributed for direct               do not allow direct access to reads and writes of their
+commercial advantage, the VLDB copyright notice and the title of the          corporate database via ATMs. This is service oriented
+publication and its date appear, and notice is given that copying is by
+permission of the Very Large Data Base Endowment. To copy
+                                                                              architecture and encapsulation to bound trust.
+otherwise, or to republish, requires a fee and/or special permission from
+the Endowment
+Proceedings of the 2005 CIDR Conference
+1.3 Encapsulating Both Changes and Reads                       statement, this is the data that we have always considered
+                                                               as “normal data”. The classic data contained in a SQL
+Services encapsulate changes to their data via the
+                                                               database and manipulated by a typical application is
+application logic for the service. This is done to ensure
+                                                               inside data.
+the integrity of the data that is owned by the service and
+                                                                   Data on the Outside refers to the information that
+the integrity of the work performed by the service. It is
+                                                               flows between these independent services. Since we
+essential that only the trusted application logic of the
+                                                               defined services as being connected by messaging, it is
+service perform changes to the data.
+                                                               reasonable to consider all outside data as being
+    In addition, services encapsulate the reading of their
+                                                               transmitted with a message2.
+data to control the privacy of what is exported. While the
+subject of business intelligence analytics is beyond the       1.6 Operators and Operands
+scope of this paper, most environments based on service
+orientation cannot avail themselves of relative simplicity     When messages flow between services, they contain
+of a single database when attempting to analyze their data.    operators. Operators correspond to the intended purpose
+The placement of the underlying data on heterogeneous          for the message. Frequently, the operator reflects a
+operating systems and databases means that there are new       business function in the domain of the service. For
+challenges in performing cross-service analysis.               example, a service implementing a banking application
+    Frequently, services will choose to export carefully       may have operators in their messages for deposits,
+sanitized subsets of their data for consumption by partner     withdrawals, and other such banking business functions.
+services. We will explore this phenomenon later in this        Sometimes, operators reflect more mundane reasons for
+paper but the main point to be made now is that an             sending messages such as “here’s Tuesday’s price-list”.
+untrusted partner service cannot simply read the contents          Messages may contain operands to the operators. The
+of the service’s private data unless intermediated by          operands are additional information required by the
+application logic.                                             operator message to fully qualify the intent of the sending
+                                                               service. Operands are typically obtained from reference
+1.4 Trust and Transactions                                     data published by a service to facilitate its later invocation
+                                                               with an operator message. We will address the topic of
+To participate in an ACID transaction requires a
+                                                               reference data in more depth below.
+willingness to hold database locks until the transaction
+coordinator decides to commit or abort the transaction.
+For the non-coordinator, this is a serious ceding of
+independence and requires a lot of trust that the
+                                                                                  Service
+coordinating system will make a decision in a timely
+fashion. Being constrained to hold active locks on
+records in the database can be devastating for the                                            Deposit
+availability of a system.
+    In this paper we are considering the relationship across                       Operands
+applications and data that are unwilling to trust each other         Reference                 Operator
+enough to jointly participate in a two phase commit. The               Data
+use of the word “service” in this paper is hereby clarified
+to carry the assumption that ACID transactions are not
+shared across service boundaries1.
+
+1.5 Data Inside and Outside Services
+The premise of this paper is that data residing inside a
+service is different in many essential ways from data
+                                                               2
+residing outside services.                                       Think about the role of paper and humans in connecting
+    Data on the Inside refers to the encapsulated private      applications running in their own silos. Looking back at
+data contained within the service itself. As a sweeping        many enterprise applications, data and business operations
+                                                               flow between the applications using printouts and people.
+1
+  Sometimes, the word “service” is used in a fashion that      It is reasonable to consider the contents of a printout as
+includes the potential for shared ACID transactions.           outside data and apply the arguments about the nature of
+Notably, the proposed WS-Transaction standard                  outside data made in this document equally to paper
+facilitates this. There will always be environments that       representations. For the purposes of discussion with this
+are willing to share ACID transactions and others which        document, we will stick to an assumption of messages as
+are not. Hence, this becomes a debate about the definition     the means for sharing outside data. That is not meant to
+and implications of the nomenclature and specifically, the     preclude other representations of outside data but rather to
+interpretation of the word “service”.                          sharpen our focus for discussion.
+2. Data: Then and Now                                            message are always from the past! They are never from
+                                                                 “now”.
+This section examines the temporal implications of not             There is no simultaneity at a distance!
+sharing ACID transactions across services.                We       -- Similar to the speed of light bounding information
+retrospectively examine the nature of work inside the              -- By the time you see a distant object, it may have
+boundaries of an ACID transaction and observe that this               changed!
+provides a crisp sense of “now” for operations against             -- By the time you see a message, the data may have
+inside data.                                                          changed!
+    However, it is different for data on the outside of the
+service. The fact that it is unlocked means that the data is
+no longer in the “now”. Furthermore, operators are                 Services, transactions, and locks bound simultaneity!
+requests for operations which have not yet occurred and            -- Inside a transaction, things are simultaneous
+actually live in the future (assuming they come to                 -- Simultaneity exists only inside a transaction!
+fruition).                                                         -- Simultaneity exists only inside a service!
+    Finally, we consider the fact that different services        All data seen from a distant service is from the “past”. By
+live in their own private temporal domains and that this is      the time you see data from a distant service, it has been
+an intrinsic part of service oriented architecture. It carries   unlocked and may change.
+implications on the way we must think about applications.            Each service has its own perspective. Its inside data
+                                                                 provides its framework of “now”. Its outside data
+2.1 Transactions, Inside Data, and “Now”                         provides its framework of the “past”. My inside is not
+                                                                 your inside just as my outside is not your outside.
+Transactions have been historically defined using ACID
+properties (Atomic, Consistent, Isolated, and Durable)3.           Going to SOA is like going from Newton’s physics to
+These properties reflect the semantics of the transaction.         Einstein’s physics.
+Much work has been done to describe transaction                    -- Newton’s time marched forward uniformly with
+serializability in which executing transactions on a system            instant knowledge at a distance.
+or set of related systems perceive their work is applied in        -- Before SOA, distributed computing strove to make
+a serial order even in the face of concurrent execution.4             many systems look like one with RPC, 2PC, etc.
+    Transactional serializability makes you feel alone. A          -- In Einstein’s universe, everything is relative to
+rephrasing of serializability is that each transaction sees           one’s perspective.
+all other transactions in one of three categories:                 -- SOA has “now” inside and the “past” arriving in
+• Transactions whose work preceded this one,                          messages.
+• Transactions whose work follows this one, or
+                                                                 2.3 Operators: Hope for the Future
+• Transactions whose work is completely independent
+     of this one.                                                    Message operators define requests for work from a
+This looks just like the executing transaction is all alone.     service. If Service-A sends a message with an operator
+    ACID transactions live in the “now”. As time                 request to Service-B, it is hopeful that Service-B will do
+marches forward and transactions commit, each new
+transaction perceives the impact of the transactions that        Hopeful for
+preceded it. The executing logic of the service lives with       the Future… Service                 Service
+a clear and crisp sense of “now”.                                Decides to    A                       B
+                                                                 Issue Request                             Minding
+2.2 Outside Data: a Blast from the Past                                                                    Own
+                                                                                            Request        Business
+Messages may contain data extracted from the local
+service’s database. While it is processed by application                                                   Future
+logic, frequently the contents of a message are derived                                                    Altered
+from the contents of data inside the service’s database.                                        Resp       by Doing
+                                                                                                           Request
+This data will be unlocked as the outgoing message is            Hopes Fulfilled,
+created, allowing it to be changed.                              the Future is Now
+    By the time a partner service sees a message whose
+contents are based on the sender’s data, the unlocked data       the requested operation. It is hopeful for the future.
+may, in fact, be changed by subsequent transactions. It is           If Service-B complies and performs the work, that
+no longer known to be accurate. The contents of a                work becomes part of Service-B’s future and its state is
+                                                                 forever changed.
+                                                                     Once Service-A receives a reply back describing
+3                                                                either success or failure of the operation, Service-A’s
+    See [Gray and Reuter].                                       future is changed.
+4
+    See [Bernstein, Hadzilacos, Goodman].
+2.4 Between Services: Life in the “Then”                      3. Data on the Outside: Immutability
+Operands may live in either the past or the future            This section discusses some interesting properties of data
+depending on their usage pattern. They live in the past if    on the outside. First, we address the need for each data
+they have copies of unlocked information from a distant       item to be uniquely identified and to have immutable
+service. They live in the future if they contain proposed     contents that do not changes as copies of it move around.
+values that hopefully will be used if the operator is         Next, we describe anomalies that can be caused in the
+successfully completed.                                       interpretation of data in different locations and at different
+                                                              times and introduce the notion of “stable” data which
+                                                              avoids these anomalies. After this, we move on to discuss
+                                                              schema and the messages it describes. This leads us to
+       Service                     Service                    the mechanisms by which one piece of outside data can
+       #1                          #2                         refer to another piece of data and the implications of
+                                                              immutability. Finally, we examine what outside data
+                                                              looks like when it is being created by a collection of
+                Service                                       independent services each in their own temporal domain.
+  No Notion #3                      Service
+                                    #4                        3.1 Immutable and/or Versioned Data
+  of “Now”
+ in Between                                                   Data may be immutable. Once immutable data is written
+  Services!                                                   and given an identifier, the contents of the data will
+    Between the services, life is in the world of “then”.     always remain the same for that identifier. Once
+Operators live in the future. Operands live in either the     immutable data is written, it cannot be changed. In many
+past or the future. Life is always in the “then” when you     environments, the immutable data may be deleted and the
+are outside the confines of a service. This means that data   identifier will subsequently be mapped to an indication of
+on the outside lives in the world of “then”. It is past or    “no present data” but it will never return data other than
+future but it is not now.                                     the original contents.
+    Each separate service has its own separate “now”.             Immutable data is the same no matter when it is
+The domains of transaction serializability are disjoint and   referenced and no matter where it is referenced.
+each has its own temporal environment. The only way               Versioned data is immutable. If you specify a specific
+they interact is through data on the outside which lives in   version of some collection of data, you will always get the
+the world of “then”.                                          same contents.
+                                                                  In many cases, a version independent identifier is used
+2.5 Services: Dealing with “Now” and “Then”                   to refer to a collection of data. An example is the New
+                                                              York Times. A new version of the Times is produced
+Services must cope with making the “now” meet the             each day (and, indeed, due to regional editions, multiple
+“then”. Each service lives in its own “now” and interacts     versions are produced each day).
+with incoming and outgoing notions of “then”. The                 To bind a version independent identifier, to the
+application logic for the service must reconcile these!       underlying data, it is necessary to first convert to a version
+  Example#1: Accepting an Order                               dependent identifier. For example, the request for a
+  -- A business publishes daily prices.                       recent New York Times is converted into a request for the
+  -- It probably wants to accept yesterday’s prices for a     New York Times on January 4th, 2005, California Edition.
+     while after midnight!                                    This is a version dependent identifier which yields the
+  -- The service’s application logic must manually cope       immutable contents of that region’s edition of that day’s
+     with the differences of prices during the overlap.       paper. The contents of this edition for that day will never
+  Example#2: “Usually ships in 24 hours”                      change no matter when you request it or where you
+  -- Order processing has old information.                    request it. Either the information about the contents of
+  -- Available inventory is deliberately fuzzy.               that specific newspaper is available or it is not. If it is
+  -- Both sides can cope with different time domains.         available, the answer is always the same.
+
+ The world is no longer flat!                                 3.2 Immutability, Messages, and Outside Data
+ -- SOA is recognizing that there is more than one            One reality of messaging is that messages sometimes get
+    computer working together!                                lost. To ensure their delivery, they must be retried. It is
+ -- Multiple machines mean multiple time domains.             essential that retries of the messages have the same
+ -- Multiple time domains mandate we cope with                contents. The message itself must be immutable.
+    ambiguity to allow coexistence, cooperation, and              Once a message is sent, it cannot be unsent anymore
+    joint work.                                               than the President of the United States can un-say
+something on television. It is best to consider each             4. Data on the Outside: Reference Data
+message as uniquely identified and that identifier yields
+immutable contents for the message. This means the               Reference data refers to a type of information that is
+same bits are always returned for the message.                   created and/or managed by a single service and published
+                                                                 to other services for their use.
+3.3 Stability of Data                                                Each piece of reference data has both a version
+                                                                 independent identifier and multiple versions, each of
+Immutability isn’t enough to ensure a lack of confusion.         which is labeled with a version dependent identifier. For
+The interpretation of the contents of the data must be           each piece, there is exactly one publishing service.
+unambiguous. Stable data has an unambiguous and                      This section will first discuss the publication of
+unchanging interpretation across space and time.                 versions. Then we will move on to discuss the various
+  The words “President Bush” have a different meaning            usages of reference data.
+  in 2005 than they did in 1990. These words are not
+  stable in the absence of additional qualifying data.           4.1 Publishing Versioned Reference Data
+To ensure the stability of data, it is important to design for
+                                                                 The idea here is quite simple. A version independent
+values that are unambiguous across space and time. One
+                                                                 identifier is created for some data. One service is the
+excellent technique for the creation of stable data is the
+                                                                 owner of that data and periodically publishes a new
+use of time-stamping and/or versioning.               Another
+                                                                 version which is labeled with a version dependent
+important technique is to ensure that important identifiers
+                                                                 identifier. It is important that the version’s identifier is
+are never reused.
+                                                                 known to be increasing as subsequent versions are
+  Observation: A monthly bank statement is stable data.          transmitted.
+  Its interpretation is invariant across space and time.             When a version of the reference data is transmitted, it
+  Advice: Don’t recycle customer-IDs.                            must be assumed to be somewhat out of date. The
+  Observation: Anything called “current”                         information is clearly from the “past” and not “now”. It is
+  (e.g. current-inventory) is not stable.                        reasonable to consider these versions as snapshots.
+3.4 Schema and Immutable Messages                                4.2 Usages of Reference Data
+As discussed above, when a message is sent, it must be           There are three broad categories of usage for reference
+immutable and stable to ensure the correct interpretation        data that I’ve thought of so far:
+of the message. In addition, the schema for the message          • Operands contain information published by a service
+must be immutable. For this reason, it is recommended                 in anticipation that hopefully another service will
+that all message schemas be versioned and each message                submit an operator using these values.
+use the version dependent identifier of the precise              • Historic Artifacts describe what happened in the past
+definition of the message format.                                     within the confines of the sending service.
+3.5 References to Data, Immutability, and DAGs                   • Shared Collections contain information that is held in
+                                                                      common across a set of related services that gradually
+Sometimes it is essential to refer to other data. When                evolves over time. One service is the custodian and
+referencing other data from outside data, it is essential             manages the application of changes to a part of the
+that the identifier used for the reference specifies data that        collection. The other services use somewhat old
+is, itself, immutable.                                                versions of the information.
+  If you find an immutable document that tells you to            We will examine these in greater depth below.
+  read “today’s New York Times” to find out more
+  details, that doesn’t do you any good without more             4.3 Operands
+  details (specifically the date and region for the paper).      As discussed above, messages contain operators which
+     As new data is generated, it may have references to         map to the functions provided by the service. These
+complex graphs of other data items, each of which is             operators frequently require operands as additional data
+immutable and uniquely identified. This creates a DAG            describing the details of the requested work.
+(Directed Acyclic Graph) of referenced data items. Note              Operands are gleaned from reference data that is
+that this model allows for each data item to refer to its        typically published by the service that is being invoked.
+schema using simply another arc in the DAG.                        Example: A department store catalog is reference data
+     Over time, independent services, each within their            used to fill out the order-form.
+own temporal domain, will generate new data items                  Example: An online retailer’s price-list, product-
+blithely ignorant of the recent contributions of other             catalog, and shipping-cost-list are operands.
+services. It is the creation of new immutable data items
+which are interrelated by their membership in this DAG
+that gives outside data its special charm.
+4.4 Historic Artifacts                                          5. Data on the Inside
+Historic artifacts report on what happened in the past.         As described above, inside data is encapsulated behind the
+Sometimes these snapshots of history need to be sent from       application logic of the service. This means that the only
+one service to another.                                         way to modify the data is via the service’s application
+    Serious privacy issues can result unless proper care is     logic. Sometimes a service will export a subset of their
+exercised in the disclosure of historic artifacts from one      inside data for use on the outside as reference data.
+service to another. For this reason, many times this usage          This section examines a number of facets of data on
+pattern is seen across services that have some form of          the inside. First, we look at the temporal environment in
+trust relationship.                                             which SQL’s schema definition language operates. Then,
+  Example: Quarterly results of sales.                          we consider how outside data is handled as it arrives into
+  Example: A monthly bank statement.                            a service. Finally, we consider by the extensibility we see
+  Example: Inventory status at the end of the quarter.          in data on the outside and the challenges with storing
+                                                                copies of that data inside in a shredded fashion to
+4.5 Shared Collections                                          facilitate its use in relational form.
+The most challenging usage pattern for reference data is
+                                                                5.1 SQL, DDL, and Serializability
+the shared collection. In this case, many different services
+need to have a recent view of some interesting data.            SQL’s DDL (Data Definition Language) is transactional.
+Frequently cited examples include the employee database         Like other operations in SQL, updates to the schema via
+and the customer database. In each of these, lots of            DDL occur under the protection of a transaction and are
+separate services both want to examine the contents and         atomically applied. These schema changes may make
+also change the contents of the data in these collections.      significant difference in the ways that data stored within
+  Many large enterprises experience this problem writ           the database is interpreted.
+  large. Lots of different applications think they can              It is an essential quality of DDL that transactions that
+  change the customer database and, now that these              precede a DDL operation are based on the schema that
+  applications are running on many servers, there are           existed before and transactions that follow the DDL
+  many replicas of the customer database (frequently            operation are based on the schema as changed by the
+  with incompatible schemas). Changes made to one               operation. In other words, changes to the schema
+  replica gradually percolate to the others with                participate in the serializable semantics of the database.
+  information loss due to schema transformations and                SQL and DDL live in the “Now”. Each transaction is
+  also due to conflicting changes.                              meaningful only within the context of the schema defined
+Shared collections offer a mechanism for rationalizing the      by the preceding transactions. This notion of “now” is the
+desire to have multiple updaters and allowing controlling       temporal domain of the service comprising the service’s
+business logic to enforce business policies on the data.        logic and its data contained in this database.
+    In a shared collection, there is one special service that
+                                                                5.2 Storing Incoming Data
+actually owns the authoritative perspective of the
+collection. It enforces business rules that ensure the          When data arrives from the outside, most services copy it
+integrity of the data. The owning service will periodically     inside their local SQL database. While inside data is not,
+publish versions of the collection and supports incoming        in general, immutable, most services choose to implement
+requests whose operators request changes.                       a convention by which they immutably retain the data. It
+    Note that this is NOT optimistic concurrency control.       is not uncommon to see the incoming data syntactically
+The owning service has complete control over the                converted to a more convenient form for the service. .
+changes to be made to the data. Some fields may be
+updateable and others may not. Business constraints may
+be applied as each requested change is considered.                                                  Inside Data
+  Consider changes to the customer’s address. This is
+  not just a simple update but complex business logic:             Incoming
+  -- First, you don’t simply update an address, you                   Data
+      append the new address while remembering that
+      the old address was in effect for a range of dates.
+  -- Changing the address may affect the tax location.
+  -- Changing the address may affect the sales district.
+                                                                    Many times, an incoming message kept as an exact
+  -- Shipments may need to be rerouted.
+                                                                binary copy for auditing and non-repudiation while still
+                                                                converting the contents to a form easier to use within the
+                                                                service itself.
+5.3 Extensibility versus Shredding                                 Resource Identifiers7) that can easily be used to reference
+                                                                   immutable documents.
+Frequently, the outside data is kept in a hierarchical
+                                                                       It is this combination of hierarchy, explicit and well
+representation like XML. XML has a number of
+                                                                   defined identifiers (URIs), clear mechanism for
+wonderful qualities for this including extensibility.
+                                                                   leveraging old schema within the new schema, and
+XML’s extensibility allows for other services to add
+                                                                   extensibility that has given XML its prominence in
+information to a message that was not declared in the
+                                                                   representing outside data.
+schema for the message. Basically, the sender of the
+message added stuff that you didn’t expect when the                6.2 Representing Data in SQL
+schema was defined. Extensibility is in many ways like
+scribbling on the margins of a paper form. It frequently           SQL represents relationships by values contained in
+gets the desired results but there are no guarantees.              fields. Being value-based allows it to “relate” different
+    As incoming outside data is copied into the SQL                records to each other by their value. This is the essence of
+database, there are advantages to shredding it. Shredding          the “relational” backbone of SQL. It is precisely this
+is the process of converting the hierarchical data into a          value-based nature of the representation that enables the
+relational representation. It is interesting to note that          amazing query technology we have seen emerge over the
+normalization is not of the same importance for copied             last few decades. SQL is clearly the leader as a
+incoming data since the intent is to simply append the             representation for inside data.
+information and never change it. Shredding is, however,
+of great interest for business analytics. The better the           6.3 Bounded and Unbounded Data Representations
+relational mapping, the better you will be able to analyze         It is illustrative to contrast SQL’s value-based mechanism
+the data.                                                          with XML’s identity and reference-based mechanism.
+    It is interesting that extensibility fights shredding. It is        Relational representations must be bounded. For the
+hard to map unplanned extensions to planned tables.                value-based comparisons to work correctly there must be
+Many times, partial shredding is performed wherein the             both temporal and spatial bounds.               Value-based
+incoming information that does comply with well known              comparisons are only meaningful if the contents of both
+and regular schema representations is cleanly shredded             records are defined within the same schema. Multiple
+into a relational representation and the remaining data            schemas can only have well defined meaning when they
+(including extensions) is kept without shredding.                  can (and are) updated within the same temporal scope (i.e.
+                                                                   updated with ACID semantics in the same serializability
+6. Representations of Data                                         domain). This effectively yields a single schema. SQL is
+                                                                   semantically based on a centrally managed single schema.
+Let’s consider the characteristics of three prominent                   Efforts in recent years to implement distributed
+representations of data: XML, SQL, and Objects.                    database systems attempt to blur the distinction between a
+                                                                   single system and multiple systems. By using two phase
+6.1 Representing Data in XML
+                                                                   commit and other variants, they create a single temporal
+XML (eXtensible Markup Language)5 is a standard for                domain in which there is a well defined schema that can
+representing hierarchical collections of data as XML-              be centrally updated. This is extending the periphery of
+Documents. Its foundation is the InfoSet standard which            the boundary across multiple machines (at the potential
+defines the abstract dataset prescribing the semantics of          risk of performance and/or availability) but does not
+parents, children, elements, attributes, and the rest of the       negate this argument that relational representations work
+details of the way data can be held in a tree in XML.              only within a clearly defined boundary.
+While the InfoSet does define the semantics, it does not                XML is unbounded. In XML, data is referenced using
+define the syntax of a message transmission. This may be           URIs and not values. These URIs are universally defined
+of a proprietary form or may comply with the syntactic             and unique. They can be used on any machine to
+representation whose angle-brackets we know and love.              uniquely identify the referenced data. When used with
+    In addition, XML-Schema6 defines a datatype library            the proper discipline, this can result in the creation of
+and schema definition mechanism. The cool thing about              directed acyclic graphs of XML-documents each of which
+XML-Schema is the composeability of schemas. It is                 may be created by independent services living in
+expected that the definition of a schema will likely               independent temporal domains.
+include other definitions and this is made easy and                     A further aspect to the unbounded nature of XML lies
+convenient with embedded identifiers (URIs –Universal              in the open schema definition which allows for the
+                                                                   composition of schema pieces from different origins into
+                                                                   a new schema. The ability to independently define
+                                                                   schema without consulting other services complements
+5
+    See [XML].
+6                                                                  7
+    See [XML-Schema]                                                   See [URIs]
+the compositional nature of XML-Schema and leads to a
+                                                                                                  Outside        Inside
+vibrant environment for the independent generation of
+                                                                                                   Data           Data
+interrelated documents.
+                                                                         Immutable?                 Yes           No
+6.4 Encapsulation and Anti-Encapsulation
+                                                                 Identity-Based References          Yes           No
+It is interesting to consider encapsulation as it relates to
+SQL, XML, and the implementation of services.                          Open Schema?                 Yes           No
+• SQL is essentially about anti-encapsulation. The
+                                                                     Represent in XML?              Yes           No
+     whole idea of allowing SELECT WHERE or
+     UPDATE WHERE which involves joining anything                  Encapsulation Useful?            No            Yes
+     in the database with anything else in the database is,
+     by its nature, anti-encapsulation. It seems to be a         Long-Lived Evolving Data           No            Yes
+     deeply engrained aspect of the philosophy of                 with Evolving Schema?
+     databases that all data is accessible at all times.
+• XML is strongly oriented towards anti-encapsulation.              Business Intelligence           Yes           Yes
+     The whole notion of a publicly defined schema fights           Desirable over Data?
+     against the idea of keeping data private and                  Durable Storage in SQL       Yes: Copy         Yes
+     controlling it.                                                 Inside the Service?         of XML
+• Components and objects emphasize encapsulation.                                                Kept in
+     Of course, there is a long tradition of cheating. The                                         SQL
+     passing of references into an object which allows the
+     manipulation of the shared object breaks
+     encapsulation and easily introduces anomalies. The         Immutability, identity-based references, open schema, and
+     habit of different objects modifying the same data in      XML representation all apply to outside data and not to
+     the database blithely ignoring the fact that this is       inside data. This is all part of a package-deal in the form
+     manipulating shared state is another major source of       of the representation of the data and it suits the needs of
+     anomalous behavior.                                        outside data very well. The immutable data items can be
+                                                                copied throughout the network and new one’s generated
+                                                                by any service. Indeed, the open and independent schema
+                                                                mechanisms allow independent definition of new formats
+6.5 A Service’s View of Encapsulation                           for messages, further empowering the independence of
+                                                                separate services.
+Services offer very strong and rigid encapsulation. The             Next, we consider encapsulation and realize that
+basic notion is that there is no access whatsoever to the       outside data is not protected by code. There is no
+underlying data unless it is mediated by the application        formalized notion of ensuring that access to the data is
+logic of the service. There is no visibility to the internals   mediated by a body of code. Rather, there is a design
+of the service.                                                 point that if you have access to the raw contents of a
+    Within a service anti-encapsulation is OK in its place.     message, you should be able to understand it. Inside data
+SQL’s penchant for anti-encapsulation is contained inside       is always encapsulated by the service and its application
+the service and only visible to the service’s application       logic.
+logic. Hence, this has no impact on the external behavior           Consider data and its relationship to its schema.
+provided by the service and does not pose a vulnerability       Outside data is immutable and, each data item’s schema
+to its periphery. XML’s anti-encapsulation only applies         remains immutable. Note that the schema may be
+to the messages flowing in and out of a service. Other          versioned and the new version applied to subsequent
+mechanisms for providing authentication, authorization,         similar data items but that does not change the fact that
+and ensuring privacy are used to protect the messages.          once a specific immutable item is created, its schema
+Once a receiving service can pass the relevant security,        remains immutable. This is in stark contrast to the
+XML’s anti-encapsulation empowers the semantic                  mechanisms employed by SQL for inside data. SQL’s
+connection between heterogeneous services by easing the         DDL is designed to allow powerful transformations to
+understanding of the intended purpose of the message            existing schema while the database is populated.
+through shared schema.                                              Next, we consider the desirability of performing
+6.6 Characteristics of Inside and Outside Data                  business intelligence analysis over the data. Experience
+                                                                shows that those analysis folks want to slice and dice
+Let’s consider the various characteristics we have              anything they can get there hands on. Existing analytics
+discussed for inside and outside data. Please refer to the      operate largely over inside data and inside data will
+figure below:
+certainly continue as fodder for analysis. There is little   Finally, consider encapsulation to control data access:
+doubt of the utility of analyzing outside data, as well.     • SQL doesn’t really do encapsulation. Realistically,
+    This leads us to the final column wherein we conclude        all you get is table-level access control. Smart
+that the typical storage mechanism for both inside and           database administrators ensure this means that only
+outside data will be inside SQL. The only twist for              the correct applications can run under the user-id of
+outside data is that it will be copied into SQL’s                the accounts configured to access the tables. That is
+representation. The copy of the incoming data will then          the coarse-grained encapsulation that is really used.
+be kept unchanged which provides immutable semantics.        • XML is all about anti-encapsulation. Firstly, XML
+                                                                 has no concept of code to ensure is encapsulating the
+6.7 The Ruling Triumvirate of Data Representations               document. Secondly, XML is designed to facilitate
+Now, let’s compare the strengths and weaknesses of the           the sharing of documents and their schema. It’s
+three representations of data, SQL, XML, and Objects.            really not oriented towards encapsulation!
+• SQL with its bounded schema is fantastic to compare        • Objects are outstanding at encapsulation! That’s
+     anything with anything (but only within bounds).            what they were designed for in the first place.
+• XML with its unbounded schema supports
+     independent definition of schema and data.              Each model’s strength is simultaneously its weakness!
+     Extensibility is cool, too.                             What makes SQL exceptional for querying makes it
+• Objects offer encapsulated data and ensure the             dreadful for independent definition of shared data. XML
+     enforcement of the business rules via application       is wonderful for the independent definition and creation
+     logic. Objects also ease the composition of logic.      of data but is anti-encapsulated. Encapsulation is the key
+                                                             to the success of object systems and yet it prevents
+                                                             querying. You cannot try harder to add features to one of
+           Arbitrary     Independent       Encapsulation     these models to address the weaknesses without
+           Queries       Definition of     (controls data)   undermining its strengths!
+                         Shared Data
+                                           Not via SQL       7. Conclusion
+  SQL     Outstanding     Impossible
+                                          (done by DBA)
+                                                             This paper describes the impact of Service Oriented
+  XML     Problematic     Outstanding       Impossible       Architecture (SOA) on the treatment of data. First, we
+                                                             introduced the notions of inside data as distinct from
+Objects    Impossible     Impossible        Outstanding      outside data. After discussing the temporal implications
+                                                             of not sharing transactions across the boundaries of
+                                                             services, we considered the need for immutability and
+Consider what it takes to perform arbitrary queries:         stability in outside data. This led to a depiction of outside
+• SQL is outstanding due to its value based nature and       data as a DAG (Directed Acyclic Graph) of data items
+   tightly controlled schema which ensure alignment of       being independently generated by disparate services.
+   the values hence facilitating the comparison                   Following this introduction of the basic concepts
+   semantics that underlie queries.                          behind outside data, we examined the notion reference
+• XML is problematic because of schema                       data and its usage patterns in facilitating the
+   inconsistency. It is precisely the independence of the    interoperation of services.
+   definition that poses the challenges of alignment of           Next, we presented a brief sketch of inside data with a
+   the values. Also, the hierarchical shape and forms of     discussion of the challenges of shredding incoming data
+   the data may, too, be a headache.                         in the face of extensibility.
+• Objects are impossible to query unless a new                    Finally, we discussed XML, SQL, and Objects as
+   definition is made of how they define data to be          representations of data and compared and contrasted their
+   queried. Encapsulation is all about hiding the data.      strengths. This led us to the conclusion that each of these
+                                                             models has strength in one usage that complements its
+Next, consider independent definition of shared data:        weakness in another usage.
+• SQL is impossible because it has centralized schema.            This conclusion should not surprise us when we
+   As discussed above, this is intrinsic to its ability to   realize that most application developers are pretty smart.
+   support value-based querying in a tightly controlled      It is common practice today to use XML to represent data
+   environment.                                              on the outside, objects to implement the business logic of
+• XML is outstanding! It specializes in independent          the services, and SQL to store the data on the inside. We
+   definition of schema and independent generation of        simply need all three of these representations and we need
+   documents containing the data.                            to use them in a fashion that plays to their respective
+• Objects are impossible since encapsulation is all          strengths!
+   about NOT sharing data.
+8. References
+[Bernstein, Hadzilacos, Goodman]
+     Concurrency Control and Recovery In Database
+     Systems by Philip A. Bernstein, Vassos Hadzilacos,
+     and Nathan Goodman (see
+     http://research.microsoft.com/pubs/ccontrol/ )
+
+[Gray and Reuter].      Jim Gray, Andreas Reuter:
+   Transaction Processing: Concepts and Techniques.
+   Morgan Kaufmann 1993, ISBN 1-55860-190-2
+
+[URIs]           http://www.w3.org/Addressing/
+
+[XML] -          http://www.w3.org/TR/REC-xml/
+
+[XML-InfoSet] -- http://www.w3.org/TR/xml-infoset/
+
+[XML-Schema] http://www.w3.org/TR/xmlschema-1/
+

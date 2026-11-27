@@ -1,0 +1,18 @@
+{
+  "source": {
+    "id": "page.ousterhout2018-simple-interface",
+    "kind": "page",
+    "url": "https://www.google.com/search?tbm=bks&q=%22simple+interface+than+a+simple+implementation%22",
+    "keywords": [
+      "simple interface",
+      "Philosophy of Software Design"
+    ]
+  },
+  "urlFinal": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3D%2522simple%2Binterface%2Bthan%2Ba%2Bsimple%2Bimplementation%2522%26sei%3Dwh0Fa4_GKIKDwbkPk--NoQc%26udm%3Dbooks&q=EhAmABcAkcfMEKZ7aYsuwE9EGMO7lNgGIjC1BqsxhuDzdaFAgppWEzgUNoAvmnxCYqiYICatftR_4NzGt6dOwuGDCL2810JpHBwyAVJaAUNggKbdlZPJy7SkAQ",
+  "status": 200,
+  "fetchedAt": "2026-11-24T05:16:56.020Z",
+  "title": "https://www.google.com/search?q=%22simple+interface+than+a+simple+implementation%22&sei=wh0Fa4_GKIKDwbkPk--NoQc&udm=books",
+  "meta": [],
+  "windows": [],
+  "textLength": 401
+}

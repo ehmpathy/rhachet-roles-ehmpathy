@@ -1,0 +1,1 @@
+../../../../architect/briefs/practices/domain.constraints/define.constraint.kind=invariant.md

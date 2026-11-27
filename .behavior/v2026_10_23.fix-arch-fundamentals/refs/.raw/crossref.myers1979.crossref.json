@@ -1,0 +1,85 @@
+{
+  "source": {
+    "id": "crossref.myers1979",
+    "kind": "crossref",
+    "query": "Myers The Art of Software Testing",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Myers%20The%20Art%20of%20Software%20Testing&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T22:20:14.723Z",
+  "items": [
+    {
+      "DOI": "10.1002/9781119202486",
+      "title": [
+        "The Art of Software Testing"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            2012,
+            1,
+            2
+          ]
+        ]
+      },
+      "publisher": "Wiley",
+      "type": "edited-book"
+    },
+    {
+      "DOI": "10.1002/9781119202486.ch2",
+      "title": [
+        "The Psychology and Economics of Software Testing"
+      ],
+      "container-title": [
+        "The Art of Software Testing"
+      ],
+      "page": "5-18",
+      "issued": {
+        "date-parts": [
+          [
+            2012,
+            1,
+            2
+          ]
+        ]
+      },
+      "publisher": "Wiley",
+      "type": "other"
+    },
+    {
+      "publisher": "Institution of Engineering and Technology (IET)",
+      "issue": "1",
+      "DOI": "10.1049/sej.1992.0002",
+      "type": "journal-article",
+      "page": "13",
+      "title": [
+        "The complexity of software testing"
+      ],
+      "volume": "7",
+      "author": [
+        {
+          "given": "J.Paul",
+          "family": "Myers",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Software Engineering Journal"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1992
+          ]
+        ]
+      }
+    }
+  ]
+}

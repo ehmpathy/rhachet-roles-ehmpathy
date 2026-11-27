@@ -1,0 +1,98 @@
+{
+  "source": {
+    "id": "page.doi-abadilamport1995",
+    "kind": "page",
+    "url": "https://doi.org/10.1145/203095.201069",
+    "keywords": [
+      "assum",
+      "guarantee",
+      "environment",
+      "conjoin"
+    ]
+  },
+  "urlFinal": "https://dl.acm.org/doi/10.1145/203095.201069",
+  "status": 200,
+  "fetchedAt": "2026-11-23T13:21:07.870Z",
+  "title": "Conjoining specifications | ACM Transactions on Programming Languages and Systems",
+  "meta": [
+    {
+      "name": "citation_journal_title",
+      "content": "ACM Transactions on Programming Languages and Systems (TOPLAS)"
+    },
+    {
+      "name": "dc.Title",
+      "content": "Conjoining specifications"
+    },
+    {
+      "name": "dc.Creator",
+      "content": "AbadiMartín "
+    },
+    {
+      "name": "dc.Creator",
+      "content": "LamportLeslie "
+    },
+    {
+      "name": "dc.Subject",
+      "content": "composition; concurrent programming; decomposition; liveness properties; modular specification; safety properties; temporal logic"
+    },
+    {
+      "name": "dc.Description",
+      "content": "We show how to specify components of concurrent systems. The specification of a system is the conjunction of its components' specifications. Properties of the system are proved by reasoning about i..."
+    },
+    {
+      "name": "dc.Publisher",
+      "content": "ACMPUB27New York, NY, USA"
+    },
+    {
+      "name": "dc.Date",
+      "content": "1995-05-01"
+    },
+    {
+      "name": "dc.Type",
+      "content": "article"
+    },
+    {
+      "name": "dc.Format",
+      "content": "text/HTML"
+    },
+    {
+      "name": "dc.Identifier",
+      "content": "201069"
+    },
+    {
+      "name": "dc.Identifier",
+      "content": "10.1145/203095.201069"
+    },
+    {
+      "name": "dc.Language",
+      "content": "EN"
+    },
+    {
+      "name": "dc.Coverage",
+      "content": "New York, NY, USA"
+    },
+    {
+      "name": "og:title",
+      "content": "Conjoining specifications | ACM Transactions on Programming Languages and Systems"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "guarantee",
+      "window": "r: Modular Obligations-Based Liveness Reasoning in Higher-Order Impredicative Concurrent Separation LogicProceedings of the ACM on Programming Languages10.1145/379824010:OOPSLA1(1099-1125)Online publication date: 10-Apr-2026 https://dl.acm.org/doi/10.1145/3798240 Marquis DFarhood M(2026)Development and application of a dynamic obstacle avoidance algorithm for small fixed-wing aircraft with safety guaranteesControl Engineering Practice10.1016/j.conengprac.2025.106719168(106719)Online publication date: Mar-2026 https://doi.org/10.1016/j.conengprac.2025.106719 Show More Cited By Index Terms Index Terms (Premium feature) Conjoining specifications Software and its engineering Software organization and properties Software functional properties Correctness Theory of computation Logic Proof"
+    },
+    {
+      "keyword": "conjoin",
+      "window": "tails Use necessary cookies only Allow selected cookies Allow all cookies skip to main content Sign in Register Search ACM Digital Library Advanced Search (Premium feature) Advanced Search ACM Transactions on Programming Languages and Systems Several features on this page require Premium Access. Learn moreSign in HomeACM JournalsACM Transactions on Programming Languages and SystemsVol. 17, No. 3Conjoining specifications You are using the Basic Edition. Features requiring a subscription appear in grey. Sign in to your subscription or learn more Upgrade ARTICLE OPEN ACCESS Share on Conjoining specifications Editor: Andrew W. Appel Authors: Martín Abadi, Leslie LamportAuthors Info & Claims ACM Transactions on Programming Languages and Systems (TOPLAS), Volume 17, Issue 3 Pages 507 - 535 htt"
+    },
+    {
+      "keyword": "conjoin",
+      "window": "h ACM Transactions on Programming Languages and Systems Several features on this page require Premium Access. Learn moreSign in HomeACM JournalsACM Transactions on Programming Languages and SystemsVol. 17, No. 3Conjoining specifications You are using the Basic Edition. Features requiring a subscription appear in grey. Sign in to your subscription or learn more Upgrade ARTICLE OPEN ACCESS Share on Conjoining specifications Editor: Andrew W. Appel Authors: Martín Abadi, Leslie LamportAuthors Info & Claims ACM Transactions on Programming Languages and Systems (TOPLAS), Volume 17, Issue 3 Pages 507 - 535 https://doi.org/10.1145/203095.201069 Published: 01 May 1995 Publication History Additional metrics (Premium feature) 339 citation 1,544 Downloads PDF/eReader Information & Contributors Biblio"
+    },
+    {
+      "keyword": "conjoin",
+      "window": "ystem is the conjunction of its components' specifications. Properties of the system are proved by reasoning about its components. We consider both the decomposition of a given system into parts, and the composition of given parts to form a system. Formats available You can view the full content in the following formats: PDF/eReader Supplementary Material Appendix (acm-appendix.pdf) Appendix to Conjoining specifications DOWNLOAD | PDF (200.92 KB) References [1] ABADI, M. AND LAMPORT, L. 1994. An old-fashioned recipe for real time. ACM ~ans. Program. Lang. Syst. 16, 5 (Sept.), 1543-1571. Digital Library Google Scholar [2] ABADI~ M. AND LAMPORT, L. 1993. Composing specifications. A CM Trans. Program. Lang. Syst. 15, 1 (Jan.), 73-132. Digital Library Google Scholar [3] ABADI, M. AND LAMPORT"
+    }
+  ],
+  "textLength": 6893
+}

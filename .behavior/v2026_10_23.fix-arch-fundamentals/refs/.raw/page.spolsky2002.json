@@ -1,0 +1,44 @@
+{
+  "source": {
+    "id": "page.spolsky2002",
+    "kind": "page",
+    "url": "https://www.joelonsoftware.com/2002/11/11/the-law-of-leaky-abstractions/",
+    "keywords": [
+      "All non-trivial abstractions",
+      "leaky"
+    ]
+  },
+  "urlFinal": "https://www.joelonsoftware.com/2002/11/11/the-law-of-leaky-abstractions/",
+  "status": 200,
+  "fetchedAt": "2026-11-25T02:39:57.575Z",
+  "title": "The Law of Leaky Abstractions – Joel on Software",
+  "meta": [
+    {
+      "name": "description",
+      "content": "There's a key piece of magic in the engineering of the Internet which you rely on every single day. It happens in the TCP protocol, one of the fundamental building blocks of the Internet. TCP is a way to transmit data that is reliable. By this I mean: if you send a message over a…"
+    },
+    {
+      "name": "og:title",
+      "content": "The Law of Leaky Abstractions"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "All non-trivial abstractions",
+      "window": "t through, and TCP will work, but everything will be really slow. This is what I call a leaky abstraction. TCP attempts to provide a complete abstraction of an underlying unreliable network, but sometimes, the network leaks through the abstraction and you feel the things that the abstraction can’t quite protect you from. This is but one example of what I’ve dubbed the Law of Leaky Abstractions: All non-trivial abstractions, to some degree, are leaky. Abstractions fail. Sometimes a little, sometimes a lot. There’s leakage. Things go wrong. It happens all over the place when you have abstractions. Here are some examples. Something as simple as iterating over a large two-dimensional array can have radically different performance if you do it horizontally rather than vertically, depending"
+    },
+    {
+      "keyword": "leaky",
+      "window": "Skip to content View menu View sidebar JOEL ON SOFTWARE YOUR HOST I’m Joel Spolsky, a software developer in New York City. More about me. NOVEMBER 11, 2002 by JOEL SPOLSKY The Law of Leaky Abstractions TOP 10, ROCK STAR DEVELOPER, NEWS There’s a key piece of magic in the engineering of the Internet which you rely on every single day. It happens in the TCP protocol, one of the fundamental building blocks of the Internet. TCP is a way to transmit data that is reliable. By this I mean: if you send a message over a network using TCP, it will arrive, and it won’t be garbled or co"
+    },
+    {
+      "keyword": "leaky",
+      "window": "the network cable leading to your computer, and no IP packets can get through, then TCP can’t do anything about it and your message doesn’t arrive. If you were curt with the system administrators in your company and they punished you by plugging you into an overloaded hub, only some of your IP packets will get through, and TCP will work, but everything will be really slow. This is what I call a leaky abstraction. TCP attempts to provide a complete abstraction of an underlying unreliable network, but sometimes, the network leaks through the abstraction and you feel the things that the abstraction can’t quite protect you from. This is but one example of what I’ve dubbed the Law of Leaky Abstractions: All non-trivial abstractions, to some degree, are leaky. Abstractions fail. Sometimes a"
+    },
+    {
+      "keyword": "leaky",
+      "window": "ur IP packets will get through, and TCP will work, but everything will be really slow. This is what I call a leaky abstraction. TCP attempts to provide a complete abstraction of an underlying unreliable network, but sometimes, the network leaks through the abstraction and you feel the things that the abstraction can’t quite protect you from. This is but one example of what I’ve dubbed the Law of Leaky Abstractions: All non-trivial abstractions, to some degree, are leaky. Abstractions fail. Sometimes a little, sometimes a lot. There’s leakage. Things go wrong. It happens all over the place when you have abstractions. Here are some examples. Something as simple as iterating over a large two-dimensional array can have radically different performance if you do it horizontally rather than v"
+    }
+  ],
+  "textLength": 13462
+}

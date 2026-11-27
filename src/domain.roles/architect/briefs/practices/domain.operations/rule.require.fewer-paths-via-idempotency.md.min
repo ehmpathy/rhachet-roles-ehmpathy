@@ -1,0 +1,11 @@
+# rule.require.fewer-paths-via-idempotency
+
+a branch that exists only to make an operation safe to run is a defect to remove: make the operation idempotent and safe, then run it unconditionally. every branch is failure surface
+seek order: (1) make it idempotent — findsert · upsert · delete, so a re-run converges · (2) make it safe — an idempotency key, an upsert on the natural key, a dedupe at the boundary · (3) only if neither is achievable, keep the branch and record why the operation resists
+```ts
+// 👎 rests on a race proof
+if (trigger.status === 'WAITING') await setTaskAsQueued({ task: trigger }, context);
+// 👍 the target is an idempotent upsert; worst case, one benign re-run
+await setTaskAsQueued({ task: trigger }, context);
+```
+enforcement: a branch kept to skip redundant work where the operation could be made idempotent = blocker; a branch collapsed whose unconditional worst case is not benign = blocker

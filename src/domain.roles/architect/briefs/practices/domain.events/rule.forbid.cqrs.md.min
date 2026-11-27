@@ -1,0 +1,8 @@
+# rule.forbid.cqrs
+
+never split one domain's live data into a write schema and a separate read schema kept in step by a feed. one schema serves the live reads and writes; a heavy read over history runs on an analytical copy
+why: every change lands twice · the read side lags, so a caller writes then reads the old value (`pattern=read-your-writes` breaks) · the feed is a second system · fowler: "for most systems CQRS adds risky complexity"
+not cqrs: an analytical copy (read replica, warehouse) for reports and trends (`rule.forbid.analytical-scans-on-live-storage`) — fowler's "ReportingDatabase"
+smell: a live screen that reads a read-side table instead of the entity · a write path that returns before its read side catches up, then a read of that side · two schemas for one domain object
+enforcement: live reads served from a separate schema fed by the write side = blocker
+full: catalog.of=pattern.event._ (`pattern=cqrs`)

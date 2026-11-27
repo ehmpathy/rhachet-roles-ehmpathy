@@ -14,7 +14,8 @@ always:
 
       # architecture
       - briefs/practices/rule.require.solve-at-cause.md
-      - briefs/practices/repo.structure/rule.prefer.most-common-denominator.md
+      - briefs/practices/repo.structure/rule.forbid.misplaced-operations.md
+      - briefs/practices/repo.structure/rule.forbid.directory.by-secondary-noun.md
       - briefs/practices/prefer.env_access.prep_over_dev.md
 
       # domain operations
@@ -26,6 +27,7 @@ always:
 
       # ubiquitous language
       - briefs/ubiqlang.ambiguous-from-overload.md
+      - briefs/practices/ubiqlang/rule.avoid.asymmetric-term-pairs.md
 
       # prose overlay — simplified technical english (asd-ste100, telegraphic)
       - briefs/practices/lang.prose/define.wick-dense.md
@@ -43,7 +45,96 @@ always:
       - briefs/practices/domain.discovery/rule.require.domain-discovery-for-term-proposals.md
       - briefs/practices/domain.discovery/rule.require.persist-domain-term-evidence.md
 
+      # domain taxonomy — which kind of system it is, before the tool is picked
+      - briefs/practices/domain.taxonomy/define.software-domain-taxonomy.md
+      - briefs/practices/domain.taxonomy/rule.forbid.handrolled-search-over-scarce-resources.md
+      - briefs/practices/domain.taxonomy/rule.forbid.analytical-scans-on-live-storage.md
+
+      # constraints — the why, the definition, then the forbid pole of each pair (each names its cure)
+      - briefs/practices/domain.constraints/philosophy.constraints-shrink-the-space.md
+      - briefs/practices/domain.constraints/philosophy.invariants-are-the-source.md
+      - briefs/practices/domain.constraints/define.constraint.kind=invariant.md
+      - briefs/practices/domain.constraints/rule.forbid.implicit-invariants.md
+      - briefs/practices/domain.constraints/rule.forbid.scattered-invariant-guards.md
+      - briefs/practices/domain.constraints/rule.forbid.multiplicative-composition.md
+      - briefs/practices/domain.constraints/rule.forbid.implicit-assumptions.md
+      - briefs/practices/domain.constraints/rule.avoid.unitemized-constraints.md
+
+      # transactions — the forbid poles; the catalog below holds the cure
+      - briefs/practices/domain.transactions/rule.forbid.check-then-write.md
+      - briefs/practices/domain.transactions/rule.forbid.sagas.md
+
+      # events — the why, then the forbid poles, one per forbid member; each names its cure, the catalog below holds the rest
+      - briefs/practices/domain.events/philosophy.entities-are-materialized-from-events.md
+      - briefs/practices/domain.events/rule.forbid.command-messages.md
+      - briefs/practices/domain.events/rule.forbid.thin-notifications.md
+      - briefs/practices/domain.events/rule.forbid.choreographed-flows.md
+      - briefs/practices/domain.events/rule.forbid.order-dependent-consumers.md
+      - briefs/practices/domain.events/rule.forbid.retroactive-replay.md
+      - briefs/practices/domain.events/rule.forbid.replay-on-read.md
+      - briefs/practices/domain.events/rule.forbid.cqrs.md
+
+      # privacy — the forbid pole; its require twin is ref
+      - briefs/practices/domain.privacy/rule.forbid.pii-egress.md
+
     ref:
+      # repo structure — the require twins of the say forbids
+      - briefs/practices/repo.structure/rule.require.most-common-denominator.md
+      - briefs/practices/repo.structure/rule.require.directory.by-primary-noun.md
+
+      # ubiquitous language — the prefer twin of the say avoid
+      - briefs/practices/ubiqlang/rule.prefer.symmetric-term-pairs.md
+
+      # constraints — the require twins, the ladder, the howto, the why (loaded on demand)
+      - briefs/practices/domain.constraints/rule.require.invariant-before-operation.md
+      - briefs/practices/domain.constraints/rule.require.assumptions-with-evidence.md
+      - briefs/practices/domain.constraints/rule.require.compose-additively.md
+      - briefs/practices/domain.constraints/rule.prefer.itemized-constraints.md
+      - briefs/practices/domain.constraints/define.constraint.grain=enforcement.md
+      - briefs/practices/domain.constraints/define.constraint._.md
+      - briefs/practices/domain.constraints/catalog.of=tactic.constraint._.md
+      - briefs/practices/domain.constraints/define.constraint.grain=declaration.md
+      - briefs/practices/domain.constraints/define.constraint.kind=invariant.evidence.md
+      - briefs/practices/domain.constraints/define.constraint._.evidence.md
+      - briefs/practices/domain.constraints/define.constraint.kind=assumption.evidence.md
+      - briefs/practices/domain.constraints/define.constraint.kind=guarantee.evidence.md
+      - briefs/practices/domain.constraints/define.constraint.grain=declaration.evidence.md
+      - briefs/practices/domain.constraints/define.constraint.grain=enforcement.evidence.md
+      - briefs/practices/domain.constraints/define.constraint.kind=assumption.md
+      - briefs/practices/domain.constraints/define.constraint.kind=guarantee.md
+      - briefs/practices/domain.constraints/howto.itemize-constraints._.md
+      - briefs/practices/domain.constraints/ref.invariant.history.md
+
+      # abstractions — the terms, the philosophy, the catalog root (members below, under not)
+      - briefs/practices/domain.abstractions/define.abstraction._.md
+      - briefs/practices/domain.abstractions/define.abstraction.kind=contract.md
+      - briefs/practices/domain.abstractions/define.abstraction.kind=construct.md
+      - briefs/practices/domain.abstractions/philosophy.abstraction-creates-precision.md
+      - briefs/practices/domain.abstractions/catalog.of=tactic.abstraction._.md
+      # abstractions — the forbid pole of each tactic no other rule owns (each names its cure)
+      - briefs/practices/domain.abstractions/rule.forbid.temporal-decomposition.md
+      - briefs/practices/domain.abstractions/rule.forbid.shallow-contracts.md
+      - briefs/practices/domain.abstractions/rule.forbid.leaky-abstractions.md
+      - briefs/practices/domain.abstractions/rule.forbid.implicit-contracts.md
+      - briefs/practices/domain.abstractions/rule.forbid.complected-operations.md
+      - briefs/practices/domain.abstractions/rule.forbid.illegal-values-constructible.md
+      - briefs/practices/domain.abstractions/rule.forbid.scattered-parse.md
+
+      # transactions — the catalog root (members below, under not)
+      - briefs/practices/domain.transactions/catalog.of=pattern.transaction._.md
+      # transactions — the two forbids `rule.forbid.sagas` names, each in its own file
+      - briefs/practices/domain.transactions/rule.forbid.two-phase-commits.md
+      - briefs/practices/domain.transactions/rule.forbid.locks-across-release-boundaries.md
+
+      # events — the catalog root (members below, under not)
+      - briefs/practices/domain.events/catalog.of=pattern.event._.md
+      # events — the forbids of the owner and time facets, which no member holds
+      - briefs/practices/domain.events/rule.forbid.multiple-writers-per-resource.md
+      - briefs/practices/domain.events/rule.forbid.ambiguous-time-points.md
+
+      # privacy — the require twin
+      - briefs/practices/domain.privacy/rule.require.pii-quarantine.md
+
       # domain discovery — the cited canon (loaded on demand)
       - briefs/practices/domain.discovery/ref.domain-discovery.fundamentals.md
 
@@ -51,3 +142,15 @@ always:
       - briefs/practices/domain.discovery/howto.dimensional-decomposition.md
       - briefs/practices/domain.discovery/rule.require.dimensional-decomposition.md
       - briefs/practices/domain.discovery/def.dimensional-decomposition.history.morphological-analysis.md
+
+    # catalog members, their require rules, and howto templates: read on demand, each path computable
+    # from its root's formula. a reviewer loads every rule file regardless of tier
+    not:
+      - briefs/practices/domain.abstractions/rule.require.*
+      - briefs/practices/domain.transactions/rule.require.*
+      - briefs/practices/domain.events/rule.require.*
+      - briefs/practices/domain.abstractions/catalog.of=tactic.abstraction.kind=*
+      - briefs/practices/domain.transactions/catalog.of=pattern.transaction.bound=*
+      - briefs/practices/domain.events/catalog.of=pattern.event.facet=*
+      - briefs/practices/domain.constraints/howto.itemize-constraints.template=*
+      - briefs/practices/domain.constraints/catalog.of=tactic.constraint.kind=*

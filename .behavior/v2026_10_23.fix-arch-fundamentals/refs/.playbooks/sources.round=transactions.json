@@ -1,0 +1,16 @@
+[
+  { "id": "page.postgres-tutorial-transactions", "kind": "page", "url": "https://www.postgresql.org/docs/current/tutorial-transactions.html", "keywords": ["bundles multiple steps", "atomic", "intermediate states"] },
+  { "id": "page.postgres-ddl-constraints", "kind": "page", "url": "https://www.postgresql.org/docs/current/ddl-constraints.html", "keywords": ["unique constraints ensure", "check constraint", "foreign key constraint specifies"] },
+  { "id": "page.postgres-explicit-locking", "kind": "page", "url": "https://www.postgresql.org/docs/current/explicit-locking.html", "keywords": ["FOR UPDATE", "row-level locks", "deadlock"] },
+  { "id": "page.fowler-optimistic-offline-lock", "kind": "page", "url": "https://martinfowler.com/eaaCatalog/optimisticOfflineLock.html", "keywords": ["conflict", "rolling back", "version"] },
+  { "id": "page.fowler-ddd-aggregate", "kind": "page", "url": "https://martinfowler.com/bliki/DDD_Aggregate.html", "keywords": ["transaction", "consistency boundar", "aggregate root"] },
+  { "id": "page.helland2016-life-beyond", "kind": "page", "url": "https://queue.acm.org/detail.cfm?id=3025012", "keywords": ["idempoten", "at-least-once", "unique identifier", "entity"] },
+  { "id": "page.richardson-idempotent-consumer", "kind": "page", "url": "https://microservices.io/patterns/communication-style/idempotent-consumer.html", "keywords": ["idempotent", "message ID", "duplicate"] },
+  { "id": "page.richardson-saga", "kind": "page", "url": "https://microservices.io/patterns/data/saga.html", "keywords": ["orchestration", "compensating transaction", "sequence of local transactions"] },
+  { "id": "page.richardson-transactional-outbox", "kind": "page", "url": "https://microservices.io/patterns/data/transactional-outbox.html", "keywords": ["outbox", "atomically", "message relay"] },
+  { "id": "page.jepsen-read-your-writes", "kind": "page", "url": "https://jepsen.io/consistency/models/read-your-writes", "keywords": ["read your writes", "write", "session"] },
+  { "id": "page.wikipedia-double-entry", "kind": "page", "url": "https://en.wikipedia.org/wiki/Double-entry_bookkeeping", "keywords": ["Pacioli", "debit", "equal"] },
+  { "id": "kung-robinson1981", "kind": "crossref", "query": "Kung Robinson On optimistic methods for concurrency control 1981", "keywords": [] },
+  { "id": "garcia-molina-salem1987", "kind": "crossref", "query": "Garcia-Molina Salem Sagas 1987 SIGMOD", "keywords": [] },
+  { "id": "helland2016", "kind": "crossref", "query": "Helland Life beyond Distributed Transactions ACM Queue 2016", "keywords": [] }
+]

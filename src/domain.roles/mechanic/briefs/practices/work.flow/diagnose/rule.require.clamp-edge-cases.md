@@ -36,6 +36,7 @@ defect is present."
 | the fix lands | dogfood the clamp: revert the fix, watch it go red, restore, watch it go green |
 | the defect was a boundary (stale ref, empty, off-by-one, race) | clamp the boundary, not just the one value that broke |
 | the fix is un-observable in a unit (timing, drift, flake) | clamp at the grain that can observe it (integration, hermetic temp repo) |
+| the defect broke an invariant | name the invariant in the clamp's title, and clamp its break case — the boundary where it fails (`define.constraint.kind=invariant`) |
 
 ## .prove the clamp bites
 
@@ -87,5 +88,6 @@ and guards no defect.
 ## .see also
 
 - `rule.require.test-covered-repairs` — the base rule this sharpens (defect → regression test)
+- `define.constraint.kind=invariant` — a clamp names the invariant it guards; the boundary cases carry the claim
 - `rule.require.failfast` — surface the defect loudly so the clamp has a clear signal to catch
 - `rule.forbid.failhide` (code.test) — a clamp must verify on every path, never pass silently

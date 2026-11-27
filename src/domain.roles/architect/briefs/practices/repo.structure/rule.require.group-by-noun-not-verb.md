@@ -94,6 +94,6 @@ prefer consistency with a proven local convention over local correctness. when n
 
 ## .see also
 
-- `rule.prefer.most-common-denominator` — where a file should live (placement depth)
+- `rule.require.most-common-denominator` — where a file should live (placement depth)
 - `rule.require.get-set-gen-verbs` — verbs lead the filename, not the directory
 - `rule.require.bounded-contexts` — domains own their nouns

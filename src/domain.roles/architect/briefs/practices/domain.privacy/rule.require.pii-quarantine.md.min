@@ -1,0 +1,5 @@
+# rule.require.pii-quarantine
+
+hold pii in a quarantine. in: contract → its dao → the storage, the domain never holds it. out as a concept: the dao answers what a rule needs (birth date → consent required or age band · address → service zone). out raw: only via a quarantined path with all four marks — (1) a named business need (email the parent the waiver link) · (2) one directory of communicators alone reads raw pii, only the fields it needs · (3) authorized per actor and purpose · (4) audited without the value, handed straight to its one destination, no pii returned to the caller
+enforcement: raw read outside the quarantine = blocker; a quarantined path that lacks a mark = blocker; a quarantined path that returns raw pii = blocker
+forbid twin: rule.forbid.pii-egress

@@ -29,3 +29,6 @@ ignores:
   - rhachet-brains-anthropic
   - rhachet-brains-openrouter
   - rhachet-roles-rhachet
+  # the bhrowser role, linked by rhachet at runtime; playwright is the browser engine its skills drive
+  - rhachet-roles-bhrowser
+  - playwright

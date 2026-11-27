@@ -1,0 +1,45 @@
+{
+  "source": {
+    "id": "page.postgres-ddl-constraints",
+    "kind": "page",
+    "url": "https://www.postgresql.org/docs/current/ddl-constraints.html",
+    "keywords": [
+      "unique constraints ensure",
+      "check constraint",
+      "foreign key constraint specifies"
+    ]
+  },
+  "urlFinal": "https://www.postgresql.org/docs/current/ddl-constraints.html",
+  "status": 200,
+  "fetchedAt": "2026-11-24T05:41:08.774Z",
+  "title": "PostgreSQL: Documentation: 19: 5.5. Constraints",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "5.5. Constraints"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "unique constraints ensure",
+      "window": "tems.) Some users, however, like it because it makes it easy to toggle the constraint in a script file. For example, you could start with: CREATE TABLE products ( product_no integer NULL, name text NULL, price numeric NULL ); and then insert the NOT key word where desired. Tip In most database designs the majority of columns should be marked not null. 5.5.3. Unique Constraints Unique constraints ensure that the data contained in a column, or a group of columns, is unique among all the rows in the table. The syntax is: CREATE TABLE products ( product_no integer UNIQUE, name text, price numeric ); when written as a column constraint, and: CREATE TABLE products ( product_no integer, name text, price numeric, UNIQUE (product_no) ); when wri"
+    },
+    {
+      "keyword": "check constraint",
+      "window": "November 19, 2026: PostgreSQL 19 Released! Documentation → PostgreSQL 19 Supported Versions: Current (19) / 18 / 17 / 16 / 15 Development Versions: devel Unsupported versions: 14 / 13 / 12 / 11 / 10 / 9.6 / 9.5 / 9.4 / 9.3 / 9.2 / 9.1 / 9.0 / 8.4 / 8.3 / 8.2 / 8.1 / 8.0 / 7.4 / 7.3 5.5. Constraints Prev Up Chapter 5. Data Definition Home Next 5.5. Constraints 5.5.1. Check Constraints 5.5.2. Not-Null Constraints 5.5.3. Unique Constraints 5.5.4. Primary Keys 5.5.5. Foreign Keys 5.5.6. Exclusion Constraints Data types are a way to limit the kind of data that can be stored in a table. For many applications, however, the constraint they provide is too coarse. For example, a column containing a product price should probably only accept positive values. But there i"
+    },
+    {
+      "keyword": "check constraint",
+      "window": "ct information, there should be only one row for each product number. To that end, SQL allows you to define constraints on columns and tables. Constraints give you as much control over the data in your tables as you wish. If a user attempts to store data in a column that would violate a constraint, an error is raised. This applies even if the value came from the default value definition. 5.5.1. Check Constraints A check constraint is the most generic constraint type. It allows you to specify that the value in a certain column must satisfy a Boolean (truth-value) expression. For instance, to require positive product prices, you could use: CREATE TABLE products ( product_no integer, name text, price numeric CHECK (price > 0) ); As you see, the constraint definition comes a"
+    },
+    {
+      "keyword": "check constraint",
+      "window": "should be only one row for each product number. To that end, SQL allows you to define constraints on columns and tables. Constraints give you as much control over the data in your tables as you wish. If a user attempts to store data in a column that would violate a constraint, an error is raised. This applies even if the value came from the default value definition. 5.5.1. Check Constraints A check constraint is the most generic constraint type. It allows you to specify that the value in a certain column must satisfy a Boolean (truth-value) expression. For instance, to require positive product prices, you could use: CREATE TABLE products ( product_no integer, name text, price numeric CHECK (price > 0) ); As you see, the constraint definition comes after the data type, ju"
+    },
+    {
+      "keyword": "foreign key constraint specifies",
+      "window": "tions. For example, a GUI application that allows modifying row values probably needs to know the primary key of a table to be able to identify rows uniquely. There are also various ways in which the database system makes use of a primary key if one has been declared; for example, the primary key defines the default target column(s) for foreign keys referencing its table. 5.5.5. Foreign Keys A foreign key constraint specifies that the values in a column (or a group of columns) must match the values appearing in some row of another table. We say this maintains the referential integrity between two related tables. Say you have the product table that we have used several times already: CREATE TABLE products ( product_no integer PRIMARY KEY, name text, price numeric ); Let's"
+    }
+  ],
+  "textLength": 23991
+}

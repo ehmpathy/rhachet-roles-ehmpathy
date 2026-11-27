@@ -107,3 +107,6 @@ the wrapper pattern produces a 1-line diff; the inline pattern touches every lin
 
 #### .enforcement
 inline hook decoration = **BLOCKER**
+
+#### .see also
+- `catalog.of=tactic.abstraction.kind=contract.verb=set.tactic=decorate` (architect) — the abstraction tactic this shape implements

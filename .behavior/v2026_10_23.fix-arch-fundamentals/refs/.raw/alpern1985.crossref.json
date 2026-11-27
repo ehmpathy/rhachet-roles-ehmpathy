@@ -1,0 +1,141 @@
+{
+  "source": {
+    "id": "alpern1985",
+    "kind": "crossref",
+    "query": "Alpern Schneider Defining liveness 1985",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Alpern%20Schneider%20Defining%20liveness%201985&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:15:46.832Z",
+  "items": [
+    {
+      "publisher": "Elsevier BV",
+      "issue": "4",
+      "DOI": "10.1016/0020-0190(85)90056-0",
+      "type": "journal-article",
+      "page": "181-185",
+      "title": [
+        "Defining liveness"
+      ],
+      "volume": "21",
+      "author": [
+        {
+          "given": "Bowen",
+          "family": "Alpern",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Fred B.",
+          "family": "Schneider",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Information Processing Letters"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1985,
+            10
+          ]
+        ]
+      }
+    },
+    {
+      "publisher": "Springer Science and Business Media LLC",
+      "issue": "3",
+      "DOI": "10.1007/bf01782772",
+      "type": "journal-article",
+      "page": "117-126",
+      "title": [
+        "Recognizing safety and liveness"
+      ],
+      "volume": "2",
+      "author": [
+        {
+          "given": "Bowen",
+          "family": "Alpern",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Fred B.",
+          "family": "Schneider",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Distributed Computing"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1987,
+            9
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.1007/978-1-4612-4476-9_44",
+      "title": [
+        "A Personal Perspective of the Alpern-Schneider Characterization of Safety and Liveness"
+      ],
+      "author": [
+        {
+          "given": "Martin",
+          "family": "Rem",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Beauty Is Our Business"
+      ],
+      "page": "365-372",
+      "issued": {
+        "date-parts": [
+          [
+            1990
+          ]
+        ]
+      },
+      "publisher": "Springer New York",
+      "type": "book-chapter"
+    }
+  ]
+}

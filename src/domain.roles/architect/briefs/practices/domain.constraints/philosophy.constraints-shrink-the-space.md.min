@@ -1,0 +1,18 @@
+# philosophy.constraints-shrink-the-space
+
+a **constraint** = a rule we add onto a system for how it must behave: **invariant** (kept by us, inside) · **assumption** (kept by the world) · **guarantee** (kept by us, for consumers at a release boundary). an **enforcement** asserts it is not broken: structural (compilation, abstraction) or operational (devtime, runtime, monitor)
+
+at root, a constraint **shrinks the space of scenarios the system can reach**. every benefit follows from that one move:
+- **comprehension** — cases add, never multiply (dijkstra, EWD 288)
+- **communication** — one sense per rule, for human, robot, and consumer
+- **decisions** — decided once, never re-decided per call site
+- **correctness** — wrong is defined: a defect is nameable, caught at its cause; whole classes ruled out
+- **change** — all outside the constraint is the implementer's free choice; left undeclared, each observed behavior hardens into a constraint by accident (hyrum's law)
+- **delegation** — a robot, team, or consumer can take the work, since the constraint checks them
+- **memory** — the domain's knowledge outlives every rewrite
+
+the last three matter most now: robots write the code. the constraint marks where the robot's freedom ends; we trust code we did not write only as far as its enforcements reach; the code is a build, the constraints are the source
+
+bound: a constraint costs an enforcement and an upkeep. discover constraints, never invent them; declare baseline and boundary cases, induce the rest; leave the rest free on purpose, and list it as an exclusion where a consumer could lean on it
+
+full brief, with sources weighed: `philosophy.constraints-shrink-the-space.md`

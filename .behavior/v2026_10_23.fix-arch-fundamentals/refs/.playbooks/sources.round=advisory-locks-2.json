@@ -1,0 +1,8 @@
+[
+  { "id": "pdf.gray1976-granularity-rj1654", "kind": "pdf", "url": "https://jimgray.azurewebsites.net/papers/granularity%20of%20locks%20and%20degrees%20of%20consistency%20rj%201654.pdf", "keywords": [] },
+  { "id": "pdf.kung-robinson1981-harvard", "kind": "pdf", "url": "https://www.eecs.harvard.edu/~htk/publication/1981-tods-kung-robinson.pdf", "keywords": [] },
+  { "id": "page.oreilly-poeaa-ch16", "kind": "page", "url": "https://www.oreilly.com/library/view/patterns-of-enterprise/0321127420/ch16.html", "keywords": ["exclusive read lock", "exclusive write lock", "Pessimistic Offline Lock"] },
+  { "id": "page.postgres-sql-lock", "kind": "page", "url": "https://www.postgresql.org/docs/current/sql-lock.html", "keywords": ["advisory", "ACCESS EXCLUSIVE"] },
+  { "id": "page.postgres-wiki-lock", "kind": "page", "url": "https://wiki.postgresql.org/wiki/Locking", "keywords": ["advisory"] },
+  { "id": "page.postgres-sql-select-locking", "kind": "page", "url": "https://www.postgresql.org/docs/current/sql-select.html", "keywords": ["The Locking Clause", "FOR UPDATE", "FOR SHARE"] }
+]

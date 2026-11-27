@@ -1,0 +1,10 @@
+# define.constraint.kind=invariant
+
+invariant = a statement about the domain that holds in every scenario a reader can observe. `reserved boards ≤ stock, per slot` · `lesson bill = sum of its lines` · `each lesson reservation carries the consent its surfer requires`
+never list every scenario: declare the baseline and the boundary cases, in domain words; induction carries the rest. best-guess and skepticize each case; itemize the unconfident ones as fulcrums — never halt to ask
+why: it defines correct. without it, a defect shows only when production breaks it
+one of three **constraints**: invariant (we keep it, inside) · assumption (the world keeps it) · guarantee (we keep it, for consumers at a release boundary)
+two grains, never mixed: the constraint says **what** must be true, in domain words, on the object it governs; the **enforcement** asserts it is not broken — the implementer's choice, in code, checked per route. a declaration never names its enforcement
+enforcement kinds: **structural** — **compilation** (the break does not compile: a type, a closed enum) or **abstraction** (no path reaches it: a domain object that refuses construction, a parse at the boundary, one write path, a storage constraint or optimistic lock that refuses the commit) · **operational** — a check catches it: **devtime** (a deliberate run: a test or a play, against test, prep, or prod) · **runtime** (an assertion in the path; fail fast) · **monitor** (out of band, after the fact). prefer the earliest: structural → devtime → runtime → monitor. a guard in one caller is neither: the next path skips it
+ask of every change: **which constraint, and how is it enforced?**
+see also: `define.constraint.grain=enforcement` (architect) — the ladder in full · `rule.forbid.scattered-invariant-guards` · `rule.forbid.check-then-write` (architect) — the two antipatterns that skip an enforcement

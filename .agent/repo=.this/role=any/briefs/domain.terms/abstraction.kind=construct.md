@@ -1,0 +1,1 @@
+../../../../../src/domain.roles/architect/briefs/practices/domain.abstractions/define.abstraction.kind=construct.md

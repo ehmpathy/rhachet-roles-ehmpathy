@@ -1,0 +1,9 @@
+# F21 — the stale git index is realigned at commit, not mid-route
+
+- **the fork**: r11 (i003) found the index out of step with the tree: it stages `domain.invariants/` (`AD`), while the tree holds `domain.constraints/`, `domain.abstractions/`, `domain.transactions/` untracked. r10 (i004) adds the other untracked files a clean clone needs: `briefs.twins.integration.test.ts`, `__snapshots__/boot.budget.integration.test.ts.snap`, the garden `.min`, and `rule.forbid.term=state.md`. (a) stage the tree now; (b) leave the index until a stone asks for the commit.
+- **taken**: (b), forced. `rhx git.stage.add src .agent .behavior` refuses: "stage not allowed — ask your human to grant stage permission". stage permission is a human grant (`git.commit.uses … --stage allow`), not a driver lever.
+- **why the hazard does not ship**: a commit from the stale index is the harm r11 names, and that path already fails fast. `git.commit.set` refuses while the tree holds unstaged changes, unless told `--unstaged include` or `--unstaged ignore` (its own guarantee: "fails fast if unstaged changes exist"). no stone on this route asks for a commit (`rule.forbid.commits-the-route-did-not-ask-for`); the commit at route end runs with `--unstaged include`, which stages the tree as it stands — untracked files included, so the new tests and their snapshots ship with the briefs they test. one file is held out of that sweep: the actor settings copy (F23).
+- **rework**: clean — one `git add -A src .agent .behavior` once stage is granted, or `--unstaged include` at commit.
+- **confidence**: 90%. the residual 10%: a human who commits by hand with bare `git commit` bypasses the skill's guard.
+- **where**: the git index; `5.1.execution.from_vision` review r11 blocker.1
+- **verdict**: with the wisher (chat, 2026-11-24): *"i'll review now"* — the wisher reviews the tree before the commit stages it

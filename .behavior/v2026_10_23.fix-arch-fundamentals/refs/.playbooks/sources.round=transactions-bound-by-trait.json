@@ -1,0 +1,13 @@
+[
+  { "id": "page.postgres-sql-insert", "kind": "page", "url": "https://www.postgresql.org/docs/current/sql-insert.html", "keywords": ["ON CONFLICT", "DO UPDATE", "atomic"] },
+  { "id": "page.brooker2015-backoff-jitter", "kind": "page", "url": "https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/", "keywords": ["jitter", "backoff", "contention"] },
+  { "id": "page.brooker2015-backoff-jitter.pt2", "kind": "page", "url": "https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/", "keywords": ["the solution", "clusters", "Full Jitter", "less work"] },
+  { "id": "page.leach2017-stripe-idempotency", "kind": "page", "url": "https://stripe.com/blog/idempotency", "keywords": ["idempotency key", "retry", "exponential backoff", "jitter"] },
+  { "id": "page.ietf-idempotency-key-header", "kind": "page", "url": "https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/", "keywords": ["Idempotency-Key", "fault-tolerant", "retr"] },
+  { "id": "page.kleppmann2016-distributed-locking", "kind": "page", "url": "https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html", "keywords": ["fencing", "pause", "lease"] },
+  { "id": "page.haerder-reuter1983-acm", "kind": "page", "url": "https://dl.acm.org/doi/10.1145/289.291", "keywords": ["atomicity", "consistency", "isolation", "durability"] },
+  { "id": "page.jepsen-monotonic-writes", "kind": "page", "url": "https://jepsen.io/consistency/models/monotonic-writes", "keywords": ["monotonic writes", "order"] },
+  { "id": "gray1978", "kind": "crossref", "query": "Gray Notes on data base operating systems 1978 Operating Systems An Advanced Course", "keywords": [] },
+  { "id": "haerder-reuter1983", "kind": "crossref", "query": "Haerder Reuter Principles of transaction-oriented database recovery 1983 ACM Computing Surveys", "keywords": [] },
+  { "id": "terry1994", "kind": "crossref", "query": "Terry Demers Petersen Spreitzer Theimer Welch Session guarantees for weakly consistent replicated data 1994", "keywords": [] }
+]

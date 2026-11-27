@@ -1,0 +1,26 @@
+{
+  "source": {
+    "id": "page.stravinsky-wikiquote",
+    "kind": "page",
+    "url": "https://en.wikiquote.org/wiki/Igor_Stravinsky",
+    "keywords": [
+      "constraints",
+      "frees",
+      "Poetics of Music",
+      "shackle",
+      "freedom"
+    ]
+  },
+  "urlFinal": "https://en.wikiquote.org/wiki/Igor_Stravinsky",
+  "status": 200,
+  "fetchedAt": "2026-11-23T19:31:25.875Z",
+  "title": "Igor Stravinsky - Wikiquote",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "Igor Stravinsky - Wikiquote"
+    }
+  ],
+  "windows": [],
+  "textLength": 16722
+}

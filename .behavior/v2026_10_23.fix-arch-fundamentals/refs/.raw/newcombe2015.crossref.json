@@ -1,0 +1,220 @@
+{
+  "source": {
+    "id": "newcombe2015",
+    "kind": "crossref",
+    "query": "How Amazon web services uses formal methods Newcombe Communications of the ACM 2015",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=How%20Amazon%20web%20services%20uses%20formal%20methods%20Newcombe%20Communications%20of%20the%20ACM%202015&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T16:05:46.880Z",
+  "items": [
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "4",
+      "DOI": "10.1145/2699417",
+      "type": "journal-article",
+      "page": "66-73",
+      "title": [
+        "How Amazon web services uses formal methods"
+      ],
+      "volume": "58",
+      "author": [
+        {
+          "given": "Chris",
+          "family": "Newcombe",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Oracle, Seattle, WA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Tim",
+          "family": "Rath",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Amazon.com, Seattle, WA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Fan",
+          "family": "Zhang",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Cyanogen, Seattle, WA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Bogdan",
+          "family": "Munteanu",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Amazon.com, Seattle, WA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Marc",
+          "family": "Brooker",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Amazon.com, Seattle, WA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Michael",
+          "family": "Deardeuff",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Amazon.com, Seattle, WA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Communications of the ACM"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            2015,
+            3,
+            23
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.1145/3729175",
+      "title": [
+        "Systems Correctness Practices at Amazon Web Services"
+      ],
+      "author": [
+        {
+          "given": "Marc",
+          "family": "Brooker",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Amazon Web Services, Seattle, WA, USA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Ankush",
+          "family": "Desai",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Amazon Web Services, Seattle, WA, USA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Communications of the ACM"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            2025,
+            5,
+            29
+          ]
+        ]
+      },
+      "publisher": "Association for Computing Machinery (ACM)",
+      "type": "journal-article"
+    },
+    {
+      "DOI": "10.1007/978-1-4842-0653-9_1",
+      "title": [
+        "Getting Started with Amazon Web Services"
+      ],
+      "author": [
+        {
+          "given": "Adam",
+          "family": "Shackelford",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Beginning Amazon Web Services with Node.js"
+      ],
+      "page": "1-29",
+      "issued": {
+        "date-parts": [
+          [
+            2015
+          ]
+        ]
+      },
+      "publisher": "Apress",
+      "type": "book-chapter"
+    }
+  ]
+}

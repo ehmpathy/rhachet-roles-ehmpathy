@@ -1,0 +1,270 @@
+{
+  "source": {
+    "id": "terry1994",
+    "kind": "crossref",
+    "query": "Terry Demers Petersen Spreitzer Theimer Welch Session guarantees for weakly consistent replicated data 1994",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Terry%20Demers%20Petersen%20Spreitzer%20Theimer%20Welch%20Session%20guarantees%20for%20weakly%20consistent%20replicated%20data%201994&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-26T12:57:38.172Z",
+  "items": [
+    {
+      "DOI": "10.1109/pdis.1994.331722",
+      "title": [
+        "Session guarantees for weakly consistent replicated data"
+      ],
+      "author": [
+        {
+          "given": "D.B.",
+          "family": "Terry",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "A.J.",
+          "family": "Demers",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "K.",
+          "family": "Petersen",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "M.J.",
+          "family": "Spreitzer",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "M.M.",
+          "family": "Theimer",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "B.B.",
+          "family": "Welch",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Proceedings of 3rd International Conference on Parallel and Distributed Information Systems"
+      ],
+      "page": "140-149",
+      "issued": {
+        "date-parts": [
+          [
+            null
+          ]
+        ]
+      },
+      "publisher": "IEEE Comput. Soc. Press",
+      "type": "proceedings-article"
+    },
+    {
+      "publisher": "Springer Science and Business Media LLC",
+      "issue": "5",
+      "DOI": "10.1023/a:1019175717085",
+      "type": "journal-article",
+      "page": "357-371",
+      "title": [
+        "Dealing with server corruption in weakly consistent replicated data systems"
+      ],
+      "volume": "5",
+      "author": [
+        {
+          "given": "Mike J.",
+          "family": "Spreitzer",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        },
+        {
+          "given": "Marvin M.",
+          "family": "Theimer",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        },
+        {
+          "given": "Karin",
+          "family": "Petersen",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        },
+        {
+          "given": "Alan J.",
+          "family": "Demers",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        },
+        {
+          "given": "Douglas B.",
+          "family": "Terry",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Wireless Networks"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1999,
+            9
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.1145/262116.262151",
+      "title": [
+        "Dealing with server corruption in weakly consistent, replicated data systems"
+      ],
+      "author": [
+        {
+          "given": "Mike J.",
+          "family": "Spreitzer",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Marvin M.",
+          "family": "Theimer",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Karin",
+          "family": "Petersen",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Alan J.",
+          "family": "Demers",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Douglas B.",
+          "family": "Terry",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Proceedings of the 3rd annual ACM/IEEE international conference on Mobile computing and networking  - MobiCom '97"
+      ],
+      "page": "234-240",
+      "issued": {
+        "date-parts": [
+          [
+            1997
+          ]
+        ]
+      },
+      "publisher": "ACM Press",
+      "type": "proceedings-article"
+    }
+  ]
+}

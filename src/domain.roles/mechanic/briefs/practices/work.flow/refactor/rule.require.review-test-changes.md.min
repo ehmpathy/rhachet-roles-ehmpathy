@@ -17,3 +17,5 @@ ideally ask caller:
 if unable ask, assume preserve old behavior unless mentioned
 
 never degrade prior behavior blindly
+
+consult the inventory before you ask: a declared invariant settles which side is wrong

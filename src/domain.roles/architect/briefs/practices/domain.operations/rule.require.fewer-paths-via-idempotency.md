@@ -70,3 +70,4 @@ the branch is gone because the operation was *made* safe. the code path and its 
 - `rule.require.idempotent-procedures` (mechanic) — the safety guarantee this leverages
 - `rule.forbid.nonidempotent-mutations` (mechanic) — findsert/upsert/delete vocabulary this recasts toward
 - `philosophy.domain-as-a-garden.[philosophy]` — idempotent, recomposable operations
+- `catalog.of=tactic.abstraction.kind=contract.verb=set.tactic=idempotent` — the abstraction tactic whose benign half this rule leans on

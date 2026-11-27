@@ -1,0 +1,62 @@
+{
+  "source": {
+    "id": "page.wiki-boundary-value-analysis",
+    "kind": "page",
+    "url": "https://en.wikipedia.org/wiki/Boundary-value_analysis",
+    "keywords": [
+      "boundary",
+      "equivalence",
+      "partition",
+      "Myers"
+    ]
+  },
+  "urlFinal": "https://en.wikipedia.org/wiki/Boundary-value_analysis",
+  "status": 200,
+  "fetchedAt": "2026-11-23T22:20:12.664Z",
+  "title": "Boundary-value analysis - Wikipedia",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "Boundary-value analysis - Wikipedia"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "boundary",
+      "window": "already donated We never sell your information. By submitting, you are agreeing to our donor privacy policy. The Wikimedia Foundation is a nonprofit, tax-exempt organization. If you make a recurring donation, you will be debited by the Wikimedia Foundation until you notify us to stop. We’ll send you an email which will include a link to easy cancellation instructions. Toggle the table of contents Boundary-value analysis 3 languages Article Talk Read Edit View history Save Tools From Wikipedia, the free encyclopedia This article needs more citations. Please help improve this article by adding citations to reliable sources. Unsourced material may be challenged and removed. Find sources: \"Boundary-value analysis\" – news · newspapers · books · scholar · JSTOR (February 2024) (Learn how and w"
+    },
+    {
+      "keyword": "boundary",
+      "window": "you an email which will include a link to easy cancellation instructions. Toggle the table of contents Boundary-value analysis 3 languages Article Talk Read Edit View history Save Tools From Wikipedia, the free encyclopedia This article needs more citations. Please help improve this article by adding citations to reliable sources. Unsourced material may be challenged and removed. Find sources: \"Boundary-value analysis\" – news · newspapers · books · scholar · JSTOR (February 2024) (Learn how and when to remove this message) Boundary-value analysis is a software testing technique in which tests are designed to include representatives of boundary values in a range. The idea comes from the boundary.[1] Given that there is a set of test vectors to test the system, a topology can be defined o"
+    },
+    {
+      "keyword": "boundary",
+      "window": "guages Article Talk Read Edit View history Save Tools From Wikipedia, the free encyclopedia This article needs more citations. Please help improve this article by adding citations to reliable sources. Unsourced material may be challenged and removed. Find sources: \"Boundary-value analysis\" – news · newspapers · books · scholar · JSTOR (February 2024) (Learn how and when to remove this message) Boundary-value analysis is a software testing technique in which tests are designed to include representatives of boundary values in a range. The idea comes from the boundary.[1] Given that there is a set of test vectors to test the system, a topology can be defined on that set. Those inputs which belong to the same equivalence class as defined by the equivalence partitioning theory would constitu"
+    },
+    {
+      "keyword": "equivalence",
+      "window": "ks · scholar · JSTOR (February 2024) (Learn how and when to remove this message) Boundary-value analysis is a software testing technique in which tests are designed to include representatives of boundary values in a range. The idea comes from the boundary.[1] Given that there is a set of test vectors to test the system, a topology can be defined on that set. Those inputs which belong to the same equivalence class as defined by the equivalence partitioning theory would constitute the basis. Given that the basis sets are neighbors, there would exist a boundary between them. The test vectors on either side of the boundary are called boundary values. In practice, this would require that the test vectors can be ordered, and that the individual parameters follows some kind of order (either part"
+    },
+    {
+      "keyword": "equivalence",
+      "window": "(Learn how and when to remove this message) Boundary-value analysis is a software testing technique in which tests are designed to include representatives of boundary values in a range. The idea comes from the boundary.[1] Given that there is a set of test vectors to test the system, a topology can be defined on that set. Those inputs which belong to the same equivalence class as defined by the equivalence partitioning theory would constitute the basis. Given that the basis sets are neighbors, there would exist a boundary between them. The test vectors on either side of the boundary are called boundary values. In practice, this would require that the test vectors can be ordered, and that the individual parameters follows some kind of order (either partial order or total order). Formal d"
+    },
+    {
+      "keyword": "equivalence",
+      "window": "the test vectors be X1,..., Xn. Let's assume that there is an ordering relation defined over them, as ≤. Let C1, C2 be two equivalent classes. Assume that test vector X1 ∈ C1 and X2 ∈ C2. If 𝑋 1 ≤ 𝑋 2 or 𝑋 2 ≤ 𝑋 1 then the classes 𝐶 1 , 𝐶 2 are in the same neighborhood and the values 𝑋 1 , 𝑋 2 are boundary values. In plainer English, values on the minimum and maximum edges of an equivalence partition are tested. The values could be input or output ranges of a software component, can also be the internal implementation. Since these boundaries are common locations for errors that result in software faults they are frequently exercised in test cases. Applicationedit The expected input and output values to the software component should be extracted from the component specif"
+    },
+    {
+      "keyword": "partition",
+      "window": "and when to remove this message) Boundary-value analysis is a software testing technique in which tests are designed to include representatives of boundary values in a range. The idea comes from the boundary.[1] Given that there is a set of test vectors to test the system, a topology can be defined on that set. Those inputs which belong to the same equivalence class as defined by the equivalence partitioning theory would constitute the basis. Given that the basis sets are neighbors, there would exist a boundary between them. The test vectors on either side of the boundary are called boundary values. In practice, this would require that the test vectors can be ordered, and that the individual parameters follows some kind of order (either partial order or total order). Formal definitionedi"
+    },
+    {
+      "keyword": "partition",
+      "window": "ctors be X1,..., Xn. Let's assume that there is an ordering relation defined over them, as ≤. Let C1, C2 be two equivalent classes. Assume that test vector X1 ∈ C1 and X2 ∈ C2. If 𝑋 1 ≤ 𝑋 2 or 𝑋 2 ≤ 𝑋 1 then the classes 𝐶 1 , 𝐶 2 are in the same neighborhood and the values 𝑋 1 , 𝑋 2 are boundary values. In plainer English, values on the minimum and maximum edges of an equivalence partition are tested. The values could be input or output ranges of a software component, can also be the internal implementation. Since these boundaries are common locations for errors that result in software faults they are frequently exercised in test cases. Applicationedit The expected input and output values to the software component should be extracted from the component specification. The"
+    },
+    {
+      "keyword": "partition",
+      "window": "component, can also be the internal implementation. Since these boundaries are common locations for errors that result in software faults they are frequently exercised in test cases. Applicationedit The expected input and output values to the software component should be extracted from the component specification. The values are then grouped into sets with identifiable boundaries. Each set, or partition, contains values that are expected to be processed by the component in the same way. Partitioning of test data ranges is explained in the equivalence partitioning test case design technique. It is important to consider both valid and invalid partitions when designing test cases. The demonstration can be done using a function written in Java. class Safe { static int add(int a, int b"
+    }
+  ],
+  "textLength": 8287
+}

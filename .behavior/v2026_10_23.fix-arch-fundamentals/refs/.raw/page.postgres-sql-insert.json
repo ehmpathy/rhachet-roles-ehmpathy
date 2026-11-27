@@ -1,0 +1,57 @@
+{
+  "source": {
+    "id": "page.postgres-sql-insert",
+    "kind": "page",
+    "url": "https://www.postgresql.org/docs/current/sql-insert.html",
+    "keywords": [
+      "ON CONFLICT",
+      "DO UPDATE",
+      "atomic"
+    ]
+  },
+  "urlFinal": "https://www.postgresql.org/docs/current/sql-insert.html",
+  "status": 200,
+  "fetchedAt": "2026-11-26T12:54:25.833Z",
+  "title": "PostgreSQL: Documentation: 19: INSERT",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "INSERT"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "ON CONFLICT",
+      "window": "/ 9.1 / 9.0 / 8.4 / 8.3 / 8.2 / 8.1 / 8.0 / 7.4 / 7.3 / 7.2 / 7.1 INSERT Prev Up SQL Commands Home Next INSERT INSERT — create new rows in a table Synopsis [ WITH [ RECURSIVE ] with_query [, ...] ] INSERT INTO table_name [ AS alias ] [ ( column_name [, ...] ) ] [ OVERRIDING { SYSTEM | USER } VALUE ] { DEFAULT VALUES | VALUES ( { expression | DEFAULT } [, ...] ) [, ...] | query } [ ON CONFLICT [ conflict_target ] conflict_action ] [ RETURNING [ WITH ( { OLD | NEW } AS output_alias [, ...] ) ] { * | output_expression [ [ AS ] output_name ] } [, ...] ] where conflict_target can be one of: ( { index_column_name | ( index_expression ) } [ COLLATE collation ] [ opclass ] [, ...] ) [ WHERE index_predicate ] ON CONSTRAINT constraint_name and conflict_"
+    },
+    {
+      "keyword": "ON CONFLICT",
+      "window": "none. If the expression for any column is not of the correct data type, automatic type conversion will be attempted. INSERT into tables that lack unique indexes will not be blocked by concurrent activity. Tables with unique indexes might block if concurrent sessions perform actions that lock or modify rows matching the unique index values being inserted; the details are covered in Section 63.5. ON CONFLICT can be used to specify an alternative action to raising a unique constraint or exclusion constraint violation error. (See ON CONFLICT Clause below.) The optional RETURNING clause causes INSERT to compute and return value(s) based on each row actually inserted (or selected or updated, if an ON CONFLICT DO SELECT/UPDATE clause was used). This is primarily useful for obtaining values tha"
+    },
+    {
+      "keyword": "ON CONFLICT",
+      "window": "les that lack unique indexes will not be blocked by concurrent activity. Tables with unique indexes might block if concurrent sessions perform actions that lock or modify rows matching the unique index values being inserted; the details are covered in Section 63.5. ON CONFLICT can be used to specify an alternative action to raising a unique constraint or exclusion constraint violation error. (See ON CONFLICT Clause below.) The optional RETURNING clause causes INSERT to compute and return value(s) based on each row actually inserted (or selected or updated, if an ON CONFLICT DO SELECT/UPDATE clause was used). This is primarily useful for obtaining values that were supplied by defaults, such as a serial sequence number. However, any expression using the table's columns is allowed. The synta"
+    },
+    {
+      "keyword": "DO UPDATE",
+      "window": "{ * | output_expression [ [ AS ] output_name ] } [, ...] ] where conflict_target can be one of: ( { index_column_name | ( index_expression ) } [ COLLATE collation ] [ opclass ] [, ...] ) [ WHERE index_predicate ] ON CONSTRAINT constraint_name and conflict_action is one of: DO NOTHING DO SELECT [ FOR { UPDATE | NO KEY UPDATE | SHARE | KEY SHARE } ] [ WHERE condition ] DO UPDATE SET { column_name = { expression | DEFAULT } | ( column_name [, ...] ) = [ ROW ] ( { expression | DEFAULT } [, ...] ) | ( column_name [, ...] ) = ( sub-SELECT ) } [, ...] [ WHERE condition ] Description INSERT inserts new rows into a table. One can insert one or more rows specified by value expressions, or zero or"
+    },
+    {
+      "keyword": "DO UPDATE",
+      "window": "f the RETURNING list is identical to that of the output list of SELECT. Only rows that were successfully inserted, updated, or selected will be returned. For example, if a row was locked but not updated or selected because an ON CONFLICT ... WHERE clause condition was not satisfied, the row will not be returned. You must have INSERT privilege on a table in order to insert into it. If ON CONFLICT DO UPDATE is present, UPDATE privilege on the table is also required. If ON CONFLICT DO SELECT is present, SELECT privilege on the table is required. If ON CONFLICT DO SELECT FOR UPDATE/SHARE is used, UPDATE privilege is required on at least one column, in addition to SELECT privilege. If a column list is specified, you only need INSERT privilege on the listed columns. Similarly, when ON CONFLICT"
+    },
+    {
+      "keyword": "DO UPDATE",
+      "window": "O UPDATE is present, UPDATE privilege on the table is also required. If ON CONFLICT DO SELECT is present, SELECT privilege on the table is required. If ON CONFLICT DO SELECT FOR UPDATE/SHARE is used, UPDATE privilege is required on at least one column, in addition to SELECT privilege. If a column list is specified, you only need INSERT privilege on the listed columns. Similarly, when ON CONFLICT DO UPDATE is specified, you only need UPDATE privilege on the column(s) that are listed to be updated. However, all forms of ON CONFLICT also require SELECT privilege on any column whose values are read. This includes any column mentioned in conflict_target (including columns referred to by the arbiter constraint), and any column mentioned in an ON CONFLICT DO UPDATE expression, or a WHERE clause"
+    },
+    {
+      "keyword": "atomic",
+      "window": "ndex_predicate is specified, it must, as a further requirement for inference, satisfy arbiter indexes. Note that this means a non-partial unique index (a unique index without a predicate) will be inferred (and thus used by ON CONFLICT) if such an index satisfying every other criteria is available. If an attempt at inference is unsuccessful, an error is raised. ON CONFLICT DO UPDATE guarantees an atomic INSERT or UPDATE outcome; provided there is no independent error, one of those two outcomes is guaranteed, even under high concurrency. This is also known as UPSERT — “UPDATE or INSERT”. ON CONFLICT DO SELECT similarly allows an atomic INSERT or SELECT outcome. This is also known as idempotent insert or get or create. For ON CONFLICT DO SELECT, a RETURNING clause must be provided. conflic"
+    },
+    {
+      "keyword": "atomic",
+      "window": "f such an index satisfying every other criteria is available. If an attempt at inference is unsuccessful, an error is raised. ON CONFLICT DO UPDATE guarantees an atomic INSERT or UPDATE outcome; provided there is no independent error, one of those two outcomes is guaranteed, even under high concurrency. This is also known as UPSERT — “UPDATE or INSERT”. ON CONFLICT DO SELECT similarly allows an atomic INSERT or SELECT outcome. This is also known as idempotent insert or get or create. For ON CONFLICT DO SELECT, a RETURNING clause must be provided. conflict_target Specifies which conflicts ON CONFLICT takes the alternative action on by choosing arbiter indexes. Either performs unique index inference, or names a constraint explicitly. For ON CONFLICT DO NOTHING, it is optional to specify"
+    }
+  ],
+  "textLength": 23303
+}

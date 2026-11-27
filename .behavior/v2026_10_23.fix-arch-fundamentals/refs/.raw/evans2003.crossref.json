@@ -1,0 +1,268 @@
+{
+  "source": {
+    "id": "evans2003",
+    "kind": "crossref",
+    "query": "Evans Domain-driven design tackling complexity in the heart of software 2003",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Evans%20Domain-driven%20design%20tackling%20complexity%20in%20the%20heart%20of%20software%202003&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:16:12.059Z",
+  "items": [
+    {
+      "DOI": "10.1109/clei.2015.7360022",
+      "title": [
+        "Dribbling complexity in model driven development using Naked Objects, domain driven design, and software design patterns"
+      ],
+      "author": [
+        {
+          "given": "Samuel A.",
+          "family": "Soares",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        },
+        {
+          "given": "Marcius",
+          "family": "Brandao",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        },
+        {
+          "given": "Mariela I.",
+          "family": "Cortes",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        },
+        {
+          "given": "Emmanuel S. S.",
+          "family": "Freire",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "2015 Latin American Computing Conference (CLEI)"
+      ],
+      "page": "1-11",
+      "issued": {
+        "date-parts": [
+          [
+            2015,
+            10
+          ]
+        ]
+      },
+      "publisher": "IEEE",
+      "type": "proceedings-article"
+    },
+    {
+      "DOI": "10.5220/0005867905280535",
+      "title": [
+        "Dealing with the Complexity of Model Driven Development with Naked Objects and Domain-Driven Design"
+      ],
+      "author": [
+        {
+          "given": "Samuel Alves",
+          "family": "Soares",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "State University of Ceará, Brazil"
+            }
+          ],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        },
+        {
+          "given": "Mariela Inés",
+          "family": "Cortés",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "State University of Ceará, Brazil"
+            }
+          ],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        },
+        {
+          "given": "Marcius Gomes",
+          "family": "Brandão",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "State University of Ceará, Brazil"
+            }
+          ],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Proceedings of the 18th International Conference on Enterprise Information Systems"
+      ],
+      "page": "528-535",
+      "issued": {
+        "date-parts": [
+          [
+            2016
+          ]
+        ]
+      },
+      "publisher": "SCITEPRESS - Science and and Technology Publications",
+      "type": "proceedings-article"
+    },
+    {
+      "DOI": "10.4018/978-1-61692-874-2.ch009",
+      "title": [
+        "Domain-Driven Reuse of Software Design Models"
+      ],
+      "author": [
+        {
+          "given": "Audris",
+          "family": "Kalnins",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "IMCS University of Latvia, Latvia"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Michal",
+          "family": "Smialek",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Warsaw University of Technology, Poland"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Elina",
+          "family": "Kalnina",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "IMCS University of Latvia, Latvia"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Edgars",
+          "family": "Celms",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "IMCS University of Latvia, Latvia"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Wiktor",
+          "family": "Nowakowski",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Warsaw University of Technology, Poland"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Tomasz",
+          "family": "Straszak",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Warsaw University of Technology, Poland"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Model-Driven Domain Analysis and Software Development"
+      ],
+      "page": "177-200",
+      "issued": {
+        "date-parts": [
+          [
+            null
+          ]
+        ]
+      },
+      "publisher": "IGI Global",
+      "type": "book-chapter"
+    }
+  ]
+}

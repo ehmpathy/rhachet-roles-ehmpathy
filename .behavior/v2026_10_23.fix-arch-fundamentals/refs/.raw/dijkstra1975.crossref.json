@@ -1,0 +1,118 @@
+{
+  "source": {
+    "id": "dijkstra1975",
+    "kind": "crossref",
+    "query": "Dijkstra Guarded commands nondeterminacy and formal derivation of programs 1975",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Dijkstra%20Guarded%20commands%20nondeterminacy%20and%20formal%20derivation%20of%20programs%201975&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:15:38.963Z",
+  "items": [
+    {
+      "DOI": "10.1007/978-1-4612-6315-9_14",
+      "title": [
+        "Guarded Commands, Nondeterminacy, and Formal Derivation of Programs"
+      ],
+      "author": [
+        {
+          "given": "Edsger W.",
+          "family": "Dijkstra",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Programming Methodology"
+      ],
+      "page": "166-175",
+      "issued": {
+        "date-parts": [
+          [
+            1978
+          ]
+        ]
+      },
+      "publisher": "Springer New York",
+      "type": "book-chapter"
+    },
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "8",
+      "DOI": "10.1145/360933.360975",
+      "type": "journal-article",
+      "page": "453-457",
+      "title": [
+        "Guarded commands, nondeterminacy and formal derivation of programs"
+      ],
+      "volume": "18",
+      "author": [
+        {
+          "given": "Edsger W.",
+          "family": "Dijkstra",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Burroughs Corp., Nuenen, The Netherlands"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Communications of the ACM"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1975,
+            8
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.1145/800027.808417",
+      "title": [
+        "Guarded commands, non-determinacy and a calculus for the derivation of programs"
+      ],
+      "author": [
+        {
+          "given": "Edsger W.",
+          "family": "Dijkstra",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Proceedings of the international conference on Reliable software  -"
+      ],
+      "page": "2-2.13",
+      "issued": {
+        "date-parts": [
+          [
+            1975
+          ]
+        ]
+      },
+      "publisher": "ACM Press",
+      "type": "proceedings-article"
+    }
+  ]
+}

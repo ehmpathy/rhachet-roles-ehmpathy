@@ -1,0 +1,117 @@
+{
+  "source": {
+    "id": "page.abstract-pnueli1985",
+    "kind": "page",
+    "url": "https://link.springer.com/chapter/10.1007/978-3-642-82453-1_5",
+    "keywords": [
+      "Abstract",
+      "modular",
+      "assum"
+    ]
+  },
+  "urlFinal": "https://link.springer.com/chapter/10.1007/978-3-642-82453-1_5",
+  "status": 200,
+  "fetchedAt": "2026-11-23T13:57:35.884Z",
+  "title": "In Transition From Global to Modular Temporal Reasoning about Programs | Springer Nature Link",
+  "meta": [
+    {
+      "name": "dc.identifier",
+      "content": "10.1007/978-3-642-82453-1_5"
+    },
+    {
+      "name": "dc.description",
+      "content": "The role of Temporal Logic as a feasible approach to the specification and verification of concurrent systems is now widely accepted. A companion paper in this volume ([HP]) defines more precisely the area of applicability of Temporal Logic as that of reactive systems."
+    },
+    {
+      "name": "citation_pdf_url",
+      "content": "https://link.springer.com/content/pdf/10.1007/978-3-642-82453-1_5.pdf"
+    },
+    {
+      "name": "citation_fulltext_html_url",
+      "content": "https://link.springer.com/chapter/10.1007/978-3-642-82453-1_5"
+    },
+    {
+      "name": "citation_abstract_html_url",
+      "content": "https://link.springer.com/chapter/10.1007/978-3-642-82453-1_5"
+    },
+    {
+      "name": "citation_inbook_title",
+      "content": "Logics and Models of Concurrent Systems"
+    },
+    {
+      "name": "citation_title",
+      "content": "In Transition From Global to Modular Temporal Reasoning about Programs"
+    },
+    {
+      "name": "citation_publication_date",
+      "content": "1985"
+    },
+    {
+      "name": "citation_firstpage",
+      "content": "123"
+    },
+    {
+      "name": "citation_lastpage",
+      "content": "144"
+    },
+    {
+      "name": "citation_language",
+      "content": "en"
+    },
+    {
+      "name": "citation_doi",
+      "content": "10.1007/978-3-642-82453-1_5"
+    },
+    {
+      "name": "citation_isbn",
+      "content": "978-3-642-82453-1"
+    },
+    {
+      "name": "description",
+      "content": "The role of Temporal Logic as a feasible approach to the specification and verification of concurrent systems is now widely accepted. A companion paper in this volume ([HP]) defines more precisely the area of applicability of Temporal Logic as that of reactive systems."
+    },
+    {
+      "name": "citation_author",
+      "content": "Pnueli, Amir"
+    },
+    {
+      "name": "citation_author_institution",
+      "content": "The Weizmann Institute of Science"
+    },
+    {
+      "name": "citation_publisher",
+      "content": "Springer, Berlin, Heidelberg"
+    },
+    {
+      "name": "citation_springer_api_url",
+      "content": "http://api.springer.com/xmldata/jats?q=doi:10.1007/978-3-642-82453-1_5&api_key="
+    },
+    {
+      "name": "og:title",
+      "content": "In Transition From Global to Modular Temporal Reasoning about Programs"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "Abstract",
+      "window": "arch Search Cart Home Logics and Models of Concurrent Systems Conference paper In Transition From Global to Modular Temporal Reasoning about Programs Conference paper pp 123–144 Cite this conference paper Save conference paper View saved research Logics and Models of Concurrent Systems Amir Pnueli Part of the book series: NATO ASI Series ((NATO ASI F,volume 13)) 316 Accesses 376 Citations Abstract The role of Temporal Logic as a feasible approach to the specification and verification of concurrent systems is now widely accepted. A companion paper in this volume ([HP]) defines more precisely the area of applicability of Temporal Logic as that of reactive systems. This is a preview of subscription content, log in via an institution to check access. Access this chapter Log in via"
+    },
+    {
+      "keyword": "Abstract",
+      "window": "erarchical Development, University of Manchester (November 1983). Google Scholar Barringer, H., Kuiper, R., Pnueli, A. — Now You May Compose Temporal Logic Specifications, Proc. of the 16th ACM Symposium on Theory of Computing (1984) 51–63. Google Scholar Barringer, H., Kuiper, R., Pnueli, A. — A Compositional Temporal Approach to a CSP-like Language, Proc. of IFIP Conference, The Role of Abstract Models in Information Processing. Google Scholar Frances, N., Pnueli, A. — A Proof Method for Cyclic Programs, Acta Informatica 9 (1978) 133–157. Article Google Scholar Gabbay, D., Pnueli, A., Shelah, S., Stavi, J. — On the Temporal Analysis of Fairness, Proc. of the 7th ACM Symposium on Principles of Programming Languages (1980) 163–173. Google Scholar Gerth, R. — Transitio"
+    },
+    {
+      "keyword": "modular",
+      "window": "of data protection. See our privacy policy for more information on the use of your personal data. Manage preferences for further information and to change your choices. Accept all cookies Reject optional cookies Skip to main content Log in Find a journal Publish with us Track your research Search Cart Home Logics and Models of Concurrent Systems Conference paper In Transition From Global to Modular Temporal Reasoning about Programs Conference paper pp 123–144 Cite this conference paper Save conference paper View saved research Logics and Models of Concurrent Systems Amir Pnueli Part of the book series: NATO ASI Series ((NATO ASI F,volume 13)) 316 Accesses 376 Citations Abstract The role of Temporal Logic as a feasible approach to the specification and verification of concurrent"
+    },
+    {
+      "keyword": "modular",
+      "window": "Acta Informatica 9 (1978) 133–157. Article Google Scholar Gabbay, D., Pnueli, A., Shelah, S., Stavi, J. — On the Temporal Analysis of Fairness, Proc. of the 7th ACM Symposium on Principles of Programming Languages (1980) 163–173. Google Scholar Gerth, R. — Transition Logic, Proc. of the 16th ACM Symposium on Theory of Computing (1984) 39–50. Google Scholar Hailpern, B., Owicki, S. — Modular Verification of Computer Communication Protocols, IEEE Trans. on Communications, COM-31, 1 (Jan. 1983) 56–68. Article Google Scholar Harel, D., Pnueli, A. — On the Development of Reactive Systems, Thisissue. Google Scholar Koymans, R., Vytopil, J., De Roever, W.P. — Real Time Programming and Asynchronous Message Passing, 2nd ACM Symposium on Principles of Distributed Computing, M"
+    },
+    {
+      "keyword": "modular",
+      "window": "ics, The Weizmann Institute of Science, Rehovot, 76100, Israel Amir Pnueli Editor information Editors and Affiliations L.I.T.P., Université Paris 7, 2, Place Jussieu, 75251, Paris, France Krzysztof R. Apt Rights and permissions Reprints and permissions Copyright information © 1985 Springer-Verlag Heidelberg About this paper Cite this paper Pnueli, A. (1985). In Transition From Global to Modular Temporal Reasoning about Programs. In: Apt, K.R. (eds) Logics and Models of Concurrent Systems. NATO ASI Series, vol 13. Springer, Berlin, Heidelberg. https://doi.org/10.1007/978-3-642-82453-1_5 Download citation .RIS.ENW.BIB DOI https://doi.org/10.1007/978-3-642-82453-1_5 Publisher Name Springer, Berlin, Heidelberg Print ISBN 978-3-642-82455-5 Online ISBN 978-3-642-82453-1 eBook Pac"
+    }
+  ],
+  "textLength": 7317
+}

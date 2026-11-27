@@ -1,0 +1,194 @@
+{
+  "source": {
+    "id": "garcia-molina-salem1987",
+    "kind": "crossref",
+    "query": "Garcia-Molina Salem Sagas 1987 SIGMOD",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Garcia-Molina%20Salem%20Sagas%201987%20SIGMOD&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-24T05:42:17.680Z",
+  "items": [
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "3",
+      "DOI": "10.1145/38714.38742",
+      "type": "journal-article",
+      "page": "249-259",
+      "title": [
+        "Sagas"
+      ],
+      "volume": "16",
+      "author": [
+        {
+          "given": "Hector",
+          "family": "Garcia-Molina",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Princeton Univ., Princeton, NJ"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Kenneth",
+          "family": "Salem",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Princeton Univ., Princeton, NJ"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "ACM SIGMOD Record"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1987,
+            12
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.1145/38713.38742",
+      "title": [
+        "Sagas"
+      ],
+      "author": [
+        {
+          "given": "Hector",
+          "family": "Garcia-Molina",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Kenneth",
+          "family": "Salem",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Proceedings of the 1987 ACM SIGMOD international conference on Management of data  - SIGMOD '87"
+      ],
+      "page": "249-259",
+      "issued": {
+        "date-parts": [
+          [
+            1987
+          ]
+        ]
+      },
+      "publisher": "ACM Press",
+      "type": "proceedings-article"
+    },
+    {
+      "DOI": "10.1109/cmpcon.1991.128867",
+      "title": [
+        "Coordinating activities through extended sagas: a summary"
+      ],
+      "author": [
+        {
+          "given": "H.",
+          "family": "Garcia-Molina",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        },
+        {
+          "given": "D.",
+          "family": "Gawlick",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        },
+        {
+          "given": "J.",
+          "family": "Klein",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        },
+        {
+          "given": "K.",
+          "family": "Kleissner",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        },
+        {
+          "given": "K.",
+          "family": "Salem",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "COMPCON Spring '91 Digest of Papers"
+      ],
+      "page": "568-573",
+      "issued": {
+        "date-parts": [
+          [
+            null
+          ]
+        ]
+      },
+      "publisher": "IEEE Comput. Soc. Press",
+      "type": "proceedings-article"
+    }
+  ]
+}

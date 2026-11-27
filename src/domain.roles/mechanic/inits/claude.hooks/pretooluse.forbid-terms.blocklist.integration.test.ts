@@ -3,7 +3,9 @@ import { createHash } from 'crypto';
 import {
   chmodSync,
   copyFileSync,
+  existsSync,
   mkdirSync,
+  readdirSync,
   readFileSync,
   writeFileSync,
 } from 'fs';
@@ -359,7 +361,7 @@ describe('pretooluse.forbid-terms.blocklist.sh', () => {
         }),
       );
 
-      then('the hook exits 0 — the word boundary holds', () => {
+      then('the hook exits 0 — the word boundary works', () => {
         expect(result.exitCode).toEqual(0);
       });
     });
@@ -398,7 +400,7 @@ describe('pretooluse.forbid-terms.blocklist.sh', () => {
       const outcome = useBeforeAll(async () => {
         const json = asWriteJson({
           filePath: 'deploy.sh',
-          content: 'the script will normalize the existing rows',
+          content: 'the script will normalize the existing records',
         });
         const first = runHook({ json });
         return { first };
@@ -655,10 +657,12 @@ describe('pretooluse.forbid-terms.blocklist.sh', () => {
         // ⚠️ this is a hole the COLLAPSE authored: before it, `deploy` had its own
         //    grep and blocked regardless of what a neighbour term held.
         //
-        // 🟡 it is NOT closed here. the only cheap detection is a compile-check per
-        //    term, which costs N execs on the CLEAN path and breaches acceptance #1
-        //    outright. ⇒ caught as a dream + fulcrum, and pinned here so the next
-        //    traveler reads the behavior rather than rediscovers it.
+        // 🟡 it is NOT closed here. a compile-check per term costs no exec — the
+        //    walk already runs one in-shell, via `[[ =~ ]]` — but the close flips
+        //    this pinned verdict, a policy move acceptance #2 bars. ⇒ caught as
+        //    `.dream/v2026_11_26.fix.blocklist-gate-unguarded-beside-a-broken-term.md`,
+        //    and pinned here so the next traveler reads the behavior rather than
+        //    rediscovers it.
         then('🔴 the good term goes UNGUARDED — a known, dreamed hole', () => {
           expect(result.exitCode).toEqual(0);
         });
@@ -2033,6 +2037,921 @@ describe('pretooluse.forbid-terms.blocklist.sh', () => {
         // the boundary between `[t0]` and `[t1]` cannot erode unremarked.
         expect(result.exitCode).toEqual(0);
         expect(result.stderr).toEqual('');
+      });
+    });
+  });
+
+  given('[case31] the LIVE overloaded-noun record, `(use)?states?`', () => {
+    // .why = one regex record holds three forms — the noun, its plural, and react's hook.
+    //        a regex term blocks by its pattern, so the forms it must catch and the
+    //        near-words it must pass are each pinned here, against the shipped list
+    const CONTENTS_BLOCKED = [
+      'the order state is final',
+      'two states hold here',
+      'const [count, setCount] = useState(0);',
+      'State of the swell',
+      'STATE',
+    ];
+    const CONTENTS_PERMITTED = [
+      'the statement is true',
+      'call getState() for it',
+      'a stateful cache',
+      'restate the claim',
+      'setState(next)',
+      // compounds pass the hook: `_` and a camel hump are word characters, so no boundary
+      // falls inside them. review catches a compound; the hook catches the bare word
+      'const orderState = load();',
+      'a stateMachine drives it',
+      'app_state = {}',
+    ];
+
+    when('[t0] each blocked form is written', () => {
+      // .note = the array rides in an object: the useBeforeAll proxy does not carry `.filter`
+      const outcome = useBeforeAll(async () => ({
+        results: CONTENTS_BLOCKED.map((content) => ({
+          content,
+          exitCode: runHook({
+            json: asWriteJson({ filePath: 'surf.ts', content }),
+          }).exitCode,
+        })),
+      }));
+
+      then('every form blocks: noun, plural, react hook, any case', () => {
+        expect(
+          outcome.results.filter((result) => result.exitCode !== 2),
+        ).toEqual([]);
+      });
+    });
+
+    when('[t1] each near-word is written', () => {
+      const outcome = useBeforeAll(async () => ({
+        results: CONTENTS_PERMITTED.map((content) => ({
+          content,
+          exitCode: runHook({
+            json: asWriteJson({ filePath: 'surf.ts', content }),
+          }).exitCode,
+        })),
+      }));
+
+      then('every near-word lands: the word boundary works', () => {
+        expect(
+          outcome.results.filter((result) => result.exitCode !== 0),
+        ).toEqual([]);
+      });
+    });
+
+    when('[t2] a react hook is written', () => {
+      const result = useBeforeAll(async () =>
+        runHook({
+          json: asWriteJson({
+            filePath: 'surf.tsx',
+            content: 'const [swell, setSwell] = useState(null);',
+          }),
+        }),
+      );
+
+      then('the hook blocks', () => {
+        expect(result.exitCode).toEqual(2);
+      });
+
+      then('the render names the forms by label, never the regex', () => {
+        expect(result.stderr).toContain('⛔ state · states · useState');
+        expect(result.stderr).not.toContain('(use)?');
+      });
+
+      then(
+        'each alt names one sense, so the list reads one sense per item',
+        () => {
+          expect(result.stderr).toContain(
+            'record or snapshot (a stored value)',
+          );
+          expect(result.stderr).toContain(
+            'a wrapper hook named for where the value persists',
+          );
+        },
+      );
+
+      then('the alt names no hook or package a consumer may lack', () => {
+        expect(result.stderr).not.toContain('rheuse');
+        expect(result.stderr).not.toContain('useInMemoryPersistenceOf');
+      });
+
+      then('the whole render is snapshotted', () => {
+        expect(result.stderr).toMatchSnapshot();
+      });
+    });
+
+    when('[t3] a key an external api dictates is written, then retried', () => {
+      // .why = stripe `address.state`, the oauth `state` param: the name is not ours to change,
+      //        so the deliberate retry is the exempt path
+      const outcome = useBeforeAll(async () => {
+        const json = asWriteJson({
+          filePath: 'checkout.ts',
+          content: 'const region = customer.address.state;',
+        });
+        const first = runHook({ json });
+        const second = runHook({ json, cwd: first.cwd });
+        return { first, second };
+      });
+
+      then('the first write blocks', () => {
+        expect(outcome.first.exitCode).toEqual(2);
+      });
+
+      then('the deliberate retry lands', () => {
+        expect(outcome.second.exitCode).toEqual(0);
+      });
+
+      then('the block render and the retry output are snapshotted', () => {
+        expect({
+          first: outcome.first.stderr,
+          second: outcome.second.stderr,
+        }).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case32] crafted records whose label is empty, or absent', () => {
+    // .why = `IFS=$'\t'` collapses an empty field, so an empty label would shift `why` into
+    //        the label slot and `alt` into `why`; the jq read fills an empty or absent label
+    //        from the term, so each render keeps its three slots
+    when('[t0] a write holds each term', () => {
+      const result = useBeforeAll(async () => {
+        const dir = genSandbox({
+          terms: [
+            {
+              term: 'reefbreak',
+              label: '',
+              why: 'why-of-reefbreak',
+              alt: ['alt-of-reefbreak'],
+            },
+            {
+              term: 'shorebreak',
+              why: 'why-of-shorebreak',
+              alt: ['alt-of-shorebreak'],
+            },
+          ],
+        });
+        return runIn({ dir, content: 'a reefbreak, then a shorebreak' });
+      });
+
+      then('the hook blocks', () => {
+        expect(result.exitCode).toEqual(2);
+      });
+
+      then(
+        'each record renders under its term, why and alt in their own slots',
+        () => {
+          expect(result.stderr).toContain(
+            '⛔ reefbreak\n    why: why-of-reefbreak\n    alt: alt-of-reefbreak',
+          );
+          expect(result.stderr).toContain(
+            '⛔ shorebreak\n    why: why-of-shorebreak\n    alt: alt-of-shorebreak',
+          );
+        },
+      );
+
+      then(
+        'the full render is snapshotted, so a reviewer sees each slot',
+        () => {
+          expect(result.stderr).toMatchSnapshot();
+        },
+      );
+    });
+  });
+
+  given(
+    '[case33] the LIVE twin records, `maps?` and `models?|modell?ed`',
+    () => {
+      // .why = two regex records, banned as one pair (rule.forbid.term=map, rule.forbid.term=model).
+      //        the forms each must catch and the near-words each must pass are pinned against the
+      //        shipped list, as `[case31]` pins `state`
+      const CONTENTS_BLOCKED = [
+        'a map of the reef',
+        'two maps of the swell',
+        'swells.map((swell) => swell.height)',
+        'const tides = new Map();',
+        'the model replied',
+        'two models of the tide',
+        'we modeled the swell',
+        'we modelled the swell',
+        'Model',
+      ];
+      const CONTENTS_PERMITTED = [
+        'the roadmap stands',
+        'a bitmap of the reef',
+        'a mapper hook',
+        'remodel the shack',
+        'a modelo by the shore',
+        // compounds pass the hook: `_` and a camel hump are word characters, so no boundary
+        // falls inside them. review catches a compound; the hook catches the bare word
+        'const tideMap = load();',
+        'const swellModel = load();',
+        'reef_map = {}',
+      ];
+
+      when('[t0] each blocked form is written', () => {
+        const outcome = useBeforeAll(async () => ({
+          results: CONTENTS_BLOCKED.map((content) => ({
+            content,
+            exitCode: runHook({
+              json: asWriteJson({ filePath: 'surf.ts', content }),
+            }).exitCode,
+          })),
+        }));
+
+        then(
+          'every form blocks: noun, plural, the verb forms, any case',
+          () => {
+            expect(
+              outcome.results.filter((result) => result.exitCode !== 2),
+            ).toEqual([]);
+          },
+        );
+      });
+
+      when('[t1] each near-word is written', () => {
+        const outcome = useBeforeAll(async () => ({
+          results: CONTENTS_PERMITTED.map((content) => ({
+            content,
+            exitCode: runHook({
+              json: asWriteJson({ filePath: 'surf.ts', content }),
+            }).exitCode,
+          })),
+        }));
+
+        then('every near-word lands: the word boundary works', () => {
+          expect(
+            outcome.results.filter((result) => result.exitCode !== 0),
+          ).toEqual([]);
+        });
+      });
+
+      when('[t2] a line that holds both terms is written', () => {
+        const result = useBeforeAll(async () =>
+          runHook({
+            json: asWriteJson({
+              filePath: 'surf.md',
+              content: 'the model drew a map of the reef',
+            }),
+          }),
+        );
+
+        then('the hook blocks', () => {
+          expect(result.exitCode).toEqual(2);
+        });
+
+        then('the render names each record by label, never the regex', () => {
+          expect(result.stderr).toContain('⛔ map · maps');
+          expect(result.stderr).toContain('⛔ model · models · modeled');
+          expect(result.stderr).not.toContain('maps?');
+          expect(result.stderr).not.toContain('modell?ed');
+        });
+
+        then(
+          'each alt names one sense, so the list reads one sense per item',
+          () => {
+            expect(result.stderr).toContain('lookup or index');
+            expect(result.stderr).toContain('brain (an llm)');
+          },
+        );
+
+        then('the whole render is snapshotted', () => {
+          expect(result.stderr).toMatchSnapshot();
+        });
+      });
+
+      when('[t3] an identifier we do not name is written, then retried', () => {
+        // .why = `.map(` and `Map` are the language's, not ours to rename, so the deliberate
+        //        retry is the exempt path (rule.forbid.term=map)
+        const outcome = useBeforeAll(async () => {
+          const json = asWriteJson({
+            filePath: 'tides.ts',
+            content: 'const heights = swells.map((swell) => swell.height);',
+          });
+          const first = runHook({ json });
+          const second = runHook({ json, cwd: first.cwd });
+          return { first, second };
+        });
+
+        then('the first write blocks', () => {
+          expect(outcome.first.exitCode).toEqual(2);
+        });
+
+        then('the deliberate retry lands', () => {
+          expect(outcome.second.exitCode).toEqual(0);
+        });
+
+        then('the block render and the retry output are snapshotted', () => {
+          expect({
+            first: outcome.first.stderr,
+            second: outcome.second.stderr,
+          }).toMatchSnapshot();
+        });
+      });
+    },
+  );
+
+  given('[case34] the LIVE record `stores?`', () => {
+    // .why = the bare noun and verb block (rule.forbid.term=store); `storage`, the clearer word,
+    //        and the near-words `stored` and `restore` must pass, pinned against the shipped list
+    const CONTENTS_BLOCKED = [
+      'the swell store',
+      'two stores by the shore',
+      'we store the reservation',
+      'Store',
+    ];
+    const CONTENTS_PERMITTED = [
+      'the swell storage',
+      'a stored reservation',
+      'restore the board',
+      'a storage constraint',
+      // compounds pass the hook: `_` and a camel hump are word characters, so no boundary
+      // falls inside them. review catches a compound; the hook catches the bare word
+      'const swellStore = load();',
+      'kv_store = {}',
+    ];
+
+    when('[t0] each blocked form is written', () => {
+      const outcome = useBeforeAll(async () => ({
+        results: CONTENTS_BLOCKED.map((content) => ({
+          content,
+          exitCode: runHook({
+            json: asWriteJson({ filePath: 'surf.ts', content }),
+          }).exitCode,
+        })),
+      }));
+
+      then('every form blocks: noun, plural, verb, any case', () => {
+        expect(
+          outcome.results.filter((result) => result.exitCode !== 2),
+        ).toEqual([]);
+      });
+    });
+
+    when('[t1] each near-word is written', () => {
+      const outcome = useBeforeAll(async () => ({
+        results: CONTENTS_PERMITTED.map((content) => ({
+          content,
+          exitCode: runHook({
+            json: asWriteJson({ filePath: 'surf.ts', content }),
+          }).exitCode,
+        })),
+      }));
+
+      then('every near-word lands: storage, stored, restore', () => {
+        expect(
+          outcome.results.filter((result) => result.exitCode !== 0),
+        ).toEqual([]);
+      });
+    });
+
+    when('[t2] the bare word is written', () => {
+      const result = useBeforeAll(async () =>
+        runHook({
+          json: asWriteJson({
+            filePath: 'surf.md',
+            content: 'we keep each wave report in a store',
+          }),
+        }),
+      );
+
+      then('the hook blocks', () => {
+        expect(result.exitCode).toEqual(2);
+      });
+
+      then('the render names the record by label, never the regex', () => {
+        expect(result.stderr).toContain('⛔ store · stores');
+        expect(result.stderr).not.toContain('stores?');
+      });
+
+      then('the alts lead with storage', () => {
+        expect(result.stderr).toContain('storage (where data persists)');
+      });
+
+      then('the whole render is snapshotted', () => {
+        expect(result.stderr).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case35] the LIVE record `property|properties`', () => {
+    // .why = the bare word blocks (rule.forbid.term=property); the near-words `proper` and
+    //        `properly`, and the trait that replaces it, must pass, pinned against the shipped list
+    const CONTENTS_BLOCKED = [
+      'each property of the surfer',
+      'the acid properties',
+      'a beach property for rent',
+      'Property',
+    ];
+    const CONTENTS_PERMITTED = [
+      'a proper wave',
+      'the board waxed properly',
+      'each trait of the write',
+      'each field of the surfer',
+      // compounds pass the hook: a camel hump and `_` are word characters, so no boundary
+      // falls inside them. review catches a compound; the hook catches the bare word
+      "expect(surfer).toHaveProperty('name');",
+      'property_id = 7',
+    ];
+
+    when('[t0] each blocked form is written', () => {
+      const outcome = useBeforeAll(async () => ({
+        results: CONTENTS_BLOCKED.map((content) => ({
+          content,
+          exitCode: runHook({
+            json: asWriteJson({ filePath: 'surf.ts', content }),
+          }).exitCode,
+        })),
+      }));
+
+      then('every form blocks: singular, plural, any case', () => {
+        expect(
+          outcome.results.filter((result) => result.exitCode !== 2),
+        ).toEqual([]);
+      });
+    });
+
+    when('[t1] each near-word is written', () => {
+      const outcome = useBeforeAll(async () => ({
+        results: CONTENTS_PERMITTED.map((content) => ({
+          content,
+          exitCode: runHook({
+            json: asWriteJson({ filePath: 'surf.ts', content }),
+          }).exitCode,
+        })),
+      }));
+
+      then('every near-word lands: proper, properly, trait, field', () => {
+        expect(
+          outcome.results.filter((result) => result.exitCode !== 0),
+        ).toEqual([]);
+      });
+    });
+
+    when('[t2] the bare word is written', () => {
+      const result = useBeforeAll(async () =>
+        runHook({
+          json: asWriteJson({
+            filePath: 'surf.md',
+            content: 'each wave report has a height property',
+          }),
+        }),
+      );
+
+      then('the hook blocks', () => {
+        expect(result.exitCode).toEqual(2);
+      });
+
+      then('the render names the record by label, never the regex', () => {
+        expect(result.stderr).toContain('⛔ property · properties');
+        expect(result.stderr).not.toContain('property|properties');
+      });
+
+      then('the alts lead with field', () => {
+        expect(result.stderr).toContain('field or attribute (on an object)');
+      });
+
+      then('the whole render is snapshotted', () => {
+        expect(result.stderr).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case36] the LIVE record `holds?|held`', () => {
+    // .why = `hold`, `holds`, and `held` block in every sense — the status and the verb
+    //        alike — pinned against the shipped list; words that merely contain them pass
+    const CONTENTS_BLOCKED = [
+      "status: 'HELD'",
+      'status = "held"',
+      'the reservation stays `HELD`',
+      'QUEUED → HELD',
+      'PENDING -> HELD',
+      'a lock held across a contract',
+      'the copy held in memory goes stale',
+      'Held until the card clears',
+      'the invariant holds',
+      'hold the lock for one write',
+      "status: 'HOLD'",
+      'Hold',
+      "status: 'ON_HOLD'",
+      'const isHeld = true;',
+      'const onHold = await query();',
+      'const holdUntil = now();',
+      'const held_at = now();',
+      'HELD_AT',
+      'class HoldCache {}',
+    ];
+    const CONTENTS_PERMITTED = [
+      'the refund was withheld',
+      'the verdict was upheld',
+      'withhold the refund',
+      'uphold the verdict',
+      'the swell crossed the threshold',
+      'const thresholdMet = true;',
+      'the board holder',
+      'const holderName = name;',
+      'the household board',
+      'the invariant is true',
+      'lock the record for one write',
+      "status: 'TENTATIVE'",
+      'TENTATIVE → CONFIRMED · CANCELED',
+    ];
+
+    when('[t0] each form is written', () => {
+      const outcome = useBeforeAll(async () => ({
+        results: CONTENTS_BLOCKED.map((content) => ({
+          content,
+          exitCode: runHook({
+            json: asWriteJson({ filePath: 'surf.ts', content }),
+          }).exitCode,
+        })),
+      }));
+
+      then('every form blocks: status, verb, snake, camel, any case', () => {
+        expect(
+          outcome.results.filter((result) => result.exitCode !== 2),
+        ).toEqual([]);
+      });
+    });
+
+    when('[t1] each neighbor word is written', () => {
+      const outcome = useBeforeAll(async () => ({
+        results: CONTENTS_PERMITTED.map((content) => ({
+          content,
+          exitCode: runHook({
+            json: asWriteJson({ filePath: 'surf.ts', content }),
+          }).exitCode,
+        })),
+      }));
+
+      then(
+        'withheld, uphold, thresholdMet, holderName, household, and TENTATIVE all land',
+        () => {
+          expect(
+            outcome.results.filter((result) => result.exitCode !== 0),
+          ).toEqual([]);
+        },
+      );
+    });
+
+    when('[t2] a status assignment is written', () => {
+      const result = useBeforeAll(async () =>
+        runHook({
+          json: asWriteJson({
+            filePath: 'surf.ts',
+            content: "const reservation = { status: 'HELD' };",
+          }),
+        }),
+      );
+
+      then('the hook blocks', () => {
+        expect(result.exitCode).toEqual(2);
+      });
+
+      then('the render names the record by label, never the regex', () => {
+        expect(result.stderr).toContain('⛔ hold · holds · held');
+        expect(result.stderr).not.toContain('holds?|held');
+      });
+
+      then(
+        'the alts send the author to the domain word, never to one fixed swap',
+        () => {
+          expect(result.stderr).toContain('one per case, never one for all');
+          expect(result.stderr).toContain('TENTATIVE, helland 2007');
+        },
+      );
+
+      then('the alts name a word per sense of the verb', () => {
+        expect(result.stderr).toContain('lock or reserve (a grip acquired)');
+        expect(result.stderr).toContain('keep or own (a possession)');
+      });
+
+      then(
+        'the alts split the rule from the operation that keeps it true',
+        () => {
+          expect(result.stderr).toContain(
+            'is true or stays true (a rule, right now)',
+          );
+          expect(result.stderr).toContain(
+            'preserves or maintains (an operation that keeps a rule true)',
+          );
+        },
+      );
+
+      then('the whole render is snapshotted', () => {
+        expect(result.stderr).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case37] the LIVE record `folds?|folded`', () => {
+    // .why = the bare word blocks — there is always a more intuitive word; `folder`, `unfold`,
+    //        and `scaffold` pass, and so do the words that replace it, pinned against the shipped list
+    const CONTENTS_BLOCKED = [
+      'fold the events into an entity',
+      'the mind folds them into a concept',
+      'the entity is folded again',
+      'Fold',
+    ];
+    const CONTENTS_PERMITTED = [
+      'save it in the reports folder',
+      'unfold the reef chart',
+      'scaffold a new repo',
+      'materialize the entity from its events',
+      'the conclusion of the latest facts',
+      'merge the two reports',
+    ];
+
+    when('[t0] each blocked form is written', () => {
+      const outcome = useBeforeAll(async () => ({
+        results: CONTENTS_BLOCKED.map((content) => ({
+          content,
+          exitCode: runHook({
+            json: asWriteJson({ filePath: 'surf.md', content }),
+          }).exitCode,
+        })),
+      }));
+
+      then('every form blocks: bare, plural, past, any case', () => {
+        expect(
+          outcome.results.filter((result) => result.exitCode !== 2),
+        ).toEqual([]);
+      });
+    });
+
+    when('[t1] each near-word and replacement is written', () => {
+      const outcome = useBeforeAll(async () => ({
+        results: CONTENTS_PERMITTED.map((content) => ({
+          content,
+          exitCode: runHook({
+            json: asWriteJson({ filePath: 'surf.md', content }),
+          }).exitCode,
+        })),
+      }));
+
+      then(
+        'folder, unfold, scaffold, materialize, conclusion, merge all land',
+        () => {
+          expect(
+            outcome.results.filter((result) => result.exitCode !== 0),
+          ).toEqual([]);
+        },
+      );
+    });
+
+    when('[t2] the bare word is written', () => {
+      const result = useBeforeAll(async () =>
+        runHook({
+          json: asWriteJson({
+            filePath: 'surf.md',
+            content: 'fold the wave reports into one balance',
+          }),
+        }),
+      );
+
+      then('the hook blocks', () => {
+        expect(result.exitCode).toEqual(2);
+      });
+
+      then('the render names the record by label, never the regex', () => {
+        expect(result.stderr).toContain('⛔ fold · folds · folded');
+        expect(result.stderr).not.toContain('folds?|folded');
+      });
+
+      then('the alts lead with materialize or conclude', () => {
+        expect(result.stderr).toContain(
+          'materialize or conclude (an entity from its events: the conclusion)',
+        );
+      });
+
+      then('the whole render is snapshotted', () => {
+        expect(result.stderr).toMatchSnapshot();
+      });
+    });
+  });
+
+  given(
+    '[case38] a near-word sits beside a real term, against the LIVE list',
+    () => {
+      // .why = a record with alternatives (`folds?|folded`, `property|properties`) must keep its
+      //        word boundaries on every branch when the hook names which record tripped. once a
+      //        real term trips the gate, the walk must not name a record from a near-word: an
+      //        unparenthesized `\bterm\b` bound the boundaries to the first and last branch only,
+      //        so `unfolded` named the fold record and `property_list` the property record
+      when('[t0] the content holds a real term and two near-words', () => {
+        const result = useBeforeAll(async () =>
+          runHook({
+            json: asWriteJson({
+              filePath: 'surf.md',
+              content:
+                'the chart unfolded beside two old models; see property_list',
+            }),
+          }),
+        );
+
+        then('the hook blocks, on the real term', () => {
+          expect(result.exitCode).toEqual(2);
+          expect(result.stderr).toContain('⛔ model · models · modeled');
+        });
+
+        then('no record is named from a near-word', () => {
+          expect(result.stderr).not.toContain('⛔ fold · folds · folded');
+          expect(result.stderr).not.toContain('⛔ property · properties');
+        });
+      });
+    },
+  );
+
+  given('[case39] the LIVE segment record `rows?`', () => {
+    // .why = every database unit is a record — relational, document, dynamodb alike — so `row`
+    //        blocks as a word AND as a piece of an identifier (`bound: segment`), pinned against the
+    //        shipped list; words that merely contain the letters pass
+    const CONTENTS_BLOCKED = [
+      'the slot row lags the write',
+      'zero rows changed',
+      'lock the row for one write',
+      'a markdown table row',
+      'Row',
+      'const rowCount = 3;',
+      'row_id = 7',
+      'const reservation_row = await query();',
+      'SELECT ROW_COUNT();',
+      'const getRowCount = () => 3;',
+      'const userRows = await query();',
+      'class RowCache {}',
+      'the row-level guard',
+    ];
+    const CONTENTS_PERMITTED = [
+      'the arrow points to the reef',
+      'throw the error loud',
+      'const throwError = () => {};',
+      'const arrowCount = 3;',
+      'the crowd at dawn patrol',
+      'a rowdy swell',
+      'const narrowed = true;',
+      'zero records changed',
+      'a pessimistic lock on the slot record',
+    ];
+
+    when('[t0] each blocked form is written', () => {
+      const outcome = useBeforeAll(async () => ({
+        results: CONTENTS_BLOCKED.map((content) => ({
+          content,
+          exitCode: runHook({
+            json: asWriteJson({ filePath: 'surf.md', content }),
+          }).exitCode,
+        })),
+      }));
+
+      then(
+        'every form blocks: word, snake, kebab, camel head, camel hump, any case',
+        () => {
+          expect(
+            outcome.results.filter((result) => result.exitCode !== 2),
+          ).toEqual([]);
+        },
+      );
+    });
+
+    when('[t1] each near-word and replacement is written', () => {
+      const outcome = useBeforeAll(async () => ({
+        results: CONTENTS_PERMITTED.map((content) => ({
+          content,
+          exitCode: runHook({
+            json: asWriteJson({ filePath: 'surf.md', content }),
+          }).exitCode,
+        })),
+      }));
+
+      then(
+        'arrow, throwError, arrowCount, crowd, rowdy, and record all land',
+        () => {
+          expect(
+            outcome.results.filter((result) => result.exitCode !== 0),
+          ).toEqual([]);
+        },
+      );
+    });
+
+    when('[t2] the bare word is written', () => {
+      const result = useBeforeAll(async () =>
+        runHook({
+          json: asWriteJson({
+            filePath: 'surf.md',
+            content: 'each lesson reservation is a row in the table',
+          }),
+        }),
+      );
+
+      then('the hook blocks', () => {
+        expect(result.exitCode).toEqual(2);
+      });
+
+      then('the render names the record by label, never the regex', () => {
+        expect(result.stderr).toContain('⛔ row · rows');
+        expect(result.stderr).not.toContain('rows?');
+      });
+
+      then('the alts lead with record', () => {
+        expect(result.stderr).toContain(
+          'record (a unit of any database: relational, document, dynamodb)',
+        );
+      });
+
+      then('the whole render is snapshotted', () => {
+        expect(result.stderr).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case40] every LIVE record owes its rule and an example file', () => {
+    // .why = rule.require.term-bans-in-blocklist (repo=.this): a ban owes a
+    //        `rule.forbid.term=$slug.md` rule and at least one
+    //        `rule.forbid.term=$slug.example=$case.md` file beside it. a record
+    //        added with neither still blocks, but its block cites a brief no
+    //        reader can open
+    const dirBriefs = path.join(
+      __dirname,
+      '..',
+      '..',
+      'briefs',
+      'practices',
+      'lang.terms',
+    );
+
+    /**
+     * .what = the slug of each LIVE record: the first form of its label, else its term
+     * .why = the label names the forms for humans, so its first form is the name
+     *        the brief carries; a record with no label is one plain word
+     */
+    const asLiveBlocklistSlugs = (): string[] => {
+      const withoutComments = readFileSync(
+        path.join(__dirname, 'terms.blocklist.jsonc'),
+        'utf-8',
+      )
+        .split('\n')
+        .map((line) => line.replace(/\/\/.*/, ''))
+        .join('\n');
+      const parsed: { terms: { term: string; label?: string }[] } =
+        JSON.parse(withoutComments);
+      return parsed.terms.map(
+        (entry) => (entry.label ?? entry.term).split(' · ')[0]!,
+      );
+    };
+
+    /**
+     * .what = of the given slugs, each one whose rule or example file is absent, with what is absent
+     */
+    const getAllSlugsUnbriefed = (input: {
+      slugs: string[];
+    }): { slug: string; absent: string[] }[] => {
+      const namesOnDisk = readdirSync(dirBriefs);
+      return input.slugs
+        .map((slug) => {
+          const nameRule = `rule.forbid.term=${slug}.md`;
+          const prefixExample = `rule.forbid.term=${slug}.example=`;
+          const hasExample = namesOnDisk.some(
+            (name) => name.startsWith(prefixExample) && name.endsWith('.md'),
+          );
+          return {
+            slug,
+            absent: [
+              ...(existsSync(path.join(dirBriefs, nameRule)) ? [] : [nameRule]),
+              ...(hasExample ? [] : [`${prefixExample}*.md`]),
+            ],
+          };
+        })
+        .filter((entry) => entry.absent.length > 0);
+    };
+
+    const LIVE_SLUGS: string[] = asLiveBlocklistSlugs();
+
+    when('[t0] each live record is checked against the briefs dir', () => {
+      then('every record has its rule and at least one example file', () => {
+        expect(getAllSlugsUnbriefed({ slugs: LIVE_SLUGS })).toEqual([]);
+      });
+
+      then('the list is non-empty, so the assertion is not vacuous', () => {
+        expect(LIVE_SLUGS.length).toBeGreaterThan(0);
+      });
+    });
+
+    when('[t1] a slug with no brief is injected into the same check', () => {
+      // 🔴 the clamp's own clamp: the identical predicate must report a slug
+      //    whose rule and example file are both absent, or [t0] proves naught
+      const unbriefed = getAllSlugsUnbriefed({ slugs: ['gnarlyswell'] });
+
+      then('the slug is reported, with both files absent', () => {
+        expect(unbriefed).toEqual([
+          {
+            slug: 'gnarlyswell',
+            absent: [
+              'rule.forbid.term=gnarlyswell.md',
+              'rule.forbid.term=gnarlyswell.example=*.md',
+            ],
+          },
+        ]);
       });
     });
   });

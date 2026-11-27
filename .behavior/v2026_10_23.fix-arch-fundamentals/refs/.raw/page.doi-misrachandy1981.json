@@ -1,0 +1,25 @@
+{
+  "source": {
+    "id": "page.doi-misrachandy1981",
+    "doi": "10.1109/tse.1981.230844"
+  },
+  "urlFinal": "https://ieeexplore.ieee.org/document/1702862",
+  "title": "Proofs of Networks of Processes | IEEE Journals & Magazine | IEEE Xplore",
+  "meta": [
+    {
+      "name": "og:image",
+      "content": "https://ieeexplore.ieee.org/assets/img/ieee_logo_smedia_200X200.png"
+    },
+    {
+      "name": "og:title",
+      "content": "Proofs of Networks of Processes"
+    },
+    {
+      "name": "og:description",
+      "content": "We present a proof method for networks of processes in which component processes communicate exclusively through messages. We show how to construct proofs of invariant properties which hold at all times during network computation, and terminal properties which hold upon termination of network computation, if network computation terminates. The proof method is based upon specifying a process by a pair of assertions, analogous to pre-and post-conditions in sequential program proving. The correctness of network specification is proven by applying inference rules to the specifications of component processes. Several examples are proved using this technique."
+    }
+  ],
+  "abstract": "Abstract Authors References Citations Keywords Metrics Abstract: We present a proof method for networks of processes in which component processes communicate exclusively through messages. We show how to construct proofs of invariant properties which hold at all times during network computation, and terminal properties which hold upon termination of network computation, if network computation terminates. The proof method is based upon specifying a process by a pair of assertions, analogous to pre-and post-conditions in sequential program proving. The correctness of network specification is proven by applying inference rules to the specifications of component processes. Several examples are proved using this technique. Published in: IEEE Transactions on Software Engineering ( Volume: SE-7, Issue: 4, July 1981) Page(s): 417 - 426 Date of Publication: 31 July 1981 ISSN Information: DOI: 10.1109/TSE.1981.230844 Publisher: IEEE Recommended for You (Beta) A New Index for Computer Science Conferences and Its Applications: The S-Index Extended Abstract: Accessible Abstracts: Mapping Publishers' Focus on Plain-Language Summaries, Graphic Abstracts, and Video Abstracts Beyond Project Boundaries: Network Structures, Search Scope, and Performance Learn More Authors References Citations Keywords Metrics References References is not available for this document. IEEE Personal Account CHANGE USERNAME/PASSWORD Purchase Details PAYMENT OPTIONS VIEW PURCHASED DOCUMENTS Profile Information COMMUNICATIONS PREFERENCES PROFESSION AND EDUCATION TECHNICAL INTERESTS Need Help? US & CANADA: +1 800 678 4333 WORLDWIDE: +1 732 981 0060 CONTACT & SUPPORT Follow About IEEE Xplore | Contact Us | Help | Accessibility | Terms of Use | Nondiscrimination Policy | IEEE Ethics Reporting | Sitemap | IEEE Privacy Policy A public charity, IEEE is the world's largest technical professional organization dedicated to advancing technology for the benefit of humanity. © Copyright 2026 IEEE - All rights reserved, including rights for text and data mining and training of artificial intelligence and similar technologies.",
+  "textLength": 2661,
+  "fetchedAt": "2026-11-23T13:47:17.975Z"
+}

@@ -8,3 +8,5 @@ replacements:
 - `present`: for something here now
 
 choose best non-gerund alternative
+
+see also: `philosophy.why-we-ban-terms` · `rule.forbid.term=existing.example=demo` · `rule.forbid.gerunds`

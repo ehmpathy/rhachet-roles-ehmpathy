@@ -1,0 +1,134 @@
+{
+  "source": {
+    "id": "lamport1977",
+    "kind": "crossref",
+    "query": "Lamport Proving the correctness of multiprocess programs 1977",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Lamport%20Proving%20the%20correctness%20of%20multiprocess%20programs%201977&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:11:26.083Z",
+  "items": [
+    {
+      "publisher": "Institute of Electrical and Electronics Engineers (IEEE)",
+      "issue": "2",
+      "DOI": "10.1109/tse.1977.229904",
+      "type": "journal-article",
+      "page": "125-143",
+      "title": [
+        "Proving the Correctness of Multiprocess Programs"
+      ],
+      "volume": "SE-3",
+      "author": [
+        {
+          "given": "L.",
+          "family": "Lamport",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Massachusetts Computer Associates, Inc."
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "IEEE Transactions on Software Engineering"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1977,
+            3
+          ]
+        ]
+      }
+    },
+    {
+      "publisher": "Institute of Electrical and Electronics Engineers (IEEE)",
+      "issue": "3",
+      "DOI": "10.1109/tse.2024.3522038",
+      "type": "journal-article",
+      "page": "713-716",
+      "title": [
+        "A Retrospective of <i>Proving the Correctness of Multiprocess Programs</i>"
+      ],
+      "volume": "51",
+      "author": [
+        {
+          "ORCID": "https://orcid.org/0000-0002-9756-1327",
+          "authenticated-orcid": false,
+          "given": "Leslie",
+          "family": "Lamport",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Microsoft Research, Redmond, WA, USA"
+            }
+          ],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "IEEE Transactions on Software Engineering"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            2025,
+            3
+          ]
+        ]
+      }
+    },
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "1",
+      "DOI": "10.1145/357062.357068",
+      "type": "journal-article",
+      "page": "84-97",
+      "title": [
+        "A New Approach to Proving the Correctness of Multiprocess Programs"
+      ],
+      "volume": "1",
+      "author": [
+        {
+          "given": "Leslie",
+          "family": "Lamport",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "SRI International, 333 Ravenswood Avenue, 415 Menlo Park, CA"
+            }
+          ],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "ACM Transactions on Programming Languages and Systems"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1979,
+            1
+          ]
+        ]
+      }
+    }
+  ]
+}

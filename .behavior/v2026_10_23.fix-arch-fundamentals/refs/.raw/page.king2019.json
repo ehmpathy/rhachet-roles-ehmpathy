@@ -1,0 +1,48 @@
+{
+  "source": {
+    "id": "page.king2019",
+    "kind": "page",
+    "url": "https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/",
+    "keywords": [
+      "Parse, don",
+      "illegal states",
+      "precise"
+    ]
+  },
+  "urlFinal": "https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/",
+  "status": 200,
+  "fetchedAt": "2026-11-23T12:57:11.814Z",
+  "title": "Parse, don’t validate",
+  "meta": [],
+  "windows": [
+    {
+      "keyword": "Parse, don",
+      "window": "ALEXIS KING HOME ABOUT ME Parse, don’t validate 2019-11-05 ⦿ functional programming, haskell, types Historically, I’ve struggled to find a concise, simple way to explain what it means to practice type-driven design. Too often, when someone asks me “How did you come up with this approach?” I find I can’t give them a satisfying answer. I know it didn’t just come to me in a vision—I have an iterative design process that does"
+    },
+    {
+      "keyword": "Parse, don",
+      "window": "been very successful in communicating that process to others. However, about a month ago, I was reflecting on Twitter about the differences I experienced parsing JSON in statically- and dynamically-typed languages, and finally, I realized what I was looking for. Now I have a single, snappy slogan that encapsulates what type-driven design means to me, and better yet, it’s only three words long: Parse, don’t validate. The essence of type-driven design Alright, I’ll confess: unless you already know what type-driven design is, my catchy slogan probably doesn’t mean all that much to you. Fortunately, that’s what the remainder of this blog post is for. I’m going to explain precisely what I mean in gory detail—but first, we need to practice a little wishful thinking. The realm of possibility"
+    },
+    {
+      "keyword": "Parse, don",
+      "window": "Empty gives the caller access to the information it learned, while validateNonEmpty just throws it away. These two functions elegantly illustrate two different perspectives on the role of a static type system: validateNonEmpty obeys the typechecker well enough, but only parseNonEmpty takes full advantage of it. If you see why parseNonEmpty is preferable, you understand what I mean by the mantra “parse, don’t validate.” Still, perhaps you are skeptical of parseNonEmpty’s name. Is it really parsing anything, or is it merely validating its input and returning a result? While the precise definition of what it means to parse or validate something is debatable, I believe parseNonEmpty is a bona-fide parser (albeit a particularly simple one). Consider: what is a parser? Really, a parser is just"
+    },
+    {
+      "keyword": "illegal states",
+      "window": "e duplicates actually ought to be allowed. At that point, you can insert a call to a modified version of checkNoDuplicateKeys: checkNoDuplicateKeys :: (MonadError AppError m, Eq k) => [(k, v)] -> m (Map k v) Now the check cannot be omitted, since its result is actually necessary for the program to proceed! This hypothetical scenario highlights two simple ideas: Use a data structure that makes illegal states unrepresentable. Model your data using the most precise data structure you reasonably can. If ruling out a particular possibility is too hard using the encoding you are currently using, consider alternate encodings that can express the property you care about more easily. Don’t be afraid to refactor. Push the burden of proof upward as far as possible, but no further. Get your data"
+    },
+    {
+      "keyword": "precise",
+      "window": "ngle, snappy slogan that encapsulates what type-driven design means to me, and better yet, it’s only three words long: Parse, don’t validate. The essence of type-driven design Alright, I’ll confess: unless you already know what type-driven design is, my catchy slogan probably doesn’t mean all that much to you. Fortunately, that’s what the remainder of this blog post is for. I’m going to explain precisely what I mean in gory detail—but first, we need to practice a little wishful thinking. The realm of possibility One of the wonderful things about static type systems is that they can make it possible, and sometimes even easy, to answer questions like “is it possible to write this function?” For an extreme example, consider the following Haskell type signature: foo :: Integer -> Void Is"
+    },
+    {
+      "keyword": "precise",
+      "window": "e of a static type system: validateNonEmpty obeys the typechecker well enough, but only parseNonEmpty takes full advantage of it. If you see why parseNonEmpty is preferable, you understand what I mean by the mantra “parse, don’t validate.” Still, perhaps you are skeptical of parseNonEmpty’s name. Is it really parsing anything, or is it merely validating its input and returning a result? While the precise definition of what it means to parse or validate something is debatable, I believe parseNonEmpty is a bona-fide parser (albeit a particularly simple one). Consider: what is a parser? Really, a parser is just a function that consumes less-structured input and produces more-structured output. By its very nature, a parser is a partial function—some values in the domain do not correspond to a"
+    },
+    {
+      "keyword": "precise",
+      "window": "an insert a call to a modified version of checkNoDuplicateKeys: checkNoDuplicateKeys :: (MonadError AppError m, Eq k) => [(k, v)] -> m (Map k v) Now the check cannot be omitted, since its result is actually necessary for the program to proceed! This hypothetical scenario highlights two simple ideas: Use a data structure that makes illegal states unrepresentable. Model your data using the most precise data structure you reasonably can. If ruling out a particular possibility is too hard using the encoding you are currently using, consider alternate encodings that can express the property you care about more easily. Don’t be afraid to refactor. Push the burden of proof upward as far as possible, but no further. Get your data into the most precise representation you need as quickly as you"
+    }
+  ],
+  "textLength": 25489
+}

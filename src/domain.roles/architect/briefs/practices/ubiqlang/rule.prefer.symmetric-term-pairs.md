@@ -48,6 +48,7 @@ applies to ubiqlang / contract / domain-operation names:
 | `given` / `taken` | noun/participle, matched | 5 / 5 — equal |
 | `encode` / `decode` | verb + shared stem | 6 / 6 — equal |
 | `expected` / `detected` | participle, matched | 8 / 8 — equal |
+| `converge` / `contrast` | verb + shared prefix | 8 / 8 — equal |
 
 ### 👎 negative — asymmetric partner
 
@@ -66,8 +67,12 @@ setInto       <- verb + preposition, 7 chars
 
 ## .see also
 
+- `rule.avoid.asymmetric-term-pairs` — the avoid twin: the three breaks, with the cure
 - `rule.require.ubiqlang` — one canonical word per concept
 - `rule.require.get-set-gen-verbs` — the verb vocabulary these pairs build on
+- `rule.prefer.root-leaf` (mechanic) — a symmetric pair for tiers by reach
 - `rule.prefer.expected-detected` — a specific symmetric pair for desired-vs-observed compares
+- `rule.prefer.converge-contrast` (mechanic) — a specific symmetric pair for sources weighed against a claim
+- `rule.prefer.occurred-observed` (mechanic) — a specific symmetric pair for the two clocks of a fact
 - `ref.reviewer.dont-bikeshed-terms` — when a natural domain word resists symmetry
 - ergonomist `rule.prefer.symmetric-term-pairs` — the human-read-surface counterpart

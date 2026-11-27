@@ -1,0 +1,12 @@
+# philosophy.entities-are-materialized-from-events
+
+every entity is materialized from the events seen: a `Lesson`, a `Surfer`, a balance — each the conclusion of the facts that reached the system. a mind works the same way: light, roar, and the pull of the water stream in, and the mind concludes *wave*. software only makes the materialization explicit
+what follows:
+- the facts are the record; the entity is their conclusion. keep the facts: a lost fact cannot be concluded again, a lost entity can (`pattern=replayable-fact-stream`)
+- a conclusion earns its place: materialize it, read it in one step (`pattern=materialized-entity`, `rule.forbid.replay-on-read`)
+- the entity is the truth you act on; the facts are the truth you answer to. they disagree → the facts win, the entity is rebuilt
+- a wrong report is overruled by a truer one (`pattern=corrected-version`); a changed world arrives as a new fact (`pattern=correction-event`)
+- order of arrival is not order of the world (`pattern=latest-version-wins`)
+- a request is an act, not yet a fact: the service may refuse it. the accepted outcome is the fact — a version record, a domain event, or both in one transaction. only versions kept → they are the record; each says what the entity became, never why, and a defect is fixed forward
+- the database is the same, one level down: its write-ahead log is the record, its tables the conclusion (kreps 2013; helland 2015: "the truth is the log")
+test: for any value a system keeps — which facts is it the conclusion of? none → a guess dressed as a fact

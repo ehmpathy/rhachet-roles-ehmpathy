@@ -47,3 +47,5 @@ do not let the exception become the default. an operation that is non-idempotent
 - `rule.require.fewer-paths-via-idempotency` — idempotency as license to delete guards
 - `rule.require.get-set-gen-verbs` (mechanic) — the verbs that name convergence
 - `philosophy.domain-as-a-garden.[philosophy]` — idempotent operations as recomposable atoms
+- `catalog.of=tactic.abstraction.kind=contract.verb=set.tactic=idempotent` — the abstraction tactic this rule enforces: a benign case is a defined result, a break is refused loud
+- `catalog.of=pattern.transaction.bound=storage.trait=idempotency.pattern=upsert-on-natural-key` · `….bound=contract.trait=idempotency.pattern=idempotency-key` — the transaction members that keep the contract at the write

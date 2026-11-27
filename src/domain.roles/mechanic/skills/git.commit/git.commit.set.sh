@@ -945,7 +945,7 @@ render_sponsor_absent_cause() {
 #
 #    this refusal has ONE caller, below, and it is the only surface that
 #    refuses a commit for an absent sponsor
-#    (rule.prefer.most-common-denominator: lift is reactive, never speculative).
+#    (rule.require.most-common-denominator: lift is reactive, never speculative).
 #
 # .why a named leaf at all = the orchestrator reads as its decision — no
 #        bind, git config cannot answer, refuse — and never as a render.

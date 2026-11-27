@@ -28,23 +28,9 @@ use of `helpers` = **blocker**
 | `testHelpers` | `fixtures` | test setup |
 | `testHelpers` | `mocks` | test doubles |
 
-### .examples
-
-**👎 bad**
-```
-git.commit.helpers.sh
-src/helpers/
-testHelpers.ts
-```
-
-**👍 good**
-```
-git.commit.operations.sh
-src/operations/
-fixtures.ts
-```
-
 ### .see also
+- `philosophy.why-we-ban-terms` — why a heavy word gets banned
+- `rule.forbid.term=helpers.example=demo` — a 👎/👍 demo
 - `rule.forbid.term=normalize` — similar vague term
 - `rule.forbid.term=script` — another overloaded term
 - `rule.require.ubiqlang` — use precise domain terms

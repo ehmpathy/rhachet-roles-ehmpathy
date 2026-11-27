@@ -90,3 +90,4 @@ both are leaf operations that orchestrators compose.
 - `rule.require.orchestrators-as-narrative` — orchestrators must read as narrative
 - `rule.forbid.decode-friction-in-orchestrators` — orchestrators must not contain decode-friction
 - `philosophy.transformer-orchestrator-separation.[philosophy]` — the book metaphor
+- `catalog.of=pattern.transaction.bound=storage.trait=atomicity.pattern=operation-per-transaction` — one orchestrator, one transaction; its leaf operations join it

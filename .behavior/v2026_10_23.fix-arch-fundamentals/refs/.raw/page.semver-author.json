@@ -1,0 +1,49 @@
+{
+  "source": {
+    "id": "page.semver-author",
+    "kind": "page",
+    "url": "https://semver.org/",
+    "keywords": [
+      "Tom Preston-Werner",
+      "About",
+      "Creative Commons"
+    ]
+  },
+  "urlFinal": "https://semver.org/",
+  "status": 200,
+  "fetchedAt": "2026-11-23T16:44:35.603Z",
+  "title": "Semantic Versioning 2.0.0 | Semantic Versioning",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "Semantic Versioning 2.0.0"
+    },
+    {
+      "name": "description",
+      "content": "Semantic Versioning spec and website"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "Tom Preston-Werner",
+      "window": "ECMA Script (JavaScript), PCRE (Perl Compatible Regular Expressions, i.e. Perl, PHP and R), Python and Go. See: https://regex101.com/r/vkijKf/1/ ^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$ About The Semantic Versioning specification was originally authored by Tom Preston-Werner, inventor of Gravatar and cofounder of GitHub. If you’d like to leave feedback, please open an issue on GitHub. License Creative Commons ― CC BY 3.0"
+    },
+    {
+      "keyword": "About",
+      "window": "ts to your version number. Consider a version format of X.Y.Z (Major.Minor.Patch). Bug fixes not affecting the API increment the patch version, backward compatible API additions/changes increment the minor version, and backward incompatible API changes increment the major version. We call this system “Semantic Versioning.” Under this scheme, version numbers and the way they change convey meaning about the underlying code and what has been modified from one version to the next. Semantic Versioning Specification (SemVer) The key words “MUST”, “MUST NOT”, “REQUIRED”, “SHALL”, “SHALL NOT”, “SHOULD”, “SHOULD NOT”, “RECOMMENDED”, “MAY”, and “OPTIONAL” in this document are to be interpreted as described in RFC 2119. Software using Semantic Versioning MUST declare a public API. This API could"
+    },
+    {
+      "keyword": "About",
+      "window": "n or equal to 3.1.0 but less than 4.0.0. Now, when Ladder version 3.1.1 and 3.2.0 become available, you can release them to your package management system and know that they will be compatible with existing dependent software. As a responsible developer you will, of course, want to verify that any package upgrades function as advertised. The real world is a messy place; there’s nothing we can do about that but be vigilant. What you can do is let Semantic Versioning provide you with a sane way to release and upgrade packages without having to roll new versions of dependent packages, saving you time and hassle. If all of this sounds desirable, all you need to do to start using Semantic Versioning is to declare that you are doing so and then follow the rules. Link to this website from your"
+    },
+    {
+      "keyword": "About",
+      "window": "initial development phase? The simplest thing to do is start your initial development release at 0.1.0 and then increment the minor version for each subsequent release. How do I know when to release 1.0.0? If your software is being used in production, it should probably already be 1.0.0. If you have a stable API on which users have come to depend, you should be 1.0.0. If you’re worrying a lot about backward compatibility, you should probably already be 1.0.0. Doesn’t this discourage rapid development and fast iteration? Major version zero is all about rapid development. If you’re changing the API every day you should either still be in version 0.y.z or on a separate development branch working on the next major version. If even the tiniest backward incompatible changes to the public"
+    },
+    {
+      "keyword": "Creative Commons",
+      "window": "/1/ ^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$ About The Semantic Versioning specification was originally authored by Tom Preston-Werner, inventor of Gravatar and cofounder of GitHub. If you’d like to leave feedback, please open an issue on GitHub. License Creative Commons ― CC BY 3.0"
+    }
+  ],
+  "textLength": 17399
+}

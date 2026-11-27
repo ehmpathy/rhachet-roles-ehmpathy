@@ -1,0 +1,6 @@
+# rule.require.solve-at-cause
+
+before you solve, ask: what is the root cause? then solve there, never by a workaround of the symptom
+diagnose (what causes it?) → evaluate (an intended api, a config, an extension point at the source?) → solve (the source-level fix)
+👎 an autocmd that waits 60ms, then restores the width a plugin changed · 👍 the plugin's own `explorer = { width = 30 }` and its `CodeDiffFileSelect` event
+a workaround fights the system and breaks when it changes; a source-level fix works with it

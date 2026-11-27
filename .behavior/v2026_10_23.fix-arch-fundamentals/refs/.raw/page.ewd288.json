@@ -1,0 +1,32 @@
+{
+  "source": {
+    "id": "page.ewd288",
+    "kind": "page",
+    "url": "https://www.cs.utexas.edu/~EWD/transcriptions/EWD02xx/EWD288.html",
+    "keywords": [
+      "additively",
+      "multiplicatively",
+      "Concern for correctness"
+    ]
+  },
+  "urlFinal": "https://www.cs.utexas.edu/~EWD/transcriptions/EWD02xx/EWD288.html",
+  "status": 200,
+  "fetchedAt": "2026-11-23T19:31:33.640Z",
+  "title": "E.W.Dijkstra Archive: Concern for Correctness as a Guiding Principle for Program Composition. (EWD 288)",
+  "meta": [],
+  "windows": [
+    {
+      "keyword": "additively",
+      "window": "ms —i.e. abstract mechanisms— there are now strong indications that this approach can be so effective that the number of test cases needed is eventually reduced to zero, i.e. that the correctness can be shown a priori. If the amount of reasoning needed is to be kept tolerably low, it is absolutely necessary that the number of cases between which we have to distinguish (in our reasoning!) combine additively, rather than multiplicatively. This implies that in program composition we must exploit our power of abstraction and our ability to introduce useful concepts as effectively as is done in any other branch of mathematics. (And what is more, we have to exploit these powers very consciously, firstly, because of the lack of tradition in programming, but secondly because programming is a high"
+    },
+    {
+      "keyword": "multiplicatively",
+      "window": "isms— there are now strong indications that this approach can be so effective that the number of test cases needed is eventually reduced to zero, i.e. that the correctness can be shown a priori. If the amount of reasoning needed is to be kept tolerably low, it is absolutely necessary that the number of cases between which we have to distinguish (in our reasoning!) combine additively, rather than multiplicatively. This implies that in program composition we must exploit our power of abstraction and our ability to introduce useful concepts as effectively as is done in any other branch of mathematics. (And what is more, we have to exploit these powers very consciously, firstly, because of the lack of tradition in programming, but secondly because programming is a highly creative activity in"
+    },
+    {
+      "keyword": "Concern for correctness",
+      "window": "EWD288 Concern for Correctness as a Guiding Principle for Program Composition. A State of the Art Report, at least when written by me, is always a mixture of fact and fiction. It is mainly fact but, in a genuine effort to be up-to-date, I cannot refrain from some extrapolation into the future, and a certain amount of wishful thinking on my side is bound to leave its traces. Let it be so. Let me start w"
+    }
+  ],
+  "textLength": 21097
+}

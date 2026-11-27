@@ -1,0 +1,9 @@
+# rule.forbid.thin-notifications
+
+never publish an event that carries only an id and a link back. a fact carries the data its reaction needs, as of the moment it happened; a peer never calls the publisher back
+why: the callback reads now, not then · the publisher serves every peer, and its outage stalls them all · a replay reads other values · a message with no fact in it proves naught
+not an exception: pii — its owner reacts and acts through its quarantine; the fact carries a ref or a concept (`consentRequired: 'PARENT'`) · size — a ref to an immutable copy of that version, never to the live record
+smell: a payload of `{ id }` or `{ uuid, href }` · a handler whose first line reads the publisher's dao or api · a peer client called to "hydrate" the fact
+cure: carry the fact whole (`pattern=self-contained-fact`): `new PaymentRefundedEvent({ payment: { uuid }, amount: 'USD 50.00', occurredAt, observedAt })`
+enforcement: an id and a link in place of the fact = blocker; a handler that calls the publisher back = blocker; raw pii fetched by a peer to react = blocker
+full: catalog.of=pattern.event._ (`pattern=thin-notification`) · rule.forbid.pii-egress

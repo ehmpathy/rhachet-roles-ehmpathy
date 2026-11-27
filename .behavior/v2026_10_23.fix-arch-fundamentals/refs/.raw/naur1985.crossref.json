@@ -1,0 +1,106 @@
+{
+  "source": {
+    "id": "naur1985",
+    "kind": "crossref",
+    "query": "Programming as theory building Naur Microprocessing and Microprogramming 1985",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Programming%20as%20theory%20building%20Naur%20Microprocessing%20and%20Microprogramming%201985&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T16:05:45.058Z",
+  "items": [
+    {
+      "publisher": "Elsevier BV",
+      "issue": "5",
+      "DOI": "10.1016/0165-6074(85)90032-8",
+      "type": "journal-article",
+      "page": "253-261",
+      "title": [
+        "Programming as theory building"
+      ],
+      "volume": "15",
+      "author": [
+        {
+          "given": "Peter",
+          "family": "Naur",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Microprocessing and Microprogramming"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1985,
+            5
+          ]
+        ]
+      }
+    },
+    {
+      "publisher": "Elsevier BV",
+      "issue": "5",
+      "DOI": "10.1016/0165-6074(85)90033-x",
+      "type": "journal-article",
+      "page": "263-276",
+      "title": [
+        "Programming a video disc"
+      ],
+      "volume": "15",
+      "author": [
+        {
+          "given": "Philip",
+          "family": "Barker",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Microprocessing and Microprogramming"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1985,
+            5
+          ]
+        ]
+      }
+    },
+    {
+      "publisher": "Elsevier BV",
+      "issue": "3",
+      "DOI": "10.1016/0165-6074(85)90075-4",
+      "type": "journal-article",
+      "page": "167-168",
+      "title": [
+        "Microcomputer systems: The 8086/8088 family, architecture, programming and design"
+      ],
+      "volume": "15",
+      "container-title": [
+        "Microprocessing and Microprogramming"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1985,
+            3
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,113 @@
+{
+  "source": {
+    "id": "hoare1972",
+    "kind": "crossref",
+    "query": "Hoare Proof of correctness of data representations 1972",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Hoare%20Proof%20of%20correctness%20of%20data%20representations%201972&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:11:25.160Z",
+  "items": [
+    {
+      "DOI": "10.1007/978-3-642-48354-7_18",
+      "title": [
+        "Proof of Correctness of Data Representations"
+      ],
+      "author": [
+        {
+          "given": "C. A. R.",
+          "family": "Hoare",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Pioneers and Their Contributions to Software Engineering"
+      ],
+      "page": "439-451",
+      "issued": {
+        "date-parts": [
+          [
+            1972
+          ]
+        ]
+      },
+      "publisher": "Springer Berlin Heidelberg",
+      "type": "book-chapter"
+    },
+    {
+      "publisher": "Springer Science and Business Media LLC",
+      "issue": "4",
+      "DOI": "10.1007/bf00289507",
+      "type": "journal-article",
+      "page": "271-281",
+      "title": [
+        "Proof of correctness of data representations"
+      ],
+      "volume": "1",
+      "author": [
+        {
+          "given": "C. A. R.",
+          "family": "Hoare",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Acta Informatica"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1972
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.1007/978-1-4612-6315-9_20",
+      "title": [
+        "Proof of Correctness of Data Representations"
+      ],
+      "author": [
+        {
+          "given": "C. A. R.",
+          "family": "Hoare",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Programming Methodology"
+      ],
+      "page": "269-281",
+      "issued": {
+        "date-parts": [
+          [
+            1978
+          ]
+        ]
+      },
+      "publisher": "Springer New York",
+      "type": "book-chapter"
+    }
+  ]
+}

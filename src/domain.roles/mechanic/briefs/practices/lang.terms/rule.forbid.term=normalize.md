@@ -62,26 +62,6 @@ the recommended alternative is the `asX` pattern:
 | `normalizeWhitespace`| `asCollapsed`      | collapse multiple spaces to single       |
 | `normalizeNumber`    | `asScaled`         | scale to specific range (e.g., 0-1)      |
 
-#### .examples
-
-**👎 bad**
-```ts
-const normalizePhone = (phone: string) => { ... };
-const normalizedEmail = normalize(email);
-const data = normalizeInput(rawData);
-```
-
-**👍 good**
-```ts
-const asE164 = (phone: string) => { ... };
-const emailLowercased = asLowercase(email);
-const data = asTrimmed(rawData);
-
-// or as methods
-const phone = input.phone.asE164();
-const email = input.email.asLowercase();
-```
-
 #### .note: be specific
 
 when `asX` still feels vague, get more specific:
@@ -119,6 +99,8 @@ const forStorage = asIsoPriceShape(price);   // { amount: 123456, exponent: -2, 
 the goal: `asX` tells you exactly what form you'll get.
 
 #### .see also
+- `philosophy.why-we-ban-terms` — why a heavy word gets banned
+- `rule.forbid.term=normalize.example=demo` — a 👎/👍 demo
 - `rule.require.ubiqlang` — use precise domain terms
-- `rule.forbid.term-script` — similar overloaded term
+- `rule.forbid.term=script` — similar overloaded term
 - `rule.forbid.buzzwords` — semantic diffusion hazard

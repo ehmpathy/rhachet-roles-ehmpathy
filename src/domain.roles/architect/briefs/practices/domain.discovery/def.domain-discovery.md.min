@@ -1,48 +1,12 @@
 # def.domain-discovery
 
-## .what
-domain discovery = exhume, unearth, discover the fundamental truth of a domain — the objects, operations, language that ALREADY EXIST beneath the surface — so code speaks the domain's own words
-operative word = discover, not invent. the truth is already there, buried under surface mechanism/jargon/tool-shape. dig it out intact, do not author a convenient substitute
-
-## .the ground truth is the real world
-the truth lives in the REAL-WORLD domain — the actual practice, the people who do the work, objects/events as they exist before any software touched them. NOT in any software's description of the domain
-db schema / api response / legacy class name / screen labels = a MAP, drawn by some engineer under deadline, lossy + incidental. the real-world domain = the TERRITORY. ground every term in the territory, never in a map
+domain discovery = exhume the objects, operations, and language that already exist in the domain, so code speaks the domain's own words. discover, never invent: the truth is buried under mechanism, jargon, and tool shape; dig it out intact
+ground truth = the real-world practice and the people who do the work. a schema, an api response, a legacy class name is only a description of it, lossy and incidental
 > the map is not the territory. the schema is not the domain.
-surf instructor says "a surfer books a lesson" = ground truth. the reservations table that holds it = a poor map. name it SurfLesson (the instructor's world holds a lesson), NOT Reservation (a table stored it that way)
-tell: when code's word and domain expert's word disagree, the domain expert is right. the software named its own convenience, not the domain
-
-## .the objective
-surface the domain's fundamental truth:
-- true objects — nouns the domain holds (Surfer, SurfLesson), as the domain holds them, not as a table/json shapes them
-- true operations — verbs the domain performs, named from WHY they exist, not HOW they run
-- true language — one canonical word per concept; no synonym sprawl, no overload
-a term that names the surface decays with it; a term that names the buried truth outlives every rewrite
-
-## .buried beneath the surface
-| surface (seen first) | truth beneath (discovery unearths) |
-|----------------------|-------------------------------------|
-| shape a db row imposes | the object the domain actually holds |
-| jargon of the last tool | the word the domain expert actually says |
-| HOW a step runs today | WHY the step exists at all |
-| a synonym borrowed under deadline | the one canonical term |
-deeper past the surface = more durable the term (name the motive; motives outlast mechanisms)
-
-## .the test — discovered, not invented
-- domain expert recognizes it with no gloss
-- names what IS or why, never how
-- exactly one sense in the domain
-- composes: object nests, operation chains
-can't point to where it already lived in the domain? you invented it — dig deeper
-
-## .the caveat
-exhume what the domain holds today; do not fabricate speculative objects (rule.prefer.wet-over-dry)
-a truth you cannot yet find is a note on record, not a mandate to build
-
-## .see also
-- ref.domain-discovery.fundamentals — the cited canon this definition grounds in
-- howto.domain-discovery — the moves that do the exhumation
-- howto.dimensional-decomposition — a premier discovery tactic
-- rule.require.domain-discovery-for-term-proposals — discovery required before a term proposal
-- rule.require.persist-domain-term-evidence — persist the unearthed evidence
-- rule.require.ubiqlang (mechanic) — one canonical word per concept
-- philosophy.domain-as-a-garden — why unearthed pieces compose over time
+the surf instructor says "a surfer books a lesson" → `SurfLesson`, never `Reservation` (a table kept it that way). code and expert disagree → the expert is right
+surface → beneath: a record's shape → the object the domain has · the last tool's jargon → the expert's word · how a step runs → why it exists · a borrowed synonym → the one canonical term
+a term that names the surface decays with it; a term that names the buried truth outlives every rewrite. name the motive; motives outlast mechanisms
+the test — discovered, not invented: an expert recognizes it with no gloss · it names what is or why, never how · one sense in the domain · it composes (objects nest, operations chain). cannot point to where it lived in the domain → you invented it; dig deeper
+caveat: exhume what the domain holds today; a truth not yet found is a note on record, not a mandate to build (rule.prefer.wet-over-dry)
+see also: howto.domain-discovery · ref.domain-discovery.fundamentals · rule.require.ubiqlang (mechanic) · philosophy.domain-as-a-garden
+full brief: `def.domain-discovery.md`

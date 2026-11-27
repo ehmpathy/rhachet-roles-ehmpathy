@@ -57,19 +57,6 @@ recommended: `asX` pattern
 | `normalizeWhitespace`| `asCollapsed`      | collapse multiple spaces       |
 | `normalizeNumber`    | `asScaled`         | scale to range (e.g., 0-1)     |
 
-### .examples
-
-**👎 bad**
-```ts
-const asE164 = (phone: string) => { ... };
-const emailLowercased = asLowercase(email);
-const data = asTrimmed(rawData);
-
-// as methods
-const phone = input.phone.asE164();
-const email = input.email.asLowercase();
-```
-
 ### .note
 when `asX` vague, get specific:
 
@@ -99,6 +86,8 @@ const forStorage = asIsoPriceShape(price);   // { amount: 123456, ... }
 ```
 
 ### .see also
+- `philosophy.why-we-ban-terms`
+- `rule.forbid.term=normalize.example=demo`
 - `rule.require.ubiqlang`
-- `rule.forbid.term-script`
+- `rule.forbid.term=script`
 - `rule.forbid.buzzwords`

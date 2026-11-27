@@ -1,0 +1,225 @@
+{
+  "source": {
+    "id": "page.doi-hoare1972",
+    "kind": "page",
+    "url": "https://link.springer.com/article/10.1007/BF00289507",
+    "keywords": [
+      "invariant",
+      "abstract",
+      "representation"
+    ]
+  },
+  "urlFinal": "https://link.springer.com/article/10.1007/BF00289507",
+  "status": 200,
+  "fetchedAt": "2026-11-23T13:29:28.396Z",
+  "title": "Proof of correctness of data representations | Acta Informatica | Springer Nature Link",
+  "meta": [
+    {
+      "name": "dc.title",
+      "content": "Proof of correctness of data representations"
+    },
+    {
+      "name": "dc.source",
+      "content": "Acta Informatica 1972 1:4"
+    },
+    {
+      "name": "dc.format",
+      "content": "text/html"
+    },
+    {
+      "name": "dc.publisher",
+      "content": "Springer"
+    },
+    {
+      "name": "dc.type",
+      "content": "OriginalPaper"
+    },
+    {
+      "name": "dc.language",
+      "content": "En"
+    },
+    {
+      "name": "dc.copyright",
+      "content": "1972 Springer-Verlag"
+    },
+    {
+      "name": "dc.rights",
+      "content": "1972 Springer-Verlag"
+    },
+    {
+      "name": "dc.rightsAgent",
+      "content": "journalpermissions@springernature.com"
+    },
+    {
+      "name": "dc.description",
+      "content": "A powerful method of simplifying the proofs of program correctness is suggested; and some new light is shed on the problem of functions with side-effects."
+    },
+    {
+      "name": "citation_pdf_url",
+      "content": "https://link.springer.com/content/pdf/10.1007/BF00289507.pdf"
+    },
+    {
+      "name": "citation_fulltext_html_url",
+      "content": "https://link.springer.com/article/10.1007/BF00289507"
+    },
+    {
+      "name": "citation_journal_title",
+      "content": "Acta Informatica"
+    },
+    {
+      "name": "citation_journal_abbrev",
+      "content": "Acta Informatica"
+    },
+    {
+      "name": "citation_publisher",
+      "content": "Springer-Verlag"
+    },
+    {
+      "name": "citation_issn",
+      "content": "1432-0525"
+    },
+    {
+      "name": "citation_title",
+      "content": "Proof of correctness of data representations"
+    },
+    {
+      "name": "citation_volume",
+      "content": "1"
+    },
+    {
+      "name": "citation_issue",
+      "content": "4"
+    },
+    {
+      "name": "citation_publication_date",
+      "content": "1972/12"
+    },
+    {
+      "name": "citation_firstpage",
+      "content": "271"
+    },
+    {
+      "name": "citation_lastpage",
+      "content": "281"
+    },
+    {
+      "name": "citation_article_type",
+      "content": "Article"
+    },
+    {
+      "name": "citation_language",
+      "content": "en"
+    },
+    {
+      "name": "dc.identifier",
+      "content": "doi:10.1007/BF00289507"
+    },
+    {
+      "name": "citation_doi",
+      "content": "10.1007/BF00289507"
+    },
+    {
+      "name": "citation_springer_api_url",
+      "content": "http://api.springer.com/xmldata/jats?q=doi:10.1007/BF00289507&api_key="
+    },
+    {
+      "name": "description",
+      "content": "A powerful method of simplifying the proofs of program correctness is suggested; and some new light is shed on the problem of functions with side-effects."
+    },
+    {
+      "name": "dc.creator",
+      "content": "Hoare, C. A. R."
+    },
+    {
+      "name": "dc.subject",
+      "content": "Logics and Meanings of Programs"
+    },
+    {
+      "name": "dc.subject",
+      "content": "Computer Systems Organization and Communication Networks"
+    },
+    {
+      "name": "dc.subject",
+      "content": "Software Engineering/Programming and Operating Systems"
+    },
+    {
+      "name": "dc.subject",
+      "content": "Data Structures and Information Theory"
+    },
+    {
+      "name": "dc.subject",
+      "content": "Theory of Computation"
+    },
+    {
+      "name": "dc.subject",
+      "content": "Information Systems and Communication Service"
+    },
+    {
+      "name": "citation_reference",
+      "content": "citation_journal_title=Comm. ACM.; citation_title=The development of programs by stepwise refinement; citation_author=N. Wirth; citation_volume=14; citation_publication_date=1971; citation_pages=221-227; citation_id=CR1"
+    },
+    {
+      "name": "citation_reference",
+      "content": "Dijkstra, E. W.: Notes on structured programming. In Structured Programming. Academic Press (1972)."
+    },
+    {
+      "name": "citation_reference",
+      "content": "Hoare, C. A. R.: Notes on data structuring. Ibid."
+    },
+    {
+      "name": "citation_reference",
+      "content": "Dahl, O.-J.: Hierachical program structures. Ibid."
+    },
+    {
+      "name": "citation_reference",
+      "content": "Milner, R.: An algebraic definition of simulation between programs. CS 205 Stanford University, February 1971."
+    },
+    {
+      "name": "citation_reference",
+      "content": "citation_journal_title=BIT; citation_title=A constructive approach to the problem of program correctness; citation_author=E. W. Dijkstra; citation_volume=8; citation_publication_date=1968; citation_pages=174-186; citation_id=CR6"
+    },
+    {
+      "name": "citation_reference",
+      "content": "citation_title=The  67 common base language; citation_publication_date=1970; citation_id=CR7; citation_author=O.-J. Dahl; citation_author=B. Myhrhaug; citation_author=K. Nygaard; citation_publisher=Norwegian Computing Center"
+    },
+    {
+      "name": "citation_reference",
+      "content": "citation_journal_title=Comm. ACM.; citation_title=An axiomatic approach to computer programming; citation_author=C. A. R. Hoare; citation_volume=12; citation_publication_date=1969; citation_pages=576-580; citation_id=CR8"
+    },
+    {
+      "name": "citation_author",
+      "content": "Hoare, C. A. R."
+    },
+    {
+      "name": "citation_author_institution",
+      "content": "Computer Science The Queen's University of Belfast, Belfast, Northern Ireland"
+    },
+    {
+      "name": "citation_cover_date",
+      "content": "1972/12/01"
+    },
+    {
+      "name": "og:title",
+      "content": "Proof of correctness of data representations - Acta Informatica"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "invariant",
+      "window": "unit Get selected eBooks for 7 units Cancel anytime View plans Buy Now Buy article PDF USD 39.95 Price excludes VAT (USA) Tax calculation will be finalised during checkout. Instant access to the full article PDF. Institutional subscriptions Similar content being viewed by others A Refactoring for Data Minimisation Using Formal Verification Chapter © 2022 Inductive verification of data model invariants in web applications using first-order logic Article 12 December 2018 Initial Steps Towards Assessing the Usability of a Verification Tool Chapter © 2018 Explore related subjects Discover the latest articles, books and news in related subjects, suggested using machine learning. Lisp Computer Science Logic and Foundations of Programming Data Storage Representation Theory of Computation Fo"
+    },
+    {
+      "keyword": "representation",
+      "window": "of data protection. See our privacy policy for more information on the use of your personal data. Manage preferences for further information and to change your choices. Accept all cookies Reject optional cookies Skip to main content Advertisement Log in Find a journal Publish with us Track your research Search Saved research Cart Home Acta Informatica Article Proof of correctness of data representations Published: December 1972 Volume 1, pages 271–281 (1972) Cite this article Save article Acta Informatica Aims and scope Submit manuscript C. A. R. Hoare 1071 Accesses 860 Citations 12 Altmetric Explore all metrics Summary A powerful method of simplifying the proofs of program correctness is suggested; and some new light is shed on the problem of functions with side-effects."
+    },
+    {
+      "keyword": "representation",
+      "window": "2 Inductive verification of data model invariants in web applications using first-order logic Article 12 December 2018 Initial Steps Towards Assessing the Usability of a Verification Tool Chapter © 2018 Explore related subjects Discover the latest articles, books and news in related subjects, suggested using machine learning. Lisp Computer Science Logic and Foundations of Programming Data Storage Representation Theory of Computation Formal Logic Data Structures References Wirth, N.: The development of programs by stepwise refinement. Comm. ACM. 14, 221–227 (1971). Google Scholar Dijkstra, E. W.: Notes on structured programming. In Structured Programming. Academic Press (1972). Hoare, C. A. R.: Notes on data structuring. Ibid. Dahl, O.-J.: Hierachical program structures. Ibid. Milne"
+    },
+    {
+      "keyword": "representation",
+      "window": "fast, Northern Ireland C. A. R. Hoare Additional information I am deeply indebted to Doug Ross and to all authors of referenced works. Indeed, the material of this paper represents little more than my belated understanding and formalisation of their original work. Rights and permissions Reprints and permissions About this article Cite this article Hoare, C.A.R. Proof of correctness of data representations. Acta Informatica 1, 271–281 (1972). https://doi.org/10.1007/BF00289507 Download citation Received 16 February 1972 Issue date December 1972 DOI https://doi.org/10.1007/BF00289507 Keywords Information System Operating System Data Structure Communication Network Information Theory Footer Navigation Discover content Journals A-Z Books A-Z Subjects A-Z Publish with us Journal fin"
+    }
+  ],
+  "textLength": 4630
+}

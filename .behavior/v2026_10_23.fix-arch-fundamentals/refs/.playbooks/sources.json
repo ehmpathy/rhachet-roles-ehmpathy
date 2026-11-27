@@ -1,0 +1,14 @@
+[
+  { "id": "page.martin2014-srp", "kind": "page", "url": "https://blog.cleancoder.com/uncle-bob/2014/05/08/SingleReponsibilityPrinciple.html", "keywords": ["Gather together", "Separate those things", "reason to change"] },
+  { "id": "page.spolsky2002", "kind": "page", "url": "https://www.joelonsoftware.com/2002/11/11/the-law-of-leaky-abstractions/", "keywords": ["All non-trivial abstractions", "leaky"] },
+  { "id": "page.sicp-ch1", "kind": "page", "url": "https://mitp-content-server.mit.edu/books/content/sectbyfn/books_pres_0/6515/sicp.zip/full-text/book/book-Z-H-9.html", "keywords": ["Building Abstractions with Procedures"] },
+  { "id": "page.sicp-ch2", "kind": "page", "url": "https://mitp-content-server.mit.edu/books/content/sectbyfn/books_pres_0/6515/sicp.zip/full-text/book/book-Z-H-13.html", "keywords": ["Building Abstractions with Data", "data abstraction"] },
+  { "id": "page.sicp-2.1", "kind": "page", "url": "https://mitp-content-server.mit.edu/books/content/sectbyfn/books_pres_0/6515/sicp.zip/full-text/book/book-Z-H-14.html", "keywords": ["abstraction barrier", "isolate", "how the data"] },
+  { "id": "page.sicp-front", "kind": "page", "url": "https://mitp-content-server.mit.edu/books/content/sectbyfn/books_pres_0/6515/sicp.zip/full-text/book/book-Z-H-4.html", "keywords": ["Abelson", "Copyright", "1985"] },
+  { "id": "page.parnas1972-acm", "kind": "page", "url": "https://dl.acm.org/doi/fullHtml/10.1145/361598.361623", "keywords": ["likely to change", "flowchart", "design decision", "hides"] },
+  { "id": "page.liskovzilles1974-acm", "kind": "page", "url": "https://dl.acm.org/doi/fullHtml/10.1145/942572.807045", "keywords": ["abstract data type", "operations", "abstraction"] },
+  { "id": "page.liskovguttag1986-openlibrary", "kind": "page", "url": "https://openlibrary.org/search.json?q=abstraction+and+specification+in+program+development&fields=title,author_name,publisher,first_publish_year,isbn", "keywords": ["Liskov", "Guttag", "first_publish_year"] },
+  { "id": "page.wiki-abstraction-inversion", "kind": "page", "url": "https://en.wikipedia.org/wiki/Abstraction_inversion", "keywords": ["Abstraction inversion", "anti-pattern", "Ada", "coined"] },
+  { "id": "liskovguttag1986", "kind": "crossref", "query": "Liskov Guttag Abstraction and Specification in Program Development 1986", "keywords": [] },
+  { "id": "abelsonsussman1985", "kind": "crossref", "query": "Abelson Sussman Structure and Interpretation of Computer Programs", "keywords": [] }
+]

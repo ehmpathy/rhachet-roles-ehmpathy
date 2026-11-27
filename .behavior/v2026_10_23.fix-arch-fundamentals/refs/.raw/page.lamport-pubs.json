@@ -1,0 +1,88 @@
+{
+  "source": {
+    "id": "page.lamport-pubs",
+    "kind": "page",
+    "url": "https://lamport.azurewebsites.net/pubs/pubs.html",
+    "keywords": [
+      "Proving the Correctness of Multiprocess Programs",
+      "liveness",
+      "Composing Specifications",
+      "Conjoining Specifications",
+      "assumption/guarantee",
+      "The Temporal Logic of Actions",
+      "invariant"
+    ]
+  },
+  "urlFinal": "https://lamport.azurewebsites.net/pubs/pubs.html",
+  "status": 200,
+  "fetchedAt": "2026-11-23T12:56:14.958Z",
+  "title": "The Writings of Leslie Lamport",
+  "meta": [],
+  "windows": [
+    {
+      "keyword": "Proving the Correctness of Multiprocess Programs",
+      "window": "on on Array and Vector Computers Multiple Byte Processing with Full-Word Instructions The Synchronization of Independent Processes Comments on `A Synchronization Anomaly' Garbage Collection with Multiple Processes: an Exercise in Parallelism The Coordinate Method for the Parallel Execution of Iterative Loops Towards a Theory of Correctness for Multi-User Data Base Systems On the Glitch Phenomenon Proving the Correctness of Multiprocess Programs Formal Correctness Proofs for Multiprocess Algorithms Concurrent Reading and Writing State the Problem Before Describing the Solution Time, Clocks and the Ordering of Events in a Distributed System The Specification and Proof of Correctness of Interactive Programs The Implementation of Reliable Distributed Multiprocess Systems SIFT: Design and Analy"
+    },
+    {
+      "keyword": "Proving the Correctness of Multiprocess Programs",
+      "window": "ion Time, Clocks and the Ordering of Events in a Distributed System The Specification and Proof of Correctness of Interactive Programs The Implementation of Reliable Distributed Multiprocess Systems SIFT: Design and Analysis of a Fault-Tolerant Computer for Aircraft Control On-the-fly Garbage Collection: an Exercise in Cooperation A General Construction for Expressing Repetition A New Approach to Proving the Correctness of Multiprocess Programs How to Present a Paper How to Make a Multiprocessor Computer That Correctly Executes Multiprocess Programs Constructing Digital Signatures from a One Way Function On the Proof of Correctness of a Calendar Program Letter to the Editor `Sometime' is Sometimes `Not Never' The `Hoare Logic' of Concurrent Programs Reaching Agreement in the Presence of Fa"
+    },
+    {
+      "keyword": "Proving the Correctness of Multiprocess Programs",
+      "window": "Early Years Auxiliary Variables in TLA+ If You’re Not Writing a Program, Don’t Use a Programming Language Recursive Operator Definitions The TLA+ Toolbox Prophecy Made Simple Verifying Hyperproperties with TLA Deconstructing the Bakery to Build a Distributed State Machine Concurrent Algorithms Making Math More Rigorous Some Data on the Frequency of Errors in Mathematics Papers A Retrospective of Proving the Correctness of Multiprocess Programs A Science of Concurrent Programs The Papers Braid Theory Mathematics Bulletin of the Bronx High School of Science (1957), pages 6,7, and 9. PDF This appears to be my first publication, written when I was a high school student. It shows that I was not a child prodigy. Summer Vision Programs Massachusetts Institute of Technology, Project MAC Mem"
+    },
+    {
+      "keyword": "liveness",
+      "window": "ditor `Sometime' is Sometimes `Not Never' The `Hoare Logic' of Concurrent Programs Reaching Agreement in the Presence of Faults Program Verification: An Approach to Reliable Hardware and Software Password Authentication with Insecure Communication TIMESETS--A New Method for Temporal Reasoning About Programs Byzantine Generals and Transaction Commit Protocols The Byzantine Generals Problem Proving Liveness Properties of Concurrent Programs An Assertional Correctness Proof of a Distributed Program Reasoning About Nonatomic Operations Specifying Concurrent Program Modules Specification and Proof of a Fault-Tolerant Real-Time Algorithm The Weak Byzantine Generals Problem PHIL: A Semantic Structural Graphical Editor What Good Is Temporal Logic? Using Time Instead of Timeout for Fault-Tolerant D"
+    },
+    {
+      "keyword": "liveness",
+      "window": "lizable and Unrealizable Specifications of Reactive Systems A Temporal Logic of Actions win and sin: Predicate Transformers for Concurrency A Theorem on Atomicity in Distributed Algorithms Distributed Computing: Models and Methods A Completeness Theorem for TLA The Concurrent Reading and Writing of Clocks The Mutual Exclusion Problem Has Been Solved The Existence of Refinement Mappings Preserving Liveness: Comments on `Safety and Liveness from a Methodological Point of View' Critique of the Lake Arrowhead Three The Reduction Theorem Mechanical Verification of Concurrent Systems with TLA Reconfiguration system and method for high-speed mesh connected local area network Composing Specifications Verification of a Multiplier: 64 Bits and Beyond Verification and Specification of Concurrent Prog"
+    },
+    {
+      "keyword": "liveness",
+      "window": "tions of Reactive Systems A Temporal Logic of Actions win and sin: Predicate Transformers for Concurrency A Theorem on Atomicity in Distributed Algorithms Distributed Computing: Models and Methods A Completeness Theorem for TLA The Concurrent Reading and Writing of Clocks The Mutual Exclusion Problem Has Been Solved The Existence of Refinement Mappings Preserving Liveness: Comments on `Safety and Liveness from a Methodological Point of View' Critique of the Lake Arrowhead Three The Reduction Theorem Mechanical Verification of Concurrent Systems with TLA Reconfiguration system and method for high-speed mesh connected local area network Composing Specifications Verification of a Multiplier: 64 Bits and Beyond Verification and Specification of Concurrent Programs Hybrid Systems in TLA+ How to"
+    },
+    {
+      "keyword": "Composing Specifications",
+      "window": "Reading and Writing of Clocks The Mutual Exclusion Problem Has Been Solved The Existence of Refinement Mappings Preserving Liveness: Comments on `Safety and Liveness from a Methodological Point of View' Critique of the Lake Arrowhead Three The Reduction Theorem Mechanical Verification of Concurrent Systems with TLA Reconfiguration system and method for high-speed mesh connected local area network Composing Specifications Verification of a Multiplier: 64 Bits and Beyond Verification and Specification of Concurrent Programs Hybrid Systems in TLA+ How to Write a Proof The Temporal Logic of Actions Decomposing Specifications of Concurrent Systems Open Systems in TLA TLZ (Abstract) An Old-Fashioned Recipe for Real Time Specifying and Verifying Fault-Tolerant Systems How to Write a Long Formula"
+    },
+    {
+      "keyword": "Composing Specifications",
+      "window": "ritique of the Lake Arrowhead Three The Reduction Theorem Mechanical Verification of Concurrent Systems with TLA Reconfiguration system and method for high-speed mesh connected local area network Composing Specifications Verification of a Multiplier: 64 Bits and Beyond Verification and Specification of Concurrent Programs Hybrid Systems in TLA+ How to Write a Proof The Temporal Logic of Actions Decomposing Specifications of Concurrent Systems Open Systems in TLA TLZ (Abstract) An Old-Fashioned Recipe for Real Time Specifying and Verifying Fault-Tolerant Systems How to Write a Long Formula Introduction to TLA Adding \"Process Algebra\" to TLA What Process Algebra Proofs Use Instead of Invariance Conjoining Specifications TLA in Pictures The RPC-Memory Specification Problem: Problem Statement"
+    },
+    {
+      "keyword": "Composing Specifications",
+      "window": "nning tree algorithm that informs processes when the computation has terminated. I don't know if anyone else has since discovered and published that algorithm. The inventors listed on the patent are Tom Rodeheffer, Mani Chandy, and me. However, I believe that Mani and I were the ones who invented the algorithm. Tom was probably the sole inventor of the other ideas contained in the patent. Composing Specifications (with Martín Abadi) ACM Transactions on Programming Languages and Systems 15, 1 (January 1993), 73-132. Also appeared as SRC Research Report 66. A preliminary version appeared in Stepwise Refinement of Distributed Systems, J. W. de Bakker, W.-P. de Roever, and G. Rozenberg editors, Springer-Verlag Lecture Notes in Computer Science Volume 430 (1989), 1-41.. Postscript"
+    },
+    {
+      "keyword": "Conjoining Specifications",
+      "window": "f Concurrent Programs Hybrid Systems in TLA+ How to Write a Proof The Temporal Logic of Actions Decomposing Specifications of Concurrent Systems Open Systems in TLA TLZ (Abstract) An Old-Fashioned Recipe for Real Time Specifying and Verifying Fault-Tolerant Systems How to Write a Long Formula Introduction to TLA Adding \"Process Algebra\" to TLA What Process Algebra Proofs Use Instead of Invariance Conjoining Specifications TLA in Pictures The RPC-Memory Specification Problem: Problem Statement A TLA Solution to the RPC-Memory Specification Problem How to Tell a Program from an Automobile Refinement in State-Based Formalisms Marching to Many Distant Drummers Processes are in the Eye of the Beholder How to Make a Correct Multiprocess Program Execute Correctly on a Multiprocessor Substitution:"
+    },
+    {
+      "keyword": "Conjoining Specifications",
+      "window": "e else may feel otherwise. What Process Algebra Proofs Use Instead of Invariance Unpublished (January 1995). Postscript - Compressed Postscript - PDF Working on [111] got me thinking about how process-algebraic proofs work. This draft note describes my preliminary thoughts about what those proofs use instead of invariance. I never developed this far enough to know if it's right. Conjoining Specifications (with Martín Abadi) ACM Transactions on Programming Languages and Systems 17, 3 (May 1995), 507-534. Also appeared as SRC Research Report 118. Postscript - Compressed Postscript - PDF Copyright © 1995 by the Association for Computing Machinery, Inc.Permission to make digital or hard copies of part or all of this work for personal or classroom use is granted with"
+    },
+    {
+      "keyword": "The Temporal Logic of Actions",
+      "window": "Methodological Point of View' Critique of the Lake Arrowhead Three The Reduction Theorem Mechanical Verification of Concurrent Systems with TLA Reconfiguration system and method for high-speed mesh connected local area network Composing Specifications Verification of a Multiplier: 64 Bits and Beyond Verification and Specification of Concurrent Programs Hybrid Systems in TLA+ How to Write a Proof The Temporal Logic of Actions Decomposing Specifications of Concurrent Systems Open Systems in TLA TLZ (Abstract) An Old-Fashioned Recipe for Real Time Specifying and Verifying Fault-Tolerant Systems How to Write a Long Formula Introduction to TLA Adding \"Process Algebra\" to TLA What Process Algebra Proofs Use Instead of Invariance Conjoining Specifications TLA in Pictures The RPC-Memory Specifica"
+    },
+    {
+      "keyword": "The Temporal Logic of Actions",
+      "window": "ly do think it's fun having to recreate the proofs themselves if they want to know whether a theorem in a published paper is actually correct, and to have to struggle to figure out why a particular step in the proof is supposed to hold. I republished the paper in the AMM Monthly so it would reach a larger audience of mathematicians. Maybe I should republish it again for computer scientists. The Temporal Logic of Actions ACM Transactions on Programming Languages and Systems 16, 3 (May 1994), 872-923. Also appeared as SRC Research Report 79. Postscript - Compressed Postscript - PDF Copyright © 1994 by the Association for Computing Machinery, Inc.Permission to make digital or hard copies of part or all of this work for personal or classroom use is granted without fee provided th"
+    },
+    {
+      "keyword": "invariant",
+      "window": "didn't notice the difference between the two, and thus they didn't realize that they were generalizing Floyd's method and not Hoare's. The result of presenting a generalization of Floyd's method in Hoare's clothing was to confuse everyone. For a period of about ten years, hardly anyone really understood that the Owicki-Gries method was just a particular way of structuring the proof of a global invariant. I can think of no better illustration of this confusion than the EWD A Personal Summary of the Owicki-Gries Theory that Dijkstra wrote and subsequently published in a book of his favorite EWDs.( Throughout his career, Edsger Dijkstra wrote a series of notes identified by an \"EWD\" number.) If even someone as smart and generally clear-thinking as Dijkstra could write such a confusing hod"
+    },
+    {
+      "keyword": "invariant",
+      "window": "2], history variables may be necessary if the correctness conditions themselves are in terms of history.) When we developed our methods, Owicki and I and most everyone else thought that the Owicki-Gries method was a great improvement over Ashcroft's method because it used the program text to decompose the proof. I've since come to realize that this was a mistake. It's better to write a global invariant. Writing the invariant as an annotation allows you to hide some of the explicit dependence of the invariant on the control state. However, even if you're writing your algorithm as a program, more often than not, writing the invariant as an annotation rather than a single global invariant makes things more complicated. But even worse, an annotation gets you thinking in terms of separat"
+    },
+    {
+      "keyword": "invariant",
+      "window": "y be necessary if the correctness conditions themselves are in terms of history.) When we developed our methods, Owicki and I and most everyone else thought that the Owicki-Gries method was a great improvement over Ashcroft's method because it used the program text to decompose the proof. I've since come to realize that this was a mistake. It's better to write a global invariant. Writing the invariant as an annotation allows you to hide some of the explicit dependence of the invariant on the control state. However, even if you're writing your algorithm as a program, more often than not, writing the invariant as an annotation rather than a single global invariant makes things more complicated. But even worse, an annotation gets you thinking in terms of separate assertions rather than"
+    }
+  ],
+  "textLength": 305963
+}

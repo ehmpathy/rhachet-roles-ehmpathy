@@ -1,0 +1,61 @@
+{
+  "source": {
+    "id": "page.brooker2015-backoff-jitter",
+    "kind": "page",
+    "url": "https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/",
+    "keywords": [
+      "jitter",
+      "backoff",
+      "contention"
+    ]
+  },
+  "urlFinal": "https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/",
+  "status": 200,
+  "fetchedAt": "2026-11-26T12:55:04.249Z",
+  "title": "Exponential Backoff and Jitter | AWS Architecture Blog",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "Exponential Backoff and Jitter | Amazon Web Services"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "jitter",
+      "window": "Skip to Main Content English Contact us AWS Marketplace Support My account re:Invent Discover AWS Products Solutions Pricing Resources Search Sign in to console Create account AWS Blogs Home Blogs Editions AWS Architecture Blog Exponential Backoff and Jitter by Marc Brooker on 04 MAR 2015 in Architecture Permalink Share Update (May 2023): After 8 years, this solution continues to serve as a pillar for how Amazon builds remote client libraries for resilient systems. Most AWS SDKs now support exponential backoff and jitter as part of their retry behavior when using standard or adaptive modes. Consequently, this pattern can be leveraged without"
+    },
+    {
+      "keyword": "jitter",
+      "window": "esources Search Sign in to console Create account AWS Blogs Home Blogs Editions AWS Architecture Blog Exponential Backoff and Jitter by Marc Brooker on 04 MAR 2015 in Architecture Permalink Share Update (May 2023): After 8 years, this solution continues to serve as a pillar for how Amazon builds remote client libraries for resilient systems. Most AWS SDKs now support exponential backoff and jitter as part of their retry behavior when using standard or adaptive modes. Consequently, this pattern can be leveraged without having to incorporate personal logic around AWS SDK requests made to AWS services. The list of AWS SDKs that support these features can be found in the AWS SDK documentation. You can also dive deeper into timeouts, retries, and backoff with jitter in our Amazon Builder"
+    },
+    {
+      "keyword": "jitter",
+      "window": "ort exponential backoff and jitter as part of their retry behavior when using standard or adaptive modes. Consequently, this pattern can be leveraged without having to incorporate personal logic around AWS SDK requests made to AWS services. The list of AWS SDKs that support these features can be found in the AWS SDK documentation. You can also dive deeper into timeouts, retries, and backoff with jitter in our Amazon Builders’ Library. Introducing OCC Optimistic concurrency control (OCC) is a time-honored way for multiple writers to safely modify a single object without losing writes. OCC has three nice properties: it will always make progress as long as the underlying store is available, it’s easy to understand, and it’s easy to implement. DynamoDB’s conditional writes make OCC a natura"
+    },
+    {
+      "keyword": "backoff",
+      "window": "Skip to Main Content English Contact us AWS Marketplace Support My account re:Invent Discover AWS Products Solutions Pricing Resources Search Sign in to console Create account AWS Blogs Home Blogs Editions AWS Architecture Blog Exponential Backoff and Jitter by Marc Brooker on 04 MAR 2015 in Architecture Permalink Share Update (May 2023): After 8 years, this solution continues to serve as a pillar for how Amazon builds remote client libraries for resilient systems. Most AWS SDKs now support exponential backoff and jitter as part of their retry behavior when using standard or adaptive modes. Consequently, this pattern can be levera"
+    },
+    {
+      "keyword": "backoff",
+      "window": "ns Pricing Resources Search Sign in to console Create account AWS Blogs Home Blogs Editions AWS Architecture Blog Exponential Backoff and Jitter by Marc Brooker on 04 MAR 2015 in Architecture Permalink Share Update (May 2023): After 8 years, this solution continues to serve as a pillar for how Amazon builds remote client libraries for resilient systems. Most AWS SDKs now support exponential backoff and jitter as part of their retry behavior when using standard or adaptive modes. Consequently, this pattern can be leveraged without having to incorporate personal logic around AWS SDK requests made to AWS services. The list of AWS SDKs that support these features can be found in the AWS SDK documentation. You can also dive deeper into timeouts, retries, and backoff with jitter in our Am"
+    },
+    {
+      "keyword": "backoff",
+      "window": "SDKs now support exponential backoff and jitter as part of their retry behavior when using standard or adaptive modes. Consequently, this pattern can be leveraged without having to incorporate personal logic around AWS SDK requests made to AWS services. The list of AWS SDKs that support these features can be found in the AWS SDK documentation. You can also dive deeper into timeouts, retries, and backoff with jitter in our Amazon Builders’ Library. Introducing OCC Optimistic concurrency control (OCC) is a time-honored way for multiple writers to safely modify a single object without losing writes. OCC has three nice properties: it will always make progress as long as the underlying store is available, it’s easy to understand, and it’s easy to implement. DynamoDB’s conditional writes make"
+    },
+    {
+      "keyword": "contention",
+      "window": "ithout losing writes. OCC has three nice properties: it will always make progress as long as the underlying store is available, it’s easy to understand, and it’s easy to implement. DynamoDB’s conditional writes make OCC a natural fit for DynamoDB users, and it’s natively supported by the DynamoDBMapper client. While OCC is guaranteed to make progress, it can still perform quite poorly under high contention. The simplest of these contention cases is when a whole lot of clients start at the same time, and try to update the same database row. With one client guaranteed to succeed every round, the time to complete all the updates grows linearly with contention. For the graphs in this post, I used a small simulator to model the behavior of OCC on a network with delay (and variance in delay),"
+    },
+    {
+      "keyword": "contention",
+      "window": "e nice properties: it will always make progress as long as the underlying store is available, it’s easy to understand, and it’s easy to implement. DynamoDB’s conditional writes make OCC a natural fit for DynamoDB users, and it’s natively supported by the DynamoDBMapper client. While OCC is guaranteed to make progress, it can still perform quite poorly under high contention. The simplest of these contention cases is when a whole lot of clients start at the same time, and try to update the same database row. With one client guaranteed to succeed every round, the time to complete all the updates grows linearly with contention. For the graphs in this post, I used a small simulator to model the behavior of OCC on a network with delay (and variance in delay), against a remote database. In this"
+    },
+    {
+      "keyword": "contention",
+      "window": "nd it’s natively supported by the DynamoDBMapper client. While OCC is guaranteed to make progress, it can still perform quite poorly under high contention. The simplest of these contention cases is when a whole lot of clients start at the same time, and try to update the same database row. With one client guaranteed to succeed every round, the time to complete all the updates grows linearly with contention. For the graphs in this post, I used a small simulator to model the behavior of OCC on a network with delay (and variance in delay), against a remote database. In this simulation, the network introduces delay with a mean of 10ms and variance of 4ms. The first simulation shows how completion time grows linearly with contention. This linear growth is because one client succeeds every rou"
+    }
+  ],
+  "textLength": 7773
+}

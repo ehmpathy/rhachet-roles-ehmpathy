@@ -1,0 +1,141 @@
+{
+  "source": {
+    "id": "jackson2002",
+    "kind": "crossref",
+    "query": "Jackson Alloy a lightweight object modelling notation 2002",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Jackson%20Alloy%20a%20lightweight%20object%20modelling%20notation%202002&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:15:55.715Z",
+  "items": [
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "2",
+      "DOI": "10.1145/505145.505149",
+      "type": "journal-article",
+      "page": "256-290",
+      "title": [
+        "Alloy"
+      ],
+      "volume": "11",
+      "author": [
+        {
+          "given": "Daniel",
+          "family": "Jackson",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Massachusetts Institute of Technology, Cambridge, MA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "ACM Transactions on Software Engineering and Methodology"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            2002,
+            4
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.1007/3-540-46002-0_2",
+      "title": [
+        "Alloy: A New Technology for Software Modelling"
+      ],
+      "author": [
+        {
+          "given": "Daniel",
+          "family": "Jackson",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Lecture Notes in Computer Science",
+        "Tools and Algorithms for the Construction and Analysis of Systems"
+      ],
+      "page": "20-20",
+      "issued": {
+        "date-parts": [
+          [
+            2002
+          ]
+        ]
+      },
+      "publisher": "Springer Berlin Heidelberg",
+      "type": "book-chapter"
+    },
+    {
+      "DOI": "10.1145/302405.302465",
+      "title": [
+        "Lightweight extraction of object models from bytecode"
+      ],
+      "author": [
+        {
+          "given": "Daniel",
+          "family": "Jackson",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Laboratory for Computer Science, Massachusetts Institute of Technology"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Allison",
+          "family": "Waingold",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Laboratory for Computer Science, Massachusetts Institute of Technology"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Proceedings of the 21st international conference on Software engineering"
+      ],
+      "page": "194-202",
+      "issued": {
+        "date-parts": [
+          [
+            1999,
+            5,
+            16
+          ]
+        ]
+      },
+      "publisher": "ACM",
+      "type": "proceedings-article"
+    }
+  ]
+}

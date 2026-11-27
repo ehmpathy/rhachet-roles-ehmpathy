@@ -11,7 +11,7 @@ rubrics:
   - slug: arch-opport-decomposition
     purpose: identify opportunities for decomposition and recomposition
     rules:
-      - .agent/repo=ehmpathy/role=architect/briefs/practices/repo.structure/rule.prefer.most-common-denominator.md
+      - .agent/repo=ehmpathy/role=architect/briefs/practices/repo.structure/rule.require.most-common-denominator.md
     refs:
       - .agent/repo=ehmpathy/role=architect/briefs/practices/philosophy.domain-as-a-garden.[philosophy].md
 

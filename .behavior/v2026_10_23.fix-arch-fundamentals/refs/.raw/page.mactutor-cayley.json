@@ -1,0 +1,36 @@
+{
+  "source": {
+    "id": "page.mactutor-cayley",
+    "kind": "page",
+    "url": "https://mathshistory.st-andrews.ac.uk/Biographies/Cayley/",
+    "keywords": [
+      "invariant",
+      "1845"
+    ]
+  },
+  "urlFinal": "https://mathshistory.st-andrews.ac.uk/Biographies/Cayley/",
+  "status": 200,
+  "fetchedAt": "2026-11-23T12:56:32.635Z",
+  "title": "Arthur Cayley (1821 - 1895) - Biography - MacTutor History of Mathematics",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "Arthur Cayley - Biography"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "invariant",
+      "window": "riend Edmund Venables, made a trip to the Swiss Alps, also visiting Italy. He took a much more international approach than many of his fellow English mathematicians, publishing papers in the French Journal de Mathématiques Pures et Appliquées and in Crelle's journal Journal für die reine und angewandte Mathematik. Two papers he published in 1845 and 1846 are regarded as laying the foundations for invariant theory. The Cambridge fellowship had a limited tenure, since Cayley was not prepared to take Holy Orders, so he had to find a profession. He chose law and began training in April 1846. While still training to be a lawyer Cayley went to Dublin to hear William Rowan Hamilton lecture on quaternions. He sat next to George Salmon during these lectures and the two were to exchange mathematica"
+    },
+    {
+      "keyword": "1845",
+      "window": "ding algebraic curves and surfaces, elliptic functions, determinants and the theory of integration. For example he published On a theory of determinants in 1843 in which he extended the idea of a 2-dimensional determinant (rows and columns) to multidimensional arrays. In 1844 he began a correspondence with George Boole which proved valuable to both mathematicians. For example he wrote to Boole in 1845 (Boole was teaching at a school in Lincoln, England, at the time):- I wish I could manage a visit to Lincoln, I should so much enjoy talking over some things with you, not to mention the temptation of your Cathedral. I think I must contrive it some time in the next six months, in spite of there being no railway, which one begins to consider oneself entitled to in these days. In 1844 Cayley, a"
+    },
+    {
+      "keyword": "1845",
+      "window": "titled to in these days. In 1844 Cayley, along with his friend Edmund Venables, made a trip to the Swiss Alps, also visiting Italy. He took a much more international approach than many of his fellow English mathematicians, publishing papers in the French Journal de Mathématiques Pures et Appliquées and in Crelle's journal Journal für die reine und angewandte Mathematik. Two papers he published in 1845 and 1846 are regarded as laying the foundations for invariant theory. The Cambridge fellowship had a limited tenure, since Cayley was not prepared to take Holy Orders, so he had to find a profession. He chose law and began training in April 1846. While still training to be a lawyer Cayley went to Dublin to hear William Rowan Hamilton lecture on quaternions. He sat next to George Salmon durin"
+    }
+  ],
+  "textLength": 19770
+}

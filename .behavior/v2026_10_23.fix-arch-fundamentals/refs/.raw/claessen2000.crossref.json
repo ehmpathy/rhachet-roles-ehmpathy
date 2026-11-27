@@ -1,0 +1,179 @@
+{
+  "source": {
+    "id": "claessen2000",
+    "kind": "crossref",
+    "query": "Claessen Hughes QuickCheck a lightweight tool for random testing of Haskell programs 2000",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Claessen%20Hughes%20QuickCheck%20a%20lightweight%20tool%20for%20random%20testing%20of%20Haskell%20programs%202000&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:15:53.913Z",
+  "items": [
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "9",
+      "DOI": "10.1145/357766.351266",
+      "type": "journal-article",
+      "page": "268-279",
+      "title": [
+        "QuickCheck"
+      ],
+      "volume": "35",
+      "author": [
+        {
+          "given": "Koen",
+          "family": "Claessen",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Chalmers University of Technology"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "John",
+          "family": "Hughes",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Chalmers University of Technology"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "ACM SIGPLAN Notices"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            2000,
+            9
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.1145/351240.351266",
+      "title": [
+        "QuickCheck"
+      ],
+      "author": [
+        {
+          "given": "Koen",
+          "family": "Claessen",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Chalmers University of Technology"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "John",
+          "family": "Hughes",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Chalmers University of Technology"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Proceedings of the fifth ACM SIGPLAN international conference on Functional programming"
+      ],
+      "page": "268-279",
+      "issued": {
+        "date-parts": [
+          [
+            2000,
+            9
+          ]
+        ]
+      },
+      "publisher": "ACM",
+      "type": "proceedings-article"
+    },
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "4",
+      "DOI": "10.1145/1988042.1988046",
+      "type": "journal-article",
+      "page": "53-64",
+      "title": [
+        "QuickCheck"
+      ],
+      "volume": "46",
+      "author": [
+        {
+          "given": "Koen",
+          "family": "Claessen",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Chalmers University of Technology"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "John",
+          "family": "Hughes",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Chalmers University of Technology"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "ACM SIGPLAN Notices"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            2011,
+            5,
+            20
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "source": {
+    "id": "page.fowler-ddd-aggregate",
+    "kind": "page",
+    "url": "https://martinfowler.com/bliki/DDD_Aggregate.html",
+    "keywords": [
+      "transaction",
+      "consistency boundar",
+      "aggregate root"
+    ]
+  },
+  "urlFinal": "https://martinfowler.com/bliki/DDD_Aggregate.html",
+  "status": 200,
+  "fetchedAt": "2026-11-24T05:41:21.350Z",
+  "title": "D D D_ Aggregate",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "bliki: D D D_ Aggregate"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "transaction",
+      "window": "t the order (together with its line items) as a single aggregate. An aggregate will have one of its component objects be the aggregate root. Any references from outside the aggregate should only go to the aggregate root. The root can thus ensure the integrity of the aggregate as a whole. Aggregates are the basic element of transfer of data storage - you request to load or save whole aggregates. Transactions should not cross aggregate boundaries. DDD Aggregates are sometimes confused with collection classes (lists, maps, etc). DDD aggregates are domain concepts (order, clinic visit, playlist), while collections are generic. An aggregate will often contain mutliple collections, together with simple fields. The term “aggregate” is a common one, and is used in various different contexts (e."
+    },
+    {
+      "keyword": "aggregate root",
+      "window": "N DESIGN OBJECT COLLABORATION DESIGN Aggregate is a pattern in Domain-Driven Design. A DDD aggregate is a cluster of domain objects that can be treated as a single unit. An example may be an order and its line-items, these will be separate objects, but it's useful to treat the order (together with its line items) as a single aggregate. An aggregate will have one of its component objects be the aggregate root. Any references from outside the aggregate should only go to the aggregate root. The root can thus ensure the integrity of the aggregate as a whole. Aggregates are the basic element of transfer of data storage - you request to load or save whole aggregates. Transactions should not cross aggregate boundaries. DDD Aggregates are sometimes confused with collection classes (lists, map"
+    },
+    {
+      "keyword": "aggregate root",
+      "window": "esign. A DDD aggregate is a cluster of domain objects that can be treated as a single unit. An example may be an order and its line-items, these will be separate objects, but it's useful to treat the order (together with its line items) as a single aggregate. An aggregate will have one of its component objects be the aggregate root. Any references from outside the aggregate should only go to the aggregate root. The root can thus ensure the integrity of the aggregate as a whole. Aggregates are the basic element of transfer of data storage - you request to load or save whole aggregates. Transactions should not cross aggregate boundaries. DDD Aggregates are sometimes confused with collection classes (lists, maps, etc). DDD aggregates are domain concepts (order, clinic visit, playlist), whi"
+    }
+  ],
+  "textLength": 1350
+}

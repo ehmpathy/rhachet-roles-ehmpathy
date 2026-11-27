@@ -1,0 +1,50 @@
+{
+  "source": {
+    "id": "page.brooker2015-backoff-jitter.pt2",
+    "kind": "page",
+    "url": "https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/",
+    "keywords": [
+      "the solution",
+      "clusters",
+      "Full Jitter",
+      "less work"
+    ]
+  },
+  "urlFinal": "https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/",
+  "status": 200,
+  "fetchedAt": "2026-11-26T13:09:23.506Z",
+  "title": "Exponential Backoff and Jitter | AWS Architecture Blog",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "Exponential Backoff and Jitter | Amazon Web Services"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "the solution",
+      "window": "l backoff is working, in that the calls are happening less and less frequently. The problem also stands out: there are still clusters of calls. Instead of reducing the number of clients competing in every round, we’ve just introduced times when no client is competing. Contention hasn’t been reduced much, although the natural variance in network delay has introduced some spreading. Adding Jitter The solution isn’t to remove backoff. It’s to add jitter. Initially, jitter may appear to be a counter-intuitive idea: trying to improve the performance of a system by adding randomness. The time series above makes a great case for jitter – we want to spread out the spikes to an approximately constant rate. Adding jitter is a small change to the sleep function: That time series looks a whole lot"
+    },
+    {
+      "keyword": "clusters",
+      "window": "ng the simulation again shows that backoff helps a small amount, but doesn’t solve the problem. Client work has only been reduced slightly. The best way to see the problem is to look at the times these exponentially backed-off calls happen. It’s obvious that the exponential backoff is working, in that the calls are happening less and less frequently. The problem also stands out: there are still clusters of calls. Instead of reducing the number of clients competing in every round, we’ve just introduced times when no client is competing. Contention hasn’t been reduced much, although the natural variance in network delay has introduced some spreading. Adding Jitter The solution isn’t to remove backoff. It’s to add jitter. Initially, jitter may appear to be a counter-intuitive idea: trying"
+    },
+    {
+      "keyword": "Full Jitter",
+      "window": "there’s an approximately constant rate of calls. It’s also had a great effect on the total number of calls. In the case with 100 contending clients, we’ve reduced our call count by more than half. We’ve also significantly improved the time to completion, when compared to un-jittered exponential backoff. There are a few ways to implement these timed backoff loops. Let’s call the algorithm above “Full Jitter”, and consider two alternatives. The first alternative is “Equal Jitter”, where we always keep some of the backoff and jitter by a smaller amount: The intuition behind this one is that it prevents very short sleeps, always keeping some of the slow down from the backoff. A second alternative is “Decorrelated Jitter”, which is similar to “Full Jitter”, but we also increase the maximum j"
+    },
+    {
+      "keyword": "Full Jitter",
+      "window": "backoff loops. Let’s call the algorithm above “Full Jitter”, and consider two alternatives. The first alternative is “Equal Jitter”, where we always keep some of the backoff and jitter by a smaller amount: The intuition behind this one is that it prevents very short sleeps, always keeping some of the slow down from the backoff. A second alternative is “Decorrelated Jitter”, which is similar to “Full Jitter”, but we also increase the maximum jitter based on the last random value. Which approach do you think is best? Looking at the amount of client work, the number of calls is approximately the same for “Full” and “Equal” jitter, and higher for “Decorrelated”. Both cut down work substantially relative to both the no-jitter approaches. The no-jitter exponential backoff approach is the cl"
+    },
+    {
+      "keyword": "Full Jitter",
+      "window": "relative to both the no-jitter approaches. The no-jitter exponential backoff approach is the clear loser. It not only takes more work, but also takes more time than the jittered approaches. In fact, it takes so much more time we have to leave it off the graph to get a good comparison of the other methods. Of the jittered approaches, “Equal Jitter” is the loser. It does slightly more work than “Full Jitter”, and takes much longer. The decision between “Decorrelated Jitter” and “Full Jitter” is less clear. The “Full Jitter” approach uses less work, but slightly more time. Both approaches, though, present a substantial decrease in client work and server load. It’s worth noting that none of these approaches fundamentally change the N2 nature of the work to be done, but do substantially red"
+    },
+    {
+      "keyword": "less work",
+      "window": "takes more time than the jittered approaches. In fact, it takes so much more time we have to leave it off the graph to get a good comparison of the other methods. Of the jittered approaches, “Equal Jitter” is the loser. It does slightly more work than “Full Jitter”, and takes much longer. The decision between “Decorrelated Jitter” and “Full Jitter” is less clear. The “Full Jitter” approach uses less work, but slightly more time. Both approaches, though, present a substantial decrease in client work and server load. It’s worth noting that none of these approaches fundamentally change the N2 nature of the work to be done, but do substantially reduce work at reasonable levels of contention. The return on implementation complexity of using jittered backoff is huge, and it should be consider"
+    }
+  ],
+  "textLength": 7182
+}

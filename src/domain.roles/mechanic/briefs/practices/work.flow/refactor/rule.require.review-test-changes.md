@@ -31,3 +31,5 @@ If you're unable to ask though, always assume they intended to preserve the old 
 ---
 
 but never blindly degrade prior behavior without explicit confirmation
+
+consult the inventory before you ask: if the test proves a declared invariant, the invariant answers which side is wrong, and the code is the defect. derive first; ask only what the inventory cannot answer (`rule.forbid.test-edit-without-named-proof`, the forbid twin)

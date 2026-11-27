@@ -1,0 +1,22 @@
+url: https://dl.acm.org/doi/epdf/10.1145/361598.361623
+title: Just a moment...
+fetchedAt: 2026-11-25T02:50:13.793Z
+times: []
+
+dl.acm.org
+Performing security verification
+
+This website uses a security service to protect against malicious bots. This page is displayed while the website verifies you are not a bot.
+
+Why is this verification taking longer?
+
+This verification can take longer due to an older computer or a slow internet connection.
+
+What to do next:
+
+Wait briefly. Refreshing the page will restart the security verification and may take longer.
+If the verification still does not complete, refresh this page.
+If you are still stuck on this page after a page refresh, refer to Cloudflare’s troubleshooting documentation for more help.
+Ray ID: a5fd550daa34bde2
+Performance and Security by Cloudflare
+Privacy

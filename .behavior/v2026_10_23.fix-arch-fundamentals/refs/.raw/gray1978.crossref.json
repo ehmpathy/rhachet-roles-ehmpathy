@@ -1,0 +1,90 @@
+{
+  "source": {
+    "id": "gray1978",
+    "kind": "crossref",
+    "query": "Gray Notes on data base operating systems 1978 Operating Systems An Advanced Course",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Gray%20Notes%20on%20data%20base%20operating%20systems%201978%20Operating%20Systems%20An%20Advanced%20Course&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-26T12:57:36.230Z",
+  "items": [
+    {
+      "DOI": "10.1007/3-540-08755-9_9",
+      "title": [
+        "Notes on data base operating systems"
+      ],
+      "author": [
+        {
+          "given": "J. N.",
+          "family": "Gray",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Lecture Notes in Computer Science",
+        "Operating Systems"
+      ],
+      "page": "393-481",
+      "issued": {
+        "date-parts": [
+          [
+            1978
+          ]
+        ]
+      },
+      "publisher": "Springer Berlin Heidelberg",
+      "type": "book-chapter"
+    },
+    {
+      "publisher": "Elsevier BV",
+      "issue": "6",
+      "DOI": "10.1016/0308-5953(78)90213-1",
+      "type": "journal-article",
+      "page": "362",
+      "title": [
+        "Lecture notes in computer science. Vol 60 Operating systems — an advanced course"
+      ],
+      "volume": "2",
+      "container-title": [
+        "Microprocessors"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1978,
+            12
+          ]
+        ]
+      }
+    },
+    {
+      "publisher": "Elsevier BV",
+      "issue": "6",
+      "DOI": "10.1016/0010-4485(78)90118-5",
+      "type": "journal-article",
+      "page": "395",
+      "title": [
+        "Operating systems — an advanced course"
+      ],
+      "volume": "10",
+      "container-title": [
+        "Computer-Aided Design"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1978,
+            11
+          ]
+        ]
+      }
+    }
+  ]
+}

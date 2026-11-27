@@ -1,0 +1,217 @@
+{
+  "source": {
+    "id": "danziger2011",
+    "kind": "crossref",
+    "query": "Danziger Levav Avnaim-Pesso Extraneous factors in judicial decisions PNAS 2011"
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Danziger%20Levav%20Avnaim-Pesso%20Extraneous%20factors%20in%20judicial%20decisions%20PNAS%202011&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T19:30:36.162Z",
+  "items": [
+    {
+      "publisher": "National Academy of Sciences",
+      "issue": "17",
+      "DOI": "10.1073/pnas.1018033108",
+      "type": "journal-article",
+      "page": "6889-6892",
+      "title": [
+        "Extraneous factors in judicial decisions"
+      ],
+      "volume": "108",
+      "author": [
+        {
+          "given": "Shai",
+          "family": "Danziger",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Department of Management, Ben Gurion University of the Negev, Beer Sheva 84105, Israel; and"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Jonathan",
+          "family": "Levav",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Columbia Business School, Columbia University, New York, NY 10027"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Liora",
+          "family": "Avnaim-Pesso",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Department of Management, Ben Gurion University of the Negev, Beer Sheva 84105, Israel; and"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Proceedings of the National Academy of Sciences"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            2011,
+            4,
+            11
+          ]
+        ]
+      }
+    },
+    {
+      "publisher": "National Academy of Sciences",
+      "issue": "42",
+      "DOI": "10.1073/pnas.1112190108",
+      "type": "journal-article",
+      "title": [
+        "Reply to Weinshall-Margel and Shapard: Extraneous factors in judicial decisions persist"
+      ],
+      "volume": "108",
+      "author": [
+        {
+          "given": "Shai",
+          "family": "Danziger",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Tel-Aviv University, Tel-Aviv 69978, Israel;"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Jonathan",
+          "family": "Levav",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Stanford University, Stanford, CA 94305; and"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Liora",
+          "family": "Avnaim-Pesso",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Ben Gurion University of the Negev, Beer-Sheva 84105, Israel"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Proceedings of the National Academy of Sciences"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            2011,
+            10,
+            10
+          ]
+        ]
+      }
+    },
+    {
+      "publisher": "CAIRN.INFO",
+      "issue": "4",
+      "DOI": "10.3917/cdlj.1504.0579",
+      "type": "journal-article",
+      "page": "579-587",
+      "title": [
+        "« Qu'a mangé le juge à son petit-déjeuner ? » De l'impact des conditions de travail sur la décision de justice"
+      ],
+      "volume": "N° 4",
+      "author": [
+        {
+          "given": "Shai",
+          "family": "Danziger",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Jonathan",
+          "family": "Levav",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Liora",
+          "family": "Avnaim-Pesso",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Les Cahiers de la Justice"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            2015,
+            12,
+            1
+          ]
+        ]
+      }
+    }
+  ]
+}

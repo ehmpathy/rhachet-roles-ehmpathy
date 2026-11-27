@@ -1,0 +1,67 @@
+{
+  "source": {
+    "id": "page.wiki-well-posed",
+    "kind": "page",
+    "url": "https://en.wikipedia.org/wiki/Well-posed_problem",
+    "keywords": [
+      "Hadamard",
+      "a solution exists",
+      "unique",
+      "boundary",
+      "initial"
+    ]
+  },
+  "urlFinal": "https://en.wikipedia.org/wiki/Well-posed_problem",
+  "status": 200,
+  "fetchedAt": "2026-11-23T22:19:04.200Z",
+  "title": "Well-posed problem - Wikipedia",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "Well-posed problem - Wikipedia"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "Hadamard",
+      "window": "istence theorem Cauchy–Kovalevskaya theorem show General topics show Solution methods People show List Named equations vte In mathematics, the solution to a well-posed problem satisfies the following properties: It exists; It is unique; Its behavior changes continuously with the auxiliary conditions, such as initial or boundary values. These criteria were first introduced by Jacques Hadamard in 1902.[1] Examples of archetypal well-posed problems include the Dirichlet problem for Laplace's equation and the heat equation with specified initial conditions. These might be regarded as \"natural\" problems in that there are physical processes modeled by these problems. Problems that are not well-posed in the sense above are termed ill-posed. A simple example is a global optimizatio"
+    },
+    {
+      "keyword": "Hadamard",
+      "window": "of Math: How Geometry Rules the Universe. Basic Books. p. 131. ISBN 978-1-541-60429-2. Huang, Yunfei.; et al. (2019). \"Traction force microscopy with optimized regularization and automated Bayesian parameter selection for comparing cells\". Scientific Reports. 9 (1): 537. arXiv:1810.05848. Bibcode:2019NatSR...9..539H. doi:10.1038/s41598-018-36896-x. PMC 6345967. PMID 30679578. Further readingedit Hadamard, Jacques (1902). Sur les problèmes aux dérivées partielles et leur signification physique. Princeton University Bulletin. pp. 49–52. Parker, Sybil B., ed. (1989) [1974]. McGraw-Hill Dictionary of Scientific and Technical Terms (4th ed.). New York: McGraw-Hill. ISBN 0-07-045270-9. Tikhonov, A. N.; Arsenin, V. Y. (1977). Solutions of ill-Posed Problems. New York: Winston. ISBN 0-470-99124-0"
+    },
+    {
+      "keyword": "unique",
+      "window": "Jump to content Main menu Search Appearance Donate Create account Log in Toggle the table of contents Well-posed problem 16 languages Article Talk Read Edit View history Save Tools From Wikipedia, the free encyclopedia Differential equations Scope show Fields Classification show Types show Relation to processes Solution hide Existence and uniqueness Well-posed problem Picard–Lindelöf theorem Peano existence theorem Carathéodory's existence theorem Cauchy–Kovalevskaya theorem show General topics show Solution methods People show List Named equations vte In mathematics, the solution to a well-posed problem satisfies the following properties: It exists; It is unique; Its behavior changes continuously with the auxiliary co"
+    },
+    {
+      "keyword": "unique",
+      "window": "s show Relation to processes Solution hide Existence and uniqueness Well-posed problem Picard–Lindelöf theorem Peano existence theorem Carathéodory's existence theorem Cauchy–Kovalevskaya theorem show General topics show Solution methods People show List Named equations vte In mathematics, the solution to a well-posed problem satisfies the following properties: It exists; It is unique; Its behavior changes continuously with the auxiliary conditions, such as initial or boundary values. These criteria were first introduced by Jacques Hadamard in 1902.[1] Examples of archetypal well-posed problems include the Dirichlet problem for Laplace's equation and the heat equation with specified initial conditions. These might be regarded as \"natural\" problems in that there are phy"
+    },
+    {
+      "keyword": "unique",
+      "window": "risingly, the theorem does not hold in the setting of smooth functions; an example discovered by Hans Lewy in 1957 consists of a linear partial differential equation with smooth but not analytic coefficients for which no solution exists. So the Cauchy–Kowalevski theorem is necessarily limited in its scope to analytic functions. Energy methodedit The energy method is useful for establishing both uniqueness and continuity with respect to initial conditions (i.e. it does not establish existence). The method is based upon deriving an upper bound of an energy-like functional for a given problem. Example: Consider the diffusion equation on the unit interval with homogeneous Dirichlet boundary conditions and suitable initial data 𝑓 ( 𝑥 ) (e.g. for which 𝑓 ( 0 ) = 𝑓 ( 1 ) = 0 ): 𝑢 𝑡 ="
+    },
+    {
+      "keyword": "boundary",
+      "window": "Picard–Lindelöf theorem Peano existence theorem Carathéodory's existence theorem Cauchy–Kovalevskaya theorem show General topics show Solution methods People show List Named equations vte In mathematics, the solution to a well-posed problem satisfies the following properties: It exists; It is unique; Its behavior changes continuously with the auxiliary conditions, such as initial or boundary values. These criteria were first introduced by Jacques Hadamard in 1902.[1] Examples of archetypal well-posed problems include the Dirichlet problem for Laplace's equation and the heat equation with specified initial conditions. These might be regarded as \"natural\" problems in that there are physical processes modeled by these problems. Problems that are not well-posed in the sense ab"
+    },
+    {
+      "keyword": "boundary",
+      "window": "ted in its scope to analytic functions. Energy methodedit The energy method is useful for establishing both uniqueness and continuity with respect to initial conditions (i.e. it does not establish existence). The method is based upon deriving an upper bound of an energy-like functional for a given problem. Example: Consider the diffusion equation on the unit interval with homogeneous Dirichlet boundary conditions and suitable initial data 𝑓 ( 𝑥 ) (e.g. for which 𝑓 ( 0 ) = 𝑓 ( 1 ) = 0 ): 𝑢 𝑡 = 𝐷 𝑢 𝑥 𝑥 , 0 < 𝑥 < 1 , 𝑡 > 0 , 𝐷 > 0 , 𝑢 ( 𝑥 , 0 ) = 𝑓 ( 𝑥 ) , 𝑢 ( 0 , 𝑡 ) = 0 , 𝑢 ( 1 , 𝑡 ) = 0. Multiply the equation 𝑢 𝑡 = 𝐷 𝑢 𝑥 𝑥 by 𝑢 and integrate in space over the unit interval to obtain ∫ 0 1 𝑢 𝑢 𝑡 𝑑 𝑥 = 𝐷 ∫ 0 1 𝑢 𝑢 𝑥 𝑥 𝑑 𝑥"
+    },
+    {
+      "keyword": "initial",
+      "window": "sed problem Picard–Lindelöf theorem Peano existence theorem Carathéodory's existence theorem Cauchy–Kovalevskaya theorem show General topics show Solution methods People show List Named equations vte In mathematics, the solution to a well-posed problem satisfies the following properties: It exists; It is unique; Its behavior changes continuously with the auxiliary conditions, such as initial or boundary values. These criteria were first introduced by Jacques Hadamard in 1902.[1] Examples of archetypal well-posed problems include the Dirichlet problem for Laplace's equation and the heat equation with specified initial conditions. These might be regarded as \"natural\" problems in that there are physical processes modeled by these problems. Problems that are not well-posed in t"
+    },
+    {
+      "keyword": "initial",
+      "window": "solution to a well-posed problem satisfies the following properties: It exists; It is unique; Its behavior changes continuously with the auxiliary conditions, such as initial or boundary values. These criteria were first introduced by Jacques Hadamard in 1902.[1] Examples of archetypal well-posed problems include the Dirichlet problem for Laplace's equation and the heat equation with specified initial conditions. These might be regarded as \"natural\" problems in that there are physical processes modeled by these problems. Problems that are not well-posed in the sense above are termed ill-posed. A simple example is a global optimization problem, because the location of the optima is generally not a continuous function of the parameters specifying the objective, even when the objective it"
+    },
+    {
+      "keyword": "initial",
+      "window": "unction of those parameters. Inverse problems are often ill-posed; for example, the inverse heat equation, deducing a previous distribution of temperature from final data, is not well-posed in that the solution is highly sensitive to changes in the final data. Continuum models must often be discretized in order to obtain a numerical solution. While solutions may be continuous with respect to the initial conditions, they may suffer from numerical instability when solved with finite precision, or with errors in the data. Conditioningedit Even if a problem is well-posed, it may still be ill-conditioned, meaning that a small error in the initial data can result in much larger errors in the answers. Problems in nonlinear complex systems (so-called chaotic systems) provide well-known examples"
+    }
+  ],
+  "textLength": 8845
+}

@@ -1,0 +1,1252 @@
+                   G r a n u l a r i t y o f L o c k s a n d Degrees of C o n s i s t e n c y
+                                           i n a S h a r e d Data Base
+                                                   J.N.    Gray
+                                                   R.A.    Lorie
+                                                 G.B.     Putzolu
+                                                 I.L.     Traiqer
+
+                                       IBlY R e s e a r c h L a b o r a t o r y
+                                          S a n Jose, C a l i f o r n i a
+
+
+
+
+    ABSTRACT: I n t h e f i r s t p a r t o f t h e p a p e r t h e p r o b l e n o f c h o o s i n g
+    t h e g r a n u l a r i t y (size) of l o c k a b l e o b j e c t s is i n t r o d u c e d a n d t h e
+    r e l a t e d t r a d e o f f b e t ween c o n c u r r e n c y a n d o v e r h e a d i s d i s c u s s e d . A
+    l o c k i n g p r o t o c o l which a l l o w s s i m u l t a n e o u s l o c k i n g a t v a r i o u s
+    u r a n u l a r i t i e s by d i f f e r e n t t r a n s a c t i o n s is p r e s z n t e d .  It i s based
+    on t h e i n t r o d u c t i o n           o f a d d i t i o n a l l o c k modes              besides the
+    c o n v e n t i o n a l s h a r e mode a n d e x c l u s i v e mode.            A proof        is given o f
+    t h o e q u i v a l e n c e of t h i s p r o t o c o l t o a c o n v e n t i o n a l o n e .
+
+    I n t h o s 3 c o n d p a r t o f t h e p a p e r t h e i s s u e of c o n s i s t e n c y i n a
+    s h a r e d a n v i r o n m e n t i s a n a l y z e d . T h i s d i s c u s s i o n i s m o t i v a t e d by
+    t h e r e a l i z a t i o n t h a t s o m e e x i s t i n g d a t a base s y s t e m s u s e a u t o m a t i c
+.   l o c k p r o t o c o l s which i n s u r e p r o t e c t i o n o n l y from c e r t a i n t y p e s of
+    inconsistencies ( f o r instance those a r i s i n g from transaction
+    backup),           thereby automatically providing a limited degree of
+    consistsncy.              F o u r d e q r e e s of c m s i s t e n ~a r~ e            introduced.    .     They
+    c a n be r o u g h l y c h a r a c t e r i z e d a s f o l l o w s : d t g r e e 0 p r o t e c t s o t h e r s
+    from y o u r u p d a t e s ,        degree 1 a d d i t i o n a l l y p r o v i d e s p r o t e c t i o n from
+    l o s i c g u p d a t e s , d e g r e e 2 a d d i t i o n a 117 p r o v i d z s p r o t e c t i o n from
+    r e a d i n g i n c o r r e c t d a t a items, a n d d e g r e e 3 a d d i t i o n a l l y p r o v i d a s
+    p r o t e c t i o n f r o m reading i n c o r r e c t r e l a t i o n s h i p s among d a t a items
+     (i.?. t o t a l              protection).              A discussion                follows             on  the
+    relationships                 of the          four degrees                 t o locking              protocols,
+    c o n c u r r ~ n c ~o ,v e r h e a d , r e c o v e r y a n d t r a n s a c t i o n s t r u c t u r e .
+     Lastly,         these i d e a s       are     related         t o existing         data      management
+    systems.
+    2- -----------
+       G Y A N U L A R I TY 3P LD CKS:
+
+    Pin i m p o r t a n t p r o b l e m w h i c h a r i s e s i n t h e d e s i g n o f a d a t a b a s e
+    m a n a g e m e n t s y s t s a i s c h o o s i n g t h e l o c k a b l e u n i t s , i. e. the data
+    a g g r e g a t e s which a r e a t o m i c a l l y locked t o i n s u r e c ~ n s i s t e n c y .
+    E x a m p l e s o f l o c k a b l e u n i t s a r e areas, f i l e s ,       indivlOual records,
+    f i e l d v a l u e s , i n t e r v a l s of f i e l d values, ets.
+    The c h o i c e o f              lockable units presents a                               t r a d e o f f between
+    c o n z u r r e n c y and o v e r h e a d ,          w h i c h is r e l a t e d t o t h e s i z e o r
+    q r a n u l a r i t y of t h e u n i t s themselves.                  On t h e o n e h a n d , c o n c u r r e n c y
+    is i n c r e a s e d i f a f i n e l o c k a b l e u n i t ( f o r e x a m p l e a r e c o r d o r
+    field)          is chosen.                Such u n i t is a p p r o p r i a t e for a tlsimplen
+    t r a n s a c t i o n w h i c h accesses f e w r e c o r d s .             On t h e o t h e r h a n d a f i n e
+    u n i t o f l o c k i n g w o u l d b e c o s t l y f o r a g l c o m p l e x a gt r a n s a c t i o n w h i c h
+    accesses a l a r g e number o f r e c o r d s .                     S u c h a t r a n s a c t i o n would have
+    t o s e t l r e s e t a l a r g e n u m b e r o f l o c k s , h e n c e i n c u r r i n g t o o many
+    times t h e c o m p u t a t i o n a l o v e r h e a d o f a c c e s s i n g t h e l o c k s u b s y s t e m ,
+    a n d t h e s t o r a g e o v e r h e a d o f r e p r e s e n t i n g a l o c k i c memory.                           A
+    coarse lockable unit                       ( f o r example a f i l e )            is p r o b a b l y c o n v e n i e n t
+    f o r a t r a n s a c t i o n w h i c h a c c e s s e s many r e c o r d s .                Bowever,        such a
+    c o a r s e u n i t d i s c r i i n i n a t e s a g a i n a t t r a n s a c t i o n s which only want t o
+    l o c k o n e member o f t h e f i l e .                From t h i s d i s c u s s i o n i t f o l l o w s t h a t
+    i t would b e d e s i r a b l e t o have lockable u n i t s o f d i f f e r e n t
+    g r a n u l a r i t i e s c o e x i s t i n g i n t h e same s y s t e m .
+    I n t h e following a lock protocol satisfying these requirements
+    w i l l       be        described.         Related        implementation                 issues  of
+-   schlduling,granting                and converting               lock        requests are        not
+    d i s c u s s e d . T h e y were c o v e r e d i n a c o m p a n i o n p a p e r [ I ] .
+
+
+    ~ i e r a r c h i c a ll o c k s :
+    We w i l l       first a s s u m e t h a t t h e s e t of          r a s o u r c e s t o be l o c k e d is
+    organized i n a hierarchy.                      Note t h a t t h e c o n c e p t o f h i e r a r c h y is
+    used i n t h e c o n t e x t o f a collection o f r e s o u r c e s a n d h a s n o t h i n o
+    t o d o w i t h t h e d a t a m o d e l used i n a d a t a b a s e s y s t e m .                       The
+    h i e r a r c h y o f F i g u r e 1 may b e s u g g e s t i v e .          We adopt the notation
+    t h a t e a c h l e v e l o f t h e h i e r a r c h y i s g i v e n a n o d e t y p e w h i c h is a
+    g e n e r i c name f o r a l l t h e n o d e i n s t a n c e s o f t h a t t y p e .                   For
+    e x a m p l e , t h e d a t a b a s e h a s n o d e s of t y p e area a s its i m m e d i a t e
+    descendants,              e a c h area i n t u r n h a s n o d e s o f t y p e f i l e a s i t s
+    i m m e d i a t e d t s z e n d a n t s a n d e a c h f i l e h a s n o d e s of t y p e r e c o r d a s
+    its immediate descendants i n t h e hierarchy.                                       S i n c e i t is a
+    hierarchy each node has a unique parent.
+                                              DATA BASE
+                                                      I
+                                                      1
+                                                  AR EAS
+                                                      I
+                                                      I
+                                                  FI LE S
+                                                      I
+                                                      I
+                                                RECORDS
+
+                          F i g u r e 1. A s a m p l e l o c k h i e r a r c h y .
+Each n o d e o f t h e h i e r a r c h y c a n be l o c k e d .                       If one requests
+e x c l u s i v e a c c e s s (X)         t o a p a r t i c u l a r n o d e , t h e n when t h e r e q u e s t
+is g r a n t e d ,        t h e r e q u e s t o r h a s e x c l u s i v e a c c e s s t o t h a t n o d e and
+-
+implicit&                     e a c h of             descendants.            I f one r e q u e s t s shared
+a c c e s s ( S ) t o a p a r t i c u l a r n o d e , t h e n when t h e r e q u e s t i s g r a n t e d ,
+t h e r e q u e s t o r h a s s h a r e d access t o t h a t n o d e 2nd i m p l i c i t l ~to
+----    -----I---           -- --
+e a c h d e s c e n d a n t o f t h a t --       node.        T h e s e two a c c e s s modes l o c k a n
+--------------
+e n  t i r e  s u b t r e  e  r o  ~ t e da t  t h e  r e q u e s t e d node.
+
+O u r g o a l i s t o f i n d some t e c h n i q u e f o r im~llitly l o c k i n g a n
+entire subtree.              I n o r d e r t o l o c k 3 s u b t r a e r o o t e d a t node R i n
+s h a r e o r e x c l u s i v e mode i t is i m p o r t a n t t o p r e v e n t s h a r e o r
+e x c l u s i v e l o c k s on t h e a n c e s t o r s o f R w h i c h w o u l d i m p l i c i t l y l o c k
+f! a n d i t s d e s c e n d a n t s .     H e n c e a new a c c e s s mode,       i n t e n t i o n !_one
+ (I), i s i n t r o d u c e d .      I n t e n t i o n mode i s u s e d t o V a g q l ( l o c k ) a l l
+a n c e s t o r s o f a n o d e t o b e l o c k e d i n s h a r e or e x c l u s i v e mode, T h e s e
+tags s i g n a l t h e f a c t t h a t l o c k i n g i s b e i n g d o n e a t a " f i n e r w l e v e l
+and prevent i m p l i c i t o r e x p l i c i t e x c l u s i v e or s h a r e l o c k s on t h e
+ancestors.
+The p r o t o c o l t o l o c k a s u b t r e e r o o t e d a t n o d e R i n e x c l u s i v e o r
+s h a r e mode i s t o l o c k a l l a n c e s t o r s o f R i n i n t e n t i o n mode a n d t o
+l o c k n o d e R i n e x c l u s i v e o r s h a r e mode.            So f o r example u s i n g
+F i g u r e 1 , t o l o c k a p a r t i c u l a r f i l e one s h o u l d o b t a i n i n t e n t i o n
+access t o t h e data base, t o t h e a r e a containing t h e f i l e and then
+request exclusive                 (or share)        access t o t h e f i l e i t s e l f .       This
+i m p l i c i t l y l o c k s a l l r e c o r d s of t h e f i l e i n e x c l u s i v e (or s h a r e )
+mode.
+
+
+
+We s a y t h a t t w o l o c k r e q u e s t s f o r t h e s a m e n o d e by t w o d i f f e r e n t
+transaction a r e cornpatius if they can be granted concurrently.
+T h e mode o f t h e r e q u e s t d e t e r m i n e s i t s c o m p a t i b i l i t y w i t h r e q u e s t s
+made b y o t h e r t r a n s a c t i o n s .     T h e t h r e e modes:            X, S and I a r e
+incompatible           u i t h one      another           b u t distinct       S     r e q u e s t s may    be
+g r a n t e d t o g s t h s r a n d d i s t i n c t I r e q u e s t s may b e g r a n t e d t o g e t h e r .
+
+The compatibilities                  among modes d e r i v e             from t h e i r semantics.
+Share  mode a l l o w s               reading but     not                 modification of      the
+corresponding                 resource          by        the         requestor      and        by     other
+t r a n s a c t i o n s . T h e s e m a n t i c s o f e x c l u s i v e mode i s t h a t t h e g r a n t e e
+may r ~ a da n d m o d i f y t h e r e s o u r c e a n d n o o t h e r t r a n s a c t i o n n a y r e a d
+o r modify t h e r e s o u r c e w h i l e t h e e x c l u s i v e l o c k i s set.                      The
+r e s s o n f o r d i c h o t o m i z i n g s h a r e a n d e x c l u s i v e a c c e s s is t h a t
+several             share requests                can be              granted concurrently              (are
+c o m p a t i b l e ) w h e r e a s a n e x c l u s i v e r e q u e s t i s n o t compa t i b l e w i t h
+any o t h e r            request.         I n t e n t i o n mode          was i n t r o d u c e d    t o be
+i n c o m p a t i b l e w i t h s h a r e a n d e x c l u s i v e mode ( t o p r e v e n t s h a r e a n d
+e ~ c l u s i v e locks).           However,          i n t e n t i o n node is c o m p a t i b l e w i t h
+i t s e l f s i n c e t w o t r a n s a c t i o n s h a v i n g i n t e n t i o n access t o a n ~ d e
+w i l l s x p l i c i t l y l o c k d e s c e n d a n t s o f t h e n o d e i n X , S o r I mode a n d
+t h e r e b y w i l l e i t h e r b e c o m p a t i b l e with one a n o t h e r o r w i l l be
+s c h e d u l e d on t h e b a s i s o f t h e i r r e q u e s t s a t t h e f i n e r l e v e l .       For
+e x a m p l e , two t r a n s a c t i o n s c a n b e c o n c u r r a n t l y g r a n t e d t h e d a t a
+b a s e a n 3 s o m e a r e a a n d s o m e f i l e i n i n t e n t i o n mods.             I n t h i s case
+t h e i r e x p l i c i t l o c k s on r e c o r d s i n t h e f i l e w i l l resolve any
+c o n f l i c t s among t h e m .
+
+T h e n o t i o n o f i n t e n t i o n mode i s r e f i n e d t o j g _ t g g i o n s h a r e n ~ d e
+ (IS)       a n d i n t e n t i o n e x c l u s i v e mode      (IX)      f o r two reasons:             the
+i n t e n t i o n s h a r e mode o n l y r e q u e s t s s h a r e o r i n t e n t i o n s h a r e l o c k s
+a t t h e l o w e r n o d e s o f t h e t r e e (i.e. n e v e r r e q u e s t s an e x c l u s i v e
+l o c k b e l o w t h s i n t e n t i o n s h a r e n o d e ) . S i n c e r e a d - o n l y i s a common
+f o r m o f a c c e s s it w i l l b e p r o f i t a b l e t o d i s t i n g u i s h t h i s f o r
+g r e a t e r concurrency.            S e c o n d l y , i f a t r a n s a c t i o n h a s an i n t e n t i o n
+s h a r c l o c k on a n o d e i t c a n c o n v e r t t h i s t o a s h a r e l o c k a t a
+l a t e r time, b u t o n e c a n n o t c o n v e r t a n i n t e n t i o n e x c l u s i v e l o c k t o
+a s h a r e l o c k o n a n ~ d e(see [ 11 f o r a d i s c u s s i o n o f t h i s p o i n t ) .
+
+W e recognizs one f u r t h e r refinement of                                modes, n a m e l y              _ani
+----
+i n t e -----       exclusive -
+        n t i o n --------            mode ( S I X ) . S u p p o s e o n e t r a n s a c t i o n w a n t s t o
+read a n s n t i r e s u b t r e e and t o u p d a t e p a r t i c u l a r                     nodes of t h a t
+subtree.             U s i n g t h e m o d e s p r o v i d e d so f a r i t w o u l d h a v e t h e
+options of:              ( a ) r e q u e s t i n g e x c l u s i v e access t o t h e r o o t o f t h e
+s u b t r e e and doing n o f u r t h e r l o c k i n g o r (b) r e q u e s t i n g ' i n t e n t i o n
+exclusive a c c e s s t o t h e root o f t h e s u b t r e e a n d e x p l i c i t l y l o c k i n g
+t h e lower             nodes i n              intention,          share           o r exclusive           mode.
+A l t e r n a t i v e (a) h a s low c o n c u r r e n c y .          If      only a small f r a c t i o n o f
+t h e r e a d n o d e s a r e u p d a t e d t h e n a l t e r n a t i w (b) h a s h i g h l o c k i n g
+overhead.            T h e c o r r e c t access mode w o u l d b e s h a r e access t o t h e
+ suhtree thereby allowing t h e transaction t o r e a d a l l nodes of t h e
+s u b t r e e without further locking                              i n t e n t i o n e x c l u s i v e access t o
+t h e subtree thereby allowing the transaction t o set                                                 exclusive
+l o c k s on t h o s e nodes i n t h e s u b t r e e which a r e t o b e updated and I X
+o r SIX l o c k s o n t h e i n t e r v e n i n g n o d e s .                    Since t h i s is such a
+common c a s e , SIX inode is i n t r o d u c e d f o r t h i s p u r p o s e .                           It i s
+c o m p a t i b l e w i t h I S mode s i n c e o t h e r t r a n s a c t i o n s r e q u e s t i n g I S
+mode w i l l e x p l i c i t l y l o c k l o w e r n o d e s i n I S o r S mode t h e r e b y
+avoiding any updates                        (IX o r X mode)              p r o d u c e d by t h e S I X mode
+transaction.               H o w e v e r S I X mode is n o t c o m p a t i b l e w i t h I X , S , S I X
+o r X mode r e q u e s t s .             An e q u i v a l e n t a p p r o a c h w o u l d b e t o c o n s i d e r
+ o n l y f o u r m o d s s (IS,IX,S,X) , b u t t o a s s u m e t h a t a t r a n s a c t i o n c a n
+r e q u e s t b o t h S a n d IX l o c k p r i v i l e g e s on a r e s o u r c e .
+T a b l e 1 g i v e s t h e c o m p a t i b i l i t y o f t h e r e q u e s t modes, where f o r
+c o m p l e t e n e s s we h a v e a l s o i n t r o d u c e d t h s ~III mode (NL)      which
+represents the               a b s e n c e of        r e q u e s t s of    a resource    by a
+transaction.
+
+
+
+
+                  T a b l e 1 . C o m p a t i b i l i t i e s among access modes.
+
+To s u m m 3 r i z z , we r e c o g n i z e s i x m o d e s o f access t o a r e s o u r c e :
+NL:    G i v e s n o a c c e s s t o a n o d e i. e.        represents t h e absence              of a
+       request of a resource.
+IS:    G i v s s i n t e n t i o n s h a r e access t o t h e r e q u e s t e d n o d e a n d a l l o w s
+       t h e r e q u e s t o r t o l o c k d e s c e n d a n t n o d s s i n S o r I S m ~ d e . (It
+       d o e s go i m p l i c i t l o c k i n g . )
+
+IX:    G i v s s i n t e n t i o n e x c l u s i ~ access
+                                                   ~       t o t h e requested              node and
+       allows t h e requestor t o expliciLlp lock descendants                               i n X , S,
+       S I X , I X o r I S mode.         (It d o e s    i m p l i c i t locking.)
+S:    Gives s h a r e a c c e s s t o t h e r e q u e s t e d node and t o a l l d e s c e n d a n t s
+       o f t h e requested node without s e t t i n g f u r t h e r locks.                          (It
+       i m p l i c i t l y s e t s S l o c k s o n a l l d e s c e n d a n t s of t h e r e q u e s t e d
+       node.)
+SIX: G i v e s s h a r s a n d j~~r~ggtion e x c l u g i v g a z c e s s t o t h e r e q u e s t e d
+    node.       I n p a r t i c u l a r i t i m p l i c i t l y l o c k s 311 d e s c e n d a n t s o f
+    t h e n o d s i n s h a r e mode a n d a l l o w s t h e r e q u e s t o r t o e x p l i c i t l y
+    l o c k d e s c e n d a n t n o d e s i n X , SIX o r I X mode.
+X:     Giv2s e x c l u s i v ~ a c c e s s t o t h e r e q u e s t e d node and t o a l l
+       d e s c e n d a n t s of t h e r e q u e s t e d node w i t h o u t s e t t i n g f u r t h e r
+       locks.          (It i m p l i c i t l y s e t s X  locks on a l l descendants.)
+        ( L o c k i n g l o w e r n o d e s i n S o r I S mode w o u l d g i v e n 3 i n c r e a s e d
+       a c c e s s .)
+
+I S mode i s t h e w e a k e s t n o n - n u l l    f o r m of a c c e s s t o a r e s o u r c e .  It
+carries f e w e r p r i v i l e g e s t h a n IX o r S modes.             I X mode a l l ~ w sI S .
+IX, S , S I X a n d X msde l o c k s t o be s e t o n d a s c e n d a n t n o d e s w h i l e S
+mode     a l l o w s r e a d o n l y access t o            a l l descendants         of t h e node
+without further locking.                  SIX mode c a r r i e s t h e p r i v i l e g e s o f S a n d
+o f I X mode         ( h e n c e t h e name S I X ) .      X mode is t h e     most p r i v i l e g e d
+f o r m o f access a n d a l l o w s r e a d i n g a n d w r i t i n g of a l l d e s c e n d a n t s
+    o f a node without f u r t h e r locking.                    H e n c e t h e m o d e s can b e r a n k e d
+    i n t h e p a r t i a l o r d e r ( l a t t i c e ) of      p r i v i l e g e s s h o w n i n F i g u r e 2.
+    Yote t h a t it i s              not a t o t a l            order since I X                  a ~ dS a r e
+    incomparable.
+
+                                                        X
+                                                         I
+                                                        1
+                                                       SIX
+                                                        I
+
+
+
+
+         F i g u r e 2.   The p a r t i a l o r d e r i n g o f modes by t h e i r p r i v i l e g e s .
+
+
+
+=   The i m p l i z i t l o c k i n g o f n o d e s w i l l n o t work i f t r a n s a c t i o n s a r e
+    allowed t o l e a p i n t o t h e middle o f t h e tree and begin l o c k i n g
+    n o d e s a t random.         The i m p l i c i t l o c k i n g i m p l i e d by t h e S and X
+    n o d e s d e p n d s on a l l t r a n s a c t i o n s o b e y i n g t h e f o l l o w i n g p r o t o c o l :
+
+     (a) E e f o r e r e q u e s t i n g a n S o r I S l o c k o n a n o d e ,        all ancestor
+          n o d e s o f t h e r e q u e s t e d n o d e m u s t b e h e l d i n I X o r I S mode by
+          the requestor.
+     (b) B e f o r e r e q u e s t i n g a n X, SIX o r I X l o c k a n a n o d e , a l l a n c e s t o r
+          n o d e s o f t h e r e q u e s t e d n o d e m u s t b e h e l d i n S I X o r IX m o d e by
+          the r e q u e s t o r .
+
+     (c) L o c k s s h o u l d b e r e l e a s e d e i t h e r a t t h e e n d o f t h e t r a n s a c t i o n
+           ( i n any order) o r i n l e a f t o r o o t order. I n p a r t i c u l a r , i f
+          l o c k s a r e n o t h e l d t o end o f t r a n s a c t i o n , one should n o t hold
+          a lower l o c k a f t e r r e l e a s i n g its ancestor.
+
+    To paraphrase t h i s , l o c k s               r e q u e s t e d r o o t t q Lgqf,  released
+    leaf -
+    --          t o ----
+                     root.     N o t i c e t h a t leaf        nodes are never r e q u e s t e d i n
+    i n t e n t i o n mode s i n c e t h e y h a v e n o d e s c e n d a n t . ~ .
+
+    S e v e r a l e---
+    ----            xamplss:
+
+    It     ma7 b e        instructive t o          give      a few      ex2mplos o f          hierarchical
+r e q u e s t ssquencas:
+To l o c k r e c o r d R f o r r e a d :
+  lock data-base                         w i t h mode = I S
+  lock arsa containing R                 w i t h mode = I S
+  lock f i l e c o n t a i n i n g R     w i t h mode = I S
+  lock record R                          w i t h mode = S
+Don't p a n i c , t h e t r a n s a c t i o n p r o b a b l y a l r e a d y h a s   t h e d a t a base,
+a r e a and f i l e lock.
+To l o c k r e c o r d R f o r w r i t e - e x c l u s i v e a c c e s s :
+  lock data-base                               w i t h mode = I X
+  lock area containing R                       w i t h mode = I X
+  lock file containing R                       w i t h mod2 = I X
+  lock record R                                w i t h mode = X
+Note t h a t i f t h e r e c o r d s o f t h i s and t h e p r s v i o u s example are
+d i s t i n c t , each r e q u e s t can be g r a n t e d s i m u l t a n e o u s l y t o d i f f e r e n t
+t r a n s a c t i o n s e v e n t h o u g h b o t h r e f e r t o t h e same f i f e .
+
+To l o c k a f i l e F f o r r e a d a n d w r i t e a c c e s s :
+  lock data-base                                w i t h mode = I X
+  lock area containing F                        w i t h mode = I X
+  lock f i l z P                                w i t h mode = X
+S i n c e t h i s r e s e r v e s e x c l u s i v e a c c e s s t o tht f i l e , i f t h i s r e q u e s t
+u s e s t h e s a m e f i l e a s t h e p r e v i o u s t w o e x a m p l e s it o r t h e o t h e r
+t r a n s a c t i o n s w i l l have t o wait.
+
+To l o c k a f i l e F f o r c o m p l e t e s c a n a n d o c c a s i o n a l u p d a t e :
+  lock data-base                                w i t h mode = I X
+  lock area containing F                        w i t h mode = I X
+  lock fils F                                   w i t h mode = SIX
+T h e r e a f t e r , p a r t i c u l a r r e c o r d s i n F c a n bs l o c k e d f o r u p d a t e by
+l o c k i n g r e c o r d s i n X mode.                Notice t h a t   (unlike the previous
+example) t h i s t r a n s a c t i o n is c o m p a t i b l e with t h e first example.
+T h i s i s t h e r e a s o n f o r i n t r o d u c i n g SIX mode.
+T o quiesce t h e d a t a base:
+l o c k d a t a b a s e w i t h mode = X .
+Note t h 3 t t h i s l o c k s e v e r y o n e else o u t .
+
+
+--------
+D i r e c t e d p~qccic q r a p h ~of l o c k s :
+The n o t i o n s s o f a r i n t r o d u c e d c a n b e g e n e r a l i z e d t o w o r k f o r
+directed acyclic graphs                      ( D A G ) of     r e s o u r c ? ~ r a t h e r than simply
+h i e r a r c h i 2 s of r e s o u r c e s .       A   t r e e i s a s i m p l e DAG.           The key
+o b s e r v a t i o n is t h a t t o i m p l i c i t l y o r e x p l i , - i t l y lock a n o d e , o n e
+s h o u l d l o c k --- a l l t h e p a r e n t s o f t h e n o d e i n t h e DAG a n d s o by
+i n d u c t i o n l o c k 311 a n c e s t o r s o f t h e n o d e .         I n particular, t o lock
+a s u b g r a p h o n e must i z p l i c i t l y o r e x p l i c i t l y l o c k a l l a n c e s t o r s o f
+t h e s u b g r a p h i n t h e a p p r o p r i z t e mods ( f o r a t r e e t h e r e i s o n l y o n e
+parent).             T o g i v e an e x a n p l e of a n o n - h i e r a r c h i c a l        structure,
+i m a g i n e t h e l o c k s a r e o i g a n i z e d as i n F i g u r e 3.
+                                             D A T A BASE
+                                                      I
+                                                      I
+                                                AREAS
+                                                      I
+                                           ---I-,--
+                                       I                       I
+                                   FILES                  INDICES
+                                       I                       I
+
+
+
+
+                       F i g u r e 3. A n o n - h i e r a r c h i c a l   lock graph.
+We p o s t u l a t e t h a t a r e a s a r e f l p h y s i c a l l * n o t i o n s a n d t h a t f i l e s ,
+i n d i c e s and r e c o r d s are l o g i c a l n o t i o n s .            The d a t a b a s e is a
+c o l l e c t i o n of areas.           Each area i s a c o l . l e c t i o n o f f i l e s and
+indices.           E a c h f i l e h a s a c o r r e s p o n d i n g i n d e x i n t h e same a r e a .
+E a c h r e c o r d b e l o n g s t o soma f i l e a n d t o i t s c o r r e s p o n d i n g i n d e x .
+A r s c o r d i s c o m p r i s e d o f f i e l d v a l u e s a n d some f i e l d is i n d e x e d by
+the index a s s o c i a t e d u i t h t h e f i l e c o n t a i n i n g t h e record.                  The
+f i l e g i v e s a s e q u e n t i a l access p a t h t o t h e r e c o r d s a n d t h e i n d e x
+g i v e s a n a s s o c i a t i v e access p a t h t o t h e r e c o r d s b a s e d o n f i e l d
+values.           Since individual f i e l d s are never locked, they do n o t
+appear i n t h e lock graph.
+To writ? a r e c o r d R i n f i l e F w i t h i n d e x I :
+ lock data base                    w i t h mode = I X
+ lock area containing F            w i t h mode = I X
+ lock f i l e P                    with node = I X
+ lock index I                      w i t h mode = I X
+ lock record R                     w i t h mode = X
+N o t e t h a t 212 p a t h s t o r e c o r d R a r e l o c k e d .    Alternaltively, one
+c o u l d l o c k F a n d I i n e x c l u s i v e mode t h e r e b y i m p l i c i t l y l o c k i n g R
+i n e x c l u s i v e mode.
+To g i v e a m o r e c o m p l e t e e x p l a n a t i o n we o b s e r v e t h a t a n o d e c a n b e
+l o c k e d e x ~ l i c i z _ l p ( b y r e q u e s t i n g i t ) o r i m p l i c i t l y (by a p p r o p r i a t e
+e x p l i c i t l o c k s o n t h e a n c e s t o r s of t h e n o d e ) i n o n e o f f i v e modes:
+I S , I X , S , SIX, X .              However,          t h e d e f i n i t i o n of i m p l i c i t l o c k s and
+t h e p r o t o c o l s f o r s e t t i n g e x p l i c i t l o c k s h a v e t o be e x t e n d e d a s
+follows:
+A node     '  i s j w i c i t l y q r a n t d ig S mode t o a t r a n s a c t i o n i f a t
+  e a s t o---
+l----       ne o f its p a r e n t s is ( i m p l i c i t l y o r e x p l i c i t l y ) g r a n t e d t 3
+t h e t r a n s a c t i o n i n S , SIX o r X mcde.      By i n d u c t i o n t h a t m e a n s t h a t
+a t least o n 2 o f t h e node's a n c e s t o r s m u s t b e explicitly g r a n t e d i n
+S , SIX o r X mode t o t h e t r a n s a c t i o n .
+
+A nods         i s i m p l i c i t l ~ g r a n t e d A. X mode i f         222     of i t s p a r e n t s are
+ (isplicitly or explicitly)                    g r a n t e d t o t h e t . r a n s a c t i o n i n X node.
+ey i n d u z t i o n ,   t h i s is equivalent t o t h e condition t h a t a l l nodes
+i n some c u t set o f t h e c o l l e c t i o n o f a l l p a t h s l e a d i n g f r o m t h e
+node t o t h l m o t s o f t h e graph are e x p l i c i t l y g r a c t e d t o t h e
+t r a n s a c t i o n i 3 X mode a n d a l l a n c e s t o r s of n o i e s i n t h e c u t s e t
+a r e e x p l i c i t l y g r a n t e d i n I X o r SIX mode.
+
+From F i g u r e 2 ,          a n o d e i s i m p l i c i t l y g r a n t e d i n I S mode i f i t i s
+i m p l i c i t l y g r a n t e d i n S mode, a n d a n o d e is i m p l i c i t l y g r a n t e d i n
+I S , I X , S a n d SIX mode i f i t i s i m p l i c i t l y g r a n t e d i n X mode.
+
+
+
+(a)     Before r e q u e s t i n g an S o r I S l o c k on a node, o n e should
+        r e q u e s t a t least one p a r e n t (and by i n d u c t i o n a p a t h t 3 a
+        r o o t ) i n I S ( o r g r e a t e r ) mode.       A s a consequence none of t h e
+        ancestors along t h i s                 path can be granted           t o another
+        t r a n s a c t i o n i n a mode i n c o m ~ a t i b l eu i t h I S .
+(b)    F e f o r e r ~ q u e s t i n gI X ,    S I X o r X mods a c c e s s t o a n o d e , o n e
+        s h o u l d r e q u e s t a l l p a r e n t s o f t h e n o d e i n IX ( o r g r e a t e r )
+         mode.       As a c o n s e q u e n c e a l l a n c e s t o r s w i l l be held i n I X (or
+        g r s a t e r mode) a n d c a n n o t b e h e l d by o t h e r t r a n s a c t i o n s i n a
+         mod2 incompatible w i t h I X ( i . e . S , S I X , X)             .
+(c) L o c k s s h o u l d b e r e l e a s e d e i t h e r a t t h e e n d o f t h e t r a n s a c t i o n
+      (in any o r d e r ) o r i n leaf t o r o o t order.                    I n particular, if
+     l o c k s a r e n o t h e l d t o t h e end of t r a n s a c t i o n , o n 2 s h o u l d n o t
+     h o l d a l o w e r l o c k a f t e r r e l e a s i n g its a n c e s t o r s .
+
+To      g i v e a n e x a m p l e u s i n g F i g u r e 3, a s e q u e n t i a l s c a n o f a l l
+r e c o r d s i n f i l e F n e e d n o t u s e a n i n d e x so o n e c a n g e t a n i s p l i c i t
+s h a r e l o c k o n e a c h r e c o r d i n t h e f i l e by:
+
+  lock data base                               w i t h mode = I S
+  lock area containing F                       w i t h mode = I S
+  lock file P                                  w i t h mode = S
+This gives i m p l i c i t              S mode a c c e s s t o a11                r e c o r d s i n F.
+C o n v e r s e l y , t o r e a d a r e c o r d i n a f i l e v i a t h e i n d e x I f o r f i l e F,
+o n e n e e d n o t g e t a n i m p l i c i t o r e x p l i c i t l o c k o n f i l e F:
+  lock data base                                w i t h mode = I S
+  lock area containing R                        w i t h mode = I S
+  lock index I                                  w i t h mode = S
+T h i s a g a i n g i v e s i m p l i c i t S mode a c c e s s t o a l l r e c o r d s i n i n d ? x I
+( i n f i l e F) .       I n b o t h t h e s e c a s e s , _only      pth              l o c k e d fay
+readinu.
+
+Eut t o i n s e r t , d e l e t e o r update a record              R i n f i l e F with index I
+o n % m u s t g e t a n i m p l i c i t ar s x p l i c i t l o c k on a l l a n c e s t o r s of R .
+
+T h e f i r s t e x a m p l e o f t h i s s e c t i o n s h o v e d how a n e x p l i c i t X l o c k o n
+a rr5cor3 i s o b t a i n e d .         To g e t a n i m p l i c i t X l o c k o n a l l r e c o r d s i n
+a f i l e o n e c a n s i m p l y l o c k t h e i n d e x a n d f i l e i n X mode, o r l ~ c k
+t h e a r e a i n X rod?.             The l a t t e r e x a m p l e s a l l o w h u l k l c a d o r u p d a t e
+o f a f i l e w i t h o u t f u r t h e r l o c k i n g s i n c e a11 r e c o r d s i n t h e f i l e
+a r a i m p l i c i t l y g r a n t e d i n X mode.
+
+
+P r o o f of ~ g u i v a l e n c ?of t h e l o c k p r o t o c o l .
+-----
+W e w i l l now p r o v e t h a t t h e d e s c r i b e d l o c k p r o t o c o l i s e q u i v a l e n t
+t o a c o n v e n t i o n a l o n e w h i c h u s e s o n l y two m o d e s (S a n d X ) , a o d
+which l o c k s o n l y a t o m i c r e s o u r c e s ( l e a v e s o f a t r e e o r a d i r e c t e d
+graph)
+L e t G = (N,A)           b e a f i n i t e ( d i r e c t e d ) grr~_h w h e r e N i s t h e s e t o f
+n o d e s a n d A is t h e s e t o f a r c s . G i s s s s u m e d t o b e w i t h a u t
+c i r c u i t s ( i . e . t h e r e i s no n o n - n u l l p a t h l e a d i n g f r o m a n o d e n t o
+i t s e l f ) . A node p i s a p a r e n t of a n o d e n a n d n i s a c h i 1 2 of p
+if t h e r e i s ari a r c f r o a p t o n .              A node n i s a s p u r c e ( s i n k ) i f n
+has no p a r e n t s         (no children).           L e t S I b e t h e s e t o f s i n k s o f G.
+An _an_c,~_sr~x       of n o d e n i s a n y n o d e ( i n c 1 u d i r . g n) i n a p a t h from a
+s o u r c e t o n.        A n o d e - s l i c e o f a s i n k n i s a c o l l e c t i o n of n o d e s
+such t h a t oach path from a s o u r c e t o n c o n t a i n s a t least one o f
+t h e s e nodes.
+We a l s o i n t r o d u c e t h e s e t o f l o c k m o d e s M = { N L , I S , I X , S , S I X , X ] and
+t h e c o m p a t i b i l i t y m a t r i x C : MxM->{YES, N O ) d e s c r i b e d i n T a b l e 1 .
+W e w i l l c a l l c : mxm->{YES,NO)                 the restriction of C t o m =
+ {NL,S,X].
+
+A l o c k - q g g ~ h i s a m a p p i n g L : N->M s u c h t h a t :
+ (3) i f L (n) e         { I S , S ) t h e n e i t h e r n is a s o u r c e or thsre exists a
+      p a r e a t p o f n s u c h t h a t L ( p ) € { I S , I X , S , SIX,X]         .
+                                                                                 By i n d u c t i o n
+     t h e r e o x i s t s a p a t h from a s o u r c e t o n s u c h t h a t L t a k e s o n l y
+     v a l u e s i n (IS,IX,S,SIX,x)          on i t .      E q u i v a l e n t l y L is n o t e q u a l
+     t o NL o n t h e p a t h .
+ (b)   i f L (n)       € {IX,SIX,X)       then e i t h e r n is a root D r for a l l
+     p a r e n t s p l . . . p k o f n we h a v e L ( p i ) € { I X , S I X , X ]    1   k ) .       By
+     induction L takes only values in                             {IX,SIX,X)           on a l l t h e
+     a n c s s t o r s of n.
+T h e i n t e r p r e t a t i o n o f a l o c k - g r a p h i s t h a t it g i v e s a map o f t h e
+e x p l i c i t l o c k s h e l d by a p a r t i c u l a r t r a n s a c t i o n o b s e r v i n g t h e s i x
+s t a t e l o c k p r o t o c 3 1 d e s c r i b e d above.           The n o t i o n of p r o j e c t i o n of
+a l o c k - g r a p h i s now i n t r o d u c e d t o m o d e l t h n s e t o f i m p l i c i t l o c k s
+o n a t o m i c r e s o u r c e s c o r r e s p o n d i n g l y a c q u i r e d by a t r a n s a c t i o n .
+
+T h e ~~o~_e_ce&g o f a l o c k - g r a p h            L is t h e        m a p p i n g 1: SI->m
+construct2d as f o l l ~ w s :
+(a) 1 ( n ) = X                                                            ..
+                   if there e x i s t a n o d e - s l i c e { n l . n s ) o f 11 s u c h t h a t
+      L(ni) = X (i=l .ns)  ..        .
+( b ) 1( n ) = S i f (a) i s n o t sntisf ied a n d t h e r e exist a i l ancestor a
+      o f n s u c h t h a t L ( a ) € (S,SIX,X].
+(c) 1( n ) = N L i f ( a ) a n d ( b ) ' a r e n o t s a t i s f i e d .
+    Two l o c k - g r a p h s         L1      a n d L2 a e s a i d t o                 be compatible i f
+    C ( L l ( n ) , L 2 ( n ) ) = Y E S f o r a l l n € N.          S i m i l a r l y two p r a j e c t i o n s 1 1
+    a n d 1 2 a r e c o m p a t i b l e i f c ( 1 l ( n ) , 1 2 ( n ) ) = Y E S f o r a l l n € SI.
+    We a r e now i n a p o s i t i o n t o p r o v e t h e f o l l o w i n g T h e o r e m :
+
+    I f t w o l o c k - g r a p h s L 1 a n d L2 a r e c o m p a t i b l e t h e n t h e i r p r o j e c t i o n s
+    11 a n d 1 2 a r e c o m p a t i b l e . I n o t h e r w o r d s i f t h ? e x p l i c i t l o c k s s e t
+    b y two t r a n s a c t i o n s are n o t c o n f l i c t i n g t h e n a l s o t h e t h r e e - s t a t e
+    l o c k s i m p l i c i t e l y a c q u i r e d are n o t c o n f l i c t i n g.
+    ----
+    P r o o f : Assume t h a t 1 1 a n d 1 2 a r e i n c o m p a t i b l e .     W  e want t o p r ~ v e
+    t h a t L 1 a n d L 2 a r e i n c o m p a t i b l e . By d e f i n i t i o n o f c o a p a t i b i l i t y
+    t h e r e m u s t e x i s t a s i n k n s u c h t h a t 1 1 ( n ) =X a n d 1 2 ( n ) € {S, X) ( o r
+    vice vsrsa)         .    By d e f i n i t i o n o f p r o j e c t i o n t h e r e m u s t e x i s t a
+    node-slice          {nl   ...                                                      .
+                                  n s ) o f n s u c h t h a t L l ( n l ) =. . = L l ( n s ) = X .     A 1 so
+    t h e r e m u s t e x i s t a n a n c e s t o r n o o f n s u c h t h a t L2 ( n 0 ) € { S , S I X , X ) .
+    From t h e d ~ f i n i t i o no f l o c k - g r a p h t h e r e i s 2 p a t h P1 f r o m a s o u r c e
+    t o n o o n w h i c h L2 d o e s n o t t a k e t h e v a l u e NL,.
+
+    If      PI     i n t e r s e c t s t h e node-slice      a t n i t h e n L1 a n d L 2                       are
+    i n c o m p a t i b l e s i n c e L l ( n i ) = X which is i n c o m p a t i b l e w i t h t h e            non
+    n u l l v a l u s o f L2 (ni) . H e n c e t h e t h e o r e m i s p r o v e d .
+
+    A l t e r n a t i v e l y t h e r e i s a p a t h P2 f r o m n o t o t h e s i n k n w h i c h
+    i n t e r s e c t s t h e node-slice             at ni.        From t h e         definition of
+    l o c k - g r a p h L7 t a k e s a v a l u e i n    {IX,SIX,X) o n a l l a n c e s t o r s o f n i .
+-   I n p a r t i c u l a r L l ( n 3 ) € {IX,SIX,X).          S i n c e L 2 ( n 0 ) € {S,SIX,X) we
+    have C(Ll(nO),L2(nO))=NO.                    Q.E.D.
+
+
+
+
+    T h u s f a r we h a v e p r e t e n d e d t h a t t h e l a c k g r a ~ h i s s t a t i c .
+    However, e x a m i n a t i o n o f F i g u r e 3 s u g g e s t s o t h e r w i s e .  Areas, f i l e s
+    a n d indices a r e d y n a m i c a l l y c r e a t e d a n d d e s t r o y e d ,    and of c o u r s e
+    r e c o r d s are c o n t i n u a l l y i n s e r t e d , updated, and deleted.             (If t h e
+    d a t a b a s e i s o n l y r e a d , t h e n t h e r e is na n e e d f o r l o c k i n g a t
+    all.)
+    The lock          p r o t o c o l f o r s u c h o p e r a t i o n s is n i c e l y d e m o n s t r a t e d b y
+    t h e implementation of index i n t e r v a l locks.                                Rather than being
+    forced t o lock e n t i r e indices or individual records,                                          we w o u l d
+    l i k e t o be a b l e t o l o c k a l l = c o r d s with s c e r t a i n i n d e x v a l u e ;
+    f o r example,            lock a l l r e c o r d s i n t h e bank a c c o u n t f i l e w i t h t h e
+    l o c a t i o n f i e l d e q u a l t o Napa.       T h e r e f o r e , t h e i n d e x is p a r t i t i o n e d
+    i n t o lockable kay value intervals.                           E a c h i n d e x e d r e c o r d l1b e l o n g s"
+    t o a p a r t i c u l a r i n d e x i n t e r v a l and a l l r e c o r d s i n a f i l e w i t h t h e
+    same f i e 1 3 v a l u e on a n i n d e x e d f i e l d w i l l b e l o n g t o t h e s a n e k e y
+    value interval                 ( e . a         Napa a c c o u n t s w i l l b e l o n g .t3 t h e same
+    intsrval).            This now s t r u c t u r e i s d e p i c t e d i n F i g u r e 4 .
+
+                                                 DATA BASE
+                                                          1
+                                                          I
+                                                       AR EA S
+                                                          1
+                                                          1
+                                                        FILE
+                                                          I
+                                       I                      , , -
+                                   1                                       I
+                                   1                                 I N DICES
+                                   I                                       I
+                                   I                                       I
+                                   1                                 INDEX V A L U E
+                                   1                                 INTERVALS
+                                   I                                       I
+
+
+
+                                                   -   - I,-             --I
+                                               1                   I I
+                                               I                   I 1
+                                U N - I N DEXED                  INDEXED
+                                   FIELDS                         FIELDS
+
+             F i g u r e i.r   . The l o c k g r a p h w i t h k e y i n t e r v a l l o c k s .
+The o n l y s u b t l e a s p e c t o f F i g u r e 4 is t h e d i c h o t o s y between
+i n d l x e d an3 un-indexed                   f i e l d s a n d t h e fact t h a t a key v a l u e
+i n t e r v a l i s t h e p a r e n t o f b o t h t h e r e c o r d s.nd its i n d e x e d f i e l d s .
+S i n z s t h e f i e l d v a l u e and r e c o r d i d e n t i f i e r ( d a t a b a s e key) appear
+i n t h e insex,                one can read t h e f i e l d d i r e c t l y (i.e.                    uith~ut
+touching the rscord)                       . Hence a key v a l u e i n t e r v a l i s a p a r e n t o f
+t h e corresponding field values.                               On t h e o t h e r h a n d , t h e i n d e x
+l q p o i n t s f l v i a r e c o r d i d e n t i f i e r s t o a l l r e c o r d s w i t h t h a t value a n d
+so i s a parent of a l l records with t h a t f i e l d value.
+
+S i n c e F i g u r e 4 d e f i n e s a DAG, t h e p r o t o c o l o f t h e p r e v i o u s s e c t i o n
+c a n b e u s e d t o l o c k t h e n o d e s of t h e g r a p h .             H o w e v e r , it s h o u l d b e
+extended a s follons.                When a n i n d e x e d f i e l d i s u p d a t e d , i t a n d i t s
+p a r e n t r e c o r d move f r o m o n e i n d e x i n t e r v a l t o a n o t h e r .                 So f o r
+e x a m p l e when a Napa a c c o u n t i s moved t o t h e S t . H e l e n a b r a n c h , t h e
+a c c o u n t r e c o r d a n d i t s l o c a t i o n f i e l d I t l e a v e " t h e Napa i n t e r v a l o f
+t h e l o c a t i o n i n d e x and jointq t h e S t . Helena i n d e x i n t e r v a l .                   When
+a new r e c o r d is i n s e r t e d i t l * j o i n s u t h e i n t e r v a l c o n t a i ~ i n gt h e
+new f i e l d v a l u e a n d a l s o i t w j o i n s l l t h e f i l e .               D e l e t i o n removes
+t h e r e c o r d f r o m t h e i n d e x i n t e r v a l a n d from t h e f i l e .
+
+T h e l o c k p r o t o c o l f o r c h a n g i n g t h e p a r e n t s o f a n o d e is:
+
+(d) B e f o r e      moviny a                  node i n       the lock     graph,   the    n o d e inust     be
+       i m p l i c i t l y o r explicitly g r a n t e d i n X mode i n b o t h i t s o l d a n d
+       i t s new p o s i t i o n i n t h e g r a p h . F u r t h e r , t h e n o d e m u s t not b e
+       moved i n s u c h a way a s t o c r e a t e a c y c l e i n t h e g r a p h .
+S o t o c a r r y o u t t h e e x a m p l e o f t h i s s e c t i o n , t o move a N a p a b a n k
+a c c o u n t t o t h e S t . H e l e n a b r a n c h o n e would:
+  lock data base                                  i n modo = I X
+  l o c k a r e a c o n t a i n g a c c o u n t s i n mode = I X
+  lock accounts f i l e                           i n mode = I X
+  lock location index                             i n mode = I X
+  l o c k Napa i n t e r v a l                    i n mode = I X
+  l o c k St. H e l e n a i n t e r v a l         i n mode = I X
+  lock record                                     i n mode = I X
+  lock field                                      i n mode = X .
+Alternatively, on2 c o u l d g e t a n i m p l i c i t l o c k o n t h e f i e l d b y
+r e q u e s t i n g e x p l i c i t X mode locks              o n t h e r e c o r d and i n d e x
+intervals.
+The d a t a b a s e c o n s i s t s o f e n t i t i e s which are k m w n t o b e
+s t r u c t u r s d i n c e r t a i n ways.  T h i s s t r u c t u r e i s b e s t t h o u g h t of a s
+a s s e r t i o n s about t h e data.       Examples of such a s s e r t i o n s a r e :
+    Names is a n i n d e x f o r T e l e p h o n e - n u m b e r s .
+  'The        value of          Count-of-x    g i v e s t h e number o f e m p l o y e e s i n
+department x.
+T h e d a t a b a s e is s a i d t o b e m n p & t e n t            if it s a t i s f i e s a l l its
+assertions [2].                  I n some c a s e s , t h e d a t a b a s e m u s t b e c o m e
+t e m p o r a r i l y i n c o n s i s t e n t i n o r d e r t o t r a n s f o r m it t o a new
+c o n s i s t e n t state.          F o r example,     a d d i n g a new e m p l o y e e i n v o l v e s
+s e v e r a l a t o m i c a c t i o n s a n d t h e u p d a t i n g of' s e v e r a l f i e l d s . The
+d a t a b a s e may b e i n c o n s i s t e n t u n t i l a l l t h e s e u p d a t e s h a v e b e e n
+completed.
+To c o p e w i t h t h e s e t e m p o r a r y i n c o n s i s t e n c i e s , s e q u e n c e s o f a t o m i c
+a c t i o n s a r e grouped t o form t r a n s a c t i o g s .               Transactions are t h e
+u n i t s of consistency.                 They a r e l a r g e r a t o m i c a c t i o n s on t h e d a t a
+b a s e w h i c h t r a n s f o r m i t f r o m o n e c o n s i s t e n t s t a t e t o a new
+c o n s i s t s n t state.          Transactions preserve consistency.                             If    some
+a c t i o n of 3 t r a n s a c t i o n f a i l s t h e n t h e e n t i r e t r a n s a c t i o n i s
+'undoneq t h e r e b y r e t u r n i n g t h e d a t a base t.o a c o n s i s t e n t state.
+T h u s t r a n s a c t i o n s a r e a l s o t h e u n i t s of' r e c o v e r y .                Hardware
+f a i l u r e , s y s t e m e r r o r , deadlock, p r o t e c t i o n v i o l a t i o c s and program
+e r r o r a r e each a source o f such f a i l u r e .                   T h e s y s t e m Bay e n f o r c e
+t h e c o n s i s t e n c y a s s e r t i o n s a n d undo a t r a n s a c t i o n which t r i e s t o
+leave the data base in an inconsistent state.
+
+I f t r a n s a c t i o n s a r e r u n o n e a t a time t h e n e a c h t r a n s a c t i o n w i l l
+see t h e c o n s i s t e n t s t a t e l e f t b e h i n d by its p r e d e c e s s o r .          But i f
+s e v e r a l t r a n s a c t i a n s are s c h e d u l e d c o n c u r r e n t l y t h e n l o c k i n g is
+r e q u i r e d t o i n s u r e t h a t t h e i n p u t s t o 2ach t r a n s a c t i o n are
+consistent.
+R e s p o n s i b i l i t y f o r r e q u e s t i n g a n d releasing l o c k s c a n b e e i t h e r
+a s s u m e d by t h e u s e r o r d e l e g a t e d t o t h e s y s t e m .            User c o n t r o l l e d
+l o c k i n g r e s u l t s i n p o t e n t i a l l y fewer l o c k s d u e t o t h e u s e r ' s
+knowledge o f t h e s e m a n t i c s o f t h e d a t a .                 On t h e    o t h e r hand, u s e r
+controlled locking requires d i f f i c u l t and p o t e n t i a l l y u n r e l i a b l e
+a p p l i c a t i o n programming.              H e n c e t h e a p p r o a s h t a k e n b y sorne d a t a
+b a s e s y s t e m s is t o u s e a u t o m a t i c l o c k p r o t o c o l s which i n s u r e
+p r o t e c t i o n from g e n e r a l t y p e s o f i n c o n s i . s t e n c i e s , w h i l e still
+r e l y i n g on t h e u s e r t o p r o t e c t h i m s e l f a g a i n s t o t h e r s o u r c e s of
+inconsistencies.                  F o r e x a m p l e , a s y s t e m may a u t o m a t i c a l l y l s c k
+upd3ted r 2 c o r 3 s b u t n o t r e c o r d s which are read.                           Such a s y s t e m
+p r e v e n t s l o s t u p d a t e s a r i s i n g from t r a n s a c t i o n backup.          Still, the
+user should e x p l i c i t l y lock records i n a read-update sequence t o
+i n s u r e t h a t t h e read value does n o t change before t h e a c t u a l
+update.           I n o t h e r words, a u s e r i s guaranteed a l i m i t e d a u t o m a t i c
+-- ---
+ degree       ~f    _cgr?sist,pqcp.         r h i s degree o f c o n s i s t e n c y may b e s y s t e m
+ w i d ? o r t h e s y s t a a may p r o v i d e o p t i o n s t o s e l e c t i t ( f o r i n s t a n c e
+ a l o c k p r o t o c o l nay b e a s s o c i a t e d with a t r a n s a c t i o n o r w i t h an
+entity).
+tile now p r e s e n t s e v e r a l e q u i v a l e n t   def initiuns of four consistency
+degrees:
+
+
+
+
+Rn o u t p u t         (write) o f a                 t r a n s a c t i o n i s c o m m i t t e d when t h e
+t r a n s a c t i o n a b d i c a t e s t h e r i g h t t o * u n d o 1 t h e write t h e r e b y m a k i n g
+t h e new v a l u e a v a i l a b l e t o a l l o t h e r t r a n s a c t i o n s .             3 u t p u t s are
+s a i d t o b e u n c o r n n i t t e d or d i r t y i f t h e y a r s n o t y e t c o m m i t t e d by
+the writer.             C o n c u r r e n t e x e c u t i o n raises t h e problem t h a t r e a d i n g
+o r w r i t i n g o t h o r t r a n s a c t i o n s 1 d i r t y d a t a may y i e l d i n c o n s i s t e n t
+data.
+
+U s i n g t h i s n o t i o n o f d i r t y d a t a , t h e d e g r e e s o f c o n s i s t e n c y may b e
+defined as:
+Definition 1:
+D e g r e e 3 : T r a n s a c t i o n T sees d w r e e 3 c o n s i s t e n c y i f :
+  (a) T does not o v e r w r i t e d i r t y data o f o t h e r t r a n s a c t i 3 n s .
+ (b)       T d o e s n ~ cto m m i t a n y w r i t e s u n t i l i t c o m p l e t e s a l l i t s
+          w r i t e s ( i s . u n t i l t h e e n d o f t r a n s a c t i o n (EOT)).
+  (c) T d o e s n o t r e a d d i r t y d a t a f r o m o t h e r t r a n s a c t i o n s .
+  ( d ) O t h e r t r a n s a c t i o n s d o n o t d i r t y any d a t a r e a d by T b e f o r e T
+          completes     .
+D e g r e e 2 : T r a n s a c t i o n T sees d-qree 2 cgng&ztency i f :
+  (a) T does not overwrite d i r t y data of o t h e r transactians.
+  ( b ) T d o s s n o t c o m m i t a n y w r i t e s b e f o r e POT.
+  (c) T d o e s n o t r e a d d i r t y d a t a o f o t h e r t r a n s a c t i o n s .
+D e g r e e 1 : T r a n s a c t i o n T Sews dgqreg 1 c o n p i g t e n c p i f :
+  (a) T d o e s n o t o v e r w r i t e d i r t y d a t a o f o t h u r t r a n s a c t i o n s .
+  ( b ) T d o s s n o t commit a n y w r i t e s b e f o r e EO'I!.
+
+D e g r e e 0 : T r a n s a c t i o n T sees degree Q c o n s i s t e n c p i f :
+  (a) T d o e s n o t o v e r w r i t e d i r t y d a t a o f o t h e r t r a n s a c t i o n s .
+N o t e t h a t i f a t r a n s a c t i o n sees a h i g h d e g r e e o f c o n s i s t e n c y t h e n
+i t a l s o sees a l l t h e l o w e r d e g r e e s .
+
+These d e f i n i t i o n s have i m p l i c a t i o n s f o r t r a n s a c t i o n recovery.
+T r a n s 3 c t i o n s a r e d i c h o t o m i z e d a s r e c o v e r a b l e t r a n s a c t i o n s which
+can         be       undone         without a f f e c t i n g          other transactions,                    and
+--------
+u n r e c o v  e r a b l e  --------__
+                            t r s n s a c t i o n s w h i c h c a n n o t   bt!  u n d o n e b e c a u s e  t h ey
+h a v e c o m m i t t e d d a t a t o o t h e r t r a n s a c t i o n : ; and t o t h e e x t e r n a l
+world.             Unrecoverable transactions                       cannot:        be      undone w i t h o u t
+c a s c a d i n g t r a n s a c t i o n b a c k u p t o o t h e r t r z n s a c t i o n s zr?d t o t h e
+external              worlii (e. g .              'unprintingl            a     message is               usually
+impossible).               If t h e s y s t e m is t o undo i n d i v i d u a l t r a n s a c t i o n s
+w i t h o u t c a s c a d i n g backup t o o t h e r t r a n s a c t i o n s t h e n none o f t h e
+t r a n s a c t i o n ' s writes can b e committed b e f o r e t h e end o f t h e
+trans3ct ion.             Otherwise     some o t h e r t r a n s a c t i o n c o u l d f u r t h e r
+u p d a t e t h e e n t i t y t h e r e b y making        it i m p o s s i b l e t o p e r f o r m
+t r a n s a c t i o n backup without p r o p a g a t i n g backup t o t h e s u b s e q u e n t
+t r a n s a c t ion.
+
+Degree 0 c o n s i s t s n t t r a n s a c t i o n s are unrecoverable because t h e y
+commit o u t p u t s b e f o r e t h e e n d of t r a n s a c t i o n .        If a l l transactions
+see a t l e a s t d e g r e e 0 c o n s i s t e n c y , t h e n a n y t r a n s a c t i o a which is
+a t l e a s t d s g r e ? 1 c o n s i s t e n t i s r e c o v e r a b l e b e c a u s e it d o e s n o t
+c o m m i t w r i t e s b e f o r e t h e e n d of t h e t r a n s a c t i o n .  For t h i s reason,
+many d a t a b a s e s y s t e m s r e q u i r e t h a t a l l t r a n s a c t i o n s s e e a t l e a s t
+degree 1 consistency i n order t o guarantee t h a t a l l t r a n s a c t i ~ n s
+are recoverable.
+
+Degree 2 c o n s i s t e n c y i s o l a t e s a t r a n s a c t i o n from t h e uncommitted
+data of other               transactions.          With d e g r e e 1         consistency a
+t r a n s a c t i o n might r e a d uncommitted v a l u e s which are subsequently
+u p d a t e d o r are undone.
+
+Degree 3               consistency i s o l a t e s               the transaction             from d i r t y
+r e l a t i o n s h i p s among e n t i t i e s .        For example,        a degree 2 consistent
+t r a n s a c t i o n may r e a d t w o d i f f e r e n t        (committed) v a l u e s i f it r e a d s
+t h s s a m e e n t i t y twice.                T h i s i s b e c a u s e a t r a n s a c t i o n which
+u p d a t e s t h e e n t i t y c o u l d b e g i n , u p d a t e a n d end i c t h e i n t e r v a l o f
+t i a a between t h e two r e a d s .                More e l a b c r a t e k i n d s o f a n o m a i i e s d u e
+t o concurrency are p o s s i b l e i f one updates s n e n t i t y a f t e r readirig
+it o r i f mors t h a n o n e e n t i t y i s i n v o l v e d (see e x a m p l e b e l o w ) .
+Degree 3 c o n s i s t e n c y c o m p l e t e l y i s o l a t e s t h e t r a n s a c t i o n from
+i n c o n s i s t 2 n c i . e ~d u e t o c o n c u r r e n c y .
+
+To g i v e a n e x a m p l e w h i c h d e m o n s t r a t e s t h e a p p l i c a t i o n           of t h e s e
+s e v e r a l d e g r e e s o f c o n s i s t e n c y , i m a g i n e a p r o c g s s c o n t r o l systern
+i n w h i c h some t r a n s a c t i o n i s d e d i c a t e d t o r e a d i n g a g a u g e a n d
+p e r i o d i c a l l y w r i t i n g b a t c h e s of v a l u e s i n t o a l i s t .             Each g a u g e
+r e a 3 i n g is an i n d i v i d u a l e n t i t y .            For performance reasons, t h i s
+t r a n s a c t i o n sees d e g r e e 3 c o n s i s t e n c y ,              committing a l l gauge
+r e a d i n g s a s soon a s they e n t e r t h e d a t a base.                     This transaction is
+~ 3 r te c o v e r a b l e       (can't be undone).                  A second t r a n s a c t i o n     is r u n
+p e r i o d i c a l l y which r e a d s a l l t h e r e c e n t g a u g e r e a d i n g s , c o m p u t e s a
+mean a n d v a r i a n c e a n d writes t h e s e c o m p u t e d v a l u e s a s e n t i t i e s i n
+t h e d a t a bzse.             S i n c e we w a n t t h e s e two v a l u e s t o b e c o n s i s t e n t
+w i t h o n e a n o t h e r , t h e y m u s t b e c o m m i t t e d t o g e t h e r ( i . e . or?e c a n n o t
+commit t h e first b e f o r e t h e s e c o n d i s w r i t t e n ) .                         This allows
+t r a n s a c t i o n undo i n t h e case t h a t i t a b o r t s a f t e r w r i t i n g o n l y o n e
+o f t h e two values.                    H e n c e t h i s s t a t i s t i c a l s u mmarp t r a n s a c t i o n
+s h o u l d s e e d e g r e e 1.         B t h i r d t r a n s a c t i o n w h i c h r e a d s t h e mean a n d
+ writes i t o n a d i s p l a y sees d e g r e e 2 c o n s i s t e n c y .                     It    w i l l not
+r e a d a mean w h i c h m i g h t b e                    'undone'         by a backup.               Another
+t r a n s a c t i o n w h i c h r e a d s b o t h t h e mean a n d t h e v a r i a n c e m u s t see
+d e g r e e 3 c o n s i s t e n c y t o i n s u r e t h a t t h e mean a n d v a r i a n c e d e r i v e
+f r o m t h s s a m e c o m p u t a t i o n ( i . e . t h e same r u n w h i c h w r o t e t h e mean
+a l s o wrote t h e variance).
+Y h e t h e r a n i n s t a n t i a t i o n o f a t r a n s a c t i o n s e e s d e g r e e 0, 1 , 2 o r 3
+consistzncy             depends on              the        actions          of other          concurrent
+transactions.               Lock p r o t o c o l s are used b y a t r a n s a c t i o n t o
+guarantee i t s s l f           a c e r t a i n degree o f c o n s i s t e n c y independent of
+t h e b e h a v i o r o f o t h e r t r a n s a c t i o n s ( s o l o n g a s 311 t r a n s a c t i o n s a t
+least obslrve t h e degree 0 protocol)                      .
+The d e g r e s s of c o n s i s t e n c y can be o p e r a t i o n a l l y d e f i n e d          by t h e
+l o c k p r o t o c o l s which p r o d u c e them.           A transaction l o c k s its i n p u t s
+t o g u a r a n t e s t h e i r c o n s i s t e n c y a n d l o c k s it.s o u t p u t s t o m a r k t h e m
+                                     .
+as d i r t y ( u n c o m m i t t e d )      D e g r e e s 0, 1 a n d 2 a r s i m p o r t a n t b e c a u s e
+of t h e e f f i c i e n c i e s i m p l i c i t i n t h e s e protocols.         Obviously, it is
+cheaper t o l o c k less.
+
+L o c k s a r e d i c h o t o m i z e d a s s h a r e go& J_o_c&i         which a l h w m u l t i p l e
+r e a d e r s o f t h e same e n t i t y a n d e x c l u s i v e g g ~ gJ.2.k~ w h i c h r e s e r v e
+exclusive access t o an e n t i t y .                L o c k s may a l . s o b e c h a r a c t e r i z e d by
+t h e i r durstion: locks held f o r t h e duration of a s i n g l e action a r e
+c a l l e d s h o r t d u r a t i o n locks w h i l e l o c k s h e l d t o t h e e n d o f t h e
+t r a n s a c t i o n a r e c a l l e d h q q duyau&og lockg. S h o r t d u r a t i o n l o c k s
+a r e u s e d t o mark o r t e s t f o r d i r t y d a t a f o r t h e d u r a t i o n o f an
+a c t i o n r a t h e r ",an      f o r t h e duration of t h e transaction.
+
+The l o c k p r o t o c o l s are:
+Definition 2:
+
+D e g r e e 3 : t r a n s a c t i o n T o b s e r p e s & g r e s 3 &oc& p r o t o c o l i f :
+  (a) T s e t s a l o n g e x c l u s i v e l o c k on a n y d a t a i t d i r t i e s .
+  ( b ) T s e t s a l o n g s h a r e l o c k o n a n y d a t a it. r e a d s .
+
+D e g r e e 2: t r a n s a c t i o n T @serves d e q r e e 2 l o c k p r o t o c o l i f :
+  ( a ) T s e t s a l o n g e x c l u s i v e l o c k o n a n y d a t a it d i r t i e s .
+  ( b ) T sets a ( p o s i b l y s h o r t ) s h a r e l o c k o n a n y d a t a i t r e a d s .
+
+D e g r e e 1: t r a n s a c t i o n T o b g 2 r v e s dgqyr~ 2 lock p q t o c o l i f :
+ (a) T s e t s a l o n g e x c l u s i v e l o c k on a n y d a t a it d i r t i e s .
+D e g r e e 0 : t r a n s a c t i o n T o b s ~ r v e sdegree 2 &gck ~ r o t o c o li f :
+ (a) T sets a ( p o s s i b l y s h o r t ) e x c l u s i v e l o c k on any d a t a                      it
+          dirties.
+The l o c k p r o t o c o l d e f i n i t i o n s c a n b e s t a t e d more t e r s l y w i t h t h e
+introduction of tke following notation.                               A    t r a n s a c t i ~ ni s well
+f o r m e d ----
+----                 r e s p e c t & writes ( r e a d s ) i f it a l v a y s l o c k s an e n t i t y
+             w i t h ----
+i n e x c l u s i v e ( s h a r e d o r e x c l u s i v e ) mode b e £ o r e w r i t i n g ( r e a d i n g )
+i t . T h 2 t r a n s a c t i o n i s well f o r z e d i f i t i s w e l l f o r m e d w i t h
+r e s p e c t t o r s a d s and w r i t e s .
+A t r a n s a c t i o n is 2x2 ~ h a s e( w i t h r e s u e c t to r e a d s o r u p d a t e s ) i f
+i t d o e s n o t ( s h a r e o r e x c l u s i v e ) l o c k an e n t i t y a f t e r unlockin?
+some e n t i t y .     A    two p h a s e t r a n s a c t i o n h a s 2     growing phase during
+which it         acquires locks              and a        shrinking phass               d u r i n g which        it
+rslsases l o c k s .
+
+D 3 f i n i t i o n 2 i s t 3 o r e s t r i c t i v e i n t h e s e n s e t h a t c o n s i s t e n c y will
+n o t r e q u i r o t h a t a t r a n s a c t i o n h o l d a l l 1oc.t.s t o t h e Y O T ( i . e . t h e
+EOT       is t h e s h r i n k i n g phase);              r a t h e r t h e c o n s t r a i n t t h a t the
+t r a n s a c t i o n b e t w o p h a s e is a d a q u a t e t o i n s u r e c o n s i s t e n c y . On
+t h e o t h e r hand,         once a t r a n s a c t i o n unlocks a n updated e n t i t y , it
+h a s committed t h a t e n t i t y and s o c a n n z ~ t b e urdonc without
+c a s c a d i n g b a c k u p t o a n y t r a n s a c t i o n s w h i c h may h a v e s u b s e q u e n t l y
+read the entity.                For t h a t reason,             t h e s h r i n k i n g p h a s e is u s u a l l y
+d e f e r r e d t o t h e end of t h e t r a n s a c t i o n s o t h a t t h e t r a n s a c t i o n is
+alw3.y~ r s c o v e r a b l e and               s o t h a t a l l updates                  a r e committed
+together.            The . l o c k p r o t o c o l s c a n be r e d e f i n e d a s :
+D e f i n i t i o n 2 I:
+D e g r e e 3 : T i s well f o r s e d
+           a n d T is t w o p h a s e .
+D e g r e e 2 : T i s well f o r i n e 6
+           a n d T is t w o p h a s e w i t h r e s p e c t t o w r i t e s .
+D e g r e e 1 : T is w e l l f o r m e d w i t h r e s p e c t t o writss
+           and T is two p h a s s w i t h r e s p e c t t o w r i t e s .
+
+D e g r e s O: T i s w e l l f o r m e d w i t h r e s p e c t t o w r i t e s .
+
+A 1 1 transactions a r e required t o observe t h e degree 0 locking
+p r o t o c o l s o t h a t t h e y zo n o t u p d a t e t h e uncommitted updates of
+o t hers.         Degrees 1 , 2 and 3 provide i n c r e a s i n g system-guaranteed
+c o n s i s t ? n c y.
+
+
+              n c y of s c h e d u l e s
+              --
+T h e d e f i n i t i o n o f w h a t i t m e a n s f o r a t r a n s a c t i o n t o see a d e g r e e
+o f c o n s i s t e n c y was o r i g i n a l l y g i v e n i n t e r m s o f d i r t y d a t a .                 In
+o r d e r t o make t h e n o t i o n o f d i r t y d a t a e x p l i c i t i t is n e c e s s a r y t o
+c o n s i d e r t h e execution o f a t r a n s a c t i o n i n t h e c o n t e x t of a set of
+concurrently executing transactions.                                To d o t h i s we i n t r 2 d u c e t h e
+n o t i o n of a s c h e d u l e f o r    a   s e  t  o  f  t r a n saeions.             P, s c h e d u l e c a n b e
+t h o u g h t o f a s a h i s t o r y o r a u d i t t r a i l o f t h e a c t i o n s p e r f o r m e d by
+t h e set of              transactions.              Gven a s c h e d u l e t h e n o t i o n o f a
+p a r t i c u l a r e n t i t y b e i n g d i r t i e d by a p a r t i c u l a r t r a n s a c t i o n is
+m3ds s x p l i c i t a n d h e n c e t h e n o t i o n o f s e e i n g a c e r t a i n d e g r e e of
+consistency is formalized.                           T h e s e n o t i o n s may t h e n b e u s s d t o
+connect ths various definitions of                                  c o n s i s t e n c y and shou t h e i r
+equivalence.
+T h e s y s t 3 n d i r s c t l y s u p p o r t s pti;iss            a n 2 actjoqs.          Acti3cs a r e
+cat e g i o r i z e d as b q i n a c t i o n s , n _ C a c t i o n s ,         share lcck actions,
+-----
+e x c l u s i v e --lock a c t i o n s , u n l o c i a c t i o n s ,     ~s_a_d actions,        a n d gi_t_e
+actions.            An e n d a c t i o n i s p r e s u m e d     t o u n l o c k a n y l o c k s h e l d by
+t h e t r a n s a c t i o n b u t n o t e x p l i c i t l y unlocked by t h e t r a n s a c t i s n .
+F o r t h e p u r p o s e s o f t h e f o l l o w i n g d e f i n i t i o n s , s h a r e l ~ c ka c t i ~ n s
+a n d t h e i r c o r r e s p o ~ d l n gu n l o c k a c t i o n s a r e a d d i t i o n a l l y c o n s i d 2 r e d
+t o be read                a c t i o n s and e x c l u s i v e lock             a c t i o n s and t h e i r
+c o r r s s p o n d i n q unlock a c t i o n s are a d d i t i o n a l l y c o n s i d e r e d t o b e
+write a c t i o n s .
+
+A transaction          is any sequence o f a c t i o n s beginniag v i t h a begin
+a c t i o n a n d e n d i n g with a n end a c t i o n and n o t c o n t a i n i n g o t h e r
+b e g i n o r ond a c t i o n s .
+Any        (sequence preserving)              merging o f t h e a c t i o n s o f a s e t of
+t r a n s a c t i o n s i n t o a s i n g l e sequence i s c a l l e d a schedule f o r t h e
+set of transactions.
+
+A s c h e d u l s i s a h i s t o r y o f t h e o r d e r i n which a c t i o n s a r e e x e c u t e d
+ (it d o e s n o t r e c o r d a c t i o n s which a r e u n d o n e d u e t o b a c k u p ) .                      The
+s i m p l e s t s c h e d u l e s r u n a l l a c t i o n s o f one t r a n s a c t i o n and t h e n a l l
+a s t i o n s of another transaction,.                    ..    Such o n e - t r a n s a c t i o n - a t - a - t i m e
+s c h e d u l e s a r e c a l l e d gggiri& b e c a u s e t h e y h a v e n o c o n c u r r e n c y among
+transactions.                 Clearly, a s e r i a l schedula h a s no concurrency
+i n d u c z d i n c o n s i s t s n c y a n d n o t r a n s a c t i o n sses d i r t y d a t a .
+Locking c o n s t r a i n s t h e set o f a l l o w e d s c h e d u l e s .    In particular, a
+s c h e d u l e is l s q a l o n l y i f i t d o e s n o t s c h e d u l e a l o c k a c t i o n on an
+e n t i t y f o r o n e t r a n s a c t i o n when t h a t e n t i t y i s a l r e a d y l o c k e d by
+s o m e o t h e r t r a n s a c t i o n i n a c o n f l i c t i n g mode.
+
+An i n i t i a l s t a t e a n d a s c h e d u l e c o m p l e t e l y d e f i n e t h e s y s t e m 1 s
+behavior.            A t each     s t e p o f t h e s c h e d u l e o n e can d e d u c e v h i c h
+e n t i t y v a l u z s h a v e been committed a n d which are d i r t y : i f l o c k i n g
+is used, u p d a t e d d a t a i s d i r t y u n t i l i t i s u n l o c k e d .
+
+S i n c e a s c h e d u l e makes t h e d e f i n i t i o n o f d i r t y d a t a e x p l i c i t , o n e
+can apply Definition 1 t o define c o n s i s t e n t schedules:
+Definition 3 :
+
+A t r a n s a c t i o n E l u s a t d g q ~ g g (1,2 22 1) c o n s i s t e n c y     schedule
+-
+S i f T s e e s d e g r e e 0 (1, 2 o r 3) c o n s i s t e n c ; ~i n S.
+If a l l       transactions r u n a t d e g r e e 0 ( 1 , 2 or 3)            consistency i n
+s c h e d u l e S t h e n S i s s a i d t o b e a _deqre_e (1, 2              2) -
+                                                                                 c-o--    _or
+                                                                                     nsistent
+--------
+schedule.
+G i v e n t h e s e d e f i n i t i o n s one c a n s h o w :
+
+AsszgZ&oz 1:
+ ( a ) If e a c h t r a n s a c t i o n o b s e r v e s t h e d e g r e e 0 ( 1 , 2 o r 3) l o c k
+        p r o t o c o l ( D e f i n i t i o n 2)  then any l e g a l schedule is degree 3
+        (1, 2 o r 3) c o n s i s t e n t         ( D e f i r i i t i o n 3) ( e , e a c h t r a n s a c t i o n
+        sees d e g r e e C            (1,     2 o r 3)          consist::ncy     i n the senst of
+        D e f i n i t i o n 1) ,
+ ( b ) U n l e s s t r a n s a c t i o n I! o b s e r v e s t h e d e g r e e 1 ( 2 o r 3)                lock
+        p r o t o c o l t h e n i t i s p o s s i b l e t o d e f i n e a n o t h e r t r a n s z c t i o n I"
+        w h i c h d o e s o b s e r v e t h e d e g r e e 1 ( 2 o r 3) l o c k p r o t o c o l s u c h
+        t h a t T a n d T'        have a l e g a l schedule S b u t T d o e s n 3 t run a t
+        d e g r e e 7 ( 2 o r 3 ) c o n s i s t e n c y i n S.
+Assertion 1 says t h a t if a transaction observes t h e lock protocol
+d e f i n i t i o n o f . c o n s i s t e n c y ( D e f i n i t i o n 2) t h a n i t is a s s u r e d of t h e
+i n f o r m a l d e f i n i t i o n o f c o n s i s t e n c y based on c o s m i t t e d and d i r t y
+d a t a ( ~ e f i n i t i o n1 ) .        U n l e s s a t r a n s a c t i o n a c t u l l l y s e t s th,o l o c k s
+p r o s c r i b e d b y d e g r e e 1 ( 2 o r 3) c o n s i s t e n c y o n e c a n c o n s t r u c t
+t r a n s a c t i o n mixes a n d s c h e d u l e s which w i l l c a u s e t h e t r a n s a c t i o n
+t o run a t           (see) a l o v e r d a g r e e o f c o n s i s t a n c y .                   Z ~ w e v e r , ic
+p a r t i c u l a r c a s e s s u c h t r a n s a c t i o n m i x e s may n e v e r o c c u r d u e t o t h e
+s t r u c t u r e o r u s e o f t h e system.                  I n t h e s e c a s e s a n a p p a r e n t l y low
+d e g r e e o f l o c k i n g may a c t u a l l y p r o v i d e d e g r e e 3 c o n s i s t e n c y .            For
+example, a d a t a b a s e r e o r g a n i z a t i o n u s u a l l y n e e d do no l o c k i n g
+since it i s r u n a s an off-line                                   u t i l i t y which is n e v e r r u n
+concurrently v i t h other transactions.
+A s s e r t i o n 2:
+I f e a c h t r a n s a c t i o n i n a s e t of t r a n s a c t i o n s a t l e a s t o b s e r v e s t h e
+degree 3 l o c k p r o t o c o l and i f t r a n s a c t i o n T o b s e r v e s t h e degree 1
+ ( 2 o r 3)           l o c k p r o t o c o l t h e n T r u n s at. d e g r e e 1 ( 2 o r 3)
+c o n s i s t a n c y ( D 9 f i n i t i o n s 1 , 3) i n any legal. s c h e d u l e f o r t h e set
+of transactions.
+Assertion 2 s a p s t h a t each transaction can choose its degrre o f
+c o n s i s t ? n c y so long as a l l t r a n s a c t i o n s observe a t l e a s t degree 0
+protocols.             O f course t h e outputs of           d e g r e s 9, 1 cr 2 c ~ n s i s t e n t
+t r a n s a c t i o n s may     be degree            0,    1      or 2         cocsistent        (i.e.
+inconsistent) becsuse                  t h e y were          computed w i t h          potentially
+inconsistent inputs.                One c a n i m a g i n e t h a t . e a c h d a t z e n t i t y i s
+tagged with t h e               degree of consistency o f                        i t s writer.           A
+t r a n s a c t i o n must b e w a r e o f r e a d i n g e n t i t i s s t a g g e d w i t h d e g r e e s
+lower than t h e degree of t h e transaction.
+
+
+One t r a n s a c t i o n i s s a i d t:, d e p e n d o n a n o t h e r i f t h e f i r s t t a k e s
+some of its i n p u t s from t h e s e c o n d .                     T h e n o t i o n of d e p e n d e n c y i s
+defined differently f o r each                               d e g r e e of        consistency.           These
+d e p ~ n d e n c yr e l a t i o n s a r e c o m p l e t e l y d e f i n e d b y a s c h e d u l e a n d c a n
+be u s e f u l i n d i s c u s s i n g c o n s i s t e n c y and recovery.
+
+                                                               <, <<: ar,d <<< o n t h e s e t o f
+F a c h s c h e d u l e d ? f i n e s t h r e e ye_l_at_i_o_n_s:
+transactions a s follows.                        Suppose t h a t t r a n s a c t i o n I performs
+a c t i o n a o n e n t i t y e a t some s t e p i n t h e s c h e d u l e a n d t h a t
+t r a n s a c t i o n T' p e r f o r n s a c t i o n a 1 o n e n t i t y e a t a l a t e r s t e p i n
+t h s s c h e d u l a . F u r t h e r suppose t h a t T does n o t e q u a l T1.         Then:
+  T <<< T' i f           a i s a w r i t e a c t i o n a n d a' is a write action
+           or            a is a w r i t e a c t i o n a n d a ' i s a r l a d a c t i o n
+           or            a i s a r s a d a c t i o n a n d a' i s a w r i t e a c t i o n
+  T << T'         if     a i s a w r i t e a c t i 9 n a n d a ' i s 2 write a c t i o n
+                 or     a i s a w r i t e a c t i o n a n d a'      is a read          action
+ T    < T1        if    a i s a w r i t e a c t i o n a n d a ' i s a write a c t i o n
+
+The f o l l o w i n g t a b l e is       a notationally             c o n v e n i e n t way    of seeing
+t h e s e iilf i n i t i o n s :
+
+
+
+
+meaning t h a t         ( f o r example)    T <<<           T' i f 'C w r i t e s ( W ) s o m e t h i n g
+l a t e r r e a d (Ei) b y T' o r w r i t t e n ( A )       by T s o r T r e a d s ( R ) s o m e t h i n g
+l a t e r w r i t t e n (8) by T 1 .
+
+Let    <* b e t h e t r a n s i t i v e c l o s u r e o f <, t h e n d e f i n e :
+     BEFORE1 ( T ) = I T 1 1 T q <* T)
+     AFTER1 (T) = { T I I T <* T 1 ) .
+
+The s a t s BEF3RE2,                BFTER2,         BEFORE3        and     AFTER3         are      defined
+a n a l o g o u s l y f o r << a n d <<<.
+The o b v i o u s i n t e r p r e t a t i o n f o r t h i s i s t h i i t e a c h BEF3RE s e t i s
+t h e set o f t r a n s a c t i o n s which c o n t r i b u t e i n p u t s t o T and e a c h
+AFTEI! sst i s t h e s e t o f            t r a n s a c t i o n s which t a k e t h e i r i n p u t s from
+T ( w h e r e t h e o r d e r i n g o n l y c o n s i d e r s d e p e n d e n c i e s i n d u c e d by t h e
+corresponding consistency degree).
+I f some t r a n s a c t i o n i s b o t h b e f o r e T             a n d a f t e r T i n some s c h s d u l e
+t h e n no      serial schedule                 could give such r e s u l t s .             In t h i s case
+concurrent y h a s i n t r o d u c e d             inconsistency.              On t h e o t h e r h a n d , i f
+a l l relevant           t r a n s a c t i o n s a r e e i t h e r b e f o r o o r a f t e r !: ( b u t n o t
+b o t h ) t h e n T w i l l see a                c o n s i s t e n t s t a t e (of t h e corresponding
+degree).          I f a l l t r a n s a c t i o n s d i c h o t o m i z e o t h e r s i n t h i s way t h e n
+t h e r e l a t i o n <* (<<* o r <<<*) w i l l                      be a p a r t i a l o r d e r a n d t h e
+w h o l e s c h e d u l e w i l l g i v e d e g r e e 1 ( 2 o r 3) c o n s i s t e n c y .        This can
+be strsngthened to:
+
+---------
+A s s e r t i o n 2-:
+A s c h e d u l s i s d e g r e e 1 ( 2 o r 3 ) c o n s i s t e n t i.f a n d o n l y i f
+t h e r e l a t i o n <* (        or *     ) is a p a r t i a l o r d e r .
+
+T h e <,          << a n d <<< r e l a t i o n s a r e v a r i a n t s o f t h e d e p e n d s n c y s e t s
+i n t r o d u c e d i n [ 21.       I n t h a t paper only dsgree 3 c o n s i s t s n c y is
+i n t r o d u c e d and A s s e r t i o n       3 was            p r o v e d f o r t h a t case.        In
+p a r t i c u l a r s u c h a s c h e d u l e is e q u i v a l e n t t o t h e s s r i a l s c h e d u l e
+o b t a i n s : ! b y r u n n i n g t h e t r a n s a c t i o n s o n e a t a time i n <<< o r d e r .
+The p r o o f s o f [ 2 ] g e n e r a l i z e f3.irly e a s i l y t o h a n d l e a s s e r t i o n 1
+i n t h e case of 3 2 g r e e 1 o r 2 c o n s i s t e n c y .
+
+Consider t h e following example:
+           !I' LOCK    A
+                     READ
+                     UNLOCK
+                     LOCK
+                     XFITE
+                     LOCK
+                     BRITE
+                     UNLOCK
+                     UXLOCK
+                     LOCK
+                     WRITE
+                      UNLOCIC
+
+I n t h i s scheduls T2 gives E t o TI                 a n d T2 u p d a t e s A a f t e r TI r e a d s
+A s o T2<T1, T2<<T1, T2<<<T1 a n d T1<<<T2.                          The s c h e d u l e is degree 2
+consistent but not degree 3 consistent.                               I t runs TI at        degree 2 ,
+c o n s i s t 3 n c y and T2 a t d e g r e e 3 c o n s i t e n c y .
+
+It w o u l d b e n i c e t o d e f i n e a t r a a s a c t i o n       t o s e e d e g r e e 1 ( 2 o r 3)
+c o n s i s t e n c y i f a n d o n l y i f t h e B E F O R E a n d APTEX s e t s are d i s j o i c t
+i n some s c h e d u l e .        However, t h i s i s n o t r e s t r i c t i v e enough, r a t h e r
+o n 2 m u s t r e q u i r a t h a t t h e b e f o r e a n d a f t e r s e t s b e d i s j ~ i n ti n
+scnedulss             i n order           t o state          Definition         1     in terns           of
+dspeniiencies.            F u r t h e r , t h e r e seems t o b e na n a t u r a l way t o d e f i n e
+t h e dependencies of degree 9 consistency.                                  Hance t h e p r i n c i p a l
+a p p l i c a t i ~ no f t h e d e p e n d e n c y d e f i n i t i o n i s a s a p r o o f t e c h n i q u e
+and f o r d i s c u s s i n g s c h e d u l e s and rEcovery i s s u o s .
+
+a e l a t i o n s h b 22 t r a n s a c t i o n b a c k q p =gd systsg r e c o v e r y :
+------
+As m e n t i o n e d p r e v i o u s l y ,  system wide degree 1 c o n s i s t e n c y a l l o w s
+t r a n s a c t i o n backup and system r e c o v e r y w Fthout l o s t updates.
+ (i.2. w i t h o u t a f f e c t i n g u p d a t e s o f        t r a n s a c t i o n s which are c o t
+b s l n g b a c k e d up)    .       The t r a n s a c t i o n is u n r e c o v e r a b l e a f t e r i t s
+f i r s t commit o f a n u p d a t e ( u n l o c k ) and s o a l t h o u g h d e g r e e 1 d o e s
+n o t r e q u i r e i t , t h e s h r i n k i n g p h a s e is u s u a l l y d e f e r r e d t o t h e e n d
+of t r a n s a c t i o n s o t h a t t h e t r a n s a c t i o n is r e c o v e r a b l e .
+
+G i v e n a n y c u r r e n t s t a t e a n d a time o r d e r e d l o g o f            t h e u p d a t e s of
+t r a n s a c t i o n s , o n e c a n r e t u r n t o a c o n s i s t e n t s t a t e by un-doing
+any incomplete transactions                            (uncommitted           updates).             Given a
+c h e c k p o i n t a t time TO a n d a l o g w h i c h r e c o r d s o l d a n d new v a l u e s
+o f s n t i t i ? s u p t 3 time T O + e , o n e c a n c o n s t r u c t t h e m o s t r e c e n t
+c o n s i s t e n t s t a t e b y u n d o i n g a l l u p d a t e s w h i c h were n a d e b e f o r e
+t i n s TO b u t w e r e n o t y e t c o m m i t t e d a t time T O + e ; a n d b y r e d o i n g
+a l l u p d a t e s u h i c h were made a n d committed i n t h e i n t e r v a l TO t o
+TO+=.           If t h s schedule (log)                 is d e g r e e 0 c o n s i s t e n t t h e n t h e
+a c t i o n s c a n b e r e - d o n ? LOG o r d e r ( s k i p p i n g u n c o m m i t t e d u p d a t e s )    .
+I f t h e s c h e d u l e ( l o g ) is d o g r e e 1 c o n s i s t e n t t h e n t h e a c t i ~ n sc a n
+b2 s o r t s d by          t r a n s a c t i o n i n <* o r d e r a n d r e c o v e r y p e r f o r m e d w i t h
+t h e s o r t e d log.               The outcome of t h i s p r o c e s s w i l l b e a s t a t e
+rsflectinq              a l l t h e c h a n g e s made            by    a l l t r a n s a c t i o n s which
+conpleted before t h e log stopped.
+
+However,         d2gree 1         c ~ n s i s t e n tt r a n s a c t i o n s   map. r e a d   uncommitted
+ (dirty) data.                    Transaction          and      system rscovery                 may u n d o
+u n c o m m i t t e d u p d a t s s . So i f t h e d e g r e e 1 c o n s i s t e n t t r a n s a c t i o n i s
+r e - r u n (i.e.         re-oxzcutad by t h e system)                   i n t h e absence of t h e
+u n d o n e t r a n s a c t i o n s it may p r o d u c e e n t i r e l y d i f f e r e n t r e s u l t s t h a n
+w o u l a b e o b t a i n x l i f t h e t r a n s a c t i o n were b l i n d l y r e d o n e ( f r o n
+t h e u p d a t e s r e c o r d e d i n t h e log). I f                t h e system is dearen 2
+c o n s i s t 3 n t t h s n n 3 t r a n s a c t i o n r e a d s uncornrnitted d a t a .          So if tho
+cornplsted t r a n s a c t i o n s a r a re-done i n log o r d e r b u t i n the absence
+o f some u n d o n e ( i n c o m p l e t e ) t r a n s a c t i o n s t h e y w i l l g i v e e x a c t l y
+t h e s a n e r e s u l t s a s wers o b t a i n c d i n t h e p r e s e n c e o f t h e u n d o n e
+transactions.               In particular,           i f t h e t r a n s a c t i o n s w2re re-run i c
+t h e o r d e r s p e c i f i e d b y t h e l o g b u t i n t h e a b s z n c e of t h e u n d o n e
+t r a n s a c t i o n s t h e sams c o n s i s t e n t s t a t e w o u l d r e s u l t .
+Table 2.   Surnmary of c o n s i s t e n c j r d e g r e e s .
+IMS/VS w i t h t h e p r o g r a m i s o l a t i o n f e a t u r e [ 3 ] h a s a t w o l e v e l l ~ c k
+hierarchy:            segment t y p e s (sets of r e c o r d s ) , and segment i n s t a n c e s
+ (records) w i t h i n a            segmont t y p e .            S e g m e n t t y p e s may b e l c c k e d i n
+EXCLUSIVE (E) n o d e                ( w h i c h c o r r e s p o n d s t o o u r ? x c l u s i v e ( X ) mode)
+o r i n EXPRESS R E A D                ( R ) , RZTRIEVE             (G), o r          UPDATE (TJ)     ( ~ a c ho f
+w h i c h c o r r e s p o n d t o o u r n o t i o n of               i n t e n t i o n ( I ) mo3e) r 3 p a g e
+3. 7 8 - 3 . 2 7 3 .    Segnent i n s t a n c e s can b e locked i n s h a r e o r ekclusive
+mode.         S e g m s ~ tt y p e l o c k s a r e r e q u e s t e d a t t r a n s a c t i o n i n i t i a t i o n ,
+u s u a l l y i n i n t e n t i o n mode.          Segment i n s t a n c 2 l o c k s ara dynamically
+s e t as the transaction                        proceeds.            I n a d d i t i o n IMS/VS      has user
+c o n t r o l l e d s h a r e l o c k s o n s e g m e n t i n s t a n c e s ( t h e *Q o p t i o n ) w h i c h
+a l l o w o t h e r r e a d r e q u e s t s b u t n o t o t h e r =Q o r e x c l u s i v e r e q u e s t s .
+I?IS/VS h a s          no n o t i o n o f S o r SIX l o c k s on s e g m e n t t y p e s ( w h i c h
+would a l l o w a s c a n o f                a l l members o f a s s g m e n t t y p s c o n c u r r e n t
+w i t h o t h e r r e a d e r s b u t w i t h o u t t h e o v e r h e a d of                  locking each
+segment instance)               .        S i n c e IHS/VS          d o e s n o t s u p p o r t 5 m3de o n
+s s g m e n t t y p e s o n e n e e d n o t d i s t i n g u i s h t h e t w o i n t e n t i o n modes I S
+a n d I X (see t h e s e c t i o n i n t r o d u c i n g I S a n d I X modes)              .     In general,
+INS/VS h a s a n ~ t i o no f i n t e n t i o n m o d e a n d d o e s i m p l i c i t l o c k i n g
+b u t d o e s n o t r e c o g n i z e a l l t h e modes d e s c r i b e d h e r e .               It      uses a
+s t a t i c t w o l e v e l l o c k tree.
+
+IMS/VS          with t h e program i s o h t i o n f e a t u r s b a s i c a l l y p r o v i d e s
+d e g r e e 2 c o n s i s t s n c y . Hovever d e g r o e 1 c o n s i s t e n c y c a n be o b t a i n e d
+o n a s e g m e n t t y p e b a s i s i n a PCB ( v i e w ) b y s p e c i f y i n g t h e EXPRESS
+READ option f o r t h a t segment.                Similarly degree 3 consistency can
+b e o b t a i n e d by s p e c i f y i n g t h e  EXCLUSIVE o p t i o n . IMS/VS             also has
+t h e u s e r c o n t r o l l e d s h a r e locks d i s c u s s a d above which a program
+c3n r e q u e s t on s e l e c t e d segment i n s t a n c e s t o o b t a i n a d d i t i o n a l
+c o n s i s t e n c y o v e r t h e d e g r e e 1 o r 2 c o n s i s t e n c y p r o v i d e d by t h e
+system.
+
+IMS/VS          w i t h o u t t h e program i s o l a t i o n f e . a t u r e (and a l s o t h e
+p r e v i o u s v e r s i o n o f IMS n a m e l y I M S / 2 )              doesn't           have a l o c k
+h i e r a r c h y s i n c e l o c k i n g is done o n l y on a segment t y p e b a s i s . I t
+p r o v i d e s d e g r e e 1 c o n s i s t e n c p . wF t h d e g r e e 3 c o n s i s t e n c y o b t a i n a b l e
+f o r a s e g m e n t t y p e i n a v i e w by s p e c i f y i n g t h e EXCLUSIVE o p t i o n .
+Uszr c o n t r o l l e d l o c k i n g i s a l s o p r o v i d e d o n a l i m i t e d b a s i s v i a
+t h e HOLD o p t i o o .
+
+DMS 11013 h a s a t w o l e v e l l o c k h i e r a r c h y [ 4 ] : a r e a s                  and pages
+within arzas.            Areas may b e l o c k e d i n o n e of' s e v e n m o d e s irhen t h e y
+a r e OPENed: EXCLUSIVE RET9IEVAL ( w h i c h c o r r e s p o n d s t o o u r n o t i o n
+of s x c l u s i v e m o d s ) , PROTECTED UPDATE ( u h i c h c o r r t s p o n d s t o o u r
+c o t i o n o f s h a r e a n d i n t e n t i o n e x c l u s i v e m o d ? ) , PROTSCTED RETRIEVAL
+ (which w s c a l l s h a r e m o d e ) , UPDATE                     (which c o r r e s p o n d s t o o u r
+i n t e n t i o n exclusive m o d e ) ,         a n d R E T R I E V A L (uhich is o u r i n t e n t i o n
+s h a r e maze)    .    Givei? t h i s . t r a n s l i t e r a t i o n ,   the compatibility matrix
+d i s p l a y e d i n Table        1 i s i d e n t i c a l t o t h e c o m p a t i b i l i t y m a t r i x of
+DMS 1100 [ 4 , p a g e 3 . 5 9 1 .             However,       DYS 1 1 0 0 s e t s o n l y e x c l u s i v e
+l o c k s o n p a q e s w i t h i r , a r e a s ( s h o r t term s h a r e l o c k s a r e i n v i s i b l y
+set during i n t e r n a l pointer following).                              Further,      even i f           a
+t r a n s a z t i o n l o c k s a n a r e a i n e x c l u s i v e m o d e , DMS 1 1 9 0 c o n t i n u e s t o
+set e x c l u s i v e l o c k s (and i n t e r n a l s h a r e locks) on t h e pages i n t h e
+a r e a , d e s p i t e t h e f a c t t h a t an e x c l u s i v e l o c k on a n area p r e c l u d e s
+r e a d s o r u p d a t e s o f t h e area b y o t h e r t r a n s a c t i o n s .                Similar
+o b s s r v a t i o n s a p p l y t 3 t h e DMS 1 1 9 3 i m p l e m e n t a t i o n cf S a n d S I X
+modes.          I n a e n e r a l , D?lS 1 1 0 0 r e c o g n i z e s a l . 1 t h e m o d e s d e s c r i b e d
+here and              uses intsntion aodes t o detect :;onflicts but does n ~ t
+u t i l i z s implicit locking.               It u s e s a s t a t i c t w o l e v e l l o c k t r e e .
+
+DtlS 1 1 0 0 p r o v i d e s l e v e l 2 c o n s i s t e n c y b y s e t t i n g e x c l u s i v e l o c k s
+o n t h e n o d i f i s d p a g e s a n d a n d a t e m p o r : ~ r y l o c k OR t h e p a g e
+c o r r e s p o n d i n g t o t h e p a g e w h i c h is l l c u r r e r l t o f r u n u n i t " .     The
+t e m p o r a r y l o c k i s r e l e a s e d w h e n t h e " c u r r s n t of        r u n u n i t t 1 is
+moved.          I n addition a run-unit can obtain additional locks via a n
+e x p l i c i t KFEP command.
+
+T h e i d e a s p r e s e n t s d were d e v e l o p e d i n t h e p r o c e s s o f d e s i g n i n g a n d
+i m p l e m e n t i n g a n e x p o r i n e n t a l d a t a b a s e s y s t e m a t t h e IBH S a n J o s e
+Fesearch Laboratory.                    (We w i s h t o e m p h a s i z e t h a t t h i s s y s t e m i s a
+vzhicle f o r research i n data base architecture,                                           and d o e s n o t
+i n d i c a t e p l a n s f o r f u t u r e IBM             products.)             A     subsystem which
+p r o v i d e s t h e modes o f l o c k s h e r e i n d e s c r i b e d ,            plus the necesszry
+l o g i c t o s c h e d u l e r e q u e s t s and c o n v e r s i o n s , and t o d e t e c t and
+r e s o l v e d e a d l o c k s h a s been implemented a s one component o f t h e
+d a t a manager.             T h e l ~ c k s u b s y s t e m is i n t u r n u s e d by t h e d a t a
+m a n a g e r t o a u t o m a t i c a l l y l o c k t h e n o d e s of           i t s l o c k g r a p h (see
+Figure 5).              Ussrs c a n b e u n a w a r e o f t h e s e l o c k p r o t o c o l s b e y o n d
+t h e v e r b s " b e g i n t r a n s a c t i o n 1 I a n d Ifend t r a n s a c t i o n " .
+
+The d a t a b a s e is b r o k e n i n t o s e v e r a l s t o r a g e areas.                     Each a r e a
+c o n t a i n s a set o f r e l a t i o n s            (files), t h e i r indices, and t h e i r
+t u p l e s ( r e c c r d s ) a l o n g w i t h a c a t a l o g of    t h e area.         Each t u p l e h a s
+a unique t u p l e i d e n t i f i e r (data b a s e key)                    which c a n b e used t o
+q u i c k l y ( d i r e c t l y ) a d d r e s s t h e t u p l e . Each t u p l e i d e n t i f i e r naps
+t o 3 set of f i e l d values.                   A l l t u p l e s are s t o r e d together              i n an
+area-wide             he3p to allow physical                      clustering of              t u p l e s from
+ different relations.                         The unused          slots       in this             heap are
+r s p r e s e n t e d b y a n a r e a - w i d e p o o l o f f r e e t u p l e i d e n t i f i e r s (1.e.
+i d e n t i f i e r s n o t a l l o c a t e d t o a n y r e l a t i o n ) .,  Each t u p l e " b e l o n g s f 1
+to a unique r e l a t i o n ,             a n d a l l t u p l e s i n a r e l a t i o n h a v e t h e same
+number and t y p e a f f i e l d s .                 O n e may c o n s t r u c t a n i n d e x o n a n y
+subset o f t h e f i e l d s of a r e l a t i o n .               Tuple i d e n t i f i e r s g i v e fast
+d i r s c t acc2ss t o t u p l e s , w h i l e                indices give fast associative
+access t o f i e l d v a l u e s and to t h e i r corresponding t u p l e s .                              Each
+k e y v a l u ~i n a n i n d e x i s m a d e a l o c k a b l e o b j e c t i n o r d e r t o s o l v e
+t h e problem             o f 'lphantomsu [ 1 ] w i t h o u t l o c k i n g t h e e n t i r e index.
+We d o n o t s x p l i c i t l y l o c k i n d i v i d u a l f i e l d s o r w h o l e i n d i c e s s o
+t h o s e n o d e s a p p e a r i n F i g u r e 5 o n l y for: p e d a g o g i c a l r e a s o n s .
+Figure 5 g i v e s only t h e lllogicall* l o c k graph,                              t h e r e is a l s o a
+ graph f o r physical page l o c k s and f o r o t h e r low l e v e l resources.
+
+As c a n b e s e e n , F i g u r e 5 i s n o t a t r e e .      Hf!avy u s e i s n a d e o f t h e
+t e c h n i q u e s m e ~ t i o n e d i n t h e s e c t i o n o n l o c k i n g DBG1s.       For
+e x s m p l e , ono c a n r e a d v i a t u p l e i d e n t i f i e r w i t h o u t s e t t i n g a n y
+inc?ex l o c k s b u t t o l o c k a f i e l d f o r u p d a t e i t s t u p l e identifier
+a n d t h e o l d a n d new i n d e x k e y v a l u e s c o v e r i n g t h e u p d a t e d f i e l d
+must b e l o c k e d i n X mode.             Further,       t h e t r e e is n o t s t a t i c , s i n c e
+d a t a base keys a r e dynamically allocated t o r e l a t i o n s ;                                field
+v3lues dynamically e n t e r , nove around i n , and l e a v e index value
+i n t e r v a l s when            rocords are i n s e r t e d , updated              and d e l e t e d ;
+r z l s t i o n s and i n d i c e s are dynamically creilted and destroyed w i t h i n
+a r e a s ; and a r e a s a r e dynamically a l l o c a t e d .          Th? i m p l e m o n t a t i o n o f
+s u c h o p e r a t i o n s o b s e r v e s t h e l o c k p r o t o c o l p r e s e n t e d i n the
+s e c t i o n o n d y n a m i c g r a p h s : When a n o d e ch3.ngss p a r e n t s ,           a l l old
+a n d new p a r e n t s m u s t b e h e l d            (explicitly o r implicitly) i n
+i n t e n t i o n e x c l u s i v e mode a n d t h e n o d e t o b s moved m u s t b e h e l d i n
+e x c l u s i v e mode.
+The d e s c r i b e d system s u p p o r t s c o n c u r r e n t l y c o n s i s t e n c y d e g r e e s 1 , 2
+a n d 3 w h i c h c a n b e s p e c i f i e d on a t r a n s a c t i o n b a s i s . I n a d d i t i o n
+s h a r e l o c k s on i n d i v i d u a l t u p l e s c a n b e a c q u i r e d by t h e u s e r .
+                                            D A T A BASE
+                                                       I
+                                                       1
+                                                    A RE AS
+                                                       I
+         I                                             1
+         1                                  RELATIONS
+         I                                             1
+         I                         I                       ---
+         1                     I                                              I
+         I                     1                                         I N D1CI:ES
+         1                     i                                              I
+         I                     1                                              I
+         1                     1                                         INDEX K E Y
+         I                     1                                         INTERVALS
+         I                     1                                              I
+         1                     1                                              I
+         1                     I                               -------        1
+         1                     4                           1                   I
+         I                     1                           I                  I
+         1                     1,,
+                                 -                         I                  1
+         1                         f                                          I
+         1                         I                                           I
+     FREE                          ALLOCATSD                                  1
+     TUPLE                             TUPLE                                  1
+I D EN T I F I E R S           IDENTIFIER S                                   I
+                                            1                                 I
+                           -       I    ,       ,                       ----- 1
+                       i                                        1   I
+                       1                                        I 1
+             US- INDEXED                                   INDEXED
+                FIELDS                                         FIELDS
+
+                           a i g u r s 5. A l o c k g r a p h .
+Re      g r a t e f u l l p a c k n o w f e d q e many h e l p £ u l d i s c u s s i o n s u i t h P h i l
+?3cri, J i m            N e h l a n d 9 r a d Vads on       how l o c k i ~ gw o r k s i n existing
+s y s t e m s a n d how t h e s e r e s u l t s ; n i g h t b e b e r t e r p r e s e n t e d .   Cje a r e
+e s ~ e c i a l l yi n d e b t e d t~ P a u l E c J o n e s i n t h i s r e g a r d .
+
+
+
+
+[I 1    J. N. G r a y , R. A . L o r i e , G. li. P u t z o l u , 1 8 G r a n u l a r i t y o f L o c k s i n
+        a S h a r e d D a t a Baserf1 P r o c e e d i n g s o f t h e I n t e r n a t i o n a l
+        C o n f 2 r s n c s o n V e r y L a r g e Data Bases, B o s t o n , Mass., S e p t e m b e r
+        1975.
+
+[ 2 ]   K.P.       E s w a r a n , J. N.       G r a y , R. A . L o r i e ,     I.L. T r a i g e r , On t h e
+        Not i o n s o f C o n s i s t e n c y a n d P r e d i c a t e Locks, T e c h n i c a l R e p ~ r t
+        R J . 1 4 8 7 , I B i l R e s e a r c h L a b o r a t o r y , S a n J o s e , C a . , Nov. 1 9 7 4 .
+
+[3 1     I n f o r m a t i o n flanagement S y s t e m V i r t u a l S t o r a g e (IaS/VS)                 .
+        System A p p l i c a t i o n Desigr? Guide,     Form No.         SH2C -3'3 25-2, IBM
+        C o r p . , 1975.
+
+[4]     UNIVAC 1700 S e r i e s Data Planacjement S y s t e m (DMS 1100) ANSI                      .
+        C O B O L F i e l d Data M a n i p u l a t i o n L a n g u a g e . O r d e r No. UP7908-2,
+        S p e r r y Band C o r p . , Hay 1973.
+

@@ -1,0 +1,196 @@
+{
+  "source": {
+    "id": "shapiro2011",
+    "kind": "crossref",
+    "query": "Shapiro Preguica Baquero Zawirski Conflict-free replicated data types 2011",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Shapiro%20Preguica%20Baquero%20Zawirski%20Conflict-free%20replicated%20data%20types%202011&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:15:57.471Z",
+  "items": [
+    {
+      "DOI": "10.1007/978-3-642-24550-3_29",
+      "title": [
+        "Conflict-Free Replicated Data Types"
+      ],
+      "author": [
+        {
+          "given": "Marc",
+          "family": "Shapiro",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Nuno",
+          "family": "Preguiça",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Carlos",
+          "family": "Baquero",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Marek",
+          "family": "Zawirski",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Lecture Notes in Computer Science",
+        "Stabilization, Safety, and Security of Distributed Systems"
+      ],
+      "page": "386-400",
+      "issued": {
+        "date-parts": [
+          [
+            2011
+          ]
+        ]
+      },
+      "publisher": "Springer Berlin Heidelberg",
+      "type": "book-chapter"
+    },
+    {
+      "DOI": "10.1007/978-3-319-63962-8_185-2",
+      "title": [
+        "Conflict-Free Replicated Data Types (CRDTs)"
+      ],
+      "author": [
+        {
+          "given": "Nuno",
+          "family": "Preguiça",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Carlos",
+          "family": "Baquero",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Marc",
+          "family": "Shapiro",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Encyclopedia of Big Data Technologies"
+      ],
+      "page": "1-10",
+      "issued": {
+        "date-parts": [
+          [
+            2022
+          ]
+        ]
+      },
+      "publisher": "Springer International Publishing",
+      "type": "book-chapter"
+    },
+    {
+      "DOI": "10.1007/978-3-319-63962-8_185-1",
+      "title": [
+        "Conflict-Free Replicated Data Types CRDTs"
+      ],
+      "author": [
+        {
+          "given": "Nuno",
+          "family": "Preguiça",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Carlos",
+          "family": "Baquero",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Marc",
+          "family": "Shapiro",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Encyclopedia of Big Data Technologies"
+      ],
+      "page": "1-10",
+      "issued": {
+        "date-parts": [
+          [
+            2018
+          ]
+        ]
+      },
+      "publisher": "Springer International Publishing",
+      "type": "book-chapter"
+    }
+  ]
+}

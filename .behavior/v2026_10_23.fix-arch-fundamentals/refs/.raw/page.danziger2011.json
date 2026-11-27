@@ -1,0 +1,207 @@
+{
+  "source": {
+    "id": "page.danziger2011",
+    "kind": "page",
+    "url": "https://www.pnas.org/doi/10.1073/pnas.1018033108",
+    "keywords": [
+      "favorable",
+      "65%",
+      "decision",
+      "break",
+      "parole"
+    ]
+  },
+  "urlFinal": "https://www.pnas.org/doi/10.1073/pnas.1018033108",
+  "status": 403,
+  "fetchedAt": "2026-11-23T19:31:10.812Z",
+  "title": "Extraneous factors in judicial decisions | PNAS",
+  "meta": [
+    {
+      "name": "citation_journal_title",
+      "content": "Proceedings of the National Academy of Sciences"
+    },
+    {
+      "name": "dc.Title",
+      "content": "Extraneous factors in judicial decisions"
+    },
+    {
+      "name": "dc.Creator",
+      "content": "Shai Danziger"
+    },
+    {
+      "name": "dc.Creator",
+      "content": "Jonathan Levav"
+    },
+    {
+      "name": "dc.Creator",
+      "content": "Liora Avnaim-Pesso"
+    },
+    {
+      "name": "dc.Subject",
+      "content": "decisionmaking; legal realism; mental depletion; expert decisionmaking; ego depletion"
+    },
+    {
+      "name": "dc.Description",
+      "content": "Are judicial rulings based solely on laws and facts? Legal formalism holds that judges apply legal reasons to the facts of a case in a rational, mechanical, and deliberative manner. In contrast, le..."
+    },
+    {
+      "name": "dc.Publisher",
+      "content": "National Academy of Sciences"
+    },
+    {
+      "name": "dc.Date",
+      "content": "2011-4-26"
+    },
+    {
+      "name": "dc.Type",
+      "content": "research-article"
+    },
+    {
+      "name": "dc.Format",
+      "content": "text/HTML"
+    },
+    {
+      "name": "dc.Identifier",
+      "content": "201018033"
+    },
+    {
+      "name": "dc.Identifier",
+      "content": "10.1073/pnas.1018033108"
+    },
+    {
+      "name": "dc.Language",
+      "content": "EN"
+    },
+    {
+      "name": "dc.Coverage",
+      "content": "world"
+    },
+    {
+      "name": "og:title",
+      "content": "Extraneous factors in judicial decisions | PNAS"
+    },
+    {
+      "name": "citation_abstract_html_url",
+      "content": "https://www.pnas.org/doi/abs/10.1073/pnas.1018033108"
+    },
+    {
+      "name": "citation_firstpage",
+      "content": "6889"
+    },
+    {
+      "name": "citation_lastpage",
+      "content": "6892"
+    },
+    {
+      "name": "citation_pdf_url",
+      "content": "https://www.pnas.org/doi/pdf/10.1073/pnas.1018033108"
+    },
+    {
+      "name": "citation_author",
+      "content": "Danziger, Shai"
+    },
+    {
+      "name": "citation_author",
+      "content": "Levav, Jonathan"
+    },
+    {
+      "name": "citation_author",
+      "content": "Avnaim-Pesso, Liora"
+    },
+    {
+      "name": "citation_doi",
+      "content": "10.1073/pnas.1018033108"
+    },
+    {
+      "name": "citation_online_date",
+      "content": "2011/04/11"
+    },
+    {
+      "name": "citation_publication_date",
+      "content": "2011/04/26"
+    },
+    {
+      "name": "citation_publisher",
+      "content": "Proceedings of the National Academy of Sciences"
+    },
+    {
+      "name": "citation_title",
+      "content": "Extraneous factors in judicial decisions"
+    },
+    {
+      "name": "citation_article_type",
+      "content": "research article"
+    },
+    {
+      "name": "citation_issue",
+      "content": "17"
+    },
+    {
+      "name": "citation_journal_title",
+      "content": "Proceedings of the National Academy of Sciences"
+    },
+    {
+      "name": "citation_volume",
+      "content": "108"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "favorable",
+      "window": "at psychological, political, and social factors influence judicial rulings. We test the common caricature of realism that justice is “what the judge ate for breakfast” in sequential parole decisions made by experienced judges. We record the judges’ two daily food breaks, which result in segmenting the deliberations of the day into three distinct “decision sessions.” We find that the percentage of favorable rulings drops gradually from ≈65% to nearly zero within each decision session and returns abruptly to ≈65% after a break. Our findings suggest that judicial rulings can be swayed by extraneous variables that should have no bearing on legal decisions. Sign up for PNAS alerts. Get alerts for new articles, or get an alert when an article is cited. LEARN MORE Does the outcome of legal case"
+    },
+    {
+      "keyword": "favorable",
+      "window": "well as rejections that include a stipulation for review at a later date (such delay decisions constitute 48.4% of the reject category). On average, such reviews occur ≈1 mo after the initial parole board review. Thus, a decision to delay effectively maintains the status quo for the prisoner. Overall, 64.2% of prisoner requests in our sample were rejected. Results We find that the likelihood of a favorable ruling is greater at the very beginning of the work day or after a food break than later in the sequence of cases. This pattern is readily evident in Fig. 1, which plots the proportion of favorable rulings by ordinal position for 95% of the observations in each decision session. The plot shows that the likelihood of a ruling in favor of a prisoner spikes at the beginning of each session—"
+    },
+    {
+      "keyword": "favorable",
+      "window": "board review. Thus, a decision to delay effectively maintains the status quo for the prisoner. Overall, 64.2% of prisoner requests in our sample were rejected. Results We find that the likelihood of a favorable ruling is greater at the very beginning of the work day or after a food break than later in the sequence of cases. This pattern is readily evident in Fig. 1, which plots the proportion of favorable rulings by ordinal position for 95% of the observations in each decision session. The plot shows that the likelihood of a ruling in favor of a prisoner spikes at the beginning of each session—the probability of a favorable ruling steadily declines from ≈0.65 to nearly zero and jumps back up to ≈0.65 after a break for a meal. Fig. 2 A and B presents a histogram of the probability of a fav"
+    },
+    {
+      "keyword": "65%",
+      "window": "factors influence judicial rulings. We test the common caricature of realism that justice is “what the judge ate for breakfast” in sequential parole decisions made by experienced judges. We record the judges’ two daily food breaks, which result in segmenting the deliberations of the day into three distinct “decision sessions.” We find that the percentage of favorable rulings drops gradually from ≈65% to nearly zero within each decision session and returns abruptly to ≈65% after a break. Our findings suggest that judicial rulings can be swayed by extraneous variables that should have no bearing on legal decisions. Sign up for PNAS alerts. Get alerts for new articles, or get an alert when an article is cited. LEARN MORE Does the outcome of legal cases depend solely on laws and facts? Legal"
+    },
+    {
+      "keyword": "65%",
+      "window": "ism that justice is “what the judge ate for breakfast” in sequential parole decisions made by experienced judges. We record the judges’ two daily food breaks, which result in segmenting the deliberations of the day into three distinct “decision sessions.” We find that the percentage of favorable rulings drops gradually from ≈65% to nearly zero within each decision session and returns abruptly to ≈65% after a break. Our findings suggest that judicial rulings can be swayed by extraneous variables that should have no bearing on legal decisions. Sign up for PNAS alerts. Get alerts for new articles, or get an alert when an article is cited. LEARN MORE Does the outcome of legal cases depend solely on laws and facts? Legal formalism holds that judges apply legal reasons to the facts of a case i"
+    },
+    {
+      "keyword": "decision",
+      "window": "RESEARCH ARTICLE SOCIAL SCIENCES FREE ACCESS SHARE ON Extraneous factors in judicial decisions Shai Danziger, Jonathan Levav jl2351@columbia.edu, and Liora Avnaim-PessoAuthors Info & Affiliations Edited* by Daniel Kahneman, Princeton University, Princeton, NJ, and approved February 25, 2011 (received for review December 8, 2010) April 11, 2011 108 (17) 6889-6892 https://doi.org/10.1073/pnas.1018033108 TRACK CITATIONS ADD TO READING LIST PDF Information & Authors Metrics & Citation"
+    },
+    {
+      "keyword": "decision",
+      "window": "Information & Authors Metrics & Citations View Options References Figures Tables Media Share Abstract Are judicial rulings based solely on laws and facts? Legal formalism holds that judges apply legal reasons to the facts of a case in a rational, mechanical, and deliberative manner. In contrast, legal realists argue that the rational application of legal reasons does not sufficiently explain the decisions of judges and that psychological, political, and social factors influence judicial rulings. We test the common caricature of realism that justice is “what the judge ate for breakfast” in sequential parole decisions made by experienced judges. We record the judges’ two daily food breaks, which result in segmenting the deliberations of the day into three distinct “decision sessions.” We fi"
+    },
+    {
+      "keyword": "decision",
+      "window": "e facts of a case in a rational, mechanical, and deliberative manner. In contrast, legal realists argue that the rational application of legal reasons does not sufficiently explain the decisions of judges and that psychological, political, and social factors influence judicial rulings. We test the common caricature of realism that justice is “what the judge ate for breakfast” in sequential parole decisions made by experienced judges. We record the judges’ two daily food breaks, which result in segmenting the deliberations of the day into three distinct “decision sessions.” We find that the percentage of favorable rulings drops gradually from ≈65% to nearly zero within each decision session and returns abruptly to ≈65% after a break. Our findings suggest that judicial rulings can be swayed"
+    },
+    {
+      "keyword": "break",
+      "window": "judges apply legal reasons to the facts of a case in a rational, mechanical, and deliberative manner. In contrast, legal realists argue that the rational application of legal reasons does not sufficiently explain the decisions of judges and that psychological, political, and social factors influence judicial rulings. We test the common caricature of realism that justice is “what the judge ate for breakfast” in sequential parole decisions made by experienced judges. We record the judges’ two daily food breaks, which result in segmenting the deliberations of the day into three distinct “decision sessions.” We find that the percentage of favorable rulings drops gradually from ≈65% to nearly zero within each decision session and returns abruptly to ≈65% after a break. Our findings suggest that"
+    },
+    {
+      "keyword": "break",
+      "window": "ntrast, legal realists argue that the rational application of legal reasons does not sufficiently explain the decisions of judges and that psychological, political, and social factors influence judicial rulings. We test the common caricature of realism that justice is “what the judge ate for breakfast” in sequential parole decisions made by experienced judges. We record the judges’ two daily food breaks, which result in segmenting the deliberations of the day into three distinct “decision sessions.” We find that the percentage of favorable rulings drops gradually from ≈65% to nearly zero within each decision session and returns abruptly to ≈65% after a break. Our findings suggest that judicial rulings can be swayed by extraneous variables that should have no bearing on legal decisions. Sig"
+    },
+    {
+      "keyword": "break",
+      "window": "tice is “what the judge ate for breakfast” in sequential parole decisions made by experienced judges. We record the judges’ two daily food breaks, which result in segmenting the deliberations of the day into three distinct “decision sessions.” We find that the percentage of favorable rulings drops gradually from ≈65% to nearly zero within each decision session and returns abruptly to ≈65% after a break. Our findings suggest that judicial rulings can be swayed by extraneous variables that should have no bearing on legal decisions. Sign up for PNAS alerts. Get alerts for new articles, or get an alert when an article is cited. LEARN MORE Does the outcome of legal cases depend solely on laws and facts? Legal formalism holds that judges apply legal reasons to the facts of a case in a rational"
+    },
+    {
+      "keyword": "parole",
+      "window": "s to the facts of a case in a rational, mechanical, and deliberative manner. In contrast, legal realists argue that the rational application of legal reasons does not sufficiently explain the decisions of judges and that psychological, political, and social factors influence judicial rulings. We test the common caricature of realism that justice is “what the judge ate for breakfast” in sequential parole decisions made by experienced judges. We record the judges’ two daily food breaks, which result in segmenting the deliberations of the day into three distinct “decision sessions.” We find that the percentage of favorable rulings drops gradually from ≈65% to nearly zero within each decision session and returns abruptly to ≈65% after a break. Our findings suggest that judicial rulings can be"
+    },
+    {
+      "keyword": "parole",
+      "window": "as been experience” (3). Realists argue that the rational application of legal reasons does not sufficiently explain judicial decisions and that psychological, political, and social factors influence rulings as well (4). The realist view is commonly caricaturized by the trope that justice is “what the judge ate for breakfast” (5). We empirically test this caricature in the context of sequences of parole decisions made by experienced judges (mean experience = 22.5 y, SD = 2.5) and, in so doing, demonstrate how extraneous factors can sway highly consequential decisions of expert decision makers. Prior research suggests that making repeated judgments or decisions depletes individuals’ executive function and mental resources (6), which can, in turn, influence their subsequent decisions. For in"
+    },
+    {
+      "keyword": "parole",
+      "window": "ance through the sequence of cases (whose order appears to be exogenously determined; see below for a detailed discussion), they will be more likely to accept the default, status quo outcome: deny a prisoner's request. Materials and Methods Our data consist of 1,112 judicial rulings, collected over 50 d in a 10-mo period, by eight Jewish-Israeli judges (two females) who preside over two different parole boards that serve four major prisons in Israel. Our prisoner sample consisted of 727 Jewish-Israeli males (65.3%), 326 Arab-Israeli males (29.3%), 50 Jewish-Israeli females (4.5%), and 9 Arab-Israeli females (0.9%). The two parole boards process ∼40% of all parole requests in the country. The prisons house felons convicted of crimes such as embezzlement, assault, theft, murder, and rape. Ea"
+    }
+  ],
+  "textLength": 34158
+}

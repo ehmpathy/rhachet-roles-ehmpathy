@@ -1,0 +1,65 @@
+{
+  "source": {
+    "id": "page.azure-compensating-transaction",
+    "kind": "page",
+    "url": "https://learn.microsoft.com/en-us/azure/architecture/patterns/compensating-transaction",
+    "keywords": [
+      "compensat",
+      "undo",
+      "eventually consistent"
+    ]
+  },
+  "urlFinal": "https://learn.microsoft.com/en-us/azure/architecture/patterns/compensating-transaction",
+  "status": 200,
+  "fetchedAt": "2026-11-26T13:57:42.504Z",
+  "title": "Compensating Transaction Pattern - Azure Architecture Center | Microsoft Learn",
+  "meta": [
+    {
+      "name": "description",
+      "content": "Use the Compensating Transaction pattern to undo work when a step of an eventually consistent operation fails in distributed systems."
+    },
+    {
+      "name": "og:title",
+      "content": "Compensating Transaction Pattern - Azure Architecture Center"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "compensat",
+      "window": "cture Migration Develop Learn Azure More Portal Get started with Azure Search Azure Architecture Center Browse all Architectures Architecture icons What's new Application architecture fundamentals Introduction Architecture styles Design patterns Overview Ambassador Anti-Corruption Layer Asynchronous Request-Reply Backends for Frontends Bulkhead Cache-Aside Choreography Circuit Breaker Claim Check Compensating Transaction Competing Consumers Compute Resource Consolidation CQRS Deployment Stamps Event Sourcing External Configuration Store Federated Identity Gatekeeper Gateway Aggregation Gateway Offloading Gateway Routing Geode Health Endpoint Monitoring Idempotent Consumer Index Table Leader Election Materialized View Messaging Bridge Pipes and Filters Priority Queue Publisher-Subscriber Qu"
+    },
+    {
+      "keyword": "compensat",
+      "window": "for Azure applications Technology choices Best practices for cloud applications Performance antipatterns Responsible engineering Architecture for SaaS and multitenancy Azure landing zone Azure categories Azure for AWS professionals Azure for Google Cloud professionals Microsoft Azure Well-Architected Framework Cloud Adoption Framework for Azure Download PDF LearnAzureArchitecture Center Ask Learn Compensating Transaction pattern Summarize this article for me In this article Context and problem Solution Problems and considerations When to use this pattern Show 3 more Use this pattern to undo work when one or more steps fail in an eventually consistent operation. Cloud-hosted applications that implement complex business processes and workflows commonly use operations that follow the eventua"
+    },
+    {
+      "keyword": "compensat",
+      "window": "entual consistency doesn't always store its affected data in a database. For example, in a service-oriented architecture (SOA) environment, an operation can invoke an action in a service and change the state that the service holds. To undo the operation, you must also undo this state change, which can involve invoking the service again to reverse the first action's effects. Solution Implement a compensating transaction that undoes the effects of completed steps in the original operation. You might think that you can simply restore the system to its original state, but this approach can overwrite changes from other concurrent application instances. Instead, the compensating transaction must intelligently account for concurrent work. This process is usually application specific and depends"
+    },
+    {
+      "keyword": "undo",
+      "window": "ategories Azure for AWS professionals Azure for Google Cloud professionals Microsoft Azure Well-Architected Framework Cloud Adoption Framework for Azure Download PDF LearnAzureArchitecture Center Ask Learn Compensating Transaction pattern Summarize this article for me In this article Context and problem Solution Problems and considerations When to use this pattern Show 3 more Use this pattern to undo work when one or more steps fail in an eventually consistent operation. Cloud-hosted applications that implement complex business processes and workflows commonly use operations that follow the eventual consistency model. Context and problem Cloud applications frequently modify data that is spread across various data sources in different geographic locations. To avoid contention and improve"
+    },
+    {
+      "keyword": "undo",
+      "window": "transactional consistency. In the eventual consistency model, a typical business operation consists of a series of separate steps. During these steps, the overall view of the system state might be inconsistent. But the system should become consistent again when all steps finish. Handling step failures presents a key challenge in the eventual consistency model. After a failure, you might need to undo work from completed operation steps. However, you can't always roll back the data because other concurrent application instances might change the data. Even when concurrent instances don't change the data, it can be more complex to undo a step than to restore the original state. You might need to apply business-specific rules. For an example, see the travel website example. When an operation"
+    },
+    {
+      "keyword": "undo",
+      "window": "ome consistent again when all steps finish. Handling step failures presents a key challenge in the eventual consistency model. After a failure, you might need to undo work from completed operation steps. However, you can't always roll back the data because other concurrent application instances might change the data. Even when concurrent instances don't change the data, it can be more complex to undo a step than to restore the original state. You might need to apply business-specific rules. For an example, see the travel website example. When an operation that implements eventual consistency spans multiple data stores, you must access each data store to undo the changes. To prevent the system from remaining inconsistent, you must reliably undo the work in every data store. An operation"
+    },
+    {
+      "keyword": "eventually consistent",
+      "window": "for Google Cloud professionals Microsoft Azure Well-Architected Framework Cloud Adoption Framework for Azure Download PDF LearnAzureArchitecture Center Ask Learn Compensating Transaction pattern Summarize this article for me In this article Context and problem Solution Problems and considerations When to use this pattern Show 3 more Use this pattern to undo work when one or more steps fail in an eventually consistent operation. Cloud-hosted applications that implement complex business processes and workflows commonly use operations that follow the eventual consistency model. Context and problem Cloud applications frequently modify data that is spread across various data sources in different geographic locations. To avoid contention and improve performance in a distributed environment, a"
+    },
+    {
+      "keyword": "eventually consistent",
+      "window": "in the original operation. You might think that you can simply restore the system to its original state, but this approach can overwrite changes from other concurrent application instances. Instead, the compensating transaction must intelligently account for concurrent work. This process is usually application specific and depends on the original operation. You can use a workflow to implement an eventually consistent operation that requires compensation. As the original operation runs, the system records information about each step and how to undo it. If the operation fails, the workflow rewinds through the completed steps and reverses each step. Diagram that shows a workflow with forward steps and compensating actions. A user initiates an operation that runs step 1, step 2, and step 3 s"
+    },
+    {
+      "keyword": "eventually consistent",
+      "window": "Diagram that shows a workflow with forward steps and compensating actions. A user initiates an operation that runs step 1, step 2, and step 3 sequentially. If all steps succeed, the process completes. If a failure occurs after any step, compensating actions run in reverse order to undo completed work, which ends in a compensated state. While each step is a separate action, together they form an eventually consistent operation. The system must perform the steps and the corresponding undo operations for each step. If the customer cancels, these undo operations can run as a compensating transaction. A single-step failure doesn't always require you to roll back the entire system by using a compensating transaction. For example, in a travel website scenario, a customer books flights F1, F2,"
+    }
+  ],
+  "textLength": 17359
+}

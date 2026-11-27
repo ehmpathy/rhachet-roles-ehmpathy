@@ -1,0 +1,45 @@
+{
+  "source": {
+    "id": "page.fowler-pessimistic-offline-lock",
+    "kind": "page",
+    "url": "https://martinfowler.com/eaaCatalog/pessimisticOfflineLock.html",
+    "keywords": [
+      "pessimistic",
+      "lock"
+    ]
+  },
+  "urlFinal": "https://martinfowler.com/eaaCatalog/pessimisticOfflineLock.html",
+  "status": 200,
+  "fetchedAt": "2026-11-27T11:32:30.478Z",
+  "title": "Pessimistic Offline Lock",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "Pessimistic Offline Lock"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "pessimistic",
+      "window": "Refactoring Agile Architecture About Thoughtworks Pessimistic Offline Lock Prevents conflicts between concurrent business transactions by allowing only one business transaction at a time to access data. Since offline concurrency involves manipulating data for a business transaction that spans multiple requests, the simplest approach would seem to be having a system transaction open for the whole business transaction. Sadly, however, this doesn'"
+    },
+    {
+      "keyword": "pessimistic",
+      "window": "tion, one of them will commit easily but the others will conflict and fail. Since the conflict is only detected at the end of the business transac-tion, the victims will do all the transaction work only to find at the last minute that the whole thing will fail and their time will have been wasted. If this hap-pens a lot on lengthy business transactions the system will soon become very unpopular. Pessimistic Offline Lock prevents conflicts by avoiding them altogether. It forces a business transaction to acquire a lock on a piece of data before it starts to use it, so that, most of the time, once you begin a business transaction you can be pretty sure you'll complete it without being bounced by concurrency control. for more details go to Chapter 16 of the online ebook at oreilly.com This"
+    },
+    {
+      "keyword": "lock",
+      "window": "Refactoring Agile Architecture About Thoughtworks Pessimistic Offline Lock Prevents conflicts between concurrent business transactions by allowing only one business transaction at a time to access data. Since offline concurrency involves manipulating data for a business transaction that spans multiple requests, the simplest approach would seem to be having a system transaction open for the whole business transaction. Sadly, however, this doesn't always work well b"
+    },
+    {
+      "keyword": "lock",
+      "window": "seem to be having a system transaction open for the whole business transaction. Sadly, however, this doesn't always work well because transaction systems aren't geared to work with long transactions. For that reason you have to use multiple system transactions, at which point you're left to your own devices to manage concurrent access to your data. The first approach to try is Optimistic Offline Lock. However, that pattern has its problems. If several people access the same data within a busi-ness transaction, one of them will commit easily but the others will conflict and fail. Since the conflict is only detected at the end of the business transac-tion, the victims will do all the transaction work only to find at the last minute that the whole thing will fail and their time will have bee"
+    },
+    {
+      "keyword": "lock",
+      "window": "ll commit easily but the others will conflict and fail. Since the conflict is only detected at the end of the business transac-tion, the victims will do all the transaction work only to find at the last minute that the whole thing will fail and their time will have been wasted. If this hap-pens a lot on lengthy business transactions the system will soon become very unpopular. Pessimistic Offline Lock prevents conflicts by avoiding them altogether. It forces a business transaction to acquire a lock on a piece of data before it starts to use it, so that, most of the time, once you begin a business transaction you can be pretty sure you'll complete it without being bounced by concurrency control. for more details go to Chapter 16 of the online ebook at oreilly.com This pattern is part of P"
+    }
+  ],
+  "textLength": 1780,
+  "text": " \nRefactoring\nAgile\nArchitecture\nAbout\nThoughtworks\nPessimistic Offline Lock\n\nPrevents conflicts between concurrent business transactions by allowing only one business transaction at a time to access data.\n\nSince offline concurrency involves manipulating data for a business transaction that spans multiple requests, the simplest approach would seem to be having a system transaction open for the whole business transaction. Sadly, however, this doesn't always work well because transaction systems aren't geared to work with long transactions. For that reason you have to use multiple system transactions, at which point you're left to your own devices to manage concurrent access to your data.\n\nThe first approach to try is Optimistic Offline Lock. However, that pattern has its problems. If several people access the same data within a busi-ness transaction, one of them will commit easily but the others will conflict and fail. Since the conflict is only detected at the end of the business transac-tion, the victims will do all the transaction work only to find at the last minute that the whole thing will fail and their time will have been wasted. If this hap-pens a lot on lengthy business transactions the system will soon become very unpopular.\n\nPessimistic Offline Lock prevents conflicts by avoiding them altogether. It forces a business transaction to acquire a lock on a piece of data before it starts to use it, so that, most of the time, once you begin a business transaction you can be pretty sure you'll complete it without being bounced by concurrency control.\n\nfor more details go to Chapter 16 of the online ebook at oreilly.com\n\nThis pattern is part of Patterns of Enterprise Application Architecture\n\nDavid Rice\n\n05 March 2003\n\n© Martin Fowler | Disclosures"
+}

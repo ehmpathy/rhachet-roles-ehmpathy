@@ -58,7 +58,7 @@ if [[ ! -f "$BLOCKLIST_FILE" ]]; then
 fi
 
 # load the blocklist ONCE: the alternation to test with, then one record per term
-# .why = one exec emits the alternation on line 1 and term<TAB>why<TAB>alt on each line
+# .why = one exec emits the alternation on line 1 and term<TAB>label<TAB>why<TAB>alt on each line
 #        after. a per-term read costs 3 jq × 9 terms = 27 execs for detail the common
 #        clean write discards unread.
 # 🔴 .note = a MALFORMED blocklist fails LOUD and blocks. a parse error once yielded an
@@ -98,6 +98,11 @@ fi
 #            it stays as-is. a `select(.term != "")` drops the empty record from the
 #            alternation, which is what already happens in effect — no verdict changes,
 #            and it costs a policy edit acceptance #2 bars "either direction".
+# .note = a record's `bound` picks its match: absent (or any value but "segment") = a whole
+#         word; "segment" = also a piece of an identifier (`row_id`, `rowCount`, `getRowCount`).
+#         the test is `== "segment"`, never a type read, so a wrong-typed bound cannot error the
+#         one jq exec — it reads as a whole word. line 1 = the whole-word alternation, line 2 =
+#         the segment alternation, then one record per line
 # .note = sets BLOCKLIST_LINES, or BLOCKLIST_CAUSE and returns 1. jq writes naught to
 #         stderr on success, so `2>&1` leaves the lines clean; on failure the last line
 #         captured is jq's own complaint, so the cause costs no extra fork
@@ -106,8 +111,11 @@ set_blocklist_lines() {
   BLOCKLIST_LINES=$(
     sed 's|^[[:space:]]*//.*$||' "$file" \
       | jq -r '(.terms // []) as $t
-               | [([$t[] | .term | strings] | join("|")),
+               | [([$t[] | select(.bound != "segment") | .term | strings] | join("|")),
+                  ([$t[] | select(.bound == "segment") | .term | strings] | join("|")),
                   ($t[] | [((.term | strings) // ""),
+                           (if .bound == "segment" then "segment" else "word" end),
+                           ((.label | strings | select(length > 0)) // (.term | strings) // ""),
                            ((.why | strings) // ""),
                            (try ((.alt // []) | join(", ")) catch "")] | @tsv)]
                | .[]' 2>&1
@@ -136,11 +144,24 @@ if ! set_blocklist_lines file="$BLOCKLIST_FILE"; then
   exit 2
 fi
 
-# skip if no terms
+# split the two alternation lines from the records
 TERM_ALTERNATION="${BLOCKLIST_LINES%%$'\n'*}"
-if [[ -z "$TERM_ALTERNATION" ]]; then
+BLOCKLIST_REST="${BLOCKLIST_LINES#*$'\n'}"
+SEGMENT_ALTERNATION="${BLOCKLIST_REST%%$'\n'*}"
+BLOCKLIST_RECORDS="${BLOCKLIST_REST#*$'\n'}"
+
+# skip if no terms
+if [[ -z "$TERM_ALTERNATION" && -z "$SEGMENT_ALTERNATION" ]]; then
   exit 0
 fi
+
+# the gate pattern: whole words, plus each segment term with no boundary at all
+# .why = a segment term can sit inside an identifier (`rowCount`), where `\b` would miss it. the
+#        gate only over-approximates (`arrow` passes it too); the in-shell walk below decides, at
+#        zero execs. a list with no segment term renders exactly the whole-word pattern
+GATE_PATTERN=""
+[[ -n "$TERM_ALTERNATION" ]] && GATE_PATTERN="\\b(${TERM_ALTERNATION})\\b"
+[[ -n "$SEGMENT_ALTERNATION" ]] && GATE_PATTERN="${GATE_PATTERN:+${GATE_PATTERN}|}(${SEGMENT_ALTERNATION})"
 
 # ONE grep decides whether any term is present at all
 # .why = one alternation in place of 9 per-term greps, so the common clean write pays a
@@ -158,10 +179,10 @@ fi
 #            compile fails on any input.
 #            ⇒ the extra exec is paid ONLY on the fatal path, so the clean and tripped
 #            paths are untouched (acceptance #1).
-grep -iqE "\\b(${TERM_ALTERNATION})\\b" <<< "$CONTENT" 2>/dev/null && ANY_TERM_PRESENT=true || {
+grep -iqE "$GATE_PATTERN" <<< "$CONTENT" 2>/dev/null && ANY_TERM_PRESENT=true || {
   GREP_STATUS=$?
   if [[ $GREP_STATUS -gt 1 ]]; then
-    GREP_DIAG=$(grep -iqE "\\b(${TERM_ALTERNATION})\\b" <<< "" 2>&1 || true)
+    GREP_DIAG=$(grep -iqE "$GATE_PATTERN" <<< "" 2>&1 || true)
     {
       echo ""
       echo "💥 MalfunctionError: the blocklist holds a term that is not a valid regex"
@@ -169,7 +190,7 @@ grep -iqE "\\b(${TERM_ALTERNATION})\\b" <<< "$CONTENT" 2>/dev/null && ANY_TERM_P
       echo "file: $FILE_PATH"
       echo ""
       echo "the combined pattern failed to compile:"
-      echo "  \\b(${TERM_ALTERNATION})\\b"
+      echo "  ${GATE_PATTERN}"
       echo ""
       echo "what grep said:"
       echo "  ${GREP_DIAG:-no detail available}"
@@ -210,34 +231,85 @@ fi
 # ⚠️ .note = the skip stays; the SILENCE does not. a bad pattern here is reported on
 #            stderr with the verdict untouched — the same split the nudge-record write
 #            makes (loud diagnostic, unchanged verdict).
-# the terms the content holds, each with its why and alt, from the `term<TAB>why<TAB>alt` rows
-# .note = named args `content=` `rows=`; sets the global array DETECTED_TERMS and the global
-#         DETECTED_INFO (the render lines). a term grep cannot compile is skipped and warned
+# the terms the content holds, each with its why and alt, from the `term<TAB>label<TAB>why<TAB>alt` rows
+# .note = named args `content=` `rows=`; sets the global array DETECTED_TERMS and
+#         the global DETECTED_INFO (the render lines). a term that cannot compile is skipped and warned
+# .why = each record is tested IN-SHELL (`[[ =~ ]]`), so the walk costs zero execs however many
+#        records the list holds. the term sits in its own group between emulated word boundaries,
+#        so a term with alternatives keeps its boundaries on every branch — an unparenthesized
+#        `\bterm\b` bound them to the first and last branch only, and a near-word named a record
+#        it never matched ([case38])
+# .note = `[^[:alnum:]_]` and the string ends stand in for grep's `\b`: the same word set, so the
+#         walk and the gate agree on what a whole word is
 set_detected_terms() {
   local content="" rows=""
   local "$@"
   DETECTED_TERMS=()
   DETECTED_INFO=""
-  local term why alt grep_status
-  while IFS=$'\t' read -r term why alt; do
-    [[ -z "$term" ]] && continue
 
-    # grep exit 0 = present, 1 = absent, >1 = a term that is not a valid regex
-    grep_status=0
-    grep -iqE "\\b${term}\\b" <<< "$content" 2>/dev/null || grep_status=$?
-    [[ $grep_status -eq 1 ]] && continue
+  # match case-insensitively, as the gate does; restore the shell option after
+  local had_nocasematch=0
+  shopt -q nocasematch && had_nocasematch=1
+  shopt -s nocasematch
+
+  # .note = [[ =~ ]] exits 0 on a match, 1 on none, 2 on a pattern that cannot compile. the bare
+  #         term is checked alone too: a term with an unbalanced group can compile once wrapped
+  #         (`)swell(` inside `(…)` balances), and must still report as broken ([case23])
+  local term bound label why alt pattern bare_status match_status
+  local branch cap camel_head camel_hump
+  local -a branches
+  while IFS=$'\t' read -r term bound label why alt; do
+    [[ -z "$term" ]] && continue
+    bare_status=0
+    [[ "" =~ $term ]] || bare_status=$?
+
+    # a whole word: `_` is a word character, so `row_id` is not the word `row`
+    pattern="(^|[^[:alnum:]_])(${term})([^[:alnum:]_]|$)"
+
+    # a segment: `_` and `-` part an identifier too, so `row_id`, `user_row`, and `ROW_COUNT` match
+    [[ "$bound" == "segment" ]] && pattern="(^|[^[:alnum:]])(${term})([^[:alnum:]]|$)"
+
+    match_status=0
+    [[ "$content" =~ $pattern ]] || match_status=$?
+
+    # a segment inside a camel identifier: read case-sensitively, so the hump is visible
+    # .why = under nocasematch `rowCount` and `arrowCount` look alike. the lower head (`rowCount`)
+    #        sits at an identifier start; a capped hump (`getRowCount`, `userRows`) follows any
+    #        non-capital and precedes a non-lowercase. `arrow`, `throwError`, `rowdy` pass
+    # .note = the cap uppercases the first letter of each top-level `|` branch, so a segment
+    #         term stays a plain alternation of words (`rows?`); a grouped term caps naught
+    if [[ "$bound" == "segment" && $bare_status -le 1 && $match_status -eq 1 ]]; then
+      IFS='|' read -ra branches <<< "$term"
+      cap=""
+      for branch in "${branches[@]}"; do cap="${cap:+${cap}|}${branch^}"; done
+      # .note = posix classes, never `A-Z` ranges: a range follows the locale's collation order
+      camel_head="(^|[^[:alnum:]])(${term})[[:upper:][:digit:]]"
+      camel_hump="(^|[^[:upper:]])(${cap})([^[:lower:]]|$)"
+      shopt -u nocasematch
+      { [[ "$content" =~ $camel_head ]] || [[ "$content" =~ $camel_hump ]]; } && match_status=0
+      shopt -s nocasematch
+    fi
+
+    # absent: move on
+    if [[ $bare_status -le 1 && $match_status -eq 1 ]]; then
+      continue
+    fi
 
     # present: record it with its why and alt
-    if [[ $grep_status -eq 0 ]]; then
+    # .note = a record may carry a `label` for the render; a regex term (one record, several
+    #         forms) reads as its forms, never as its pattern. absent a label, the jq read
+    #         fills it from the term — never empty, since `IFS=$'\t'` collapses an empty
+    #         field and would shift `why` into its slot
+    if [[ $bare_status -le 1 && $match_status -eq 0 ]]; then
       DETECTED_TERMS+=("$term")
-      DETECTED_INFO="${DETECTED_INFO}  ⛔ ${term}\n    why: ${why}\n    alt: ${alt}\n"
+      DETECTED_INFO="${DETECTED_INFO}  ⛔ ${label}\n    why: ${why}\n    alt: ${alt}\n"
       continue
     fi
 
     # not a valid regex: skip it, loud; the verdict is untouched
     {
       echo "💥 MalfunctionError: blocklist term SKIPPED — it is not a valid regex: ${term}"
-      echo "    why:    grep could not compile it, so this term guarded naught"
+      echo "    why:    it cannot compile as a regex, so this term guarded naught"
       echo "    effect: every other term still guards; only this one is blind"
       echo "    fix:    escape or remove it in terms.blocklist.jsonc"
       echo ""
@@ -248,9 +320,12 @@ set_detected_terms() {
     #         flag lets the header drop its first blank, and only then.
     WARNED=1
   done <<< "$rows"
+
+  # restore the shell option as it was found
+  [[ $had_nocasematch -eq 1 ]] || shopt -u nocasematch
   return 0
 }
-set_detected_terms content="$CONTENT" rows="${BLOCKLIST_LINES#*$'\n'}"
+set_detected_terms content="$CONTENT" rows="$BLOCKLIST_RECORDS"
 
 # if no terms detected, allow
 # .note = reachable when the alternation matches but no single term does — the alternation
@@ -294,7 +369,7 @@ run_hardnudge_gate nudge_name=terms.blocklist -- "${DETECTED_TERMS[@]}"
   echo ""
   echo "detected terms:"
   echo -e "$DETECTED_INFO"
-  echo "see rule.forbid.term-* briefs for rationale."
+  echo "see rule.forbid.term=* briefs for rationale."
   echo ""
   echo "if this is intentional and absolutely unavoidable, retry the same operation."
   echo ""

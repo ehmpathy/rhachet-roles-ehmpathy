@@ -1,0 +1,17 @@
+{
+  "source": {
+    "id": "claessen2000",
+    "kind": "page",
+    "url": "https://dblp.org/search?q=QuickCheck+lightweight+tool+random+testing",
+    "keywords": [
+      "quickcheck"
+    ]
+  },
+  "urlFinal": "https://dblp.org/search?q=QuickCheck+lightweight+tool+random+testing",
+  "status": 200,
+  "fetchedAt": "2026-11-23T13:03:39.037Z",
+  "title": "Oh noes!",
+  "meta": [],
+  "windows": [],
+  "textLength": 196
+}

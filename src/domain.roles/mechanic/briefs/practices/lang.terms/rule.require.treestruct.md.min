@@ -1,11 +1,11 @@
 .tactic = name:treestruct
 
-.what = enforce [verb][...noun] for mechanisms and [...noun][state]? for resources
+.what = enforce [verb][...noun] for mechanisms and [...noun][status]? for resources
 
 .where:
   - verb = one lead verb (e.g., gen, set, get, map)
   - ...noun = domain hierarchy
-  - state = optional suffix (e.g., updated, found, draft)
+  - status = optional suffix (e.g., updated, found, draft)
   - applies to functions, types, files, folders, slugs
 
 .why:
@@ -16,7 +16,7 @@
 .how:
   .rules:
     - mechanisms: [verb][...nounhierarchy] with verb first
-    - resources: [...nounhierarchy][state]?
+    - resources: [...nounhierarchy][status]?
   .examples:
     .positive:
       // mechanisms

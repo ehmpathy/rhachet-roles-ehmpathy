@@ -1,0 +1,22 @@
+{
+  "source": {
+    "id": "page.vldb-bailis",
+    "kind": "page",
+    "url": "https://www.vldb.org/pvldb/vol8.html",
+    "keywords": [
+      "Coordination Avoidance"
+    ]
+  },
+  "urlFinal": "https://www.vldb.org/pvldb/volumes/8/",
+  "status": 200,
+  "fetchedAt": "2026-11-23T12:57:46.546Z",
+  "title": "Proceedings of the VLDB Endowment",
+  "meta": [],
+  "windows": [
+    {
+      "keyword": "Coordination Avoidance",
+      "window": "re Time Series Motif Discovery from Unbounded Streams Nurjahan Begum, Eamonn Keogh 161 - 172 Pregelix: Big(ger) Graph Analytics on a Dataflow Engine Yingyi Bu, Vinayak Borkar, Jianfeng Jia, Michael J. Carey, Tyson Condie 173 - 184 Profiling R on a Contemporary Processor Shriram Sridharan, Jignesh M. Patel Volume 8, No. 3 Divesh Srivastava and S. Sudarshan: Front Matter i - ix 185 - 196 Coordination Avoidance in Database Systems Peter Bailis, Alan Fekete, Michael J. Franklin, Ali Ghodsi, Joseph M. Hellerstein, Ion Stoica 197 - 208 QuickFOIL: Scalable Inductive Logic Programming Qiang Zeng, Jignesh M. Patel, David Page 209 - 220 Staring into the Abyss: An Evaluation of Concurrency Control with One Thousand Cores Xiangyao Yu, George Bezerra, Andrew Pavlo, Srinivas Devadas, M"
+    }
+  ],
+  "textLength": 34951
+}

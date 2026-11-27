@@ -1,0 +1,32 @@
+{
+  "source": {
+    "id": "page.ewd667-date",
+    "kind": "page",
+    "url": "https://www.cs.utexas.edu/~EWD/transcriptions/EWD06xx/EWD667.html",
+    "keywords": [
+      "NUENEN",
+      "prof.dr.",
+      "197"
+    ]
+  },
+  "urlFinal": "https://www.cs.utexas.edu/~EWD/transcriptions/EWD06xx/EWD667.html",
+  "status": 200,
+  "fetchedAt": "2026-11-23T16:44:18.522Z",
+  "title": "E.W.Dijkstra Archive: On the foolishness of \"natural language programming\". (EWD 667)",
+  "meta": [],
+  "windows": [
+    {
+      "keyword": "NUENEN",
+      "window": "hould discourage those believers in natural language programming that lack the technical insight needed to predict its failure. (End of remark.) From one gut feeling I derive much consolation: I suspect that machines to be programmed in our native tongues —be it Dutch, English, American, French, German, or Swahili— are as damned difficult to make as they would be to use. Plataanstraat 5 5671 AL NUENEN The Netherlands prof.dr.Edsger W.Dijkstra Burroughs Research Fellow transcribed by Tristram Brelstaff revised Fri, 19 Nov 2010"
+    },
+    {
+      "keyword": "prof.dr.",
+      "window": "believers in natural language programming that lack the technical insight needed to predict its failure. (End of remark.) From one gut feeling I derive much consolation: I suspect that machines to be programmed in our native tongues —be it Dutch, English, American, French, German, or Swahili— are as damned difficult to make as they would be to use. Plataanstraat 5 5671 AL NUENEN The Netherlands prof.dr.Edsger W.Dijkstra Burroughs Research Fellow transcribed by Tristram Brelstaff revised Fri, 19 Nov 2010"
+    },
+    {
+      "keyword": "197",
+      "window": "r ruling out all sorts of nonsense that, when we use our native tongues, are almost impossible to avoid. Instead of regarding the obligation to use formal symbols as a burden, we should regard the convenience of using them as a privilege: thanks to them, school children can learn to do what in earlier days only genius could achieve. (This was evidently not understood by the author that wrote —in 1977— in the preface of a technical report that \"even the standard symbols used for logical connectives have been avoided for the sake of clarity\". The occurrence of that sentence suggests that the author's misunderstanding is not confined to him alone.) When all is said and told, the \"naturalness\" with which we use our native tongues boils down to the ease with which we can use them for making st"
+    }
+  ],
+  "textLength": 6473
+}

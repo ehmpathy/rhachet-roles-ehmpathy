@@ -8,3 +8,8 @@ recommended replacements:
 - `present` - for something that is here now
 
 pick whichever non-gerund alternative best fits the context, but never `existing`
+
+see also:
+- `philosophy.why-we-ban-terms` — why a heavy word gets banned
+- `rule.forbid.term=existing.example=demo` — a 👎/👍 demo
+- `rule.forbid.gerunds` — the -ing form, banned on its own

@@ -1,0 +1,35 @@
+{
+  "source": {
+    "id": "page.miller-i",
+    "kind": "page",
+    "url": "https://mathshistory.st-andrews.ac.uk/Miller/mathword/i/",
+    "keywords": [
+      "INVARIANT"
+    ]
+  },
+  "urlFinal": "https://mathshistory.st-andrews.ac.uk/Miller/mathword/i/",
+  "status": 200,
+  "fetchedAt": "2026-11-23T12:56:26.401Z",
+  "title": "Earliest Known Uses of Some of the Words of Mathematics (I) - MacTutor History of Mathematics",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "Earliest Known Uses of Some of the Words of Mathematics (I)"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "INVARIANT",
+      "window": "y here be distinguished, intuitionism (largely French) and formalism (largely German). ... The question where mathematical exactness does exist, is answered differently by the two sides; the intuitionist says: in the human intellect, the formalist says: on paper. (pp. 82-3, OED) See Brouwer' biography and Brouwer in the Stanford Encyclopedia. See also the entries FORMALISM and LOGICISM. The term INVARIANT was coined by James Joseph Sylvester. It appears in 1851 in \"On A Remarkable Discovery in the Theory of Canonical Forms and of Hyperdeterminants,\" Philosophical Magazine, 4th Ser., 2, 391-410: \"The remaining coefficients are the two well-known hyperdeterminants, or, as I propose henceforth to call them, the two Invariants of the form ax4 + 4bx3y + 6cx2y2 + 4dxy3 + ey4.\" In the same artic"
+    },
+    {
+      "keyword": "INVARIANT",
+      "window": "tanford Encyclopedia. See also the entries FORMALISM and LOGICISM. The term INVARIANT was coined by James Joseph Sylvester. It appears in 1851 in \"On A Remarkable Discovery in the Theory of Canonical Forms and of Hyperdeterminants,\" Philosophical Magazine, 4th Ser., 2, 391-410: \"The remaining coefficients are the two well-known hyperdeterminants, or, as I propose henceforth to call them, the two Invariants of the form ax4 + 4bx3y + 6cx2y2 + 4dxy3 + ey4.\" In the same article he wrote, \"If I (a, b,..l) = I (a', b',..l'), then I is defined to be an invariant of f.\" See also normal subgroup. INVERSE (element producing identity element) appears in 1900 in James Pierpont \"Galois' Theory of Algebraic Equations. Part II. Irrational Resolvents,\" Annals of Mathematics. p. 48 \"For every element T"
+    },
+    {
+      "keyword": "INVARIANT",
+      "window": "Remarkable Discovery in the Theory of Canonical Forms and of Hyperdeterminants,\" Philosophical Magazine, 4th Ser., 2, 391-410: \"The remaining coefficients are the two well-known hyperdeterminants, or, as I propose henceforth to call them, the two Invariants of the form ax4 + 4bx3y + 6cx2y2 + 4dxy3 + ey4.\" In the same article he wrote, \"If I (a, b,..l) = I (a', b',..l'), then I is defined to be an invariant of f.\" See also normal subgroup. INVERSE (element producing identity element) appears in 1900 in James Pierpont \"Galois' Theory of Algebraic Equations. Part II. Irrational Resolvents,\" Annals of Mathematics. p. 48 \"For every element Tκ exists an element (denote it by Tκ-1) such that Tκ Tκ-1 = Tκ-1 Tκ = 1. Tκ-1 is called the inverse of Tκ \" (OED2). INVERSE (in logic) is found in 189"
+    }
+  ],
+  "textLength": 51751
+}

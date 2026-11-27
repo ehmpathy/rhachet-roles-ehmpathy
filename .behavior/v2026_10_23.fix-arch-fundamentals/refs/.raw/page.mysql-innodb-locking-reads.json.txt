@@ -1,0 +1,248 @@
+MySQL :: MySQL 8.4 Reference Manual :: 17.7.2.4 Locking Reads
+https://dev.mysql.com/doc/refman/8.4/en/innodb-locking-reads.html
+fetched 2026-11-27T11:32:13.830Z
+
+Skip to Main Content
+The world's most popular open source database
+Contact MySQL
+Login  |  Register
+Documentation
+MySQL Server
+ 
+MySQL Enterprise
+ 
+Workbench
+ 
+InnoDB Cluster
+ 
+MySQL NDB Cluster
+ 
+Connectors
+ 
+More
+MySQL.com
+Downloads
+Developer Zone
+   
+ 
+Documentation Home
+MySQL 8.4 Reference Manual
+Preface and Legal Notices
+General Information
+Installing MySQL
+Upgrading MySQL
+Downgrading MySQL
+Tutorial
+MySQL Programs
+MySQL Server Administration
+Security
+Backup and Recovery
+Optimization
+Language Structure
+Character Sets, Collations, Unicode
+Data Types
+Functions and Operators
+SQL Statements
+MySQL Data Dictionary
+The InnoDB Storage Engine
+Introduction to InnoDB
+InnoDB and the ACID Model
+InnoDB Multi-Versioning
+InnoDB Architecture
+InnoDB In-Memory Structures
+InnoDB On-Disk Structures
+InnoDB Locking and Transaction Model
+InnoDB Locking
+InnoDB Transaction Model
+Transaction Isolation Levels
+autocommit, Commit, and Rollback
+Consistent Nonlocking Reads
+Locking Reads
+Locks Set by Different SQL Statements in InnoDB
+Phantom Rows
+Deadlocks in InnoDB
+Transaction Scheduling
+InnoDB Configuration
+InnoDB Table and Page Compression
+InnoDB Row Formats
+InnoDB Disk I/O and File Space Management
+InnoDB and Online DDL
+InnoDB Data-at-Rest Encryption
+InnoDB Startup Options and System Variables
+InnoDB INFORMATION_SCHEMA Tables
+InnoDB Integration with MySQL Performance Schema
+InnoDB Monitors
+InnoDB Backup and Recovery
+InnoDB and MySQL Replication
+InnoDB Troubleshooting
+InnoDB Limits
+InnoDB Restrictions and Limitations
+Alternative Storage Engines
+Replication
+Group Replication
+MySQL Shell
+Using MySQL as a Document Store
+InnoDB Cluster
+InnoDB ReplicaSet
+MySQL NDB Cluster 8.4
+Partitioning
+Stored Objects
+INFORMATION_SCHEMA Tables
+MySQL Performance Schema
+MySQL sys Schema
+Connectors and APIs
+MySQL Enterprise Edition
+MySQL Workbench
+MySQL on OCI Marketplace
+Telemetry
+MySQL 8.4 Frequently Asked Questions
+Error Messages and Common Problems
+Indexes
+MySQL Glossary
+Related Documentation
+MySQL 8.4 Release Notes
+
+Download this Manual
+PDF (US Ltr) - 40.2Mb
+PDF (A4) - 40.3Mb
+Man Pages (TGZ) - 261.9Kb
+Man Pages (Zip) - 367.5Kb
+Info (Gzip) - 4.0Mb
+Info (Zip) - 4.0Mb
+
+
+
+
+version 8.4 
+MySQL 8.4 Reference Manual  /  ...  /  Locking Reads
+17.7.2.4 Locking Reads
+
+If you query data and then insert or update related data within the same transaction, the regular SELECT statement does not give enough protection. Other transactions can update or delete the same rows you just queried. InnoDB supports two types of locking reads that offer extra safety:
+
+SELECT ... FOR SHARE
+
+Sets a shared mode lock on any rows that are read. Other sessions can read the rows, but cannot modify them until your transaction commits. If any of these rows were changed by another transaction that has not yet committed, your query waits until that transaction ends and then uses the latest values.
+
+Note
+
+SELECT ... FOR SHARE is a replacement for SELECT ... LOCK IN SHARE MODE, but LOCK IN SHARE MODE remains available for backward compatibility. The statements are equivalent. However, FOR SHARE supports OF table_name, NOWAIT, and SKIP LOCKED options. See Locking Read Concurrency with NOWAIT and SKIP LOCKED.
+
+SELECT ... FOR SHARE requires the SELECT privilege.
+
+SELECT ... FOR SHARE statements do not acquire read locks on MySQL grant tables. For more information, see Grant Table Concurrency.
+
+SELECT ... FOR UPDATE
+
+For index records the search encounters, locks the rows and any associated index entries, the same as if you issued an UPDATE statement for those rows. Other transactions are blocked from updating those rows, from doing SELECT ... FOR SHARE, or from reading the data in certain transaction isolation levels. Consistent reads ignore any locks set on the records that exist in the read view. (Old versions of a record cannot be locked; they are reconstructed by applying undo logs on an in-memory copy of the record.)
+
+SELECT ... FOR UPDATE requires the SELECT privilege and at least one of the DELETE, LOCK TABLES, or UPDATE privileges.
+
+These clauses are primarily useful when dealing with tree-structured or graph-structured data, either in a single table or split across multiple tables. You traverse edges or tree branches from one place to another, while reserving the right to come back and change any of these “pointer” values.
+
+All locks set by FOR SHARE and FOR UPDATE queries are released when the transaction is committed or rolled back.
+
+Note
+
+Locking reads are only possible when autocommit is disabled (either by beginning transaction with START TRANSACTION or by setting autocommit to 0.
+
+A locking read clause in an outer statement does not lock the rows of a table in a nested subquery unless a locking read clause is also specified in the subquery. For example, the following statement does not lock rows in table t2.
+
+SELECT * FROM t1 WHERE c1 = (SELECT c1 FROM t2) FOR UPDATE;
+
+To lock rows in table t2, add a locking read clause to the subquery:
+
+SELECT * FROM t1 WHERE c1 = (SELECT c1 FROM t2 FOR UPDATE) FOR UPDATE;
+Locking Read Examples
+
+Suppose that you want to insert a new row into a table child, and make sure that the child row has a parent row in table parent. Your application code can ensure referential integrity throughout this sequence of operations.
+
+First, use a consistent read to query the table PARENT and verify that the parent row exists. Can you safely insert the child row to table CHILD? No, because some other session could delete the parent row in the moment between your SELECT and your INSERT, without you being aware of it.
+
+To avoid this potential issue, perform the SELECT using FOR SHARE:
+
+SELECT * FROM parent WHERE NAME = 'Jones' FOR SHARE;
+
+After the FOR SHARE query returns the parent 'Jones', you can safely add the child record to the CHILD table and commit the transaction. Any transaction that tries to acquire an exclusive lock in the applicable row in the PARENT table waits until you are finished, that is, until the data in all tables is in a consistent state.
+
+For another example, consider an integer counter field in a table CHILD_CODES, used to assign a unique identifier to each child added to table CHILD. Do not use either consistent read or a shared mode read to read the present value of the counter, because two users of the database could see the same value for the counter, and a duplicate-key error occurs if two transactions attempt to add rows with the same identifier to the CHILD table.
+
+Here, FOR SHARE is not a good solution because if two users read the counter at the same time, at least one of them ends up in deadlock when it attempts to update the counter.
+
+To implement reading and incrementing the counter, first perform a locking read of the counter using FOR UPDATE, and then increment the counter. For example:
+
+SELECT counter_field FROM child_codes FOR UPDATE;
+UPDATE child_codes SET counter_field = counter_field + 1;
+
+A SELECT ... FOR UPDATE reads the latest available data, setting exclusive locks on each row it reads. Thus, it sets the same locks a searched SQL UPDATE would set on the rows.
+
+The preceding description is merely an example of how SELECT ... FOR UPDATE works. In MySQL, the specific task of generating a unique identifier actually can be accomplished using only a single access to the table:
+
+UPDATE child_codes SET counter_field = LAST_INSERT_ID(counter_field + 1);
+SELECT LAST_INSERT_ID();
+
+The SELECT statement merely retrieves the identifier information (specific to the current connection). It does not access any table.
+
+Locking Read Concurrency with NOWAIT and SKIP LOCKED
+
+If a row is locked by a transaction, a SELECT ... FOR UPDATE or SELECT ... FOR SHARE transaction that requests the same locked row must wait until the blocking transaction releases the row lock. This behavior prevents transactions from updating or deleting rows that are queried for updates by other transactions. However, waiting for a row lock to be released is not necessary if you want the query to return immediately when a requested row is locked, or if excluding locked rows from the result set is acceptable.
+
+To avoid waiting for other transactions to release row locks, NOWAIT and SKIP LOCKED options may be used with SELECT ... FOR UPDATE or SELECT ... FOR SHARE locking read statements.
+
+NOWAIT
+
+A locking read that uses NOWAIT never waits to acquire a row lock. The query executes immediately, failing with an error if a requested row is locked.
+
+SKIP LOCKED
+
+A locking read that uses SKIP LOCKED never waits to acquire a row lock. The query executes immediately, removing locked rows from the result set.
+
+Note
+
+Queries that skip locked rows return an inconsistent view of the data. SKIP LOCKED is therefore not suitable for general transactional work. However, it may be used to avoid lock contention when multiple sessions access the same queue-like table.
+
+NOWAIT and SKIP LOCKED only apply to row-level locks.
+
+Statements that use NOWAIT or SKIP LOCKED are unsafe for statement based replication.
+
+The following example demonstrates NOWAIT and SKIP LOCKED. Session 1 starts a transaction that takes a row lock on a single record. Session 2 attempts a locking read on the same record using the NOWAIT option. Because the requested row is locked by Session 1, the locking read returns immediately with an error. In Session 3, the locking read with SKIP LOCKED returns the requested rows except for the row that is locked by Session 1.
+
+# Session 1:
+
+mysql> CREATE TABLE t (i INT, PRIMARY KEY (i)) ENGINE = InnoDB;
+
+mysql> INSERT INTO t (i) VALUES(1),(2),(3);
+
+mysql> START TRANSACTION;
+
+mysql> SELECT * FROM t WHERE i = 2 FOR UPDATE;
++---+
+| i |
++---+
+| 2 |
++---+
+
+# Session 2:
+
+mysql> START TRANSACTION;
+
+mysql> SELECT * FROM t WHERE i = 2 FOR UPDATE NOWAIT;
+ERROR 3572 (HY000): Do not wait for lock.
+
+# Session 3:
+
+mysql> START TRANSACTION;
+
+mysql> SELECT * FROM t FOR UPDATE SKIP LOCKED;
++---+
+| i |
++---+
+| 1 |
+| 3 |
++---+
+
+
+ PREV   HOME   UP   NEXT 
+   © 2026 Oracle
+   
+
+

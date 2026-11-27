@@ -1,0 +1,9 @@
+# rule.forbid.misplaced-operations
+
+never place an operation anywhere but the common ancestor of the domains that use it
+smell — lifted too high: a flat `src/logic/` of task-specific operations · a lift with one user · smell — left too low: a peer imports it from another peer's leaf (`import '../draft/asStripeInvoiceItem'` inside `adjust/`) · a copy in each peer
+why: too high hides what belongs where and guesses at reuse; too low couples peers to each other's internals and forks the truth
+cure: one user → its leaf dir · 2+ peer domains → their common ancestor: lift now, delete the copy, repoint each import · none → delete it. then read the reuse: many shared ops → two domains may be one · few → lift, move on · orthogonal → a cross-cut domain
+enforcement: an operation above the common ancestor of its users = blocker; an operation imported from a peer's leaf, or copied into a second peer = blocker
+full: rule.require.most-common-denominator
+

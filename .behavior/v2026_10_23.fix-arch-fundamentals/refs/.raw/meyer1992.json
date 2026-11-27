@@ -1,0 +1,17 @@
+{
+  "source": {
+    "id": "meyer1992",
+    "kind": "page",
+    "url": "https://dblp.org/search?q=Applying+design+by+contract",
+    "keywords": [
+      "design by contract"
+    ]
+  },
+  "urlFinal": "https://dblp.org/search?q=Applying+design+by+contract",
+  "status": 200,
+  "fetchedAt": "2026-11-23T13:03:26.045Z",
+  "title": "Oh noes!",
+  "meta": [],
+  "windows": [],
+  "textLength": 196
+}

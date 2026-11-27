@@ -1,0 +1,7 @@
+# rule.forbid.analytical-scans-on-live-storage
+
+never run analytical reads — reports, aggregates, trends over history — against the transactional storage that serves live writes (define.software-domain-taxonomy). a scan over history locks the records and burns the cpu the live writes need
+smell: a `group by` or `sum` over months of records on the write path · a dashboard query against the primary · a nightly report that slows the 6am reservations · a live path that reads the warehouse
+cure: export one way into an analytical warehouse (redshift, athena) and query there. the transactional storage stays the source of truth: every live read, write, and write-time check. a read replica is still transactional storage, not the warehouse
+enforcement: analytical scan against the live transactional storage = blocker; a live read, write-time check, or domain write against the warehouse = blocker
+

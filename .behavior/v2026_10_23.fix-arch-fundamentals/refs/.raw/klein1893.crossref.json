@@ -1,0 +1,141 @@
+{
+  "source": {
+    "id": "klein1893",
+    "kind": "crossref",
+    "query": "Klein Vergleichende Betrachtungen ueber neuere geometrische Forschungen Mathematische Annalen 1893",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Klein%20Vergleichende%20Betrachtungen%20ueber%20neuere%20geometrische%20Forschungen%20Mathematische%20Annalen%201893&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:11:30.521Z",
+  "items": [
+    {
+      "publisher": "Springer Science and Business Media LLC",
+      "issue": "1",
+      "DOI": "10.1007/bf01446615",
+      "type": "journal-article",
+      "page": "63-100",
+      "title": [
+        "Vergleichende Betrachtungen �ber neuere geometrische Forschungen"
+      ],
+      "volume": "43",
+      "author": [
+        {
+          "given": "Felix",
+          "family": "Klein",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Mathematische Annalen"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1893,
+            3
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.1007/978-3-642-51960-4_28",
+      "title": [
+        "Vergleichende Betrachtungen über neuere geometrische Forschungen"
+      ],
+      "author": [
+        {
+          "given": "Felix",
+          "family": "Klein",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "R.",
+          "family": "Fricke",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "A.",
+          "family": "Ostrowski",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Gesammelte Mathematische Abhandlungen"
+      ],
+      "page": "460-497",
+      "issued": {
+        "date-parts": [
+          [
+            1921
+          ]
+        ]
+      },
+      "publisher": "Springer Berlin Heidelberg",
+      "type": "book-chapter"
+    },
+    {
+      "publisher": "Springer Science and Business Media LLC",
+      "issue": "2",
+      "DOI": "10.1007/bf01442600",
+      "type": "journal-article",
+      "page": "346-358",
+      "title": [
+        "Ueber eine geometrische Repr�sentation der Resolventen algebraischer Gleichungen"
+      ],
+      "volume": "4",
+      "author": [
+        {
+          "given": "Felix",
+          "family": "Klein",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Mathematische Annalen"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1871,
+            6
+          ]
+        ]
+      }
+    }
+  ]
+}

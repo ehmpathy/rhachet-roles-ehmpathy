@@ -1,0 +1,65 @@
+{
+  "source": {
+    "id": "page.hohpe-process-manager",
+    "kind": "page",
+    "url": "https://www.enterpriseintegrationpatterns.com/patterns/messaging/ProcessManager.html",
+    "keywords": [
+      "Process Manager",
+      "state",
+      "central"
+    ]
+  },
+  "urlFinal": "https://www.enterpriseintegrationpatterns.com/patterns/messaging/ProcessManager.html",
+  "status": 200,
+  "fetchedAt": "2026-11-26T13:57:10.347Z",
+  "title": "Process Manager - Enterprise Integration Patterns",
+  "meta": [
+    {
+      "name": "description",
+      "content": "How do we route a message through multiple processing steps when the required steps may not be known at design-time and may not be sequential?"
+    },
+    {
+      "name": "og:title",
+      "content": "Process Manager - Enterprise Integration Patterns"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "Process Manager",
+      "window": "age Event Message Request-Reply Return Address Correlation Identifier Message Sequence Message Expiration Format Indicator Interlude: Simple Messaging JMS Request/Reply Example .NET Request/Reply Example JMS Publish/Subscribe Example Message Routing Content-Based Router Message Filter Dynamic Router Recipient List Splitter Aggregator Resequencer Composed Msg. Processor Scatter-Gather Routing Slip Process Manager Message Broker Message Transformation Envelope Wrapper Content Enricher Content Filter Claim Check Normalizer Canonical Data Model Interlude: Composed Messaging Synchronous (Web Services) Asynchronous (MSMQ) Asynchronous (TIBCO) Messaging Endpoints Messaging Gateway Messaging Mapper Transactional Client Polling Consumer Event-Driven Consumer Competing Consumers Message Dispatcher S"
+    },
+    {
+      "keyword": "Process Manager",
+      "window": "elective Consumer Durable Subscriber Idempotent Receiver Service Activator System Management Control Bus Detour Wire Tap Message History Message Store Smart Proxy Test Message Channel Purger Interlude: Systems Management Example Instrumenting Loan Broker Integration Patterns in Practice Case Study: Bond Trading System Concluding Remarks Emerging Standards Appendices Bibliography Revision History Process ManagerMessaging Patterns » Message Routing Contents ⇐ Prev Next ⇒ The Routing Slip demonstrates how a message can be routed through a dynamic series of processing steps. The solution of the Routing Slip is based on two key assumptions: the sequence of processing steps has to be determined up-front and the sequence is linear. In many cases, these assumptions may not be fulfilled. For exa"
+    },
+    {
+      "keyword": "Process Manager",
+      "window": "these assumptions may not be fulfilled. For example, routing decisions might have to be made based on intermediate results. Or, the processing steps may not be sequential, but multiple steps might be executed in parallel. How do we route a message through multiple processing steps when the required steps may not be known at design-time and may not be sequential? Use a central processing unit, a Process Manager, to maintain the state of the sequence and determine the next processing step based on intermediate results. First of all, let me clarify that the design and configuration of a Process Manager is a pretty extensive topic. We could probably fill a whole book (Volume 2, maybe?) with patterns related to the design of workflow or business process management. Therefore, this pattern is"
+    },
+    {
+      "keyword": "state",
+      "window": "illed. For example, routing decisions might have to be made based on intermediate results. Or, the processing steps may not be sequential, but multiple steps might be executed in parallel. How do we route a message through multiple processing steps when the required steps may not be known at design-time and may not be sequential? Use a central processing unit, a Process Manager, to maintain the state of the sequence and determine the next processing step based on intermediate results. First of all, let me clarify that the design and configuration of a Process Manager is a pretty extensive topic. We could probably fill a whole book (Volume 2, maybe?) with patterns related to the design of workflow or business process management. Therefore, this pattern is intended primarily to \"round off"
+    },
+    {
+      "keyword": "state",
+      "window": "istract from the core design issue and also cause significant performance overhead. ... Read the entire pattern in the book Enterprise Integration Patterns Example: Serverless Loan Broker with AWS Step FunctionsNEW The implementation of the Loan Broker example with AWS serverless services employs AWS Step Functions as Process Manager. Step Functions orchestrates a series of tasks and maintains state across tasks in a JSON document, which covers the characteristics of a Process Manager quote well. Example: Serverless Loan Broker with GCP WorkflowsNEW The implementation of the Loan Broker example with GCP employs GCP Workflows as Process Manager. Related patterns: Aggregator, Asynchronous Implementation with MSMQ, Asynchronous Implementation with TIBCO ActiveEnterprise, Content-Based"
+    },
+    {
+      "keyword": "state",
+      "window": "livery Channel Adapter Messaging Bridge Message Bus Systems Mgmt. Control Bus Detour Wire Tap Message History Message Store Smart Proxy Test Message Channel Purger » Read the latest in My Blog » Get more insights from My Articles » See me live in my Upcoming Talks You can reuse the following elements under the Creative Commons Attribution license: pattern icon, pattern name, problem and solution statements (in bold), and the sketch. Other portions are protected by copyright. Enterprise Integration Patterns The de-facto language for designing asynchronous, distributed systems. Over 100,000 copies sold. The Software Architect Elevator Rethink the role of architects as a connecting element across organizational layers. Acquire the technical, communication, and organizational skills to suc"
+    },
+    {
+      "keyword": "central",
+      "window": "is linear. In many cases, these assumptions may not be fulfilled. For example, routing decisions might have to be made based on intermediate results. Or, the processing steps may not be sequential, but multiple steps might be executed in parallel. How do we route a message through multiple processing steps when the required steps may not be known at design-time and may not be sequential? Use a central processing unit, a Process Manager, to maintain the state of the sequence and determine the next processing step based on intermediate results. First of all, let me clarify that the design and configuration of a Process Manager is a pretty extensive topic. We could probably fill a whole book (Volume 2, maybe?) with patterns related to the design of workflow or business process management."
+    },
+    {
+      "keyword": "central",
+      "window": "er message. Based on the rules inside the Process Manager, it sends a message (1) to the first processing step, implemented by Processing Unit A. After unit A completes its task it sends a reply message back to the Process Manager. Next, the Process Manager determines the next step to be executed and sends message (2) to the next processing unit. As a result, all message traffic runs through this central 'hub', hence the term hub-and-spoke. The downside of this central control element is the danger of turning the Process Manager into a performance bottleneck. The versatility of a Process Manager is at the same time its biggest strength and weakness. A Process Manager can execute any sequence of steps, sequential or in parallel. Therefore, almost any integration problem can be solved with"
+    },
+    {
+      "keyword": "central",
+      "window": "s a message (1) to the first processing step, implemented by Processing Unit A. After unit A completes its task it sends a reply message back to the Process Manager. Next, the Process Manager determines the next step to be executed and sends message (2) to the next processing unit. As a result, all message traffic runs through this central 'hub', hence the term hub-and-spoke. The downside of this central control element is the danger of turning the Process Manager into a performance bottleneck. The versatility of a Process Manager is at the same time its biggest strength and weakness. A Process Manager can execute any sequence of steps, sequential or in parallel. Therefore, almost any integration problem can be solved with a Process Manager. Likewise, most of the patterns introduced in th"
+    }
+  ],
+  "textLength": 7687
+}

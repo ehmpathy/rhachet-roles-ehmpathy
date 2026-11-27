@@ -1,0 +1,23 @@
+{
+  "source": {
+    "id": "page.mactutor-boole",
+    "kind": "page",
+    "url": "https://mathshistory.st-andrews.ac.uk/Biographies/Boole/",
+    "keywords": [
+      "invariant",
+      "1841"
+    ]
+  },
+  "urlFinal": "https://mathshistory.st-andrews.ac.uk/Biographies/Boole/",
+  "status": 200,
+  "fetchedAt": "2026-11-23T12:56:34.867Z",
+  "title": "George Boole (1815 - 1864) - Biography - MacTutor History of Mathematics",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "George Boole - Biography"
+    }
+  ],
+  "windows": [],
+  "textLength": 11576
+}

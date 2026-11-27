@@ -1,0 +1,74 @@
+{
+  "source": {
+    "id": "page.wiki-maximum-principle",
+    "kind": "page",
+    "url": "https://en.wikipedia.org/wiki/Maximum_principle",
+    "keywords": [
+      "boundary",
+      "Hopf",
+      "harmonic",
+      "maximum"
+    ]
+  },
+  "urlFinal": "https://en.wikipedia.org/wiki/Maximum_principle",
+  "status": 200,
+  "fetchedAt": "2026-11-23T22:19:14.054Z",
+  "title": "Maximum principle - Wikipedia",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "Maximum principle - Wikipedia"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "boundary",
+      "window": "em in complex analysis, see Maximum modulus principle. In the mathematical fields of differential equations and geometric analysis, the maximum principle is one of the most useful and best known tools of study. Solutions of a partial differential equation (or, more generally, of a differential inequality) in a domain D are said to satisfy the maximum principle if they achieve their maxima at the boundary of D. Harmonic functions and, more generally, solutions of elliptic partial differential equations satisfy the maximum principle. The graph (red) of a typical function in two dimension satisfying the maximum principle: maxima (and minimal) occur on the boundary of the domain (blue). The maximum principle enables one to obtain information about solutions of differential equations without"
+    },
+    {
+      "keyword": "boundary",
+      "window": "ore generally, of a differential inequality) in a domain D are said to satisfy the maximum principle if they achieve their maxima at the boundary of D. Harmonic functions and, more generally, solutions of elliptic partial differential equations satisfy the maximum principle. The graph (red) of a typical function in two dimension satisfying the maximum principle: maxima (and minimal) occur on the boundary of the domain (blue). The maximum principle enables one to obtain information about solutions of differential equations without any explicit knowledge of the solutions themselves. In particular, the maximum principle is a useful tool in the numerical approximation of solutions of ordinary and partial differential equations and in the determination of bounds for the errors in such approxi"
+    },
+    {
+      "keyword": "boundary",
+      "window": "partial differential equations and in the determination of bounds for the errors in such approximations.[1] In a simple two-dimensional case, consider a function of two variables u(x,y) such that 𝜕 2 𝑢 𝜕 𝑥 2 + 𝜕 2 𝑢 𝜕 𝑦 2 = 0. The weak maximum principle, in this setting, says that for any open bounded subset M of the domain of u, the maximum of u on the closure of M is achieved on the boundary of M. The strong maximum principle says that, unless u is a constant function, the maximum cannot also be achieved anywhere on M itself. Note that both statements are also true for the minimum of u, since -u solves the same differential equation. In the field of convex optimization, there is an analogous statement which asserts that the maximum of a convex function on a compact convex se"
+    },
+    {
+      "keyword": "Hopf",
+      "window": "0 along the inward-pointing radial line of the annulus is strictly positive. As described in the above summary, this will ensure that a directional derivative of u at x0 is nonzero, in contradiction to x0 being a maximum point of u on the open set M. Statement of the theoremedit The following is the statement of the theorem in the books of Morrey and Smoller, following the original statement of Hopf (1927): Let M be an open subset of Euclidean space ℝn. For each i and j between 1 and n, let aij and bi be continuous functions on M with aij = aji. Suppose that for all x in M, the symmetric matrix [aij] is positive-definite. If u is a nonconstant C2 function on M such that ∑ 𝑖 = 1 𝑛 ∑ 𝑗 = 1 𝑛 𝑎 𝑖 𝑗 𝜕 2 𝑢 𝜕 𝑥 𝑖 𝜕 𝑥 𝑗 + ∑ 𝑖 = 1 𝑛 𝑏 𝑖 𝜕 𝑢 𝜕 𝑥 𝑖 ≥ 0 on M, then u does"
+    },
+    {
+      "keyword": "Hopf",
+      "window": "he higher-dimensional case, where one often has solutions to \"eigenfunction\" equations Δu + cu = 0 which have interior maxima. The sign of c is relevant, as also seen in the one-dimensional case; for instance the solutions to y″ - 2y = 0 are exponentials, and the character of the maxima of such functions is quite different from that of sinusoidal functions. See alsoedit Maximum modulus principle Hopf maximum principle Notesedit Protter, Murray H.; Weinberger, Hans Felix (1984). Maximum principles in differential equations. New York Berlin Heidelberg [etc.]: Springer. ISBN 978-3-540-96068-3. Chapter 32 of Rockafellar (1970). Referencesedit Research articlesedit Calabi, E. An extension of E. Hopf's maximum principle with an application to Riemannian geometry. Duke Math. J. 25 (1958), 45–5"
+    },
+    {
+      "keyword": "Hopf",
+      "window": "ons is quite different from that of sinusoidal functions. See alsoedit Maximum modulus principle Hopf maximum principle Notesedit Protter, Murray H.; Weinberger, Hans Felix (1984). Maximum principles in differential equations. New York Berlin Heidelberg [etc.]: Springer. ISBN 978-3-540-96068-3. Chapter 32 of Rockafellar (1970). Referencesedit Research articlesedit Calabi, E. An extension of E. Hopf's maximum principle with an application to Riemannian geometry. Duke Math. J. 25 (1958), 45–56. Cheng, S.Y.; Yau, S.T. Differential equations on Riemannian manifolds and their geometric applications. Comm. Pure Appl. Math. 28 (1975), no. 3, 333–354. Gidas, B.; Ni, Wei Ming; Nirenberg, L. Symmetry and related properties via the maximum principle. Comm. Math. Phys. 68 (1979), no. 3, 209–243. Gi"
+    },
+    {
+      "keyword": "harmonic",
+      "window": "nalysis, see Maximum modulus principle. In the mathematical fields of differential equations and geometric analysis, the maximum principle is one of the most useful and best known tools of study. Solutions of a partial differential equation (or, more generally, of a differential inequality) in a domain D are said to satisfy the maximum principle if they achieve their maxima at the boundary of D. Harmonic functions and, more generally, solutions of elliptic partial differential equations satisfy the maximum principle. The graph (red) of a typical function in two dimension satisfying the maximum principle: maxima (and minimal) occur on the boundary of the domain (blue). The maximum principle enables one to obtain information about solutions of differential equations without any explicit k"
+    },
+    {
+      "keyword": "harmonic",
+      "window": "e, if 𝑢 : 𝑀 → ℝ is a function such that Δ 𝑢 − | 𝑑 𝑢 | 4 = ∫ 𝑀 𝑒 𝑢 ( 𝑥 ) 𝑑 𝑥 , which is a sort of \"non-local\" differential equation, then the automatic strict positivity of the right-hand side shows, by the same analysis as above, that u cannot attain a maximum value. There are many methods to extend the applicability of this kind of analysis in various ways. For instance, if u is a harmonic function, then the above sort of contradiction does not directly occur, since the existence of a point p where Δ 𝑢 ( 𝑝 ) ≤ 0 is not in contradiction to the requirement Δ 𝑢 = 0 everywhere. However, one could consider, for an arbitrary real number s, the function us defined by 𝑢 𝑠 ( 𝑥 ) = 𝑢 ( 𝑥 ) + 𝑠 𝑒 𝑥 1 . It is straightforward to see that Δ 𝑢 𝑠 = 𝑠 𝑒 𝑥 1 . By the ab"
+    },
+    {
+      "keyword": "harmonic",
+      "window": "continuously extended to the boundary, it follows immediately that both u and us attain a maximum value on 𝑀 ∪ 𝜕 𝑀 . Since we have shown that us, as a function on M, does not have a maximum, it follows that the maximum point of us, for any s, is on 𝜕 𝑀 . By the sequential compactness of 𝜕 𝑀 , it follows that the maximum of u is attained on 𝜕 𝑀 . This is the weak maximum principle for harmonic functions. This does not, by itself, rule out the possibility that the maximum of u is also attained somewhere on M. That is the content of the \"strong maximum principle,\" which requires further analysis. The use of the specific function 𝑒 𝑥 1 above was very inessential. All that mattered was to have a function which extends continuously to the boundary and whose Laplacian is strictly"
+    },
+    {
+      "keyword": "maximum",
+      "window": "Jump to content Main menu Search Appearance Donate Create account Log in Toggle the table of contents Maximum principle 9 languages Article Talk Read Edit View history Save Tools From Wikipedia, the free encyclopedia This article describes the maximum principle in the theory of partial differential equations. For the maximum principle in optimal control theory, see Pontryagin's maximum principle. For the theorem in complex analysis, see Maximum modulus principle. In the mathematical fields of dif"
+    },
+    {
+      "keyword": "maximum",
+      "window": "Jump to content Main menu Search Appearance Donate Create account Log in Toggle the table of contents Maximum principle 9 languages Article Talk Read Edit View history Save Tools From Wikipedia, the free encyclopedia This article describes the maximum principle in the theory of partial differential equations. For the maximum principle in optimal control theory, see Pontryagin's maximum principle. For the theorem in complex analysis, see Maximum modulus principle. In the mathematical fields of differential equations and geometric analysis, the maximum principle is one of the most useful and best known tools of study. Solutions of a part"
+    },
+    {
+      "keyword": "maximum",
+      "window": "Jump to content Main menu Search Appearance Donate Create account Log in Toggle the table of contents Maximum principle 9 languages Article Talk Read Edit View history Save Tools From Wikipedia, the free encyclopedia This article describes the maximum principle in the theory of partial differential equations. For the maximum principle in optimal control theory, see Pontryagin's maximum principle. For the theorem in complex analysis, see Maximum modulus principle. In the mathematical fields of differential equations and geometric analysis, the maximum principle is one of the most useful and best known tools of study. Solutions of a partial differential equation (or, more generally, of a differential inequality"
+    }
+  ],
+  "textLength": 19181
+}

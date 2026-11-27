@@ -1,2 +1,3 @@
 patchedDependencies:
   rhachet-roles-bhrain@0.42.4: patches/rhachet-roles-bhrain@0.42.4.patch
+  rhachet-roles-bhrowser@0.1.0: patches/rhachet-roles-bhrowser@0.1.0.patch

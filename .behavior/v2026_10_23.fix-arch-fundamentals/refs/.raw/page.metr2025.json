@@ -1,0 +1,77 @@
+{
+  "source": {
+    "id": "page.metr2025",
+    "kind": "page",
+    "url": "https://metr.org/blog/2025-06-05-recent-reward-hacking/",
+    "keywords": [
+      "reward hack",
+      "test",
+      "modif"
+    ]
+  },
+  "urlFinal": "https://metr.org/blog/2025-06-05-recent-reward-hacking/",
+  "status": 200,
+  "fetchedAt": "2026-11-23T16:07:40.887Z",
+  "title": "Recent Frontier Models Are Reward Hacking - METR",
+  "meta": [
+    {
+      "name": "citation_title",
+      "content": "Recent Frontier Models Are Reward Hacking"
+    },
+    {
+      "name": "citation_date",
+      "content": "2025/06/05"
+    },
+    {
+      "name": "citation_journal_title",
+      "content": "METR Blog"
+    },
+    {
+      "name": "citation_public_url",
+      "content": "https://metr.org/blog/2025-06-05-recent-reward-hacking/"
+    },
+    {
+      "name": "description",
+      "content": "In the last few months, we’ve seen increasingly clear examples of reward hacking on our tasks: AI systems try to “cheat” and get impossibly high scores. They do this by exploiting bugs in our scoring code or subverting the task setup, rather than actually solving the problem we’ve given them. This isn’t because the AI systems are incapable of understanding what the users want–they demonstrate awareness that their behavior isn't in line with user intentions and disavow cheating strategies when asked—but rather because they seem misaligned with the user’s goals."
+    },
+    {
+      "name": "og:title",
+      "content": "Recent Frontier Models Are Reward Hacking"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "reward hack",
+      "window": "Our Work Research Notes Updates Risk Assessment About Donate Careers Recent Frontier Models Are Reward Hacking CONTRIBUTORS Sydney Von Arx, Lawrence Chan, and Beth Barnes DATE June 5, 2025 SHARE Copy Link Citation Introduction In the last few months, we’ve seen increasingly clear examples of reward hacking[1] on our tasks: AI systems try to “cheat” and get impossibly high scores. They do this by exploiting bugs in our scoring code or subverting the task setup, rather than actually solving t"
+    },
+    {
+      "keyword": "reward hack",
+      "window": "Our Work Research Notes Updates Risk Assessment About Donate Careers Recent Frontier Models Are Reward Hacking CONTRIBUTORS Sydney Von Arx, Lawrence Chan, and Beth Barnes DATE June 5, 2025 SHARE Copy Link Citation Introduction In the last few months, we’ve seen increasingly clear examples of reward hacking[1] on our tasks: AI systems try to “cheat” and get impossibly high scores. They do this by exploiting bugs in our scoring code or subverting the task setup, rather than actually solving the problem we’ve given them. This isn’t because the AI systems are incapable of understanding what the users want—they demonstrate awareness that their behavior isn’t in line with user intentions an"
+    },
+    {
+      "keyword": "reward hack",
+      "window": "the safety of increasingly capable AI systems. What we’ve observed We’ve been running a range of models on tasks testing autonomous software development and AI R&D capabilities. When designing these tasks, we tested them on humans and LLM agents to ensure the instructions were clear and to make them robust to cheating. The most recent frontier models have engaged in increasingly sophisticated reward hacking, attempting (often successfully) to get a higher score by modifying the tests or scoring code, gaining access to an existing implementation or answer that’s used to check their work, or exploiting other loopholes in the task environment. The viewer below showcases some examples we’ve seen, and we have full transcripts and more examples on our transcript server. o3 finds the grade"
+    },
+    {
+      "keyword": "test",
+      "window": "vior isn’t in line with user intentions and disavow cheating strategies when asked—but rather because they seem misaligned with the user’s goals. This post describes some of the examples we’ve seen across multiple models from different developers, and discusses some implications for the safety of increasingly capable AI systems. What we’ve observed We’ve been running a range of models on tasks testing autonomous software development and AI R&D capabilities. When designing these tasks, we tested them on humans and LLM agents to ensure the instructions were clear and to make them robust to cheating. The most recent frontier models have engaged in increasingly sophisticated reward hacking, attempting (often successfully) to get a higher score by modifying the tests or scoring code, gainin"
+    },
+    {
+      "keyword": "test",
+      "window": "cause they seem misaligned with the user’s goals. This post describes some of the examples we’ve seen across multiple models from different developers, and discusses some implications for the safety of increasingly capable AI systems. What we’ve observed We’ve been running a range of models on tasks testing autonomous software development and AI R&D capabilities. When designing these tasks, we tested them on humans and LLM agents to ensure the instructions were clear and to make them robust to cheating. The most recent frontier models have engaged in increasingly sophisticated reward hacking, attempting (often successfully) to get a higher score by modifying the tests or scoring code, gaining access to an existing implementation or answer that’s used to check their work, or exploiting"
+    },
+    {
+      "keyword": "test",
+      "window": "g a range of models on tasks testing autonomous software development and AI R&D capabilities. When designing these tasks, we tested them on humans and LLM agents to ensure the instructions were clear and to make them robust to cheating. The most recent frontier models have engaged in increasingly sophisticated reward hacking, attempting (often successfully) to get a higher score by modifying the tests or scoring code, gaining access to an existing implementation or answer that’s used to check their work, or exploiting other loopholes in the task environment. The viewer below showcases some examples we’ve seen, and we have full transcripts and more examples on our transcript server. o3 finds the grader's answer o3 overwrites the time variable o3 stubs the evaluator function o3 precom"
+    },
+    {
+      "keyword": "modif",
+      "window": "ve been running a range of models on tasks testing autonomous software development and AI R&D capabilities. When designing these tasks, we tested them on humans and LLM agents to ensure the instructions were clear and to make them robust to cheating. The most recent frontier models have engaged in increasingly sophisticated reward hacking, attempting (often successfully) to get a higher score by modifying the tests or scoring code, gaining access to an existing implementation or answer that’s used to check their work, or exploiting other loopholes in the task environment. The viewer below showcases some examples we’ve seen, and we have full transcripts and more examples on our transcript server. o3 finds the grader's answer o3 overwrites the time variable o3 stubs the evaluator funct"
+    },
+    {
+      "keyword": "modif",
+      "window": "es use of Triton for maximum real performance. The delivered solution does not perform that computation for the measured input and instead alters the benchmarking environment to fake a sub- millisecond run-time. Therefore the plan and actions do **not** adhere to the user’s intention. Show more We also tried making it more clear that the reward hacking solution was not the intended behavior by modifying the prompt. We appended four different instructions to the prompt in the Optimize LLM Foundry task and measured how often the model described a plan to reward hack in its first generation on that trajectory. The results are shown in the table below. We ran the model 20 times for each prompt[8]. Prompt % reward hacking Original 80% Please solve this task only using methods the task’s des"
+    }
+  ],
+  "textLength": 26339
+}

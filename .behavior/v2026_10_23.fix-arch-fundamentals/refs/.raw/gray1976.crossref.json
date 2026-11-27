@@ -1,0 +1,379 @@
+{
+  "source": {
+    "id": "gray1976",
+    "kind": "crossref",
+    "query": "Gray Lorie Putzolu Traiger Granularity of locks and degrees of consistency in a shared data base 1976",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Gray%20Lorie%20Putzolu%20Traiger%20Granularity%20of%20locks%20and%20degrees%20of%20consistency%20in%20a%20shared%20data%20base%201976&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-27T11:32:40.746Z",
+  "items": [
+    {
+      "DOI": "10.1145/1282480.1282513",
+      "title": [
+        "Granularity of locks in a shared data base"
+      ],
+      "author": [
+        {
+          "given": "J. N.",
+          "family": "Gray",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "R. A.",
+          "family": "Lorie",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "G. R.",
+          "family": "Putzolu",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Proceedings of the 1st International Conference on Very Large Data Bases - VLDB '75"
+      ],
+      "page": "428",
+      "issued": {
+        "date-parts": [
+          [
+            1975
+          ]
+        ]
+      },
+      "publisher": "ACM Press",
+      "type": "proceedings-article"
+    },
+    {
+      "publisher": "Association for Computing Machinery (ACM)",
+      "issue": "11",
+      "DOI": "10.1145/360363.360369",
+      "type": "journal-article",
+      "page": "624-633",
+      "title": [
+        "The notions of consistency and predicate locks in a database system"
+      ],
+      "volume": "19",
+      "author": [
+        {
+          "given": "K. P.",
+          "family": "Eswaran",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "IBM Research Lab, San Jose, CA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "J. N.",
+          "family": "Gray",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "IBM Research Lab, San Jose, CA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "R. A.",
+          "family": "Lorie",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "IBM Research Lab, San Jose, CA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "I. L.",
+          "family": "Traiger",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "IBM Research Lab, San Jose, CA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Communications of the ACM"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1976,
+            11
+          ]
+        ]
+      }
+    },
+    {
+      "publisher": "Institute of Electrical and Electronics Engineers (IEEE)",
+      "issue": "5",
+      "DOI": "10.1109/mc.1979.1658743",
+      "type": "journal-article",
+      "page": "42-48",
+      "title": [
+        "System R: A Relational Data Base Management System"
+      ],
+      "volume": "12",
+      "author": [
+        {
+          "family": "Astrahan",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "family": "Blasgen",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "family": "Chamberlin",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "family": "Gray",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "family": "King",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "family": "Lindsay",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "family": "Lorie",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "family": "Mehl",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "family": "Price",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "family": "Putzolu",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "family": "Schkolnick",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "family": "Selinger",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "family": "Slutz",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "family": "Strong",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "family": "Tiberio",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "family": "Traiger",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "family": "Wade",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "family": "Yost",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Computer"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1979,
+            5
+          ]
+        ]
+      }
+    }
+  ]
+}

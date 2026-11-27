@@ -1,0 +1,61 @@
+{
+  "source": {
+    "id": "page.wiki-uniqueness-poisson",
+    "kind": "page",
+    "url": "https://en.wikipedia.org/wiki/Uniqueness_theorem_for_Poisson%27s_equation",
+    "keywords": [
+      "boundary",
+      "unique",
+      "Dirichlet"
+    ]
+  },
+  "urlFinal": "https://en.wikipedia.org/wiki/Uniqueness_theorem_for_Poisson%27s_equation",
+  "status": 200,
+  "fetchedAt": "2026-11-23T22:19:09.321Z",
+  "title": "Uniqueness theorem for Poisson's equation - Wikipedia",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "Uniqueness theorem for Poisson's equation - Wikipedia"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "boundary",
+      "window": "Jump to content Main menu Search Appearance Donate Create account Log in Toggle the table of contents Uniqueness theorem for Poisson's equation 3 languages Article Talk Read Edit View history Save Tools From Wikipedia, the free encyclopedia The uniqueness theorem for Poisson's equation states that, for a large class of boundary conditions, the equation may have many solutions, but the gradient of every solution is the same. In the case of electrostatics, this means that there is a unique electric field derived from a potential function satisfying Poisson's equation under the boundary conditions. Proofedit The general expression for Poisson's equation in electrostatics is 𝜵 2 𝜑 = − 𝜌 𝑓 𝜖 0 , where 𝜑"
+    },
+    {
+      "keyword": "boundary",
+      "window": "history Save Tools From Wikipedia, the free encyclopedia The uniqueness theorem for Poisson's equation states that, for a large class of boundary conditions, the equation may have many solutions, but the gradient of every solution is the same. In the case of electrostatics, this means that there is a unique electric field derived from a potential function satisfying Poisson's equation under the boundary conditions. Proofedit The general expression for Poisson's equation in electrostatics is 𝜵 2 𝜑 = − 𝜌 𝑓 𝜖 0 , where 𝜑 is the electric potential and 𝜌 𝑓 is the charge distribution over some region 𝑉 with boundary surface 𝑆 . The uniqueness of the solution can be proven for a large class of boundary conditions as follows. Suppose that we claim to have two solutions"
+    },
+    {
+      "keyword": "boundary",
+      "window": "is the same. In the case of electrostatics, this means that there is a unique electric field derived from a potential function satisfying Poisson's equation under the boundary conditions. Proofedit The general expression for Poisson's equation in electrostatics is 𝜵 2 𝜑 = − 𝜌 𝑓 𝜖 0 , where 𝜑 is the electric potential and 𝜌 𝑓 is the charge distribution over some region 𝑉 with boundary surface 𝑆 . The uniqueness of the solution can be proven for a large class of boundary conditions as follows. Suppose that we claim to have two solutions of Poisson's equation. Let us call these two solutions 𝜑 1 and 𝜑 2 . Then 𝜵 2 𝜑 1 = − 𝜌 𝑓 𝜖 0 , and 𝜵 2 𝜑 2 = − 𝜌 𝑓 𝜖 0 . It follows that 𝜑 = 𝜑 2 − 𝜑 1 is a solution of Laplace's equation, which is a special c"
+    },
+    {
+      "keyword": "unique",
+      "window": "Jump to content Main menu Search Appearance Donate Create account Log in Toggle the table of contents Uniqueness theorem for Poisson's equation 3 languages Article Talk Read Edit View history Save Tools From Wikipedia, the free encyclopedia The uniqueness theorem for Poisson's equation states that, for a large class of boundary conditions, the equation may have many solutions, but the gradient of every solution is the same. In the case of electrostatics, this means that there is a unique electric"
+    },
+    {
+      "keyword": "unique",
+      "window": "Jump to content Main menu Search Appearance Donate Create account Log in Toggle the table of contents Uniqueness theorem for Poisson's equation 3 languages Article Talk Read Edit View history Save Tools From Wikipedia, the free encyclopedia The uniqueness theorem for Poisson's equation states that, for a large class of boundary conditions, the equation may have many solutions, but the gradient of every solution is the same. In the case of electrostatics, this means that there is a unique electric field derived from a potential function satisfying Poisson's equation under the boundary conditions. Proofedit The general expression for"
+    },
+    {
+      "keyword": "unique",
+      "window": "le of contents Uniqueness theorem for Poisson's equation 3 languages Article Talk Read Edit View history Save Tools From Wikipedia, the free encyclopedia The uniqueness theorem for Poisson's equation states that, for a large class of boundary conditions, the equation may have many solutions, but the gradient of every solution is the same. In the case of electrostatics, this means that there is a unique electric field derived from a potential function satisfying Poisson's equation under the boundary conditions. Proofedit The general expression for Poisson's equation in electrostatics is 𝜵 2 𝜑 = − 𝜌 𝑓 𝜖 0 , where 𝜑 is the electric potential and 𝜌 𝑓 is the charge distribution over some region 𝑉 with boundary surface 𝑆 . The uniqueness of the solution can be proven f"
+    },
+    {
+      "keyword": "Dirichlet",
+      "window": "tly, the second term goes to zero and we find that ∇ ⋅ ( 𝜑 ∇ 𝜑 ) = ( ∇ 𝜑 ) 2 . By taking the volume integral over the region 𝑉 , we find that ∫ 𝑉 𝜵 ⋅ ( 𝜑 𝜵 𝜑 ) d 𝑉 = ∫ 𝑉 ( 𝜵 𝜑 ) 2 d 𝑉 . By applying the divergence theorem, we rewrite the expression above as ∫ 𝑆 ( 𝜑 𝜵 𝜑 ) ⋅ d 𝐒 = ∫ 𝑉 ( 𝜵 𝜑 ) 2 d 𝑉 . 2 We now sequentially consider three distinct boundary conditions: a Dirichlet boundary condition, a Neumann boundary condition, and a mixed boundary condition. First, we consider the case where Dirichlet boundary conditions are specified as 𝜑 = 0 on the boundary of the region. If the Dirichlet boundary condition is satisfied on 𝑆 by both solutions (i.e., if 𝜑 = 0 on the boundary), then the left-hand side of (2) is zero. Consequently, we find that ∫ 𝑉 ("
+    },
+    {
+      "keyword": "Dirichlet",
+      "window": "on 𝑉 , we find that ∫ 𝑉 𝜵 ⋅ ( 𝜑 𝜵 𝜑 ) d 𝑉 = ∫ 𝑉 ( 𝜵 𝜑 ) 2 d 𝑉 . By applying the divergence theorem, we rewrite the expression above as ∫ 𝑆 ( 𝜑 𝜵 𝜑 ) ⋅ d 𝐒 = ∫ 𝑉 ( 𝜵 𝜑 ) 2 d 𝑉 . 2 We now sequentially consider three distinct boundary conditions: a Dirichlet boundary condition, a Neumann boundary condition, and a mixed boundary condition. First, we consider the case where Dirichlet boundary conditions are specified as 𝜑 = 0 on the boundary of the region. If the Dirichlet boundary condition is satisfied on 𝑆 by both solutions (i.e., if 𝜑 = 0 on the boundary), then the left-hand side of (2) is zero. Consequently, we find that ∫ 𝑉 ( 𝜵 𝜑 ) 2 d 𝑉 = 0. Since this is the volume integral of a positive quantity (due to the squared term), we must have ∇ 𝜑 ="
+    },
+    {
+      "keyword": "Dirichlet",
+      "window": "divergence theorem, we rewrite the expression above as ∫ 𝑆 ( 𝜑 𝜵 𝜑 ) ⋅ d 𝐒 = ∫ 𝑉 ( 𝜵 𝜑 ) 2 d 𝑉 . 2 We now sequentially consider three distinct boundary conditions: a Dirichlet boundary condition, a Neumann boundary condition, and a mixed boundary condition. First, we consider the case where Dirichlet boundary conditions are specified as 𝜑 = 0 on the boundary of the region. If the Dirichlet boundary condition is satisfied on 𝑆 by both solutions (i.e., if 𝜑 = 0 on the boundary), then the left-hand side of (2) is zero. Consequently, we find that ∫ 𝑉 ( 𝜵 𝜑 ) 2 d 𝑉 = 0. Since this is the volume integral of a positive quantity (due to the squared term), we must have ∇ 𝜑 = 0 at all points. Further, because the gradient of 𝜑 is everywhere zero and 𝜑 is zero on"
+    }
+  ],
+  "textLength": 5189
+}

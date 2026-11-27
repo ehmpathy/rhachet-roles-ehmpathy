@@ -1,0 +1,32 @@
+{
+  "source": {
+    "id": "page.hyrum",
+    "kind": "page",
+    "url": "https://www.hyrumslaw.com/",
+    "keywords": [
+      "observable behaviors",
+      "promise",
+      "contract"
+    ]
+  },
+  "urlFinal": "https://www.hyrumslaw.com/",
+  "status": 200,
+  "fetchedAt": "2026-11-23T16:08:13.936Z",
+  "title": "Hyrum's Law",
+  "meta": [],
+  "windows": [
+    {
+      "keyword": "observable behaviors",
+      "window": "Hyrum's Law An observation on Software Engineering Put succinctly, the observation is this: With a sufficient number of users of an API, it does not matter what you promise in the contract: all observable behaviors of your system will be depended on by somebody. Over the past couple years of doing low-level infrastructure migrations in one of the most complex software systems on the planet, I’ve made some observations about the differences between an interface and its implementations. We typically think of the interface as an abstraction for interacting with a system (like the steering"
+    },
+    {
+      "keyword": "promise",
+      "window": "Hyrum's Law An observation on Software Engineering Put succinctly, the observation is this: With a sufficient number of users of an API, it does not matter what you promise in the contract: all observable behaviors of your system will be depended on by somebody. Over the past couple years of doing low-level infrastructure migrations in one of the most complex software systems on the planet, I’ve made some observations about the differences between an interface and its implementations. We typically think of the interface as an abstraction for interacting with"
+    },
+    {
+      "keyword": "contract",
+      "window": "Hyrum's Law An observation on Software Engineering Put succinctly, the observation is this: With a sufficient number of users of an API, it does not matter what you promise in the contract: all observable behaviors of your system will be depended on by somebody. Over the past couple years of doing low-level infrastructure migrations in one of the most complex software systems on the planet, I’ve made some observations about the differences between an interface and its implementations. We typically think of the interface as an abstraction for interacting with a system (like"
+    }
+  ],
+  "textLength": 4042
+}

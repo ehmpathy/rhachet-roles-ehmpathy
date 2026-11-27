@@ -28,6 +28,7 @@ language primitives and third-party apis are optimized for generality, not domai
 | boolean | `a && b \|\| c && !d` | `isEligibleForDiscount({ order })` (transformer) |
 | raw api call | `await stripe.customers.create(...)` | `sdkStripe.setCustomer(...)` (communicator) |
 | raw db query | `await db.query('SELECT ...')` | `daoCustomer.findByRef(...)` (communicator) |
+| hidden relation | `lessons.filter(l => slotsByUuid[l.slotUuid])` — the link lives only in matched key names | `getAllLessonsWithOpenSlot({ lessons, slots })` (transformer) — the relation gets a name |
 
 ## .note
 

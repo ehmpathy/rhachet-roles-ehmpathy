@@ -56,4 +56,4 @@ provider for non-agent mechanisms = nitpick; prefer supplier for dependencies, d
 
 ### .see also
 - rule.require.ubiqlang
-- rule.forbid.term-script
+- rule.forbid.term=script

@@ -7,7 +7,7 @@ the established, cited canon the architect grounds domain discovery in. when a m
 "named from the motive", the claim traces to one of these fundamentals — not to taste.
 read this to know *why* the moves are the moves.
 
-these are the human-factors and analysis principles behind a fit-to-domain model. they
+these are the human-factors and analysis principles behind code that fits its domain. they
 predate any one language or framework and translate across all of them — the architect
 applies the *principle*, not the tool it was first written for.
 
@@ -18,7 +18,7 @@ applies the *principle*, not the tool it was first written for.
 > a language structured around the domain model and used by all team members to connect
 > all the activities of the team with the software.
 
-the model — and the code — must speak the **one language** the domain experts speak. a term
+the domain objects, the operations, and the code must speak the **one language** the domain experts speak. a term
 that lives only in the code, with no counterpart in the domain's own speech, is a defect.
 this is the backbone of discovery: the words are found in the domain, not authored at the
 keyboard.
@@ -30,10 +30,10 @@ backs the **listen to how folks talk** and **vet the term** moves, and `rule.req
 > a map is not the territory it represents, but, if correct, it has a similar structure to
 > the territory, which accounts for its usefulness.
 
-a database schema, an api response, a class name — each is a **map** of the domain, drawn by
-an engineer, lossy and incidental. the real-world domain is the **territory**. discovery
-grounds every term in the territory, never in a map. when the map's word and the territory's
-word disagree, the territory wins.
+a database schema, an api response, a class name — each is a **description** of the domain,
+written by an engineer, lossy and incidental. the real-world domain is the **territory**.
+discovery grounds every term in the territory, never in a description of it. when the
+description's word and the territory's word disagree, the territory wins.
 
 backs the **the ground truth is the real world** section of `def.domain-discovery`.
 
@@ -93,7 +93,7 @@ walk surfaces objects and rules an ad-hoc list misses.
 backs the **decompose dimensionally** move and `rule.require.dimensional-decomposition`.
 detailed history in `def.dimensional-decomposition.history.morphological-analysis`.
 
-## .how the canon maps to our moves and rules
+## .which of our moves and rules each canon backs
 
 | fundamental | discovery move / rule |
 |-------------|-----------------------|

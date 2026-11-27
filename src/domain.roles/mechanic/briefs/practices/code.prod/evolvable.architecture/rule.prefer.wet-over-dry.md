@@ -100,6 +100,25 @@ const sendDocument = async <T extends { id: string; customer: Customer }>(
 - you find yourself in workaround of the abstraction
 - the abstraction name is vague (`handleItem`, `processItem`, `doAction`)
 
+#### .knowledge, not text
+
+the rule of three counts duplicate **text**. duplicate **knowledge** is another matter: one business rule, one format, one invariant, written in two places. collapse that at once — the two copies drift, and the day they disagree is a defect (`catalog.of=tactic.abstraction.kind=_.verb=set.tactic=separate`, architect).
+
+| the duplicate | when to collapse |
+|---|---|
+| text that happens to look alike | wait for 3+ |
+| one rule or one decision, held twice | now |
+
+#### .escape a wrong abstraction
+
+when the signals above fire, do not bolt on one more flag. back out:
+
+1. **inline** — copy the abstraction's body into each caller
+2. **cut** — in each caller, delete the branches that caller never takes
+3. **re-derive** — read what is left; extract again only what is truly shared, under a name that fits
+
+the inline step looks like a step backward. it is the cheap path: the abstraction's flags and switches vanish once each copy serves one caller.
+
 #### .when to abstract
 
 - 3+ concrete usages exist

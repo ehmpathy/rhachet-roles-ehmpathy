@@ -1,0 +1,30 @@
+# philosophy.domain-as-a-garden
+
+domain.operations are decomposed, reusable, idempotent, low-trust contract components. they encapsulate true domain knowledge and make it safe and easy to recompose into more powerful mechanisms.
+
+## .gardeners and architects
+
+> "architects do blueprints before they drive the first nail. gardeners dig a hole, plant the seed, and see what comes up." — george r.r. martin
+
+both are required: architect each solution. but architects who think like gardeners build more evolvable systems — tomorrow's blueprint should build on what grew, not tear it down. **decomposition for recomposition matters more in the long term than the elegance of any single design.**
+
+## .symbiogenesis
+
+> "life evolves spontaneously in environments capable of computation … and grows more complex over time as it enters symbiotic relationships with itself." — blaise agüera y arcas
+
+margulis: complex cells arose when unlike bacteria merged (mitochondria were once free bacteria). so too operations: atomic operations compose into behaviors neither could reach alone; idempotent contracts keep identity stable.
+
+## .recomposable units
+
+| property | enables |
+|---|---|
+| idempotent | safe retry, safe recomposition |
+| low-trust contracts | explicit inputs/outputs, no hidden inputs |
+| single responsibility | clear boundaries for composition |
+| domain-aligned | speaks ubiquitous language |
+
+`syncCustomerFromStripe` did not exist when `getOneCustomer`, `setCustomerPhone`, `genInvoice` were written; when it was needed, the pieces were ready. dynamically-stable: free to evolve and recompose, stable because each piece is safe to invoke again.
+
+> decomposition for recomposition is the core mechanism of dynamically-stable domain.operations.
+
+applies to domain.objects too, through narrower bounds. full text, sources, and quotes: `philosophy.domain-as-a-garden.[philosophy].md`.

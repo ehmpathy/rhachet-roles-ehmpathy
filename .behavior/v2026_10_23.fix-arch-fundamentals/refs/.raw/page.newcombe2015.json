@@ -1,0 +1,19 @@
+{
+  "source": {
+    "id": "page.newcombe2015",
+    "kind": "page",
+    "url": "https://cacm.acm.org/magazines/2015/4/184701-how-amazon-web-services-uses-formal-methods/fulltext",
+    "keywords": [
+      "TLA+",
+      "subtle bugs",
+      "design"
+    ]
+  },
+  "urlFinal": "https://cacm.acm.org/magazines/2015/4/184701-how-amazon-web-services-uses-formal-methods/fulltext",
+  "status": 403,
+  "fetchedAt": "2026-11-23T16:06:06.467Z",
+  "title": "Attention Required! | Cloudflare",
+  "meta": [],
+  "windows": [],
+  "textLength": 680
+}

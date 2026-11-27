@@ -27,7 +27,7 @@ the term is used for at least 7 distinct purposes:
 | **expand**    | fill in defaults or follow references  | `expand`, `hydrate`, `inflate` |
 | **lookup**    | find by key in a known source          | `lookup`, `find`, `fetch`      |
 | **decide**    | pick based on conditions               | `decide`, `select`, `choose`   |
-| **settle**    | bring to a final state (e.g., promise) | `settle`, `await`, `complete`  |
+| **settle**    | bring to a final status (e.g., promise) | `settle`, `await`, `complete`  |
 
 when someone says "resolve", they could mean any of these — or several at once.
 
@@ -44,27 +44,13 @@ use of `resolve` = **BLOCKER**
 | `resolveDependencies`  | `expandDependencies` | expand transitive dependency tree           |
 | `resolveUser`          | `lookupUser`         | find user by id in database                |
 | `resolveTemplate`      | `expandTemplate`     | fill in template variables                 |
-| `resolveConflict`      | `settleConflict`     | bring conflict to final state              |
-| `resolvePromise`       | `settlePromise`      | bring promise to fulfilled state           |
+| `resolveConflict`      | `settleConflict`     | bring conflict to final status              |
+| `resolvePromise`       | `settlePromise`      | bring promise to fulfilled status           |
 | `resolveValue`         | `extractValue`       | pull value from nested structure           |
 | `resolveStrategy`      | `decideStrategy`     | select strategy based on conditions        |
 
-#### .examples
-
-**bad**
-```ts
-const resolveConfig = (input: RawConfig) => { ... };
-const resolved = resolve(ref);
-const path = resolvePath(relative, base);
-```
-
-**good**
-```ts
-const deriveConfig = (input: RawConfig) => { ... };
-const expanded = expand(ref);
-const path = expandPath(relative, base);
-```
-
 #### .see also
+- `philosophy.why-we-ban-terms` — why a heavy word gets banned
+- `rule.forbid.term=resolve.example=demo` — a 👎/👍 demo
 - `rule.forbid.term=normalize` — similar overloaded term
 - `rule.require.ubiqlang` — use precise domain terms

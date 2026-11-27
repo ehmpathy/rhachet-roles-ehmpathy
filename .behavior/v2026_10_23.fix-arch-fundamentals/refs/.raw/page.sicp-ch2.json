@@ -1,0 +1,35 @@
+{
+  "source": {
+    "id": "page.sicp-ch2",
+    "kind": "page",
+    "url": "https://mitp-content-server.mit.edu/books/content/sectbyfn/books_pres_0/6515/sicp.zip/full-text/book/book-Z-H-13.html",
+    "keywords": [
+      "Building Abstractions with Data",
+      "data abstraction"
+    ]
+  },
+  "urlFinal": "https://mitp-content-server.mit.edu/books/content/sectbyfn/books_pres_0/6515/sicp.zip/full-text/book/book-Z-H-13.html",
+  "status": 200,
+  "fetchedAt": "2026-11-25T02:40:08.121Z",
+  "title": "Structure and Interpretation of Computer Programs",
+  "meta": [],
+  "windows": [
+    {
+      "keyword": "Building Abstractions with Data",
+      "window": "[Go to first, previous, next page; contents; index] Chapter 2 Building Abstractions with Data We now come to the decisive step of mathematical abstraction: we forget about what the symbols stand for. ...[The mathematician] need not be idle; there are many operations which he may carry out with these symbols, without ever having to look at the things they stand for. Hermann Weyl, The Mathematical Way of Thinking We concentrated in chapter 1 on computationa"
+    },
+    {
+      "keyword": "data abstraction",
+      "window": "their own right, then we can separate the part of our program that deals with rational numbers per se from the details of how rational numbers may be represented as pairs of integers. The general technique of isolating the parts of a program that deal with how data objects are represented from the parts of a program that deal with how data objects are used is a powerful design methodology called data abstraction. We will see how data abstraction makes programs much easier to design, maintain, and modify. The use of compound data leads to a real increase in the expressive power of our programming language. Consider the idea of forming a ``linear combination'' ax + by. We might like to write a procedure that would accept a, b, x, and y as arguments and return the value of ax + by. This pre"
+    },
+    {
+      "keyword": "data abstraction",
+      "window": "rate the part of our program that deals with rational numbers per se from the details of how rational numbers may be represented as pairs of integers. The general technique of isolating the parts of a program that deal with how data objects are represented from the parts of a program that deal with how data objects are used is a powerful design methodology called data abstraction. We will see how data abstraction makes programs much easier to design, maintain, and modify. The use of compound data leads to a real increase in the expressive power of our programming language. Consider the idea of forming a ``linear combination'' ax + by. We might like to write a procedure that would accept a, b, x, and y as arguments and return the value of ax + by. This presents no difficulty if the argumen"
+    },
+    {
+      "keyword": "data abstraction",
+      "window": "language provide the ability to manipulate compound objects directly: Without this, there is no way for a procedure such as linear-combination to pass its arguments along to add and mul without having to know their detailed structure.1 We begin this chapter by implementing the rational-number arithmetic system mentioned above. This will form the background for our discussion of compound data and data abstraction. As with compound procedures, the main issue to be addressed is that of abstraction as a technique for coping with complexity, and we will see how data abstraction enables us to erect suitable abstraction barriers between different parts of a program. We will see that the key to forming compound data is that a programming language should provide some kind of ``glue'' so that data"
+    }
+  ],
+  "textLength": 10061
+}

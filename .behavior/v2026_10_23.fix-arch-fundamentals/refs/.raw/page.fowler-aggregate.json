@@ -1,0 +1,24 @@
+{
+  "source": {
+    "id": "page.fowler-aggregate",
+    "kind": "page",
+    "url": "https://martinfowler.com/bliki/DDD_Aggregate.html",
+    "keywords": [
+      "invariant",
+      "consistency",
+      "Evans"
+    ]
+  },
+  "urlFinal": "https://martinfowler.com/bliki/DDD_Aggregate.html",
+  "status": 200,
+  "fetchedAt": "2026-11-23T12:57:34.609Z",
+  "title": "D D D_ Aggregate",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "bliki: D D D_ Aggregate"
+    }
+  ],
+  "windows": [],
+  "textLength": 1350
+}

@@ -1,0 +1,106 @@
+{
+  "source": {
+    "id": "page.doi-abadilamport1993",
+    "kind": "page",
+    "url": "https://doi.org/10.1145/151646.151649",
+    "keywords": [
+      "assum",
+      "guarantee",
+      "environment",
+      "compos"
+    ]
+  },
+  "urlFinal": "https://dl.acm.org/doi/10.1145/151646.151649",
+  "status": 200,
+  "fetchedAt": "2026-11-23T13:20:28.646Z",
+  "title": "Composing specifications | ACM Transactions on Programming Languages and Systems",
+  "meta": [
+    {
+      "name": "citation_journal_title",
+      "content": "ACM Transactions on Programming Languages and Systems (TOPLAS)"
+    },
+    {
+      "name": "dc.Title",
+      "content": "Composing specifications"
+    },
+    {
+      "name": "dc.Creator",
+      "content": "AbadiMartín "
+    },
+    {
+      "name": "dc.Creator",
+      "content": "LamportLeslie "
+    },
+    {
+      "name": "dc.Subject",
+      "content": "compositionality; concurrent programming; liveness properties; modular specification; safety properties"
+    },
+    {
+      "name": "dc.Description",
+      "content": "A rigorous modular specification method requires a proof rule asserting that if each component behaves correctly in isolation, then it behaves correctly in concert with other components. Such a rul..."
+    },
+    {
+      "name": "dc.Publisher",
+      "content": "ACMPUB27New York, NY, USA"
+    },
+    {
+      "name": "dc.Date",
+      "content": "1993-01-01"
+    },
+    {
+      "name": "dc.Type",
+      "content": "article"
+    },
+    {
+      "name": "dc.Format",
+      "content": "text/HTML"
+    },
+    {
+      "name": "dc.Identifier",
+      "content": "151649"
+    },
+    {
+      "name": "dc.Identifier",
+      "content": "10.1145/151646.151649"
+    },
+    {
+      "name": "dc.Language",
+      "content": "EN"
+    },
+    {
+      "name": "dc.Coverage",
+      "content": "New York, NY, USA"
+    },
+    {
+      "name": "og:title",
+      "content": "Composing specifications | ACM Transactions on Programming Languages and Systems"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "environment",
+      "window": "nloads PDF/eReader Information & Contributors Bibliometrics & Citations Reading Options References Figures Tables Media Share Abstract A rigorous modular specification method requires a proof rule asserting that if each component behaves correctly in isolation, then it behaves correctly in concert with other components. Such a rule is subtle because a component need behave correctly only when its environment does, and each component is part of the others' environments. We examine the precise distinction between a system and its environment, and provide the requisite proof rule when modules are specified with safety and liveness properties. Formats available You can view the full content in the following formats: PDF/eReader References [1] ABADI, M., AND LAMPORT, L. Theexistence ofrefinem"
+    },
+    {
+      "keyword": "environment",
+      "window": "& Citations Reading Options References Figures Tables Media Share Abstract A rigorous modular specification method requires a proof rule asserting that if each component behaves correctly in isolation, then it behaves correctly in concert with other components. Such a rule is subtle because a component need behave correctly only when its environment does, and each component is part of the others' environments. We examine the precise distinction between a system and its environment, and provide the requisite proof rule when modules are specified with safety and liveness properties. Formats available You can view the full content in the following formats: PDF/eReader References [1] ABADI, M., AND LAMPORT, L. Theexistence ofrefinement mappings, Theor. Comput. Science 82,2 (May 1991),253-284"
+    },
+    {
+      "keyword": "environment",
+      "window": "A rigorous modular specification method requires a proof rule asserting that if each component behaves correctly in isolation, then it behaves correctly in concert with other components. Such a rule is subtle because a component need behave correctly only when its environment does, and each component is part of the others' environments. We examine the precise distinction between a system and its environment, and provide the requisite proof rule when modules are specified with safety and liveness properties. Formats available You can view the full content in the following formats: PDF/eReader References [1] ABADI, M., AND LAMPORT, L. Theexistence ofrefinement mappings, Theor. Comput. Science 82,2 (May 1991),253-284, Crossref Google Scholar [2] ABADI, M., L.AMPORT, L., AND WOLPER, P. Real"
+    },
+    {
+      "keyword": "compos",
+      "window": "ently in the Basic Edition. Features requiring a subscription appear in grey. Sign In Upgrade Sign in Register Search ACM Digital Library Advanced Search (Premium feature) Advanced Search ACM Transactions on Programming Languages and Systems Several features on this page require Premium Access. Learn moreSign in HomeACM JournalsACM Transactions on Programming Languages and SystemsVol. 15, No. 1Composing specifications You are using the Basic Edition. Features requiring a subscription appear in grey. Sign in to your subscription or learn more Upgrade ARTICLE OPEN ACCESS Share on Composing specifications Editor: Andrew W. Appel Authors: Martín Abadi, Leslie LamportAuthors Info & Claims ACM Transactions on Programming Languages and Systems (TOPLAS), Volume 15, Issue 1 Pages 73 - 132 https:"
+    },
+    {
+      "keyword": "compos",
+      "window": "ch ACM Transactions on Programming Languages and Systems Several features on this page require Premium Access. Learn moreSign in HomeACM JournalsACM Transactions on Programming Languages and SystemsVol. 15, No. 1Composing specifications You are using the Basic Edition. Features requiring a subscription appear in grey. Sign in to your subscription or learn more Upgrade ARTICLE OPEN ACCESS Share on Composing specifications Editor: Andrew W. Appel Authors: Martín Abadi, Leslie LamportAuthors Info & Claims ACM Transactions on Programming Languages and Systems (TOPLAS), Volume 15, Issue 1 Pages 73 - 132 https://doi.org/10.1145/151646.151649 Published: 01 January 1993 Publication History Additional metrics (Premium feature) 348 citation 2,063 Downloads PDF/eReader Information & Contributors Bibl"
+    },
+    {
+      "keyword": "compos",
+      "window": "IBertino ELiu DLi ZSmaragdakis GLiang KCortier VLin Z(2026)Mind the Gap: Cross-RFC Formal Analysis Exposes DNSSEC's Hidden VulnerabilitiesProceedings of the 2026 ACM SIGSAC Conference on Computer and Communications Security10.1145/3830454.3846592(451-465)Online publication date: 15-Nov-2026 https://dl.acm.org/doi/10.1145/3830454.3846592 Show More Cited By Index Terms Index Terms (Premium feature) Composing specifications Computing methodologies Concurrent computing methodologies Concurrent programming languages Software and its engineering Software notations and tools General programming languages Language types Concurrent programming languages Software organization and properties Software functional properties Correctness Theory of computation Logic Proof theory Semantics a"
+    }
+  ],
+  "textLength": 7557
+}

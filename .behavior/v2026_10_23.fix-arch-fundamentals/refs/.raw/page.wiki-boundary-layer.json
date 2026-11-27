@@ -1,0 +1,62 @@
+{
+  "source": {
+    "id": "page.wiki-boundary-layer",
+    "kind": "page",
+    "url": "https://en.wikipedia.org/wiki/Boundary_layer",
+    "keywords": [
+      "Prandtl",
+      "1904",
+      "thin layer",
+      "viscosity"
+    ]
+  },
+  "urlFinal": "https://en.wikipedia.org/wiki/Boundary_layer",
+  "status": 200,
+  "fetchedAt": "2026-11-23T22:19:21.633Z",
+  "title": "Boundary layer - Wikipedia",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "Boundary layer - Wikipedia"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "Prandtl",
+      "window": "the smooth laminar flow breaks down and transitions to a turbulent flow. From a drag standpoint, it is advisable to have the transition from laminar to turbulent flow as far aft on the wing as possible, or have a large amount of the wing surface within the laminar portion of the boundary layer. The low energy laminar flow, however, tends to break down more suddenly than the turbulent layer. The Prandtl boundary layer conceptedit Ludwig Prandtl Laminar boundary layer velocity profile The aerodynamic boundary layer was first hypothesized by Ludwig Prandtl in a paper presented on August 12, 1904, at the third International Congress of Mathematicians in Heidelberg, Germany. It simplifies the equations of fluid flow by dividing the flow field into two areas: one inside the boundary layer, do"
+    },
+    {
+      "keyword": "Prandtl",
+      "window": "ransitions to a turbulent flow. From a drag standpoint, it is advisable to have the transition from laminar to turbulent flow as far aft on the wing as possible, or have a large amount of the wing surface within the laminar portion of the boundary layer. The low energy laminar flow, however, tends to break down more suddenly than the turbulent layer. The Prandtl boundary layer conceptedit Ludwig Prandtl Laminar boundary layer velocity profile The aerodynamic boundary layer was first hypothesized by Ludwig Prandtl in a paper presented on August 12, 1904, at the third International Congress of Mathematicians in Heidelberg, Germany. It simplifies the equations of fluid flow by dividing the flow field into two areas: one inside the boundary layer, dominated by viscosity and creating the majo"
+    },
+    {
+      "keyword": "Prandtl",
+      "window": "rbulent flow as far aft on the wing as possible, or have a large amount of the wing surface within the laminar portion of the boundary layer. The low energy laminar flow, however, tends to break down more suddenly than the turbulent layer. The Prandtl boundary layer conceptedit Ludwig Prandtl Laminar boundary layer velocity profile The aerodynamic boundary layer was first hypothesized by Ludwig Prandtl in a paper presented on August 12, 1904, at the third International Congress of Mathematicians in Heidelberg, Germany. It simplifies the equations of fluid flow by dividing the flow field into two areas: one inside the boundary layer, dominated by viscosity and creating the majority of drag experienced by the boundary body; and one outside the boundary layer, where viscosity can be neglect"
+    },
+    {
+      "keyword": "1904",
+      "window": "ible, or have a large amount of the wing surface within the laminar portion of the boundary layer. The low energy laminar flow, however, tends to break down more suddenly than the turbulent layer. The Prandtl boundary layer conceptedit Ludwig Prandtl Laminar boundary layer velocity profile The aerodynamic boundary layer was first hypothesized by Ludwig Prandtl in a paper presented on August 12, 1904, at the third International Congress of Mathematicians in Heidelberg, Germany. It simplifies the equations of fluid flow by dividing the flow field into two areas: one inside the boundary layer, dominated by viscosity and creating the majority of drag experienced by the boundary body; and one outside the boundary layer, where viscosity can be neglected without significant effects on the solut"
+    },
+    {
+      "keyword": "thin layer",
+      "window": "ial may be challenged and removed. Find sources: \"Boundary layer\" – news · newspapers · books · scholar · JSTOR (March 2020) (Learn how and when to remove this message) The boundary layer around a human hand, schlieren photograph. The boundary layer is the bright-green border, most visible on the back of the hand (click for high-res image). In physics and fluid mechanics, a boundary layer is the thin layer of fluid in the immediate vicinity of a bounding surface formed by the fluid flowing along the surface. The fluid's interaction with the wall induces a no-slip boundary condition (zero velocity at the wall). The flow velocity then monotonically increases above the surface until it returns to the bulk flow velocity. The thin layer consisting of fluid whose velocity has not yet returned t"
+    },
+    {
+      "keyword": "thin layer",
+      "window": "es image). In physics and fluid mechanics, a boundary layer is the thin layer of fluid in the immediate vicinity of a bounding surface formed by the fluid flowing along the surface. The fluid's interaction with the wall induces a no-slip boundary condition (zero velocity at the wall). The flow velocity then monotonically increases above the surface until it returns to the bulk flow velocity. The thin layer consisting of fluid whose velocity has not yet returned to the bulk flow velocity is called the velocity boundary layer. The air next to a human is heated, resulting in gravity-induced convective airflow, which results in both a velocity and thermal boundary layer. A breeze disrupts the boundary layer, and hair and clothing protect it, making the human feel cooler or warmer. On an airc"
+    },
+    {
+      "keyword": "viscosity",
+      "window": "d by the Coriolis effect (rather than convective inertia), an Ekman layer forms. In the theory of heat transfer, a thermal boundary layer occurs. A surface can have multiple types of boundary layer simultaneously. The viscous nature of airflow reduces the local velocities on a surface and is responsible for skin friction. The layer of air over the wing's surface that is slowed down or stopped by viscosity, is the boundary layer. There are two different types of boundary layer flow: laminar and turbulent.[1] Laminar boundary layer flow The laminar boundary is a very smooth flow, while the turbulent boundary layer contains swirls or \"eddies\". The laminar flow creates less skin friction drag than the turbulent flow, but is less stable. Boundary layer flow over a wing surface begins as a sm"
+    },
+    {
+      "keyword": "viscosity",
+      "window": "ndary layer conceptedit Ludwig Prandtl Laminar boundary layer velocity profile The aerodynamic boundary layer was first hypothesized by Ludwig Prandtl in a paper presented on August 12, 1904, at the third International Congress of Mathematicians in Heidelberg, Germany. It simplifies the equations of fluid flow by dividing the flow field into two areas: one inside the boundary layer, dominated by viscosity and creating the majority of drag experienced by the boundary body; and one outside the boundary layer, where viscosity can be neglected without significant effects on the solution. This allows a closed-form solution for the flow in both areas by making significant simplifications of the full Navier–Stokes equations. The same hypothesis is applicable to other fluids (besides air) with mo"
+    },
+    {
+      "keyword": "viscosity",
+      "window": "hypothesized by Ludwig Prandtl in a paper presented on August 12, 1904, at the third International Congress of Mathematicians in Heidelberg, Germany. It simplifies the equations of fluid flow by dividing the flow field into two areas: one inside the boundary layer, dominated by viscosity and creating the majority of drag experienced by the boundary body; and one outside the boundary layer, where viscosity can be neglected without significant effects on the solution. This allows a closed-form solution for the flow in both areas by making significant simplifications of the full Navier–Stokes equations. The same hypothesis is applicable to other fluids (besides air) with moderate to low viscosity such as water. For the case where there is a temperature difference between the surface and the"
+    }
+  ],
+  "textLength": 40291
+}

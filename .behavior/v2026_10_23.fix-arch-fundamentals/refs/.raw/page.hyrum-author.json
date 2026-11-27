@@ -1,0 +1,32 @@
+{
+  "source": {
+    "id": "page.hyrum-author",
+    "kind": "page",
+    "url": "https://www.hyrumslaw.com/",
+    "keywords": [
+      "Hyrum Wright",
+      "Wright",
+      "Hyrum"
+    ]
+  },
+  "urlFinal": "https://www.hyrumslaw.com/",
+  "status": 200,
+  "fetchedAt": "2026-11-23T16:44:45.781Z",
+  "title": "Hyrum's Law",
+  "meta": [],
+  "windows": [
+    {
+      "keyword": "Hyrum",
+      "window": "Hyrum's Law An observation on Software Engineering Put succinctly, the observation is this: With a sufficient number of users of an API, it does not matter what you promise in the contract: all observable behaviors of your system will be depended on by somebody. Over the past couple years of doing low-level infrastructure migrations in one of the most complex software systems on the planet, I’v"
+    },
+    {
+      "keyword": "Hyrum",
+      "window": "terfaces result from the organic growth of large systems, and while we may wish the problem did not exist, designers and engineers would be wise to consider it when building and maintaining complex systems. So be aware of how the implicit interface constrains your system design and evolution, and know that for any reasonably popular system, the interface reaches much deeper than you think. Who's Hyrum? I'm a Principal Scientist at Adobe, and before that, a software engineer at Google. I work on large-scale code change tooling and infrastructure, and spent several years improving Google's core C++ libraries. The above observation grew out of experiences when even the simplest library change caused failures in some far off system. While I may have made the observation, credit goes to Titu"
+    },
+    {
+      "keyword": "Hyrum",
+      "window": "Adobe, and before that, a software engineer at Google. I work on large-scale code change tooling and infrastructure, and spent several years improving Google's core C++ libraries. The above observation grew out of experiences when even the simplest library change caused failures in some far off system. While I may have made the observation, credit goes to Titus Winters for actually naming it as \"Hyrum's Law\" and popularizing the concept more broadly. History Obligatory XKCD: https://xkcd.com/1172/"
+    }
+  ],
+  "textLength": 4022
+}

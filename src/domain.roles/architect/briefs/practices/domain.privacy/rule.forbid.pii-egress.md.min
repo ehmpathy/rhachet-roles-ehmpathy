@@ -1,0 +1,7 @@
+# rule.forbid.pii-egress
+
+pii flows one way: in. it may enter and land in the storage that must keep it; it never flows back out raw — not into the domain, a log, an event, an error, a snapshot, a response, or a third party — except through a quarantined, authorized path with a named business need
+smell: a pii field on a domain object · pii in a log, error, event, snapshot, or response · age or zone computed from a raw fact · a dao read that hands raw pii to any caller
+cure: out as a concept — the dao answers what the rule needs (`daoSurfer.getConsentRequired({ surfer, on })` → `SELF` · `PARENT`) · out raw only via the quarantine — one path, authorized, access logged without the value, straight to its one destination (email the parent the waiver link)
+enforcement: raw pii on a domain object, event, error, or response = blocker; in a log or snapshot = blocker; a raw read outside the quarantine or with no named business need = blocker
+full: rule.require.pii-quarantine

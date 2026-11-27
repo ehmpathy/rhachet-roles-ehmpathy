@@ -16,7 +16,7 @@ pairs with rule.require.domain-discovery-for-term-proposals: that requires disco
 use repo=.this/role=any: a domain term is a fact of this repo's domain, shared across every role, not owned by one
 
 ## .what the file must hold
-1. the term — canonical word + shape ([...noun][state]? dobj, [verb][...noun] dop)
+1. the term — canonical word + shape ([...noun][status]? dobj, [verb][...noun] dop)
 2. the etymology — where the word comes from; why this word, not its rejected synonyms
 3. the evidence — at least one of: dimensional decomposition, scenario timeline, citations/precedent, domain-expert narrative
 4. attributes/states/refs (dobj) or inputs/effect (dop)

@@ -1,0 +1,153 @@
+{
+  "source": {
+    "id": "meyer1992",
+    "kind": "crossref",
+    "query": "Meyer Applying design by contract 1992 Computer",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Meyer%20Applying%20design%20by%20contract%201992%20Computer&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:15:48.799Z",
+  "items": [
+    {
+      "publisher": "Institute of Electrical and Electronics Engineers (IEEE)",
+      "issue": "10",
+      "DOI": "10.1109/2.161279",
+      "type": "journal-article",
+      "page": "40-51",
+      "title": [
+        "Applying 'design by contract'"
+      ],
+      "volume": "25",
+      "author": [
+        {
+          "given": "B.",
+          "family": "Meyer",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Computer"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1992,
+            10
+          ]
+        ]
+      }
+    },
+    {
+      "publisher": "Institute of Electrical and Electronics Engineers (IEEE)",
+      "issue": "1",
+      "DOI": "10.1109/2.562936",
+      "type": "journal-article",
+      "page": "129-130",
+      "title": [
+        "Design by contract: the lessons of Ariane"
+      ],
+      "volume": "30",
+      "author": [
+        {
+          "given": "J.-M.",
+          "family": "Jazequel",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "B.",
+          "family": "Meyer",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Computer"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1997
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.1007/978-3-642-39742-4_31",
+      "title": [
+        "Applying Search in an Automatic Contract-Based Testing Tool"
+      ],
+      "author": [
+        {
+          "given": "Alexey",
+          "family": "Kolesnichenko",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Christopher M.",
+          "family": "Poskitt",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Bertrand",
+          "family": "Meyer",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Lecture Notes in Computer Science",
+        "Search Based Software Engineering"
+      ],
+      "page": "318-323",
+      "issued": {
+        "date-parts": [
+          [
+            2013
+          ]
+        ]
+      },
+      "publisher": "Springer Berlin Heidelberg",
+      "type": "book-chapter"
+    }
+  ]
+}

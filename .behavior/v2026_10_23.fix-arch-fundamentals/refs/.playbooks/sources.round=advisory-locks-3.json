@@ -1,0 +1,5 @@
+[
+  { "id": "page.vladmihalcea-advisory-locks", "kind": "page", "url": "https://vladmihalcea.com/how-do-postgresql-advisory-locks-work/", "keywords": ["advisory", "session", "transaction", "cooperat"] },
+  { "id": "page.postgres-mvcc-intro", "kind": "page", "url": "https://www.postgresql.org/docs/current/mvcc-intro.html", "keywords": ["never blocks", "lock"] },
+  { "id": "page.pgbouncer-config", "kind": "page", "url": "https://www.pgbouncer.org/config.html", "keywords": ["pool_mode", "transaction", "server_reset_query"] }
+]

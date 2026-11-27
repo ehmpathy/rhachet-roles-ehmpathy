@@ -945,7 +945,7 @@ fail_tree_not_found() {
 #        because the three are one family and a family split across two
 #        files means a future fix lands in one half. it sat in the CLI
 #        entrypoint for one iteration with a comment that named this very
-#        fix and did not take it (rule.prefer.most-common-denominator).
+#        fix and did not take it (rule.require.most-common-denominator).
 #
 # .why = the fix arrives as an affordance plus commands, rather than as raw
 #        lines on stdin. the heredoc form let each call site draw its own

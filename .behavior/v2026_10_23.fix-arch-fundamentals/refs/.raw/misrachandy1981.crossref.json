@@ -1,0 +1,128 @@
+{
+  "source": {
+    "id": "misrachandy1981",
+    "kind": "crossref",
+    "query": "Misra Chandy Proofs of networks of processes 1981",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Misra%20Chandy%20Proofs%20of%20networks%20of%20processes%201981&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:15:43.060Z",
+  "items": [
+    {
+      "publisher": "Institute of Electrical and Electronics Engineers (IEEE)",
+      "issue": "4",
+      "DOI": "10.1109/tse.1981.230844",
+      "type": "journal-article",
+      "page": "417-426",
+      "title": [
+        "Proofs of Networks of Processes"
+      ],
+      "volume": "SE-7",
+      "author": [
+        {
+          "given": "J.",
+          "family": "Misra",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "K.M.",
+          "family": "Chandy",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "IEEE Transactions on Software Engineering"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1981,
+            7
+          ]
+        ]
+      }
+    },
+    {
+      "publisher": "Elsevier BV",
+      "issue": "4",
+      "DOI": "10.1016/0020-0190(79)90065-6",
+      "type": "journal-article",
+      "page": "185-189",
+      "title": [
+        "Deadlock absence proofs for networks of communicating processes"
+      ],
+      "volume": "9",
+      "author": [
+        {
+          "given": "K.M.",
+          "family": "Chandy",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        },
+        {
+          "given": "J.",
+          "family": "Misra",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Information Processing Letters"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1979,
+            11
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.1007/3-540-15239-3_20",
+      "title": [
+        "Misra &amp; Chandy: Proofs of process networks"
+      ],
+      "container-title": [
+        "Lecture Notes in Computer Science",
+        "A Survey of Verification Techniques for Parallel Programs"
+      ],
+      "page": "84-98",
+      "issued": {
+        "date-parts": [
+          [
+            1985
+          ]
+        ]
+      },
+      "publisher": "Springer Berlin Heidelberg",
+      "type": "book-chapter"
+    }
+  ]
+}

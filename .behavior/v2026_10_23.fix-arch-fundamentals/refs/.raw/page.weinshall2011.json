@@ -1,0 +1,186 @@
+{
+  "source": {
+    "id": "page.weinshall2011",
+    "kind": "page",
+    "url": "https://www.pnas.org/doi/10.1073/pnas.1110910108",
+    "keywords": [
+      "unrepresented",
+      "order",
+      "parole",
+      "Danziger"
+    ]
+  },
+  "urlFinal": "https://www.pnas.org/doi/10.1073/pnas.1110910108",
+  "status": 200,
+  "fetchedAt": "2026-11-23T19:31:21.585Z",
+  "title": "Overlooked factors in the analysis of parole decisions | PNAS",
+  "meta": [
+    {
+      "name": "citation_journal_title",
+      "content": "Proceedings of the National Academy of Sciences"
+    },
+    {
+      "name": "dc.Title",
+      "content": "Overlooked factors in the analysis of parole decisions"
+    },
+    {
+      "name": "dc.Creator",
+      "content": "Keren Weinshall-Margel"
+    },
+    {
+      "name": "dc.Creator",
+      "content": "John Shapard"
+    },
+    {
+      "name": "dc.Description",
+      "content": "Overlooked factors in the analysis of parole decisions"
+    },
+    {
+      "name": "dc.Publisher",
+      "content": "National Academy of Sciences"
+    },
+    {
+      "name": "dc.Date",
+      "content": "2011-10-18"
+    },
+    {
+      "name": "dc.Type",
+      "content": "letter"
+    },
+    {
+      "name": "dc.Format",
+      "content": "text/HTML"
+    },
+    {
+      "name": "dc.Identifier",
+      "content": "201110910"
+    },
+    {
+      "name": "dc.Identifier",
+      "content": "10.1073/pnas.1110910108"
+    },
+    {
+      "name": "dc.Language",
+      "content": "EN"
+    },
+    {
+      "name": "dc.Coverage",
+      "content": "world"
+    },
+    {
+      "name": "og:title",
+      "content": "Overlooked factors in the analysis of parole decisions | PNAS"
+    },
+    {
+      "name": "citation_abstract_html_url",
+      "content": "https://www.pnas.org/doi/abs/10.1073/pnas.1110910108"
+    },
+    {
+      "name": "citation_firstpage",
+      "content": "E833"
+    },
+    {
+      "name": "citation_lastpage",
+      "content": "E833"
+    },
+    {
+      "name": "citation_pdf_url",
+      "content": "https://www.pnas.org/doi/pdf/10.1073/pnas.1110910108"
+    },
+    {
+      "name": "citation_author",
+      "content": "Weinshall-Margel, Keren"
+    },
+    {
+      "name": "citation_author",
+      "content": "Shapard, John"
+    },
+    {
+      "name": "citation_doi",
+      "content": "10.1073/pnas.1110910108"
+    },
+    {
+      "name": "citation_online_date",
+      "content": "2011/10/10"
+    },
+    {
+      "name": "citation_publication_date",
+      "content": "2011/10/18"
+    },
+    {
+      "name": "citation_publisher",
+      "content": "Proceedings of the National Academy of Sciences"
+    },
+    {
+      "name": "citation_title",
+      "content": "Overlooked factors in the analysis of parole decisions"
+    },
+    {
+      "name": "citation_article_type",
+      "content": "letter"
+    },
+    {
+      "name": "citation_issue",
+      "content": "42"
+    },
+    {
+      "name": "citation_journal_title",
+      "content": "Proceedings of the National Academy of Sciences"
+    },
+    {
+      "name": "citation_volume",
+      "content": "108"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "unrepresented",
+      "window": "e panel judge, and five personnel at Israeli Prison Services and Court Management, learning that case ordering is not random and that several factors contribute to the downward trend in prisoner success between meal breaks. The most important is that the board tries to complete all cases from one prison before it takes a break and to start with another prison after the break. Within each session, unrepresented prisoners usually go last and are less likely to be granted parole than prisoners with attorneys. Using the same decision rules as Danziger et al., our data indicate that unrepresented prisoners account for about one-third of all cases, but they prevail only 15% of the time, whereas prisoners with counsel prevail at a 35% rate. This nonrandom order of cases might have become apparent"
+    },
+    {
+      "keyword": "unrepresented",
+      "window": "prisoner success between meal breaks. The most important is that the board tries to complete all cases from one prison before it takes a break and to start with another prison after the break. Within each session, unrepresented prisoners usually go last and are less likely to be granted parole than prisoners with attorneys. Using the same decision rules as Danziger et al., our data indicate that unrepresented prisoners account for about one-third of all cases, but they prevail only 15% of the time, whereas prisoners with counsel prevail at a 35% rate. This nonrandom order of cases might have become apparent had the authors not limited their analysis. They lumped together decisions rejecting parole and cases that were deferred to a later date. Theoretically and in practice, deferrals are n"
+    },
+    {
+      "keyword": "unrepresented",
+      "window": "5% rate. This nonrandom order of cases might have become apparent had the authors not limited their analysis. They lumped together decisions rejecting parole and cases that were deferred to a later date. Theoretically and in practice, deferrals are not comparable to rejections of parole. Excluding these deferred cases, our data indicate a success rate of 67% for prisoners with counsel and 39% for unrepresented prisoners. Excluding deferrals in the authors' data yields very similar success rates, beginning at about 75% and dropping to 42% at the end of a session. Thus, we strongly suspect that the pattern of declining success rates is a result of hearing represented prisoners first and unrepresented prisoners last. Sign up for PNAS alerts. Get alerts for new articles, or get an alert when"
+    },
+    {
+      "keyword": "order",
+      "window": "i.org/10.1073/pnas.1110910108 46,139 63 Metrics Total views 46,139 Last 12 Months 2,822 Total citations 63 Last 12 Months 11 TRACK CITATIONS ADD TO READING LIST PDF Information & Authors Metrics & Citations View Options References Figures Tables Media Share Danziger et al. (1) concluded that meal breaks taken by Israeli parole boards influence the boards’ decisions. This conclusion depends on the order of cases being random or at least exogenous to the timing of meal breaks. We examined data provided by the authors and obtained additional data from 12 hearing days (n = 227 decisions).* We also interviewed three attorneys, a parole panel judge, and five personnel at Israeli Prison Services and Court Management, learning that case ordering is not random and that several factors contribute to"
+    },
+    {
+      "keyword": "order",
+      "window": "luence the boards’ decisions. This conclusion depends on the order of cases being random or at least exogenous to the timing of meal breaks. We examined data provided by the authors and obtained additional data from 12 hearing days (n = 227 decisions).* We also interviewed three attorneys, a parole panel judge, and five personnel at Israeli Prison Services and Court Management, learning that case ordering is not random and that several factors contribute to the downward trend in prisoner success between meal breaks. The most important is that the board tries to complete all cases from one prison before it takes a break and to start with another prison after the break. Within each session, unrepresented prisoners usually go last and are less likely to be granted parole than prisoners with a"
+    },
+    {
+      "keyword": "order",
+      "window": "on after the break. Within each session, unrepresented prisoners usually go last and are less likely to be granted parole than prisoners with attorneys. Using the same decision rules as Danziger et al., our data indicate that unrepresented prisoners account for about one-third of all cases, but they prevail only 15% of the time, whereas prisoners with counsel prevail at a 35% rate. This nonrandom order of cases might have become apparent had the authors not limited their analysis. They lumped together decisions rejecting parole and cases that were deferred to a later date. Theoretically and in practice, deferrals are not comparable to rejections of parole. Excluding these deferred cases, our data indicate a success rate of 67% for prisoners with counsel and 39% for unrepresented prisoners."
+    },
+    {
+      "keyword": "parole",
+      "window": "Reference #1 LETTER FREE ACCESS SHARE ON Overlooked factors in the analysis of parole decisions Keren Weinshall-Margel and John Shapard johnshapard@gmail.comAuthors Info & Affiliations October 10, 2011 108 (42) E833 https://doi.org/10.1073/pnas.1110910108 46,139 63 Metrics Total views 46,139 Last 12 Months 2,822 Total citations 63 Last 12 Months 11 TRACK CITATIONS ADD TO READING LIST PDF Information & Authors Metrics & Citations View Options References Figures Tables Media S"
+    },
+    {
+      "keyword": "parole",
+      "window": "gmail.comAuthors Info & Affiliations October 10, 2011 108 (42) E833 https://doi.org/10.1073/pnas.1110910108 46,139 63 Metrics Total views 46,139 Last 12 Months 2,822 Total citations 63 Last 12 Months 11 TRACK CITATIONS ADD TO READING LIST PDF Information & Authors Metrics & Citations View Options References Figures Tables Media Share Danziger et al. (1) concluded that meal breaks taken by Israeli parole boards influence the boards’ decisions. This conclusion depends on the order of cases being random or at least exogenous to the timing of meal breaks. We examined data provided by the authors and obtained additional data from 12 hearing days (n = 227 decisions).* We also interviewed three attorneys, a parole panel judge, and five personnel at Israeli Prison Services and Court Management, le"
+    },
+    {
+      "keyword": "parole",
+      "window": "igures Tables Media Share Danziger et al. (1) concluded that meal breaks taken by Israeli parole boards influence the boards’ decisions. This conclusion depends on the order of cases being random or at least exogenous to the timing of meal breaks. We examined data provided by the authors and obtained additional data from 12 hearing days (n = 227 decisions).* We also interviewed three attorneys, a parole panel judge, and five personnel at Israeli Prison Services and Court Management, learning that case ordering is not random and that several factors contribute to the downward trend in prisoner success between meal breaks. The most important is that the board tries to complete all cases from one prison before it takes a break and to start with another prison after the break. Within each sess"
+    },
+    {
+      "keyword": "Danziger",
+      "window": "e decisions Keren Weinshall-Margel and John Shapard johnshapard@gmail.comAuthors Info & Affiliations October 10, 2011 108 (42) E833 https://doi.org/10.1073/pnas.1110910108 46,139 63 Metrics Total views 46,139 Last 12 Months 2,822 Total citations 63 Last 12 Months 11 TRACK CITATIONS ADD TO READING LIST PDF Information & Authors Metrics & Citations View Options References Figures Tables Media Share Danziger et al. (1) concluded that meal breaks taken by Israeli parole boards influence the boards’ decisions. This conclusion depends on the order of cases being random or at least exogenous to the timing of meal breaks. We examined data provided by the authors and obtained additional data from 12 hearing days (n = 227 decisions).* We also interviewed three attorneys, a parole panel judge, and fi"
+    },
+    {
+      "keyword": "Danziger",
+      "window": "tors contribute to the downward trend in prisoner success between meal breaks. The most important is that the board tries to complete all cases from one prison before it takes a break and to start with another prison after the break. Within each session, unrepresented prisoners usually go last and are less likely to be granted parole than prisoners with attorneys. Using the same decision rules as Danziger et al., our data indicate that unrepresented prisoners account for about one-third of all cases, but they prevail only 15% of the time, whereas prisoners with counsel prevail at a 35% rate. This nonrandom order of cases might have become apparent had the authors not limited their analysis. They lumped together decisions rejecting parole and cases that were deferred to a later date. Theore"
+    },
+    {
+      "keyword": "Danziger",
+      "window": "ney. Even without these crucial variables, the authors should have suspected that factors not reflected by their limited data might reasonably influence parole decisions (or case ordering). A broad basis for decision is surely suggested by the fact that parole decisions are made by a panel of three voting members, including one judge, a criminologist, and a social worker, not by a single judge as Danziger et al. suggest. The authors’ analysis does not support their conclusion that parole decisions are influenced by legally irrelevant factors. The phenomenon of favorable decisions peaking after a meal break is likely an artifact of the order of case presentation. It is not evidence that meal breaks affect the boards’ decisions. Reference 1 S Danziger, J Levav, L Avnaim-Pesso, Extraneous fac"
+    }
+  ],
+  "textLength": 9407
+}

@@ -1,0 +1,103 @@
+{
+  "source": {
+    "id": "crossref.hadamard1902",
+    "kind": "crossref",
+    "query": "Hadamard Sur les problemes aux derivees partielles et leur signification physique",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Hadamard%20Sur%20les%20problemes%20aux%20derivees%20partielles%20et%20leur%20signification%20physique&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T22:20:16.485Z",
+  "items": [
+    {
+      "DOI": "10.1017/cbo9780511702358.038",
+      "title": [
+        "CALCUL INTEGRAL. — Remarques sur les integrales des equations aux derivees partielles, et sur Femploi de ces integrales dans les questions de Physique mathematique"
+      ],
+      "container-title": [
+        "Oeuvres complètes"
+      ],
+      "page": "308-325",
+      "issued": {
+        "date-parts": [
+          [
+            2009,
+            7,
+            20
+          ]
+        ]
+      },
+      "publisher": "Cambridge University Press",
+      "type": "book-chapter"
+    },
+    {
+      "publisher": "JSTOR",
+      "issue": "3",
+      "DOI": "10.2307/2369620",
+      "type": "journal-article",
+      "page": "211",
+      "title": [
+        "Sur les Equations aux Derivees Partielles de la Physique Mathematique"
+      ],
+      "volume": "12",
+      "author": [
+        {
+          "given": "H.",
+          "family": "Poincare",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "American Journal of Mathematics"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1890,
+            3
+          ]
+        ]
+      }
+    },
+    {
+      "DOI": "10.1007/bfb0059179",
+      "title": [
+        "Espaces Hm sur les varietes, et applications aux equations aux derivees partielles sur une variete compacte"
+      ],
+      "author": [
+        {
+          "given": "Catherine",
+          "family": "Doléans",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Lecture Notes in Mathematics",
+        "Séminaire de Probabilités II Université de Strasbourg Mars 1967 – Octobre 1967"
+      ],
+      "page": "43-74",
+      "issued": {
+        "date-parts": [
+          [
+            null
+          ]
+        ]
+      },
+      "publisher": "Springer Berlin Heidelberg",
+      "type": "book-chapter"
+    }
+  ]
+}

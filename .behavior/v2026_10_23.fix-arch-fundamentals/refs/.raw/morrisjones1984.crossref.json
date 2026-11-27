@@ -1,0 +1,133 @@
+{
+  "source": {
+    "id": "morrisjones1984",
+    "kind": "crossref",
+    "query": "Morris Jones An early program proof by Alan Turing 1984",
+    "keywords": []
+  },
+  "url": "https://api.crossref.org/works?query.bibliographic=Morris%20Jones%20An%20early%20program%20proof%20by%20Alan%20Turing%201984&rows=3&select=DOI,title,author,container-title,volume,issue,page,issued,publisher,type",
+  "fetchedAt": "2026-11-23T13:11:29.396Z",
+  "items": [
+    {
+      "publisher": "Institute of Electrical and Electronics Engineers (IEEE)",
+      "issue": "2",
+      "DOI": "10.1109/mahc.1984.10017",
+      "type": "journal-article",
+      "page": "139-143",
+      "title": [
+        "An Early Program Proof by Alan Turing"
+      ],
+      "volume": "6",
+      "author": [
+        {
+          "given": "F.L.",
+          "family": "Morris",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "C.B.",
+          "family": "Jones",
+          "sequence": "additional",
+          "affiliation": [],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "IEEE Annals of the History of Computing"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1984,
+            4
+          ]
+        ]
+      }
+    },
+    {
+      "publisher": "American Association for the Advancement of Science (AAAS)",
+      "issue": "4638",
+      "DOI": "10.1126/science.223.4638.807",
+      "type": "journal-article",
+      "page": "807-807",
+      "title": [
+        "A Mathematician: Alan Turing."
+      ],
+      "volume": "223",
+      "author": [
+        {
+          "given": "R. E.",
+          "family": "RIDER",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Science"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1984,
+            2,
+            24
+          ]
+        ]
+      }
+    },
+    {
+      "publisher": "Informa UK Limited",
+      "issue": "4",
+      "DOI": "10.1080/0161-118491859178",
+      "type": "journal-article",
+      "page": "332-336",
+      "title": [
+        "ALAN TURING: THE ENIGMA – BOOK REVIEW"
+      ],
+      "volume": "8",
+      "author": [
+        {
+          "given": "RALPH",
+          "family": "ERSKINE",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ],
+      "container-title": [
+        "Cryptologia"
+      ],
+      "issued": {
+        "date-parts": [
+          [
+            1984,
+            10
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "source": {
+    "id": "page.ewd472",
+    "kind": "page",
+    "url": "https://www.cs.utexas.edu/~EWD/transcriptions/EWD04xx/EWD472.html",
+    "keywords": [
+      "weakest pre-condition",
+      "invariant",
+      "guarded command"
+    ]
+  },
+  "urlFinal": "https://www.cs.utexas.edu/~EWD/transcriptions/EWD04xx/EWD472.html",
+  "status": 200,
+  "fetchedAt": "2026-11-23T12:56:05.773Z",
+  "title": "E.W.Dijkstra Archive: Guarded commands, non-determinacy and formal derivation of programs (EWD 472)",
+  "meta": [],
+  "windows": [
+    {
+      "keyword": "weakest pre-condition",
+      "window": "ns such that the mechanisms will not produce the wrong result (but may fail to terminate), we shall introduce necessary and sufficient —i.e. so-ca1led “weakest”— pre-conditions such that the mechanisms are guaranteed to produce the right result. More specifically: we shall use the notation “wp(S, R)”, where S denotes a statement list and R some condition on the state of the system, to denote the weakest pre-condition for the initial state of the system such that activation of S is guaranteed to lead to a properly terminating activity leaving the system in a final state satisfying the post-condition R . Such a “wp” —which is called “a predicate transformer”, because it associates a pre-condition to any post-condition R — has, by definition, the following properties . 1) For any S, we"
+    },
+    {
+      "keyword": "weakest pre-condition",
+      "window": "arded list eligible for execution will lead to an acceptable final state.) From this definition we can derive —by simple substitutions— Theorem 1. From (∀i: 1 ≤ i ≤ n: (Q and Bi) ⇒ wp(SLi, R)) for all states we can conclude that (Q and BB) ⇒ wp(IF, R) holds for all states . Let “t” denote some integer function, defined on the state space, and let “wdec(S, t)” denote the weakest pre-condition such that activation of S is guaranteed to lead to a properly terminating activity leaving the system in a final state such that the value of t is decreased by at least 1 (compared to its initial value). In terms of “wdec” we can formulate the very similar Theorem 2. From . (∀i: 1 ≤ i ≤ n: (Q and Bi) ⇒ wdec(SLi, t)) for all states we can conlude that"
+    },
+    {
+      "keyword": "weakest pre-condition",
+      "window": "e repetitive construct do b1 → SL1 ▯ ... ▯ Bn → SLn od that we denote by “DO”, is more complicated. Let H0(R) = (R and non BB) and for k > 0: Hk(R) = (wp(IF, Hk-1(R)) or H0(R)) (where “IF” denotes the same guarded command set enclosed by “if fi”) then, by definition wp(DO, R) =(∃k: k ≥ 0: Hk(R)) . (Intuitively, Hk(R) can be interpreted as the weakest pre-condition guaranteeing proper termination after at most k selections of a guarded list, leaving the system in a final state satisfying R .) Via mathematical induction we can prove Theorem 3. If we have for all states (P and BB) ⇒ (wp(IF, P) and wdec(IF, t) and t ≥ 0) we can conclude that we have for all states P ⇒ wp(DO, P a"
+    },
+    {
+      "keyword": "invariant",
+      "window": "-condition guaranteeing proper termination for S . This allows us to formulate an alternative theorem about the repetitive construct, viz. Theorem 4. From (P and BB) ⇒ wp(IF, P) for all states, we can conclude that we have for all states (P and wp(DD, T)) ⇒ wp(DO, P and non BB) . In connection with the above theorems “P” is called “the invariant relation” and “t” is called “the variant function”. Theorems 3 and 4 are easily proved by mathematical induction, with k as the induction variable. 4. Formal derivation of programs. The formal requirement of our program performing “m:= max(x, y)” —see above— is that for fixed x and y it establishes the relation R: (m = x or m = y) and m ≥ x and m ≥ y . Now the Axiom of Assignment tel"
+    },
+    {
+      "keyword": "invariant",
+      "window": "lways defined, viz. that R considered as equation for m has always a solution.) As an example of the deriviation of a repetitive construct we shall derive a program for the greatest common divisor of two positive numbers, i.e. for fixed, positive X and Y we have to establish the final relation x = gcd(x, v) . The formal machinery only gets in motion, once we have chosen our invariant relation and our variant function. The program then gets the structure “establish the relation P to be kept invariant”; do “decrease t as long as possible onder invariance of P” od . Suppose that we choose for the invariant relation P: gcd(X, Y) = gcd(x, y) and x > O and y > 0 a relation that has the advantage of being easily established by"
+    },
+    {
+      "keyword": "invariant",
+      "window": "repetitive construct we shall derive a program for the greatest common divisor of two positive numbers, i.e. for fixed, positive X and Y we have to establish the final relation x = gcd(x, v) . The formal machinery only gets in motion, once we have chosen our invariant relation and our variant function. The program then gets the structure “establish the relation P to be kept invariant”; do “decrease t as long as possible onder invariance of P” od . Suppose that we choose for the invariant relation P: gcd(X, Y) = gcd(x, y) and x > O and y > 0 a relation that has the advantage of being easily established by x:= X; y:= Y . The most general “something” to be done under invariance of P is of the form"
+    },
+    {
+      "keyword": "guarded command",
+      "window": "ption was contributed by Martin P.M. van der Burgt, who has devised a process for producing transcripts automatically. Although its markup is incomplete, we believe it serves a useful purpose by virtue of its searchability and its accessibility to text-reading software. It will be replaced by a fully marked-up version when time permits. —HR Copyright Notice The following manuscript EWD 472: Guarded commands, non-determinacy and formal derivation of programs was published in Commun. ACM 18(1975), 8: 453-457. It is reproduced here by permission. Guarded commands, non-determinacy and formal derivation of programs. by Edsger W.Dijkstra *) *) Author’s address: BURROUGHS Plataanstraat 5 NUENEN - 4565 The Netherlands. Abstract. So-called “guarded commands” are introduced as a bu"
+    },
+    {
+      "keyword": "guarded command",
+      "window": "lieve it serves a useful purpose by virtue of its searchability and its accessibility to text-reading software. It will be replaced by a fully marked-up version when time permits. —HR Copyright Notice The following manuscript EWD 472: Guarded commands, non-determinacy and formal derivation of programs was published in Commun. ACM 18(1975), 8: 453-457. It is reproduced here by permission. Guarded commands, non-determinacy and formal derivation of programs. by Edsger W.Dijkstra *) *) Author’s address: BURROUGHS Plataanstraat 5 NUENEN - 4565 The Netherlands. Abstract. So-called “guarded commands” are introduced as a building block for alternative and repetitive constructs that allow non-deterministic program components for which at least the activity evoked, but possibly eve"
+    },
+    {
+      "keyword": "guarded command",
+      "window": "ice The following manuscript EWD 472: Guarded commands, non-determinacy and formal derivation of programs was published in Commun. ACM 18(1975), 8: 453-457. It is reproduced here by permission. Guarded commands, non-determinacy and formal derivation of programs. by Edsger W.Dijkstra *) *) Author’s address: BURROUGHS Plataanstraat 5 NUENEN - 4565 The Netherlands. Abstract. So-called “guarded commands” are introduced as a building block for alternative and repetitive constructs that allow non-deterministic program components for which at least the activity evoked, but possibly even the final state, is not necessarily uniquely determined by the initial state. For the formal derivation of programs expressed in terms of these constructs, a calculus will be shown. Keywords. progra"
+    }
+  ],
+  "textLength": 24172
+}

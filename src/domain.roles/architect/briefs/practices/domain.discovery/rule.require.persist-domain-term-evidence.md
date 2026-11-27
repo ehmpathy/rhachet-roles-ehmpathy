@@ -26,7 +26,7 @@ use `repo=.this/role=any` because a domain term is a fact of *this repo's* domai
 
 each `domain.terms/<term>.md` must record:
 
-1. **the term** — the canonical word, its shape (`[...noun][state]?` for a dobj, `[verb][...noun]` for a dop)
+1. **the term** — the canonical word, its shape (`[...noun][status]?` for a dobj, `[verb][...noun]` for a dop)
 2. **the etymology** — where the word comes from; why this word and not its rejected synonyms
 3. **the evidence** — at least one form of discovery evidence:
    - a **dimensional decomposition** (the axes walked, the forbidden cells found)

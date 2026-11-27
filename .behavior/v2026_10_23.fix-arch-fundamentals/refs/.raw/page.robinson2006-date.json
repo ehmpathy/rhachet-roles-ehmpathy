@@ -1,0 +1,45 @@
+{
+  "source": {
+    "id": "page.robinson2006-date",
+    "kind": "page",
+    "url": "https://martinfowler.com/articles/consumerDrivenContracts.html",
+    "keywords": [
+      "Ian Robinson",
+      "2006",
+      "12 June"
+    ]
+  },
+  "urlFinal": "https://martinfowler.com/articles/consumerDrivenContracts.html",
+  "status": 200,
+  "fetchedAt": "2026-11-23T16:44:30.396Z",
+  "title": "Consumer-Driven Contracts: A Service Evolution Pattern",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "Consumer-Driven Contracts: A Service Evolution\n\tPattern"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "Ian Robinson",
+      "window": "intain as it evolves. Drawing on the assertion-based language of one of these mitigation strategies - the “just enough” validation strategy - the article then describes the “Consumer-Driven Contract” pattern, which imbues providers with insight into their consumer obligations, and focuses service evolution around the delivery of the key business functionality demanded by consumers. 12 June 2006 Ian Robinson Ian Robinson is a Principal Consultant with Thoughtworks. He specialises in helping clients create sustainable service-oriented development capabilities that align business and IT from inception through to operation. He has written guidance for Microsoft on implementing service-oriented systems with Microsoft technologies, and has published articles on business-oriented development m"
+    },
+    {
+      "keyword": "Ian Robinson",
+      "window": "volves. Drawing on the assertion-based language of one of these mitigation strategies - the “just enough” validation strategy - the article then describes the “Consumer-Driven Contract” pattern, which imbues providers with insight into their consumer obligations, and focuses service evolution around the delivery of the key business functionality demanded by consumers. 12 June 2006 Ian Robinson Ian Robinson is a Principal Consultant with Thoughtworks. He specialises in helping clients create sustainable service-oriented development capabilities that align business and IT from inception through to operation. He has written guidance for Microsoft on implementing service-oriented systems with Microsoft technologies, and has published articles on business-oriented development methodologies a"
+    },
+    {
+      "keyword": "2006",
+      "window": "ust maintain as it evolves. Drawing on the assertion-based language of one of these mitigation strategies - the “just enough” validation strategy - the article then describes the “Consumer-Driven Contract” pattern, which imbues providers with insight into their consumer obligations, and focuses service evolution around the delivery of the key business functionality demanded by consumers. 12 June 2006 Ian Robinson Ian Robinson is a Principal Consultant with Thoughtworks. He specialises in helping clients create sustainable service-oriented development capabilities that align business and IT from inception through to operation. He has written guidance for Microsoft on implementing service-oriented systems with Microsoft technologies, and has published articles on business-oriented develop"
+    },
+    {
+      "keyword": "2006",
+      "window": "service provider may undermine the conceptual integrity of that provider. Services encapsulate discrete, identifiable, reusable business functions whose integrity should not be compromised by unreasonable demands falling outside their mandate. Further Listening You can listen to Ron Jacobs of Microsoft interviewing myself and Martin Fowler at the Microsoft Architect Insight Conference in March 2006. We discuss Consumer Driven Contracts in the context of changing architectures. Acknowledgments Ian Cartwright, Duncan Cragg, Martin Fowler, Robin Shorrock, Joe Walnes Significant Revisions © Martin Fowler | Disclosures"
+    },
+    {
+      "keyword": "12 June",
+      "window": "ons it must maintain as it evolves. Drawing on the assertion-based language of one of these mitigation strategies - the “just enough” validation strategy - the article then describes the “Consumer-Driven Contract” pattern, which imbues providers with insight into their consumer obligations, and focuses service evolution around the delivery of the key business functionality demanded by consumers. 12 June 2006 Ian Robinson Ian Robinson is a Principal Consultant with Thoughtworks. He specialises in helping clients create sustainable service-oriented development capabilities that align business and IT from inception through to operation. He has written guidance for Microsoft on implementing service-oriented systems with Microsoft technologies, and has published articles on business-oriented"
+    }
+  ],
+  "textLength": 41546
+}

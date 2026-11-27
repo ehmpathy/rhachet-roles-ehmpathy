@@ -1,0 +1,20 @@
+{
+  "source": {
+    "id": "page.oreilly-poeaa-ch16",
+    "kind": "page",
+    "url": "https://www.oreilly.com/library/view/patterns-of-enterprise/0321127420/ch16.html",
+    "keywords": [
+      "exclusive read lock",
+      "exclusive write lock",
+      "Pessimistic Offline Lock"
+    ]
+  },
+  "urlFinal": "https://www.oreilly.com/library/view/patterns-of-enterprise/0321127420/ch16.html",
+  "status": 403,
+  "fetchedAt": "2026-11-27T11:34:39.610Z",
+  "title": "Access Denied",
+  "meta": [],
+  "windows": [],
+  "textLength": 253,
+  "text": "Access Denied\nYou don't have permission to access \"http://www.oreilly.com/library/view/patterns-of-enterprise/0321127420/ch16.html\" on this server.\n\nReference #18.b2560e17.1795779276.32e33c68\n\nhttps://errors.edgesuite.net/18.b2560e17.1795779276.32e33c68"
+}

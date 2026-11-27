@@ -1,0 +1,28 @@
+# rule.require.most-common-denominator
+
+push each operation to the outermost leaf that uses it; lift it to the common ancestor the moment a second peer domain reuses it. placement, not generalization (that is `rule.prefer.wet-over-dry`)
+
+| phase | action |
+|---|---|
+| create | nest at the most specific place |
+| reuse by 2+ peer domains | lift to their common ancestor, now — no duplicate |
+
+```
+src/logic/advertise/invoice/lifecycle/
+├── reqInvoiceCharge.ts            # used across stages → lifecycle level
+├── asStripeInvoiceItem.ts         # lifted once draft/ and adjust/ both used it
+├── draft/
+│   ├── genInvoiceDraft.ts
+│   └── syncInvoiceDraftToStripe.ts  # draft-only → stays nested
+└── adjust/
+    └── adjustInvoiceItemPrice.ts
+```
+
+anti-pattern: a flat `src/logic/` of 60 task-specific operations — no one can see what belongs to draft vs adjust vs charge
+
+signal: many shared operations between two domains → they may be one domain, falsely split · few → correctly bounded, lift to the ancestor · orthogonal → a cross-cut dimension that may warrant its own domain
+
+test: "where is the most specific place this can live?"
+
+enforcement: an operation placed anywhere but the common ancestor of its users = blocker; flat structure with task-specific operations = blocker; speculative lift (0 reuses) = blocker; reused by 2+ peer domains yet left nested in one = blocker
+forbid twin: rule.forbid.misplaced-operations

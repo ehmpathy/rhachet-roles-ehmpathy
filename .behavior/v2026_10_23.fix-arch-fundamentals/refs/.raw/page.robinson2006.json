@@ -1,0 +1,61 @@
+{
+  "source": {
+    "id": "page.robinson2006",
+    "kind": "page",
+    "url": "https://martinfowler.com/articles/consumerDrivenContracts.html",
+    "keywords": [
+      "consumer",
+      "expectations",
+      "provider contract"
+    ]
+  },
+  "urlFinal": "https://martinfowler.com/articles/consumerDrivenContracts.html",
+  "status": 200,
+  "fetchedAt": "2026-11-23T16:08:03.015Z",
+  "title": "Consumer-Driven Contracts: A Service Evolution Pattern",
+  "meta": [
+    {
+      "name": "og:title",
+      "content": "Consumer-Driven Contracts: A Service Evolution\n\tPattern"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "consumer",
+      "window": "Refactoring Agile Architecture About Thoughtworks Table of Contents Consumer-Driven Contracts: A Service Evolution Pattern This article discusses some of the challenges in evolving a community of service providers and consumers. It describes some of the coupling issues that arise when service providers change parts of their contract, particularly document schemas, and identifies two well-understood strategies - adding schema extension points and performing “just"
+    },
+    {
+      "keyword": "consumer",
+      "window": "Refactoring Agile Architecture About Thoughtworks Table of Contents Consumer-Driven Contracts: A Service Evolution Pattern This article discusses some of the challenges in evolving a community of service providers and consumers. It describes some of the coupling issues that arise when service providers change parts of their contract, particularly document schemas, and identifies two well-understood strategies - adding schema extension points and performing “just enough” validation of received messages - for mitigating such issues. Both strategies help protect consumers from changes to a provider contract, but n"
+    },
+    {
+      "keyword": "consumer",
+      "window": "es in evolving a community of service providers and consumers. It describes some of the coupling issues that arise when service providers change parts of their contract, particularly document schemas, and identifies two well-understood strategies - adding schema extension points and performing “just enough” validation of received messages - for mitigating such issues. Both strategies help protect consumers from changes to a provider contract, but neither of them gives the provider any insight into the ways it is being used and the obligations it must maintain as it evolves. Drawing on the assertion-based language of one of these mitigation strategies - the “just enough” validation strategy - the article then describes the “Consumer-Driven Contract” pattern, which imbues providers with insi"
+    },
+    {
+      "keyword": "expectations",
+      "window": "determine its validity. Notice that this sample Schematron schema makes no assertions about elements in the underlying document for which the consuming application has no appetite. In this way, the validation language explicitly targets a bounded set of required elements. Changes to the underlying document's schema will not be picked up by the validation process unless they disturb the explicit expectations described in the Schematron schema, even if those changes extend to deprecating or removing formerly mandatory elements. Here then is a relatively lightweight solution to our contract and coupling problems, and one that doesn't require us to add obscure meta-informational elements to a document. So let's roll back time once again, and reinstate the simple schema described at the outs"
+    },
+    {
+      "keyword": "expectations",
+      "window": "mined simply by the cohesion of its member elements. A contract can contain many elements and be broad in scope, or focus narrowly on only a few, just so long as it expresses some business function capability. How do we decide whether to include a candidate contractual element in our provider contract? We do so by asking ourselves whether any of our consumers might reasonably express one or more expectations that the business function capability encapsulated by the element continue to be satisfied throughout the service's lifetime. We've already seen how consumers of our example service can express an interest in parts of the document schema exported by the service, and how they might assert that their expectations regarding this contractual element continue to be met. Thus, our document"
+    },
+    {
+      "keyword": "expectations",
+      "window": "by asking ourselves whether any of our consumers might reasonably express one or more expectations that the business function capability encapsulated by the element continue to be satisfied throughout the service's lifetime. We've already seen how consumers of our example service can express an interest in parts of the document schema exported by the service, and how they might assert that their expectations regarding this contractual element continue to be met. Thus, our document schema is part of our provider contract. Provider contracts have the following characteristics: Closed and complete Provider contracts express a service's business function capabilities in terms of the complete set of exportable elements available to consumers, and as such are closed and complete with respect"
+    },
+    {
+      "keyword": "provider contract",
+      "window": "f service providers and consumers. It describes some of the coupling issues that arise when service providers change parts of their contract, particularly document schemas, and identifies two well-understood strategies - adding schema extension points and performing “just enough” validation of received messages - for mitigating such issues. Both strategies help protect consumers from changes to a provider contract, but neither of them gives the provider any insight into the ways it is being used and the obligations it must maintain as it evolves. Drawing on the assertion-based language of one of these mitigation strategies - the “just enough” validation strategy - the article then describes the “Consumer-Driven Contract” pattern, which imbues providers with insight into their consumer obli"
+    },
+    {
+      "keyword": "provider contract",
+      "window": "a book on Web-friendly enterprise software. APPLICATION INTEGRATION WEB SERVICES Since the original publication, there are some updates to this article. There is an updated version in the Thoughtworks Anthology and occasional blogs. CONTENTS Evolving a Service: An Example Interlude: Burdened With Services Schema Versioning Extension Points Breaking Changes Schematron Consumer-Driven Contracts Provider Contracts Consumer Contracts Consumer-Driven Contracts Summary of Contract Characteristics Implementation Benefits Liabilities Evolving a Service: An Example To illustrate some of the problems we encounter while evolving services, consider a simple ProductSearch service, which allows consumer applications to search our product catalogue. A search result has the following structure: Figu"
+    },
+    {
+      "keyword": "provider contract",
+      "window": "chiefly because we've made the consumers depend on a particular version of the provider's contract. In the end, service providers find themselves adopting a cautious approach to changing any element of the contract they offer their consumers; this, in part, because they cannot anticipate or gain insight into the ways in which consumers realise this contract. At worst, service consumers realise a provider contract and couple themselves to the provider by naively expressing the whole of a document schema within their internal logic. Contracts enable service independence; paradoxically, they can also couple service providers and consumers in undesirable ways. Without introspecting the function and role of the contracts we implement in our SOA, we subject our services to a form of “hidden” c"
+    }
+  ],
+  "textLength": 41546
+}

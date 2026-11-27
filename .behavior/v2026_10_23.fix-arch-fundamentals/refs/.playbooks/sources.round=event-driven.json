@@ -1,0 +1,13 @@
+[
+  { "id": "page.fowler2017-event-driven", "kind": "page", "url": "https://martinfowler.com/articles/201701-event-driven.html", "keywords": ["Event Notification", "Event-Carried State Transfer", "Event-Sourcing", "CQRS", "decoupl"] },
+  { "id": "page.fowler-event-narrative", "kind": "page", "url": "https://martinfowler.com/eaaDev/EventNarrative.html", "keywords": ["event", "command"] },
+  { "id": "page.fowler-domain-event", "kind": "page", "url": "https://martinfowler.com/eaaDev/DomainEvent.html", "keywords": ["Domain Event", "past"] },
+  { "id": "page.fowler-event-collaboration", "kind": "page", "url": "https://martinfowler.com/eaaDev/EventCollaboration.html", "keywords": ["Event Collaboration", "request", "copy"] },
+  { "id": "page.fowler-event-sourcing", "kind": "page", "url": "https://martinfowler.com/eaaDev/EventSourcing.html", "keywords": ["Event Sourcing", "replay", "external"] },
+  { "id": "page.fowler-parallel-model", "kind": "page", "url": "https://martinfowler.com/eaaDev/ParallelModel.html", "keywords": ["Parallel Model"] },
+  { "id": "page.fowler-retroactive-event", "kind": "page", "url": "https://martinfowler.com/eaaDev/RetroactiveEvent.html", "keywords": ["Retroactive Event", "correct"] },
+  { "id": "page.fowler-cqrs", "kind": "page", "url": "https://martinfowler.com/bliki/CQRS.html", "keywords": ["CQRS", "complexity", "risk"] },
+  { "id": "page.fowler-memory-image", "kind": "page", "url": "https://martinfowler.com/bliki/MemoryImage.html", "keywords": ["Memory Image", "event"] },
+  { "id": "page.fowler-event-poster", "kind": "page", "url": "https://martinfowler.com/bliki/EventPoster.html", "keywords": ["Event Poster", "event"] },
+  { "id": "page.fowler-lmax", "kind": "page", "url": "https://martinfowler.com/articles/lmax.html", "keywords": ["Business Logic Processor", "event sourc", "in-memory"] }
+]

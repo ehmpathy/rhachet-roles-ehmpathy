@@ -1,0 +1,10 @@
+Access Denied
+https://www.oreilly.com/library/view/patterns-of-enterprise/0321127420/ch16.html
+fetched 2026-11-27T11:34:39.610Z
+
+Access Denied
+You don't have permission to access "http://www.oreilly.com/library/view/patterns-of-enterprise/0321127420/ch16.html" on this server.
+
+Reference #18.b2560e17.1795779276.32e33c68
+
+https://errors.edgesuite.net/18.b2560e17.1795779276.32e33c68

@@ -1,0 +1,114 @@
+{
+  "source": {
+    "id": "page.helland2016-life-beyond",
+    "kind": "page",
+    "url": "https://queue.acm.org/detail.cfm?id=3025012",
+    "keywords": [
+      "idempoten",
+      "at-least-once",
+      "unique identifier",
+      "entity"
+    ]
+  },
+  "urlFinal": "https://queue.acm.org/doi/10.1145/3012426.3025012",
+  "status": 200,
+  "fetchedAt": "2026-11-24T05:41:41.289Z",
+  "title": "Life Beyond Distributed Transactions: An apostate’s opinion: Queue: Vol 14, No 5",
+  "meta": [
+    {
+      "name": "citation_journal_title",
+      "content": "Queue"
+    },
+    {
+      "name": "dc.Title",
+      "content": "Life Beyond Distributed Transactions"
+    },
+    {
+      "name": "dc.Title.Subtitle",
+      "content": "An apostate’s opinion"
+    },
+    {
+      "name": "dc.Creator",
+      "content": "HellandPat "
+    },
+    {
+      "name": "dc.Description",
+      "content": "This article explores and names some of the practical approaches used in the implementation of large-scale mission-critical applications in a world that rejects distributed transactions. Topics inc..."
+    },
+    {
+      "name": "dc.Publisher",
+      "content": "ACMPUB27New York, NY, USA"
+    },
+    {
+      "name": "dc.Date",
+      "content": "2016-10-01"
+    },
+    {
+      "name": "dc.Type",
+      "content": "research-article"
+    },
+    {
+      "name": "dc.Format",
+      "content": "text/HTML"
+    },
+    {
+      "name": "dc.Identifier",
+      "content": "3025012"
+    },
+    {
+      "name": "dc.Identifier",
+      "content": "10.1145/3012426.3025012"
+    },
+    {
+      "name": "dc.Language",
+      "content": "EN"
+    },
+    {
+      "name": "dc.Coverage",
+      "content": "New York, NY, USA"
+    },
+    {
+      "name": "og:title",
+      "content": "Life Beyond Distributed Transactions: An apostate’s opinion: Queue: Vol 14, No 5"
+    }
+  ],
+  "windows": [
+    {
+      "keyword": "idempoten",
+      "window": "ta representing its state. This is identified by its entity key. Recall the assumption that messages are delivered at least once. The recipient entity may be assailed with redundant messages that must be ignored. In practice, messages fall into two categories: those that affect the state of the entity and those that do not. Messages that don’t affect the entities state are easy—they are trivially idempotent. Messages that change the state require more care. To ensure idempotence (i.e., guarantee that the processing of retried messages is harmless), the recipient entity is typically designed to remember that the message has been processed. Once it has been successfully processed, repeated messages will typically generate another response matching the behavior of the first message. The knowl"
+    },
+    {
+      "keyword": "idempoten",
+      "window": "the assumption that messages are delivered at least once. The recipient entity may be assailed with redundant messages that must be ignored. In practice, messages fall into two categories: those that affect the state of the entity and those that do not. Messages that don’t affect the entities state are easy—they are trivially idempotent. Messages that change the state require more care. To ensure idempotence (i.e., guarantee that the processing of retried messages is harmless), the recipient entity is typically designed to remember that the message has been processed. Once it has been successfully processed, repeated messages will typically generate another response matching the behavior of the first message. The knowledge of the received message creates state that is wrapped up on a per-p"
+    },
+    {
+      "keyword": "idempoten",
+      "window": "to the old location only to find out the pesky entity has been sent elsewhere. Now the message will have to follow. As entities move, the clarity of a first-in, first-out queue between the sender and the destination is occasionally disrupted. Messages are repeated. Later messages arrive before earlier ones. Life gets messier. For these reasons, scale-agnostic applications are evolving to support idempotent processing of all application-visible messaging. This implies reordering in message delivery, too. Activities: Coping with Messy Messages This section discusses ways of coping with the challenges of message retries and reordering. It introduces the notion of an activity as the local information needed to manage a relationship with a partner entity. Retries and Idempotence Since any mess"
+    },
+    {
+      "keyword": "at-least-once",
+      "window": "ployment zones. What happens when you “just say no” to distributed transactions? Even today, 10 years after this paper was first written, real system developers rarely try to achieve strongly consistent transactions over more than just a few computers. Instead, they assume multiple separate transaction scopes. Each computer is a separate scope with local transactions inside. Most Applications Use At-Least-Once Messaging TCP/IP is great if you are a short-lived Unix-style process, but consider the dilemma faced by an application developer whose job is to process a message and modify some durable data represented in a database. The message is consumed and not yet acknowledged. The database is updated and then the message is acknowledged. In a failure, this is restarted and the message is pro"
+    },
+    {
+      "keyword": "unique identifier",
+      "window": "wild opinions. Here are a few that this article tries to justify. Scalable Apps Use Uniquely Identified Entities This article argues that the upper-layer code for each application must manipulate a single collection of data called an entity. There are no restrictions on the size of a single entity except that it must live within a single transactional scope (i.e., one machine). Each entity has a unique identifier or key, as shown in figure 2. An entity key may be of any shape, form, or flavor. Somehow, it must uniquely identify exactly one entity and the data it contains. OPEN IN VIEWER Figure 2 There are no restrictions on the representations of the entity. It may be represented as SQL records, XML, JSON, files, or anything else. One possible representation would be a collection of SQL r"
+    },
+    {
+      "keyword": "unique identifier",
+      "window": "t Transactional Scopes Each entity is defined as a collection of data with a unique key known to live within a single transactional scope. Atomic transactions may always be done within a single entity. Uniquely Keyed Entities Code for the upper layer of an application is naturally designed around collections of data with a unique key. Customer IDs, Social Security numbers, product SKUs, and other unique identifiers can be seen within applications. They are used as keys to locate the applications’ data. Guarantees of transactional atomicity come only within an entity identified by a unique key. Repartitioning and Entities One of the assumptions previously stated is that the emerging upper layer is scale agnostic and the lower layer decides how the deployment evolves as its scale changes. Th"
+    },
+    {
+      "keyword": "entity",
+      "window": "d what to do if you cannot ensure it fits on one machine. Furthermore, you want to scale almost linearly with the data and computation load. Of course, scaling at an N-log-N pace with a big log would be great. Describe a Few Common Patterns for Scalable Apps What are the impacts of almost-infinite scaling on the business logic? I am asserting that scaling implies using a new abstraction called an entity as you write your program. An entity lives on a single machine at a time, and the application can manipulate only one entity at a time. A consequence of almost-infinite scaling is that this programmatic abstraction must be exposed to the developer of the business logic. By naming and discussing this as-yet-unnamed concept, we can perhaps agree on a consistent programmatic approach and a con"
+    },
+    {
+      "keyword": "entity",
+      "window": "fits on one machine. Furthermore, you want to scale almost linearly with the data and computation load. Of course, scaling at an N-log-N pace with a big log would be great. Describe a Few Common Patterns for Scalable Apps What are the impacts of almost-infinite scaling on the business logic? I am asserting that scaling implies using a new abstraction called an entity as you write your program. An entity lives on a single machine at a time, and the application can manipulate only one entity at a time. A consequence of almost-infinite scaling is that this programmatic abstraction must be exposed to the developer of the business logic. By naming and discussing this as-yet-unnamed concept, we can perhaps agree on a consistent programmatic approach and a consistent understanding of the issues i"
+    },
+    {
+      "keyword": "entity",
+      "window": "mputation load. Of course, scaling at an N-log-N pace with a big log would be great. Describe a Few Common Patterns for Scalable Apps What are the impacts of almost-infinite scaling on the business logic? I am asserting that scaling implies using a new abstraction called an entity as you write your program. An entity lives on a single machine at a time, and the application can manipulate only one entity at a time. A consequence of almost-infinite scaling is that this programmatic abstraction must be exposed to the developer of the business logic. By naming and discussing this as-yet-unnamed concept, we can perhaps agree on a consistent programmatic approach and a consistent understanding of the issues involved in building scalable systems. Furthermore, the use of entities has implications"
+    }
+  ],
+  "textLength": 46742
+}

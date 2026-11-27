@@ -1,0 +1,69 @@
+{
+  "source": {
+    "id": "page.eiffel-dbc",
+    "kind": "page",
+    "url": "https://www.eiffel.org/doc/solutions/Design_by_Contract_and_Assertions",
+    "keywords": [
+      "invariant",
+      "precondition",
+      "postcondition",
+      "contract"
+    ]
+  },
+  "urlFinal": "https://www.eiffel.org/doc/solutions/Design_by_Contract_and_Assertions",
+  "status": 200,
+  "fetchedAt": "2026-11-23T12:57:29.412Z",
+  "title": "Design by Contract and Assertions",
+  "meta": [],
+  "windows": [
+    {
+      "keyword": "invariant",
+      "window": "es Assertions on TIME_OF_DAY's routines gives us specification for each routine and guarantees that if the specification of a routine gets violated at runtime we will be served immediately with an exception. This will go a long way toward preventing invalid instances from going unnoticed in a running system and fouling up lots of other stuff. What will help even more is something called a class invariant. Using the class invariant we are able to state what it means for an instance of a class to be valid, or as it is sometimes put, in a stable state. The class invariant is an assertion like precondition and postcondition, but there is only one per class. Check Eiffel Classes to see how the class invariant fits into the class structure. How would we code the class invariant for TIME_OF_D"
+    },
+    {
+      "keyword": "invariant",
+      "window": "AY's routines gives us specification for each routine and guarantees that if the specification of a routine gets violated at runtime we will be served immediately with an exception. This will go a long way toward preventing invalid instances from going unnoticed in a running system and fouling up lots of other stuff. What will help even more is something called a class invariant. Using the class invariant we are able to state what it means for an instance of a class to be valid, or as it is sometimes put, in a stable state. The class invariant is an assertion like precondition and postcondition, but there is only one per class. Check Eiffel Classes to see how the class invariant fits into the class structure. How would we code the class invariant for TIME_OF_DAY? An instance would be va"
+    },
+    {
+      "keyword": "invariant",
+      "window": "e served immediately with an exception. This will go a long way toward preventing invalid instances from going unnoticed in a running system and fouling up lots of other stuff. What will help even more is something called a class invariant. Using the class invariant we are able to state what it means for an instance of a class to be valid, or as it is sometimes put, in a stable state. The class invariant is an assertion like precondition and postcondition, but there is only one per class. Check Eiffel Classes to see how the class invariant fits into the class structure. How would we code the class invariant for TIME_OF_DAY? An instance would be valid if its hour were between 0 and 23 inclusive, minute were between 0 and 59 inclusive, and its second were between 0 and 59 inclusive. We ca"
+    },
+    {
+      "keyword": "precondition",
+      "window": "ectly for those test inputs. We can generalize and formalize that process a bit, taking it back from testing and into design. If indeed we know what it means for s to be correct, then we should be able to make a statement of any conditions that must be true prior to executing s. That is, we will state the conditions required for it to be possible for s to run correctly. We call this statement of preconditions for success s's precondition. Likewise we should be able to make a statement of the conditions that will be true always if s works correctly. This we call s's postcondition. As an example, suppose s accepted an argument of type REAL and returned another REAL which was the square root of the argument. The precondition for s would be that the argument could not be less that zero, as"
+    },
+    {
+      "keyword": "precondition",
+      "window": "We can generalize and formalize that process a bit, taking it back from testing and into design. If indeed we know what it means for s to be correct, then we should be able to make a statement of any conditions that must be true prior to executing s. That is, we will state the conditions required for it to be possible for s to run correctly. We call this statement of preconditions for success s's precondition. Likewise we should be able to make a statement of the conditions that will be true always if s works correctly. This we call s's postcondition. As an example, suppose s accepted an argument of type REAL and returned another REAL which was the square root of the argument. The precondition for s would be that the argument could not be less that zero, as there is no real square root f"
+    },
+    {
+      "keyword": "precondition",
+      "window": "uired for it to be possible for s to run correctly. We call this statement of preconditions for success s's precondition. Likewise we should be able to make a statement of the conditions that will be true always if s works correctly. This we call s's postcondition. As an example, suppose s accepted an argument of type REAL and returned another REAL which was the square root of the argument. The precondition for s would be that the argument could not be less that zero, as there is no real square root for negative numbers. s's postcondition would be that the result multiplied by itself would yield the value of the original argument (give or take a little to allow for floating point error). Assertions in Eiffel Each Eiffel feature which is a routine, i.e. a function or procedure, can supp"
+    },
+    {
+      "keyword": "postcondition",
+      "window": "rect, then we should be able to make a statement of any conditions that must be true prior to executing s. That is, we will state the conditions required for it to be possible for s to run correctly. We call this statement of preconditions for success s's precondition. Likewise we should be able to make a statement of the conditions that will be true always if s works correctly. This we call s's postcondition. As an example, suppose s accepted an argument of type REAL and returned another REAL which was the square root of the argument. The precondition for s would be that the argument could not be less that zero, as there is no real square root for negative numbers. s's postcondition would be that the result multiplied by itself would yield the value of the original argument (give or tak"
+    },
+    {
+      "keyword": "postcondition",
+      "window": "e should be able to make a statement of the conditions that will be true always if s works correctly. This we call s's postcondition. As an example, suppose s accepted an argument of type REAL and returned another REAL which was the square root of the argument. The precondition for s would be that the argument could not be less that zero, as there is no real square root for negative numbers. s's postcondition would be that the result multiplied by itself would yield the value of the original argument (give or take a little to allow for floating point error). Assertions in Eiffel Each Eiffel feature which is a routine, i.e. a function or procedure, can support one assertion for a precondition and one for a postcondition. We saw where precondition and postcondition fit into the structure"
+    },
+    {
+      "keyword": "postcondition",
+      "window": "not be less that zero, as there is no real square root for negative numbers. s's postcondition would be that the result multiplied by itself would yield the value of the original argument (give or take a little to allow for floating point error). Assertions in Eiffel Each Eiffel feature which is a routine, i.e. a function or procedure, can support one assertion for a precondition and one for a postcondition. We saw where precondition and postcondition fit into the structure of the routine in Adding Class Features . An assertion is expressed as one or more assertion clauses which are logically and-ed together to produce the assertion. Assertions clauses are boolean expressions that evaluate to true or false. Let's look at another example. Assume you need to produce a class to model a ti"
+    },
+    {
+      "keyword": "contract",
+      "window": "WELCOME DOCUMENTATION RESOURCES CONTRIBUTE BLOGS DOWNLOAD SIGN IN Eiffel EiffelStudio Solutions and Libraries IRON Eiffel repository .NET .NET Installation instructions Building a .NET application The Eiffel for .NET language Conventions Eiffel for .NET Eiffel Classes Adding Class Features Inheritance Genericity Design by Contract and Assertions Exception Mechanism Event Programming with Agents Using Referenced Assemblies Eiffel for .NET Compliance Referenced Assembly Type and Feature Name Conversion Eiffel for .NET Integration Known issues Eiffel .NET samples Eiffel for ASP.NET Documentation Basic computing Graphics Dates and times With other languages Porting instructions Concurrency Networking Database access We"
+    },
+    {
+      "keyword": "contract",
+      "window": "for .NET Compliance Referenced Assembly Type and Feature Name Conversion Eiffel for .NET Integration Known issues Eiffel .NET samples Eiffel for ASP.NET Documentation Basic computing Graphics Dates and times With other languages Porting instructions Concurrency Networking Database access Web technology Text processing Preferences Platform specifics Glossary FAQ Contribute solutions :: Design by Contract and Assertions Version26.09 (released) ... Design by Contract and Assertions Contents Motivation: Concerning Correctness Design by Contract to the Rescue Model for Software Correctness Assertions in Eiffel Specification of a Routine The Contract for a Routine Valid State for Instances The Contract for a Class Contracts and Debugging Contracts and Inheritance Unfinished Business Short Rout"
+    },
+    {
+      "keyword": "contract",
+      "window": "Conversion Eiffel for .NET Integration Known issues Eiffel .NET samples Eiffel for ASP.NET Documentation Basic computing Graphics Dates and times With other languages Porting instructions Concurrency Networking Database access Web technology Text processing Preferences Platform specifics Glossary FAQ Contribute solutions :: Design by Contract and Assertions Version26.09 (released) ... Design by Contract and Assertions Contents Motivation: Concerning Correctness Design by Contract to the Rescue Model for Software Correctness Assertions in Eiffel Specification of a Routine The Contract for a Routine Valid State for Instances The Contract for a Class Contracts and Debugging Contracts and Inheritance Unfinished Business Short Routines Command/Query Separation Writing Assertions Non-Strict Bo"
+    }
+  ],
+  "textLength": 27668
+}
