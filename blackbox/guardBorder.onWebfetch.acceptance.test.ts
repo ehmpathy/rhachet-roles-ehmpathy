@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { given, then, useThen, when } from 'test-fns';
+import { given, then, useBeforeAll, useThen, when } from 'test-fns';
 
 import { getAllGuardBorderBrainAtoms } from '@src/domain.operations/guardBorder/getAllGuardBorderBrainAtoms';
 import {
@@ -52,8 +52,12 @@ const getOneOversizedCharCount = (): number => {
 describe('guardBorder.onWebfetch (acceptance)', () => {
   given('[case1] safe content from documentation site', () => {
     when('[t0] hook receives npm package readme content', () => {
+      // link the role outside the timed call, so the link spends its own budget
+      const scene = useBeforeAll(async () => ({
+        tempDir: await genTestDir({ slug: 'border-guard-safe' }),
+      }));
       const res = useThen('invoke hook on safe content', async () => {
-        const tempDir = await genTestDir({ slug: 'border-guard-safe' });
+        const { tempDir } = scene;
 
         const stdin = genWebfetchStdin({
           url: 'https://www.npmjs.com/package/domain-objects',
@@ -111,8 +115,12 @@ class User extends DomainEntity<User> {
   //         BLOCKS was the one case never run. it runs now.
   given('[case2] content with prompt injection attempt', () => {
     when('[t0] hook receives content with embedded instructions', () => {
+      // link the role outside the timed call, so the link spends its own budget
+      const scene = useBeforeAll(async () => ({
+        tempDir: await genTestDir({ slug: 'border-guard-injection' }),
+      }));
       const res = useThen('invoke hook on malicious content', async () => {
-        const tempDir = await genTestDir({ slug: 'border-guard-injection' });
+        const { tempDir } = scene;
 
         const stdin = genWebfetchStdin({
           url: 'https://malicious-site.com/readme',
@@ -189,8 +197,12 @@ This is a helpful library.
 
   given('[case3] localhost url (SSRF attempt)', () => {
     when('[t0] hook receives localhost url', () => {
+      // link the role outside the timed call, so the link spends its own budget
+      const scene = useBeforeAll(async () => ({
+        tempDir: await genTestDir({ slug: 'border-guard-localhost' }),
+      }));
       const res = useThen('invoke hook on localhost url', async () => {
-        const tempDir = await genTestDir({ slug: 'border-guard-localhost' });
+        const { tempDir } = scene;
 
         const stdin = genWebfetchStdin({
           url: 'http://localhost:8080/admin/secrets',
@@ -218,8 +230,12 @@ This is a helpful library.
 
   given('[case4] private IP url (SSRF attempt)', () => {
     when('[t0] hook receives 192.168.x.x url', () => {
+      // link the role outside the timed call, so the link spends its own budget
+      const scene = useBeforeAll(async () => ({
+        tempDir: await genTestDir({ slug: 'border-guard-private-ip' }),
+      }));
       const res = useThen('invoke hook on private IP', async () => {
-        const tempDir = await genTestDir({ slug: 'border-guard-private-ip' });
+        const { tempDir } = scene;
 
         const stdin = genWebfetchStdin({
           url: 'http://192.168.1.1/admin',
@@ -241,8 +257,12 @@ This is a helpful library.
     });
 
     when('[t1] hook receives 10.x.x.x url', () => {
+      // link the role outside the timed call, so the link spends its own budget
+      const scene = useBeforeAll(async () => ({
+        tempDir: await genTestDir({ slug: 'border-guard-10x' }),
+      }));
       const res = useThen('invoke hook on 10.x IP', async () => {
-        const tempDir = await genTestDir({ slug: 'border-guard-10x' });
+        const { tempDir } = scene;
 
         const stdin = genWebfetchStdin({
           url: 'http://10.0.0.5/internal-api',
@@ -264,8 +284,12 @@ This is a helpful library.
     });
 
     when('[t2] hook receives 172.16.x.x url', () => {
+      // link the role outside the timed call, so the link spends its own budget
+      const scene = useBeforeAll(async () => ({
+        tempDir: await genTestDir({ slug: 'border-guard-172x' }),
+      }));
       const res = useThen('invoke hook on 172.16.x IP', async () => {
-        const tempDir = await genTestDir({ slug: 'border-guard-172x' });
+        const { tempDir } = scene;
 
         const stdin = genWebfetchStdin({
           url: 'http://172.16.0.1/internal',
@@ -289,8 +313,12 @@ This is a helpful library.
 
   given('[case5] binary content', () => {
     when('[t0] hook receives binary content', () => {
+      // link the role outside the timed call, so the link spends its own budget
+      const scene = useBeforeAll(async () => ({
+        tempDir: await genTestDir({ slug: 'border-guard-binary' }),
+      }));
       const res = useThen('invoke hook on binary content', async () => {
-        const tempDir = await genTestDir({ slug: 'border-guard-binary' });
+        const { tempDir } = scene;
 
         const stdin = genWebfetchStdin({
           url: 'https://example.com/image.png',
@@ -318,8 +346,12 @@ This is a helpful library.
 
   given('[case6] oversized content', () => {
     when('[t0] hook receives content exceeds inspectable limit', () => {
+      // link the role outside the timed call, so the link spends its own budget
+      const scene = useBeforeAll(async () => ({
+        tempDir: await genTestDir({ slug: 'border-guard-oversized' }),
+      }));
       const res = useThen('invoke hook on oversized content', async () => {
-        const tempDir = await genTestDir({ slug: 'border-guard-oversized' });
+        const { tempDir } = scene;
 
         // .why = the limit is a function of the CHOSEN brain's context window,
         //        so a hardcoded size quietly stops exercise of this path the
@@ -387,8 +419,12 @@ This is a helpful library.
     //        write a fresh entry under the new title. that is the same churn the
     //        <keyname> mask below averts for the snapshot value, one layer up.
     when('[t0] hook invoked without the chosen brain api key env var', () => {
+      // link the role outside the timed call, so the link spends its own budget
+      const scene = useBeforeAll(async () => ({
+        tempDir: await genTestDir({ slug: 'border-guard-no-key' }),
+      }));
       const res = useThen('invoke hook without api key', async () => {
-        const tempDir = await genTestDir({ slug: 'border-guard-no-key' });
+        const { tempDir } = scene;
 
         const stdin = genWebfetchStdin({
           url: 'https://example.com/docs',
@@ -462,10 +498,12 @@ This is a helpful library.
   //        ambiguous (rule.require.ubiqlang: one term, one sense).
   given('[case12] GUARD_BORDER_BRAIN names a brain that does not exist', () => {
     when('[t0] hook invoked with an unknown brain slug', () => {
+      // link the role outside the timed call, so the link spends its own budget
+      const scene = useBeforeAll(async () => ({
+        tempDir: await genTestDir({ slug: 'border-guard-unknown-brain' }),
+      }));
       const res = useThen('invoke hook with a junk brain', async () => {
-        const tempDir = await genTestDir({
-          slug: 'border-guard-unknown-brain',
-        });
+        const { tempDir } = scene;
 
         const stdin = genWebfetchStdin({
           url: 'https://example.com/docs',
@@ -527,8 +565,12 @@ This is a helpful library.
   //        unexpected throw takes the same boundary.
   given('[case13] the hook receives stdin it cannot parse', () => {
     when('[t0] stdin holds no valid json', () => {
+      // link the role outside the timed call, so the link spends its own budget
+      const scene = useBeforeAll(async () => ({
+        tempDir: await genTestDir({ slug: 'border-guard-malfunction' }),
+      }));
       const res = useThen('invoke hook with junk stdin', async () => {
-        const tempDir = await genTestDir({ slug: 'border-guard-malfunction' });
+        const { tempDir } = scene;
 
         const result = await invokeHook({
           hookName: 'posttooluse.guardBorder.onWebfetch.sh',
@@ -572,8 +614,12 @@ This is a helpful library.
 
   given('[case8] quarantine file metadata', () => {
     when('[t0] content is blocked', () => {
+      // link the role outside the timed call, so the link spends its own budget
+      const scene = useBeforeAll(async () => ({
+        tempDir: await genTestDir({ slug: 'border-guard-metadata' }),
+      }));
       const res = useThen('invoke hook and check quarantine', async () => {
-        const tempDir = await genTestDir({ slug: 'border-guard-metadata' });
+        const { tempDir } = scene;
 
         const stdin = genWebfetchStdin({
           url: 'http://localhost/secrets',

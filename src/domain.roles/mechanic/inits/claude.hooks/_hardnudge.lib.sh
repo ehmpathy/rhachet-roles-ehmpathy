@@ -26,7 +26,9 @@
 
 HARDNUDGE_WINDOW_SECONDS=300  # 5 minutes
 HARDNUDGE_STALE_SECONDS=3600  # 1 hour
-HARDNUDGE_LOCK_TRIES=40       # × 0.05s = ~2s wait on a LIVE holder; the hook timeout is 10s
+HARDNUDGE_LOCK_TRIES=120      # × 0.05s = ~6s wait on a LIVE holder. the hook timeout is 10s; a
+                              # killed hook may fail the gate open, so ~4s stays for startup and
+                              # the write. ~2s lost stamps when a loaded box serialized many writers
 HARDNUDGE_NOPID_TRIES=20      # × 0.05s = ~1s with no holder pid = the holder died pre-mark
 
 ######################################################################

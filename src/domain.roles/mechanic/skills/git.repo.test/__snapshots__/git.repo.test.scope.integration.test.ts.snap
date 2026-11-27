@@ -25,10 +25,25 @@ options:
                         cloud = test against deployed service (test:acceptance)
                         note: --env test --against cloud is invalid
   --timeout <secs>    max time in seconds before timeout
+                        the clock starts once a slot is claimed (see grove below)
   --log <mode>        auto | always (default: auto)
                         auto = persist logs on failure only
                         always = persist logs on success and failure
-  --help, -h          show this help"
+  --help, -h          show this help
+
+grove (a per-machine bound on full jest suites):
+  a full or --thorough suite claims a slot from one pool per machine, or
+  waits for one and names who holds each. types, format, lint, plan mode,
+  and path-scoped runs without --thorough bypass the bound. a name://
+  scope alone, under --mode apply, runs every file, so it is bounded.
+  a holder past 30m is named as possibly hung, and the wait shows how
+  to check and free its slot.
+
+  env:
+    GIT_REPO_TEST_SLOTS=<n>        slot count (default: max(1, cores ÷ 6);
+                                   set it in a container, whose cpu quota is unseen)
+    GIT_REPO_TEST_SLOTS_DIR=<dir>  pool dir (default: /run/lock/rhachet/git.repo.test,
+                                   else /tmp/rhachet/git.repo.test)"
 `;
 
 exports[`git.repo.test.sh scope given: [case1] scope with path:// prefix when: [t0] --scope path://myfeature is used then: stderr matches snapshot 1`] = `""`;
@@ -93,6 +108,9 @@ exports[`git.repo.test.sh scope given: [case4] scope with --mode apply (executio
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/myfeature.test.js
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -231,6 +249,9 @@ exports[`git.repo.test.sh scope given: [case11] scope with name:// that matches 
    ├─ files
    │  ├─ src/myfeature.test.js
    │  └─ src/other.test.js
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -267,6 +288,9 @@ exports[`git.repo.test.sh scope given: [case13] scope with path:// matches multi
    ├─ files
    │  ├─ src/feature-a.test.js
    │  └─ src/feature-b.test.js
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -296,6 +320,9 @@ exports[`git.repo.test.sh scope given: [case14] scope with name:// prefix --mode
    ├─ files
    │  ├─ src/myfeature.test.js
    │  └─ src/other.test.js
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -316,6 +343,9 @@ exports[`git.repo.test.sh scope given: [case15] scope with name:// prefix --mode
    ├─ files
    │  ├─ src/myfeature.test.js
    │  └─ src/other.test.js
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -412,6 +442,9 @@ exports[`git.repo.test.sh scope given: [case19] stacked scopes: path + name in a
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/feature-a.test.js
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -440,6 +473,9 @@ exports[`git.repo.test.sh scope given: [case20] stacked scopes: path matches but
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/feature-a.test.js
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -504,6 +540,9 @@ exports[`git.repo.test.sh scope given: [case23] stacked scopes: two name scopes 
    │  ├─ src/feature-a.test.js
    │  ├─ src/feature-b.test.js
    │  └─ src/other.test.js
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
