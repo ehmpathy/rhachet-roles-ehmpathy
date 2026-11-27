@@ -129,7 +129,7 @@ exports[`git.release given: [case2] release to main (apply mode) when: [t5] auto
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
-   ├─ 🌴 automerge enabled [added]
+   ├─ 🌴 automerge unavailable on this repo; merged directly [direct]
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
       └─ ✨ done! Xs in action, Xs watched
@@ -617,6 +617,8 @@ exports[`git.release given: [case7] argument validation when: [t4] --help flag t
   --dirty block fail fast if unstaged changes (default)
   --dirty allow allow release even with unstaged changes
 
+  apply needs a human's approval review on the feature pr (no flag lifts it)
+
   special circumstances only (footgun — prefer --into prod):
   --from main   skip the feature branch, release whatever is on main
 
@@ -782,6 +784,7 @@ exports[`git.release given: [case8] watch loop internals when: [t2] rebase requi
    └─ 🥥 let's watch
       ├─ ✨ done! Xs in action, Xs watched
       ├─ 🐚 but, needs rebase now
+      ├─ 🌴 automerge disabled on pr #42, so a later push cannot merge unreviewed (--apply enables it again)
       └─ [dim]hint: rhx git.branch.rebase begin[/dim]
 "
 `;
@@ -797,6 +800,7 @@ exports[`git.release given: [case8] watch loop internals when: [t2a] conflicts d
    └─ 🥥 let's watch
       ├─ ✨ done! Xs in action, Xs watched
       ├─ 🐚 but, needs rebase now, has conflicts
+      ├─ 🌴 automerge disabled on pr #42, so a later push cannot merge unreviewed (--apply enables it again)
       └─ [dim]hint: rhx git.branch.rebase begin[/dim]
 "
 `;

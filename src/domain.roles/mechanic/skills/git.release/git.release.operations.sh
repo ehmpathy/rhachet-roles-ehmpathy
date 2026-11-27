@@ -16,27 +16,36 @@
 # retry gh commands on transient network errors (3x, 5s delay)
 # reimplements extant alias logic from ~/.bash_aliases
 #
+# .note = stdout and stderr stay apart: stdout is the return value, so a
+#         stray note gh prints on a healthy call never corrupts a parse.
+#         on failure, both streams go to stderr, so the cause shows
+#
 # usage: _gh_with_retry gh pr list ...
-# returns: gh command output, exits on failure after 3 retries
+# returns: gh command stdout, exits on failure after 3 retries
 ######################################################################
 _gh_with_retry() {
   local max_retries=3
   local delay=5
   local attempt=1
   local output
+  local errput
   local exit_code
+  local stderr_file
+  stderr_file=$(mktemp)
 
   while [[ $attempt -le $max_retries ]]; do
-    # capture output and exit code; avoid set -e exit on failure
-    output=$("$@" 2>&1) && exit_code=0 || exit_code=$?
+    # capture stdout apart from stderr; avoid set -e exit on failure
+    output=$("$@" 2>"$stderr_file") && exit_code=0 || exit_code=$?
+    errput=$(cat "$stderr_file")
 
     if [[ $exit_code -eq 0 ]]; then
+      rm -f "$stderr_file"
       echo "$output"
       return 0
     fi
 
     # check for transient errors (rate limit, network)
-    if echo "$output" | grep -qiE "(rate limit|timeout|connection|network|temporary)"; then
+    if _is_gh_output_transient "$errput $output"; then
       if [[ $attempt -lt $max_retries ]]; then
         sleep "$delay"
         ((attempt++))
@@ -45,15 +54,17 @@ _gh_with_retry() {
     fi
 
     # non-transient error or retries exhausted - failloud to stderr
-    if [[ -n "$output" ]]; then
-      echo "$output" >&2
-    else
+    rm -f "$stderr_file"
+    if [[ -n "$output" ]]; then echo "$output" >&2; fi
+    if [[ -n "$errput" ]]; then echo "$errput" >&2; fi
+    if [[ -z "$output" && -z "$errput" ]]; then
       echo "gh command failed with exit code $exit_code" >&2
     fi
     return $exit_code
   done
 
-  echo "$output" >&2
+  rm -f "$stderr_file"
+  echo "$errput" >&2
   return 1
 }
 
@@ -197,13 +208,13 @@ get_latest_merged_release_pr_info() {
 # get PR status details (checks, automerge, merge state, title)
 #
 # usage: get_pr_status "42"
-# returns: JSON with statusCheckRollup, autoMergeRequest, mergeStateStatus, state, title
+# returns: JSON with statusCheckRollup, autoMergeRequest, mergeStateStatus, state, title, url
 ######################################################################
 get_pr_status() {
   local pr_number="$1"
   local result
 
-  result=$(_gh_with_retry gh pr view "$pr_number" --json statusCheckRollup,autoMergeRequest,mergeStateStatus,state,title)
+  result=$(_gh_with_retry gh pr view "$pr_number" --json statusCheckRollup,autoMergeRequest,mergeStateStatus,state,title,url)
   echo "$result"
 }
 
@@ -499,11 +510,29 @@ refund_release_use() {
 #         refund the use if the arm fails
 # .why  = the arm is the one act that ships. spend and arm live in one leaf,
 #         so no arm site can ship unbilled and no failed arm keeps a use
-# usage: arm_release_merge "42"
-# returns: 0 armed; 1 the arm failed (its use refunded where this arm spent it)
+# .note = head_sha= pins the merge to the head the review gate judged
+#         (enable_automerge); `@unpinned` for the release pr alone
+# usage: arm_release_merge pr_number="42" head_sha="<sha>|@unpinned"
+# returns: 0 armed; 2 the pinned head moved; 1 the arm failed. on 2 and 1
+#          the use is refunded where this arm spent it
 ######################################################################
 arm_release_merge() {
-  local pr_number="$1"
+  local pr_number="" head_sha="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      pr_number=*) pr_number="${arg#pr_number=}" ;;
+      head_sha=*) head_sha="${arg#head_sha=}" ;;
+    esac
+  done
+
+  # a merge with no head named must not be written: refuse before the spend, so it costs no use
+  if [[ -z "$head_sha" ]]; then
+    # closes the caller's status tree, as _emit_head_moved_refusal does
+    local fault_msg="   └─ 💥 MalfunctionError: no head_sha to pin the merge of pr #$pr_number (pass a sha, or @unpinned for the release pr)"
+    echo "$fault_msg"
+    echo "$fault_msg" >&2
+    return 1
+  fi
 
   # spend first; an apply that already spent (the second hop) spends naught
   local spent_here="false"
@@ -513,11 +542,18 @@ arm_release_merge() {
   fi
 
   # arm; a failed arm returns the use this arm spent, never an earlier hop's
-  if enable_automerge "$pr_number"; then
+  local enable_result=0
+  enable_automerge pr_number="$pr_number" head_sha="$head_sha" || enable_result=$?
+  if [[ $enable_result -eq 0 ]]; then
     return 0
   fi
   if [[ "$spent_here" == "true" ]]; then
     refund_release_use || true
+  fi
+
+  # the pinned head moved: a refusal, not a malfunction; the caller renders it
+  if [[ $enable_result -eq 2 ]]; then
+    return 2
   fi
 
   # close the transport tree on the failure, on both streams: the arm shipped
@@ -526,6 +562,24 @@ arm_release_merge() {
   echo "$arm_failure"
   echo "$arm_failure" >&2
   return 1
+}
+
+######################################################################
+# get_pr_url
+# get PR url from status JSON
+#
+# usage: get_pr_url status_json="$status_json"
+# returns: PR url string, or empty if absent
+######################################################################
+get_pr_url() {
+  local status_json="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      status_json=*) status_json="${arg#status_json=}" ;;
+    esac
+  done
+
+  echo "$status_json" | jq -r '.url // empty'
 }
 
 ######################################################################
@@ -541,17 +595,45 @@ arm_release_merge() {
 # handles "automerge unavailable" error: when org/repo doesn't support
 # automerge (free tier), falls back to direct merge via gh pr merge --squash
 #
-# usage: enable_automerge "42"
+# head pin: head_sha= is required. a sha passes --match-head-commit, so
+# github refuses the merge if the head moved after the review gate judged
+# it. `@unpinned` is the explicit opt-out, for the release pr alone (it
+# carries no review gate, per F1)
+#
+# usage: enable_automerge pr_number="42" head_sha="<sha>|@unpinned"
 # returns: 0 on success or "clean status", non-zero on actual errors
 ######################################################################
 enable_automerge() {
-  local pr_number="$1"
+  local pr_number="" head_sha="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      pr_number=*) pr_number="${arg#pr_number=}" ;;
+      head_sha=*) head_sha="${arg#head_sha=}" ;;
+    esac
+  done
   local output
   local exit_code
 
+  # which path wrote the merge: auto (automerge on), or direct (free-tier fallback);
+  # a global, read by emit_transport_status to render the path it took
+  ENABLE_AUTOMERGE_VIA="auto"
+
+  # a merge with no head named must not be written; fail loud
+  if [[ -z "$head_sha" ]]; then
+    # closes the caller's status tree, as _emit_head_moved_refusal does
+    local fault_msg="   └─ 💥 MalfunctionError: no head_sha to pin the merge of pr #$pr_number (pass a sha, or @unpinned for the release pr)"
+    echo "$fault_msg"
+    echo "$fault_msg" >&2
+    return 1
+  fi
+  local pin_args=()
+  if [[ "$head_sha" != "@unpinned" ]]; then
+    pin_args=(--match-head-commit "$head_sha")
+  fi
+
   # capture output and exit code; avoid set -e exit on failure
   # output goes to /dev/null on success (matches extant alias)
-  output=$(gh pr merge "$pr_number" --auto --squash 2>&1) && exit_code=0 || exit_code=$?
+  output=$(gh pr merge "$pr_number" --auto --squash "${pin_args[@]}" 2>&1) && exit_code=0 || exit_code=$?
 
   if [[ $exit_code -eq 0 ]]; then
     # suppress success output (alias sends to /dev/null)
@@ -564,6 +646,12 @@ enable_automerge() {
     return 0
   fi
 
+  # head moved after the gate read it: github refused the pinned merge
+  if _is_gh_output_head_moved "$output"; then
+    _emit_head_moved_refusal pr_number="$pr_number" head_sha="$head_sha"
+    return 2
+  fi
+
   # check for automerge unavailable errors (free tier orgs, repo settings)
   # note: "not authorized" is a permissions error, NOT automerge unavailability
   # patterns: "Auto merge is not allowed for this repository", "not enabled"
@@ -571,16 +659,24 @@ enable_automerge() {
     # fallback to direct merge (without --auto)
     local direct_output
     local direct_exit_code
-    direct_output=$(gh pr merge "$pr_number" --squash 2>&1) && direct_exit_code=0 || direct_exit_code=$?
+    direct_output=$(gh pr merge "$pr_number" --squash "${pin_args[@]}" 2>&1) && direct_exit_code=0 || direct_exit_code=$?
 
     if [[ $direct_exit_code -eq 0 ]]; then
       # direct merge succeeded
+      ENABLE_AUTOMERGE_VIA="direct"
       return 0
     fi
 
     # check for "clean status" on direct merge too
     if echo "$direct_output" | grep -qi "clean status"; then
+      ENABLE_AUTOMERGE_VIA="direct"
       return 0
+    fi
+
+    # head moved after the gate read it, on the direct merge too
+    if _is_gh_output_head_moved "$direct_output"; then
+      _emit_head_moved_refusal pr_number="$pr_number" head_sha="$head_sha"
+      return 2
     fi
 
     # direct merge also failed - failloud with original automerge error + fallback error
@@ -592,6 +688,258 @@ enable_automerge() {
   # actual error - failloud
   echo "$output" >&2
   return $exit_code
+}
+
+######################################################################
+# _is_gh_output_head_moved
+# decide whether gh output says a pinned merge met a moved head
+#
+# usage: _is_gh_output_head_moved "$output"
+# returns: exit 0 if the head moved, exit 1 if not
+######################################################################
+_is_gh_output_head_moved() {
+  echo "$1" | grep -qiE "(head branch was modified|expected head|head sha (did not|doesn't) match)"
+}
+
+######################################################################
+# _emit_head_moved_refusal
+# .what = the line a moved-head merge refusal prints, to stdout and stderr
+# .why  = a push after the gate is code no human approved; the caller must
+#         re-run, so the gate judges the new head
+######################################################################
+_emit_head_moved_refusal() {
+  local pr_number="" head_sha="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      pr_number=*) pr_number="${arg#pr_number=}" ;;
+      head_sha=*) head_sha="${arg#head_sha=}" ;;
+    esac
+  done
+
+  # header, why, fix: the same shape as the watch's head-moved refusal
+  local msg
+  msg="   ├─ ✋ ConstraintError: the head of pr #$pr_number moved after the review gate read it; naught was merged
+   ├─ why: the approval covers ${head_sha:0:7}; github refused the merge of any other head
+   └─ re-run, and the gate judges the new head"
+  echo "$msg"
+  echo "$msg" >&2
+}
+
+######################################################################
+# disable_automerge
+# turn off automerge on a PR via gh pr merge --disable-auto
+#
+# .why  = a pr that may not merge must not keep an automerge an earlier
+#         run left on; github would merge it once checks pass
+#
+# usage: disable_automerge pr_number="42"
+# returns: 0 on success, non-zero on failure (failloud to stderr)
+######################################################################
+disable_automerge() {
+  local pr_number="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      pr_number=*) pr_number="${arg#pr_number=}" ;;
+    esac
+  done
+
+  _gh_with_retry gh pr merge "$pr_number" --disable-auto > /dev/null
+}
+
+######################################################################
+# _is_gh_output_transient
+# decide whether gh output names a transient fault (rate limit, network)
+#
+# usage: _is_gh_output_transient "$output"
+# returns: exit 0 if transient, exit 1 if not
+######################################################################
+_is_gh_output_transient() {
+  echo "$1" | grep -qiE "(rate limit|timeout|connection|network|temporary)"
+}
+
+######################################################################
+# get_pr_reviews
+# read every review on a PR, flattened to the fields the gate decides on
+#
+# .why  = the rest endpoint carries user.type and author_association,
+#         which `gh pr view --json reviews` does not
+# .note = under --paginate, --jq runs once per page; so --jq only flattens
+#         each page to items, and `jq -s` gathers all pages into one array
+#
+# usage: get_pr_reviews pr_number="42"
+# returns: JSON array of { login, type, association, state, submitted_at, commit_id }
+#          non-zero on query failure (failloud to stderr)
+######################################################################
+GH_REVIEW_ITEMS_JQ='.[] | {login: .user.login, type: .user.type, association: .author_association, state: .state, submitted_at: .submitted_at, commit_id: .commit_id}'
+get_pr_reviews() {
+  local pr_number="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      pr_number=*) pr_number="${arg#pr_number=}" ;;
+    esac
+  done
+
+  # read every page, flattened to items
+  local items
+  items=$(_gh_with_retry gh api -X GET --paginate "repos/{owner}/{repo}/pulls/$pr_number/reviews" \
+    --jq "$GH_REVIEW_ITEMS_JQ") || return $?
+
+  # gather all pages into one array
+  echo "$items" | jq -s '.'
+}
+
+######################################################################
+# get_pr_head_sha
+# read the head commit of a PR
+#
+# .why  = an approval counts only on the commit that would merge; a push
+#         after the approval ships code no human reviewed
+#
+# usage: get_pr_head_sha pr_number="42"
+# returns: the 40-char head sha; non-zero if unread or empty (failloud to stderr)
+######################################################################
+get_pr_head_sha() {
+  local pr_number="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      pr_number=*) pr_number="${arg#pr_number=}" ;;
+    esac
+  done
+
+  local head_sha
+  head_sha=$(_gh_with_retry gh api -X GET "repos/{owner}/{repo}/pulls/$pr_number" --jq '.head.sha') || return $?
+
+  # an empty head cannot be compared against; fail closed
+  # .note = stderr only, on purpose: callers capture stdout as the sha, so a
+  #         stdout line would read as a head. each caller renders the
+  #         qualified 💥 header to both streams
+  if [[ -z "$head_sha" ]]; then
+    echo "pr #$pr_number has no head sha" >&2
+    return 1
+  fi
+  echo "$head_sha"
+}
+
+######################################################################
+# _jq_review_gate_rules
+# the jq definitions both review-gate transformers decide by
+#
+# .why  = one set of rules for the verdict and for the cause it names, so
+#         the two can never disagree
+#
+# human     = has a login (a deleted account reads `user: null` and cannot
+#             answer), not `type: Bot`, no `[bot]` in login, not a seaturtle
+#             roster login
+# authority = author_association OWNER, MEMBER, or COLLABORATOR
+# decisive  = APPROVED, CHANGES_REQUESTED, DISMISSED (COMMENTED is not)
+# fresh     = an APPROVED review counts only if its commit_id is the pr head;
+#             an older one reads as APPROVED_STALE
+# latest    = by submitted_at, per login
+######################################################################
+_jq_review_gate_rules() {
+  echo '
+    def is_human($robots): .login != null and .type != "Bot"
+      and ((.login | contains("[bot]")) | not)
+      and (.login as $l | ($robots | index($l)) == null);
+    def has_authority: .association == "OWNER" or .association == "MEMBER" or .association == "COLLABORATOR";
+    def is_decisive: .state == "APPROVED" or .state == "CHANGES_REQUESTED" or .state == "DISMISSED";
+    def as_fresh($head): if .state == "APPROVED" and .commit_id != $head then .state = "APPROVED_STALE" else . end;
+    def latest_decisive($robots; $head):
+      [ .[] | select(is_human($robots) and has_authority and is_decisive) | as_fresh($head) ]
+      | group_by(.login) | map(sort_by(.submitted_at) | last);
+    def who: if .login == null then "a deleted account" else "@" + .login end;
+    def why_discounted($robots):
+      if .login == null then "the account was deleted"
+      elif .type == "Bot" or (.login | contains("[bot]")) then "it is a bot"
+      elif (.login as $l | ($robots | index($l)) != null) then "it is a robot account"
+      else "no authority on the repo (association: " + (.association | ascii_downcase) + ")"
+      end;
+  '
+}
+
+######################################################################
+# is_pr_approved_by_human
+# decide whether a PR holds an approval from a human with repo authority
+#
+# .what = approved iff, among reviews by authorized humans, some login's
+#         latest decisive review is a fresh APPROVED and none's is
+#         CHANGES_REQUESTED (rules: _jq_review_gate_rules)
+# .why  = a commit quota grants commits and pushes, never a merge; only a
+#         person who can answer for the change may approve it, and only
+#         the change that would merge
+#
+# usage: is_pr_approved_by_human reviews_json="$reviews_json" head_sha="$head_sha"
+# returns: "true" or "false"; non-zero if the reviews json cannot be decided
+######################################################################
+is_pr_approved_by_human() {
+  local reviews_json="" head_sha="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      reviews_json=*) reviews_json="${arg#reviews_json=}" ;;
+      head_sha=*) head_sha="${arg#head_sha=}" ;;
+    esac
+  done
+
+  # no head, no fresh approval to find; undecidable
+  if [[ -z "$head_sha" ]]; then return 1; fi
+
+  # robot roster, owned by keyrack.operations.sh: accounts no attribute can mark
+  local robot_logins
+  robot_logins=$(get_all_seaturtle_identity_logins)
+
+  echo "$reviews_json" | jq -r --argjson robots "$robot_logins" --arg head "$head_sha" "
+    $(_jq_review_gate_rules)
+    latest_decisive(\$robots; \$head) | map(.state)
+    | (any(. == \"APPROVED\") and all(. != \"CHANGES_REQUESTED\"))
+  "
+}
+
+######################################################################
+# get_review_gate_cause
+# name, in one line, why a PR holds no approval the gate counts
+#
+# .why  = "ask for a review" is the wrong next move when a review asked for
+#         changes, or an approval went stale, or a robot approved; the cause
+#         tells the caller which
+#
+# usage: get_review_gate_cause reviews_json="$reviews_json" head_sha="$head_sha"
+# returns: one line, e.g. "no reviews yet"; non-zero if undecidable
+######################################################################
+get_review_gate_cause() {
+  local reviews_json="" head_sha="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      reviews_json=*) reviews_json="${arg#reviews_json=}" ;;
+      head_sha=*) head_sha="${arg#head_sha=}" ;;
+    esac
+  done
+
+  local robot_logins
+  robot_logins=$(get_all_seaturtle_identity_logins)
+
+  echo "$reviews_json" | jq -r --argjson robots "$robot_logins" --arg head "$head_sha" "
+    $(_jq_review_gate_rules)
+    latest_decisive(\$robots; \$head) as \$latest
+    | [ .[] | select(.state == \"APPROVED\") | select((is_human(\$robots) and has_authority) | not) ] as \$discounted
+    | def names(\$state): \$latest | map(select(.state == \$state) | who) | join(\", \");
+      if names(\"CHANGES_REQUESTED\") != \"\" then
+        \"changes requested by \" + names(\"CHANGES_REQUESTED\") + \"; address them, then ask for a fresh review\"
+      elif names(\"APPROVED_STALE\") != \"\" then
+        \"the approval by \" + names(\"APPROVED_STALE\") + \" is on an older commit (approved \"
+          + ((\$latest | map(select(.state == \"APPROVED_STALE\")) | .[0].commit_id // \"unknown\")[0:7])
+          + \", head \" + \$head[0:7] + \"); the head needs a fresh review\"
+      elif names(\"DISMISSED\") != \"\" then
+        \"the review by \" + names(\"DISMISSED\") + \" was dismissed\"
+      elif (\$discounted | length) > 0 then
+        \"the approval by \" + (\$discounted[0] | who) + \" does not count: \" + (\$discounted[0] | why_discounted(\$robots))
+      elif length == 0 then
+        \"no reviews yet\"
+      elif all(.[]; .state == \"COMMENTED\") then
+        \"only comments so far; a comment is not an approval\"
+      else
+        \"no review from a human with repo authority approved it\"
+      end
+  "
 }
 
 ######################################################################
@@ -744,8 +1092,9 @@ get_latest_tag() {
   git tag --sort=-v:refname | head -1
 }
 
-# source shared keyrack operations (fetch_github_token)
-source "$SKILL_DIR/../git.commit/keyrack.operations.sh"
+# source shared keyrack operations (fetch_github_token, the robot roster)
+# .note = the dir derives from this file, so no caller global is needed
+source "$(dirname "${BASH_SOURCE[0]}")/../git.commit/keyrack.operations.sh"
 
 ######################################################################
 # get_default_branch

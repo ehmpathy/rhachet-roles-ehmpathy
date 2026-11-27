@@ -24,9 +24,12 @@ ignores:
   - "@src/.*"
   - yalc
   - rhachet-roles-bhrain
+  - rhachet-roles-bhrowser
   - rhachet-roles-bhuild
   - rhachet-roles-ehmpathy
+  - rhachet-roles-ghlitch
   - rhachet-brains-anthropic
+  - rhachet-brains-fireworksai
   - rhachet-brains-openrouter
   - rhachet-roles-rhachet
   # the bhrowser role, linked by rhachet at runtime; playwright is the browser engine its skills drive

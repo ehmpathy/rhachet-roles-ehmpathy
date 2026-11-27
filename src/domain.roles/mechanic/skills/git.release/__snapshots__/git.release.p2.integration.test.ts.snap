@@ -310,6 +310,8 @@ exports[`git.release.p2 argument validation given: [case-arg-help] --help flag w
   --dirty block fail fast if unstaged changes (default)
   --dirty allow allow release even with unstaged changes
 
+  apply needs a human's approval review on the feature pr (no flag lifts it)
+
   special circumstances only (footgun — prefer --into prod):
   --from main   skip the feature branch, release whatever is on main
 

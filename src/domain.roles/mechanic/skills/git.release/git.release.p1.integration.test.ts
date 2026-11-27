@@ -12,6 +12,7 @@ import {
 import {
   setGitReleaseUsesOrgAllowed,
   setGitReleaseUsesPermission,
+  writeReviewsApprovedShim,
   writeRhachetMock,
   writeSimpleGhMock,
 } from './.test/infra/mockGh';
@@ -89,11 +90,24 @@ const runSkill = (
 
   // note: pass EHMPATHY_SEATURTLE_GITHUB_TOKEN via env
   // keyrack returns env var value if already set, so no real keyrack fetch needed
+  /**
+   * .mock = gh reviews + head reads, via writeReviewsApprovedShim (.test/infra/mockGh.ts),
+   *         ahead of this suite's extant inline gh mock on PATH
+   * .why  = these cases clamp the merge and watch paths, not the review gate;
+   *         a real --apply would merge a real pr, so the reviews read answers
+   *         a human approval, the default a real reviewed pr holds
+   * .real = git.release.external.contracts.integration.test.ts (the real gh
+   *         reads); the gate's refusals live in git.release.p9.review_gate
+   */
+  const { shimDir } = writeReviewsApprovedShim({
+    tempDir: env.tempDir,
+    mockBinDir: env.fakeBinDir,
+  });
   const result = spawnSync('bash', [SKILL_PATH, ...args], {
     cwd: env.tempDir,
     env: {
       ...process.env,
-      PATH: /* .mock = gh, git, rhachet — contract in .test/infra/mockGh.ts */ `${env.fakeBinDir}:${process.env.PATH}`,
+      PATH: /* .mock = gh, git, rhachet — contract in .test/infra/mockGh.ts */ `${shimDir}:${env.fakeBinDir}:${process.env.PATH}`,
       TERM: 'dumb',
       HOME: env.tempDir,
       EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
@@ -2284,7 +2298,7 @@ exit 1
               cwd: tempDir,
               env: {
                 ...process.env,
-                PATH: `${fakeBinDir}:${process.env.PATH}`,
+                PATH: /* .mock = gh reviews + head reads (writeReviewsApprovedShim), then gh, git, rhachet; .why + .real at runSkill */ `${writeReviewsApprovedShim({ tempDir, mockBinDir: fakeBinDir }).shimDir}:${fakeBinDir}:${process.env.PATH}`,
                 TERM: 'dumb',
                 HOME: tempDir,
                 EHMPATHY_SEATURTLE_GITHUB_TOKEN: '', // explicitly empty
@@ -2352,7 +2366,7 @@ exit 1
             cwd: tempDir,
             env: {
               ...process.env,
-              PATH: `${fakeBinDir}:${process.env.PATH}`,
+              PATH: /* .mock = gh reviews + head reads (writeReviewsApprovedShim), then gh, git, rhachet; .why + .real at runSkill */ `${writeReviewsApprovedShim({ tempDir, mockBinDir: fakeBinDir }).shimDir}:${fakeBinDir}:${process.env.PATH}`,
               TERM: 'dumb',
             },
             encoding: 'utf-8',
@@ -2465,7 +2479,7 @@ esac
             cwd: tempDir,
             env: {
               ...process.env,
-              PATH: `${fakeBinDir}:${process.env.PATH}`,
+              PATH: /* .mock = gh reviews + head reads (writeReviewsApprovedShim), then gh, git, rhachet; .why + .real at runSkill */ `${writeReviewsApprovedShim({ tempDir, mockBinDir: fakeBinDir }).shimDir}:${fakeBinDir}:${process.env.PATH}`,
               TERM: 'dumb',
             },
             encoding: 'utf-8',
@@ -2811,7 +2825,7 @@ exit 1
               cwd: tempDir,
               env: {
                 ...process.env,
-                PATH: `${fakeBinDir}:${process.env.PATH}`,
+                PATH: /* .mock = gh reviews + head reads (writeReviewsApprovedShim), then gh, git, rhachet; .why + .real at runSkill */ `${writeReviewsApprovedShim({ tempDir, mockBinDir: fakeBinDir }).shimDir}:${fakeBinDir}:${process.env.PATH}`,
                 TERM: 'dumb',
                 HOME: tempDir,
                 EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
@@ -2948,7 +2962,7 @@ exit 1
               cwd: tempDir,
               env: {
                 ...process.env,
-                PATH: `${fakeBinDir}:${process.env.PATH}`,
+                PATH: /* .mock = gh reviews + head reads (writeReviewsApprovedShim), then gh, git, rhachet; .why + .real at runSkill */ `${writeReviewsApprovedShim({ tempDir, mockBinDir: fakeBinDir }).shimDir}:${fakeBinDir}:${process.env.PATH}`,
                 TERM: 'dumb',
                 HOME: tempDir,
                 EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
@@ -3079,7 +3093,7 @@ exit 1
               cwd: tempDir,
               env: {
                 ...process.env,
-                PATH: `${fakeBinDir}:${process.env.PATH}`,
+                PATH: /* .mock = gh reviews + head reads (writeReviewsApprovedShim), then gh, git, rhachet; .why + .real at runSkill */ `${writeReviewsApprovedShim({ tempDir, mockBinDir: fakeBinDir }).shimDir}:${fakeBinDir}:${process.env.PATH}`,
                 TERM: 'dumb',
                 HOME: tempDir,
                 EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',

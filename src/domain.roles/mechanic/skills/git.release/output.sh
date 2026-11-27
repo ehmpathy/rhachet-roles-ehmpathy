@@ -95,6 +95,10 @@ print_automerge_status() {
     unfound)
       echo "   $prefix 🌴 automerge unfound (use --apply to add)"
       ;;
+    direct)
+      # the free-tier fallback: the repo refused automerge, so the merge went direct
+      echo "   $prefix 🌴 automerge unavailable on this repo; merged directly [direct]"
+      ;;
     merged)
       # merged is always last (no further actions possible)
       echo "   └─ 🌴 already merged"
@@ -151,7 +155,7 @@ print_watch_result() {
       fi
       ;;
     timeout)
-      echo "      └─ ⏰ timeout after 15 minutes"
+      echo "      └─ ⏰ timeout after ${details:-15 minutes}"
       ;;
   esac
 }

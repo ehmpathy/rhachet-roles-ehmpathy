@@ -44,6 +44,32 @@ if cicd fails at any step:
 3. push the fix
 4. watch again: `rhx git.release --watch`
 
+## .usecase 3: the review gate refuses
+
+`--apply` (into main or prod) merges a feature pr only if a human with repo authority approved
+its current head. plan and `--watch` never read reviews.
+
+```bash
+rhx git.release --into prod --mode apply --watch
+# → exit 2: ✋ ConstraintError: pr #42 has no approval from a human
+#           why: no reviews yet
+#           ask your human to review: <url>
+```
+
+1. stop; hand the url to your human and say a review is owed
+2. do not retry or reflag; no flag lifts the gate
+3. once approved, re-run the same command
+
+the `why:` line names what is owed: no reviews, changes requested, an approval on an older commit
+(push fixes before the review), a dismissed review, only comments, or an approval that does not
+count (a bot, a robot account, no repo authority).
+
+while an apply watch runs, it holds the approved head. each poll re-checks the head and the
+reviews: a moved head or a lost approval (changes requested, dismissed) disarms automerge and
+refuses. any other exit short of a merge (checks red, rebase needed, timeout, a gh fault, ctrl-c,
+SIGTERM) disarms it too, so no unreviewed push can merge. `--apply` re-arms it after the gate
+re-judges the head.
+
 ## .default: `--into prod`
 
 to ship your work, the default and safe command is:

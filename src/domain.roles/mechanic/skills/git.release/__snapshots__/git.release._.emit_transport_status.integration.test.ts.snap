@@ -1,0 +1,8 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`emit_transport_status given: [case8] passed, wout-automerge, apply mode when: [t1] emit_transport_status is called with apply=true and no head then: fails loud: a merge with no head named is never written 1`] = `
+"🌊 release: feat(oceans): add reef protection
+   ├─ 👌 all checks passed
+   └─ 💥 MalfunctionError: no head_sha to pin the merge of pr #42 (pass a sha, or @unpinned for the release pr)
+"
+`;

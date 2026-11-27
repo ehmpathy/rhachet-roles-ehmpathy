@@ -1,0 +1,39 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`external contracts — the real reviews read behind the git.release gate given: [case2] a recorded real reviews payload from github when: [t0] the shipped --jq filter and verdict run over it then: the frozen-payload transcript matches the snapshot 1`] = `
+"[
+  {
+    "login": "reef-keeper",
+    "type": "User",
+    "association": "MEMBER",
+    "state": "COMMENTED",
+    "submitted_at": "<masked>",
+    "commit_id": "94357083284d5c0ae4807561b295eb2c83a0e970"
+  },
+  {
+    "login": "reef-keeper",
+    "type": "User",
+    "association": "MEMBER",
+    "state": "APPROVED",
+    "submitted_at": "<masked>",
+    "commit_id": "94357083284d5c0ae4807561b295eb2c83a0e970"
+  },
+  {
+    "login": "ehm-seaturtle",
+    "type": "User",
+    "association": "MEMBER",
+    "state": "COMMENTED",
+    "submitted_at": "<masked>",
+    "commit_id": "94357083284d5c0ae4807561b295eb2c83a0e970"
+  }
+]
+approved on head: true
+approved on a head the review does not cover: false
+"
+`;
+
+exports[`external contracts — the real reviews read behind the git.release gate given: [case3] the live reviews of a merged pr of this public repo when: [t0] the shipped --jq filter and verdict run over the live payload then: the verdict tail matches the snapshot 1`] = `
+"pr #1022 (live reviews, head 9435708)
+approved on head: true
+approved on a head the review does not cover: false"
+`;
