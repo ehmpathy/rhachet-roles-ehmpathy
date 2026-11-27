@@ -292,7 +292,9 @@ exports[`git.release.p2 argument validation given: [case-arg-defaults] no argume
 `;
 
 exports[`git.release.p2 argument validation given: [case-arg-dirty-invalid] --dirty invalid value when: [t0] --dirty invalid then: exit 2: shows error message 1`] = `
-"error: --dirty must be 'block' or 'allow', got 'invalid'
+"✋ ConstraintError: --dirty must be 'block' or 'allow', got 'invalid'
+   ├─ usage: git.release [--into main|prod] [--watch] [--apply] [--mode plan|apply] [--retry] [--dirty block|allow]
+   └─ see every flag: rhx git.release --help
 "
 `;
 
@@ -317,21 +319,29 @@ exports[`git.release.p2 argument validation given: [case-arg-help] --help flag w
   apply needs a sponsor's stamp — git.release.uses set --quant 1 — and spends
   one use at the arm of the merge; --into prod arms both prs on that one use.
   a commit grant never ships. see the stamp: rhx git.release.uses get
+
+  the comment gate: --apply refuses (exit 2) while a pr comment waits on an
+  answer; no flag skips it. find them: rhx git.pull.comment get --unanswered
 "
 `;
 
 exports[`git.release.p2 argument validation given: [case-arg-mode-invalid] --mode invalid value when: [t0] --mode invalid then: exit 2: shows error message 1`] = `
-"error: --mode must be 'plan' or 'apply', got 'invalid'
+"✋ ConstraintError: --mode must be 'plan' or 'apply', got 'invalid'
+   ├─ usage: git.release [--into main|prod] [--watch] [--apply] [--mode plan|apply] [--retry] [--dirty block|allow]
+   └─ see every flag: rhx git.release --help
 "
 `;
 
 exports[`git.release.p2 argument validation given: [case-arg-not-git] not in git repo when: [t0] run outside git repo then: exit 2: shows error message 1`] = `
-"error: not in a git repository
+"✋ ConstraintError: not in a git repository
+   └─ fix: run git.release from inside the repo to release
 "
 `;
 
 exports[`git.release.p2 argument validation given: [case-arg-to-invalid] --into invalid value when: [t0] --into invalid then: exit 2: shows error message 1`] = `
-"error: --into must be 'main' or 'prod', got 'invalid'
+"✋ ConstraintError: --into must be 'main' or 'prod', got 'invalid'
+   ├─ usage: git.release [--into main|prod] [--watch] [--apply] [--mode plan|apply] [--retry] [--dirty block|allow]
+   └─ see every flag: rhx git.release --help
 "
 `;
 
