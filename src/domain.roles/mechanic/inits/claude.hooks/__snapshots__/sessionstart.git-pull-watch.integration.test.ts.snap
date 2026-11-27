@@ -65,3 +65,20 @@ exports[`sessionstart.git-pull-watch.sh given: [case3] a clone whose watch sits 
 "🐢 pr watch: daemon v<key> pid <pid>, spawned, for 1 watch(es), 1 under an older key, taken at its first tick
 "
 `;
+
+exports[`sessionstart.git-pull-watch.sh given: [case4] older-key records that no daemon of this key would serve (the respawn loop) when: [t1] the ended watch root moves onto this key, and a session starts then: it spawns one daemon, for the one servable record 1`] = `
+"🐢 pr watch: daemon v<key> pid <pid>, spawned, for 1 watch(es), 1 under an older key, taken at its first tick
+"
+`;
+
+exports[`sessionstart.git-pull-watch.sh given: [case5] a day on one seat: upgrade, a 404, the seaturtle-to-grove swap, a keyrack lock, a merge (vision case=8) when: [t5] the next session starts then: each note the clone heard reads as it was sent 1`] = `
+[
+  "🐢 bummer dude...
+
+🐚 git.pull.watch — #1261 answers 404 to the seaturtle token (gone, or out of its reach); watch ended
+   └─ rewatch: rhx git.pull.watch set --which 1261 --mode apply",
+  "🐢 cowabunga!
+
+🐚 git.pull.watch — #1260 merged; watch ended",
+]
+`;

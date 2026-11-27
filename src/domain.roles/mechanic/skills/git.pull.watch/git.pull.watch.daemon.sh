@@ -18,17 +18,25 @@
 #   - reads github with a keyrack token only: the ehmpath seaturtle token, else,
 #     where it is absent, locked, or blocked, the grove's @all.prep.GITHUB_TOKEN;
 #     the human login never (F11)
+#   - reads keyrack only at a due read with no token held, then holds the token
+#     until github refuses it; a 401 earns one fresh read and one retry before
+#     any pause, and a tick with no due pr reads neither keyrack nor github
+#   - a pr whose pull answers 404 ends its watches, with a note that names the
+#     token that got it and the rewatch
+#   - a read that faults doubles the pr's poll gap and starts its idle clock, so a
+#     pr that never reads ok still ends at the idle ttl
 #   - an alert sits in the outbox before its cursors advance, so a crash re-sends
 #     at most once and never drops one (F6, F7)
 #   - a rate limit holds every read until it lifts; an outage holds the cursors,
 #     and one past 30 min earns one note per clone (A29, A30)
-#   - a keyrack fault holds the tick and logs its cause; one past 30 min earns
-#     one note per clone, with the cause and the check
+#   - a keyrack fault holds the reads of the tick and logs its cause; one past 30
+#     min earns one note per clone, with the cause and the check
 #   - a quiet pr is read less often: the gap doubles per quiet read, up to 30 min;
 #     a change, a push, or a fresh watch snaps it back to one tick
 #   - a pr with no change for a week ends its watches, with a note that names the rewatch
 #   - an older key's watch whose repo root runs this key now is taken, cursors and
-#     held alerts with it, so an upgrade moves every clone at once
+#     held alerts with it (an ended one with its end mark), so an upgrade moves every
+#     clone at once; an older key's watch whose repo root is gone is reaped
 #   - a record is written back only under the key lock and only if it still
 #     stands, so a `del` or a `set` move is never undone by a tick in flight
 ######################################################################
@@ -311,7 +319,8 @@ del_watch_records_at_root() {
   local root="$1" why="$2" record row_root watch_id
   while IFS= read -r record; do
     [[ -n "$record" ]] || continue
-    IFS=$'\t' read -r row_root watch_id < <(jq -r '[.repoRoot, (.watchId // "")] | @tsv' "$record")
+    row_root="" watch_id=""
+    IFS=$'\x1f' read -r row_root watch_id < <(get_watch_record_fields "$record" .repoRoot .watchId)
     [[ "$row_root" == "$root" ]] || continue
     log_watch "$why ($root); drop $(basename "$record")"
     del_watch_record "$record" "$watch_id"
@@ -331,7 +340,8 @@ del_watch_records_of_dead_clones_at_root() {
   local root="$1" list="$2" record row_root serial watch_id reach
   while IFS= read -r record; do
     [[ -n "$record" ]] || continue
-    IFS=$'\t' read -r row_root serial watch_id < <(jq -r '[.repoRoot, .cloneSerial, (.watchId // "")] | @tsv' "$record")
+    row_root="" serial="" watch_id=""
+    IFS=$'\x1f' read -r row_root serial watch_id < <(get_watch_record_fields "$record" .repoRoot .cloneSerial .watchId)
     [[ "$row_root" == "$root" ]] || continue
     reach="$(as_watch_clone_reach "$list" "$serial")"
     if [[ "$reach" == "DEAD" || "$reach" == "absent" ]]; then
@@ -357,12 +367,14 @@ set_watch_paused() {
   set_watch_note_per_untold_clone "$KEY_DIR/daemon.paused.told" as_watch_paused_text "$status"
 }
 
-# .what = the pause is over: clear its marks
-# .why  = the next pause starts fresh, and tells every clone again
+# .what = the pause is over: clear its marks, and make each watched pr due at once
+# .why  = the next pause starts fresh, and tells every clone again; a pr whose gap
+#         grew while the token was out reads now, rather than wait out up to the cap
 del_watch_paused() {
   [[ -f "$KEY_DIR/daemon.paused" ]] || return 0
   rm -f "$KEY_DIR/daemon.paused" "$KEY_DIR/daemon.paused.told"
   log_watch "resumed: github accepts the token"
+  set_watch_all_prs_due
 }
 
 # .what = the serials of every clone that holds a watch of this key, once each
@@ -519,8 +531,9 @@ del_watch_pr_read_fault() {
 #         fine, queue one outage note to each clone that watches it
 # .why  = a box-wide note would say github is down; here only this pr is dark, so its
 #         own watchers hear it, once per fault, and no other clone is woken
-# .note = only an unreachable read (no reply, a 5xx) earns a note; a 404 or a 403 on
-#         one pr shows in `get` alone, since what it should say is held for the commander
+# .note = only an unreachable read (no reply, a 5xx) earns an outage note. a pull 404
+#         ends its watch with a gone note (set_watch_gone_ended); a 403 or other dark read
+#         shows in `get` and ends at the idle ttl
 set_watch_pr_outage_notes() {
   local repo="$1" pr="$2" cache file since rc now record serial told
   cache="$(get_watch_pr_cache_dir "$repo" "$pr")"
@@ -557,7 +570,12 @@ set_watch_alert_for_record() {
     log_watch "ledger of clone $serial unreadable; $(basename "$record") holds this tick"
     return 0
   }
-  peers="$(get_all_watch_ledger_peer_json 2>/dev/null)" || peers='[]'
+  # an unreadable peer ledger reads as no peers this tick: fewer proofs label fewer peers,
+  # the safe side, and the log names it rather than hide it
+  peers="$(get_all_watch_ledger_peer_json 2>/dev/null)" || {
+    log_watch "peer ledgers unreadable; no comment reads as a peer this tick"
+    peers='[]'
+  }
   [[ -n "$peers" ]] || peers='[]'
   diff="$(jq -n --slurpfile watch "$record" --slurpfile state "$state_file" \
     --argjson ledger "$ledger" --argjson peers "$peers" \
@@ -619,7 +637,8 @@ set_watch_outbox_drained() {
       rm -f "$entry"
       continue
     fi
-    IFS=$'\t' read -r root serial watch_id < <(jq -r '[.repoRoot, .cloneSerial, (.watchId // "")] | @tsv' "$record")
+    root="" serial="" watch_id=""
+    IFS=$'\x1f' read -r root serial watch_id < <(get_watch_record_fields "$record" .repoRoot .cloneSerial .watchId)
     text="$(jq -r '.text' "$entry")"
     tries="$(jq -r '.tries' "$entry")"
     # a clone that held one alert this tick holds the rest too: its later alerts
@@ -679,6 +698,18 @@ is_watch_ended() {
   [[ -n "$(jq -r '.ended // empty' "$1")" ]]
 }
 
+# .what = does this watch already hold an outbox entry with this exact text?
+# .why  = an end that repeats (its mark missed the lock) must not queue its note twice
+# usage: is_watch_outbox_text_held <record stem> <text>
+is_watch_outbox_text_held() {
+  local stem="$1" text="$2" entry
+  while IFS= read -r entry; do
+    [[ -n "$entry" ]] || continue
+    [[ "$(jq -r '.text' "$entry" 2>/dev/null)" == "$text" ]] && return 0
+  done < <(get_all_watch_outbox_entries_of_stem "$KEY_DIR" "$stem")
+  return 1
+}
+
 # .what = does this watch hold no outbox entry?
 is_watch_outbox_empty() {
   [[ -z "$(get_all_watch_outbox_entries_of_stem "$KEY_DIR" "$1")" ]]
@@ -736,9 +767,9 @@ set_watch_token_source_logged() {
   [[ "$WATCH_TOKEN_SOURCE" == "$WATCH_TOKEN_SOURCE_LOGGED" ]] && return 0
   WATCH_TOKEN_SOURCE_LOGGED="$WATCH_TOKEN_SOURCE"
   [[ "$WATCH_TOKEN_SOURCE" == "ambient" ]] \
-    && log_watch "token: $WATCH_TOKEN_SLUG_AMBIENT, the grove token (the seaturtle token is not granted)" \
+    && log_watch "token: $WATCH_TOKEN_SLUG_AMBIENT, the grove token (the seaturtle token is not granted), held until github refuses it" \
     && return 0
-  log_watch "token: $WATCH_TOKEN_SLUG"
+  log_watch "token: $WATCH_TOKEN_SLUG (held until github refuses it)"
 }
 
 # .what = how well one token status tells a human what to do; higher wins
@@ -782,34 +813,158 @@ is_watch_pr_unprimed() {
   return 1
 }
 
-# .what = end each watch of a pr idle past the ttl; tell its clone how to rewatch
-# .why  = a pr with no change for a week holds a poll for naught; its watch ends,
-#         and the drain deletes it once the note is out, so the daemon can reach zero
-set_watch_idle_ended() {
-  local repo="$1" pr="$2" record watch_id
-  log_watch "$repo#$pr had no change in ${WATCH_IDLE_TTL_SECONDS}s; its watches end"
+# .what = end each live watch of a pr: queue its note, then mark it ended
+# .why  = the note lands before the mark, so a crash between the two never loses it (F6);
+#         the drain deletes the record once the note is out
+# .note = a mark that misses its lock leaves the watch live, so the next tick ends it
+#         again; a note still held in the outbox is not queued twice, though one the
+#         drain already sent may queue once more (the one-write end closes that window)
+# usage: set_watch_records_of_pr_ended <repo> <pr> <end> <note text>
+set_watch_records_of_pr_ended() {
+  local repo="$1" pr="$2" end="$3" text="$4" record watch_id
   while IFS= read -r -u 4 record; do
     [[ -n "$record" ]] || continue
     watch_id="$(jq -r '.watchId // ""' "$record")"
-    set_watch_outbox_entry "$record" "$(as_watch_closure_text "$pr" idle "")" || continue
-    jq '.ended = "idle"' "$record" | set_watch_record_if_same "$KEY_DIR" "$record" "$watch_id" \
+    is_watch_outbox_text_held "$(basename "$record" .json)" "$text" \
+      || set_watch_outbox_entry "$record" "$text" || continue
+    jq --arg end "$end" '.ended = $end' "$record" | set_watch_record_if_same "$KEY_DIR" "$record" "$watch_id" \
       || log_watch "record write held; $(basename "$record") ends next tick"
   done 4< <(get_all_watch_records_of_pr "$repo" "$pr")
 }
 
-# .what = the key a repo root runs now, read once per root per tick
-# .note = a newline list of `root<TAB>key`, so bash 3 (macos) needs no assoc array
-WATCH_ROOT_KEYS=""
-get_watch_key_of_root_cached() {
-  local root="$1" row key
-  row="$(printf '%s\n' "$WATCH_ROOT_KEYS" | grep -F -m1 "$root"$'\t' || true)"
-  if [[ -n "$row" ]]; then
-    echo "${row#*$'\t'}"
+# .what = end each watch of a pr idle past the ttl; tell its clone how to rewatch
+# .why  = a pr with no change for a week holds a poll for naught; its watch ends,
+#         and the drain deletes it once the note is out, so the daemon can reach zero
+# .note = a pr whose reads faulted for the whole ttl was never quiet, only unread: its note
+#         says so, and names the last fault. a fault younger than the ttl leaves the quiet note
+set_watch_idle_ended() {
+  local repo="$1" pr="$2" fault_file cause since
+  fault_file="$(get_watch_pr_cache_dir "$repo" "$pr")/read.fault"
+  since="$(jq -r '.since // empty' "$fault_file" 2>/dev/null || echo "")"
+  if [[ "$since" =~ ^[0-9]+$ ]] && [[ $(( $(get_watch_epoch_now) - since )) -ge $WATCH_IDLE_TTL_SECONDS ]]; then
+    cause="$(jq -r '.cause // "no cause given"' "$fault_file" 2>/dev/null || echo "no cause given")"
+    log_watch "$repo#$pr had no good read in ${WATCH_IDLE_TTL_SECONDS}s; its watches end"
+    set_watch_records_of_pr_ended "$repo" "$pr" idle "$(as_watch_closure_text "$pr" dark "$cause")"
     return 0
   fi
-  key="$(get_watch_key_of_root "$root")"
-  WATCH_ROOT_KEYS="$WATCH_ROOT_KEYS"$'\n'"$root"$'\t'"$key"
-  echo "$key"
+  log_watch "$repo#$pr had no change in ${WATCH_IDLE_TTL_SECONDS}s; its watches end"
+  set_watch_records_of_pr_ended "$repo" "$pr" idle "$(as_watch_closure_text "$pr" idle "")"
+}
+
+# .what = end each watch of a pr whose pull answers 404; tell its clone why, and how to rewatch
+# .why  = a gone pr (or one this token cannot see) never primes and never idles, so it
+#         would read every tick for the life of the box; its watch ends, and the drain
+#         deletes it once the note is out, so the daemon can reach zero
+# .note = the note names the token that got the 404: under the grove token, the likely
+#         cause is that token's reach, and the fix is the seaturtle unlock
+set_watch_gone_ended() {
+  local repo="$1" pr="$2"
+  log_watch "$repo#$pr answers 404 to the $(as_watch_token_source_label) token; its watches end"
+  set_watch_records_of_pr_ended "$repo" "$pr" gone "$(as_watch_closure_text "$pr" gone "$WATCH_TOKEN_SOURCE")"
+}
+
+# .what = hold a token for this tick's reads: the one already held, else one fresh keyrack read
+# .why  = a granted token serves until github refuses it, so a live daemon reads keyrack
+#         once per daemon life, never once per tick (S1). it reads once more when github
+#         says the held token is stale (is_watch_token_retry_owed)
+# returns: 0 a token is held · 1 none is: the pause or the fault clock is set, its notes queued
+# .note = a keyrack fault is no token state: it holds the tick and never pauses (A37)
+gen_watch_token_held() {
+  [[ -n "$WATCH_TOKEN" ]] && return 0
+  get_watch_token_of_any_root
+  if [[ "$WATCH_TOKEN_STATUS" == "fault" ]]; then
+    WATCH_TOKEN=""
+    log_watch "token read faulted: ${WATCH_TOKEN_FAULT:-no reply}; reads hold this tick"
+    set_watch_outage tokenfault as_watch_token_fault_text "$WATCH_TOKEN_FAULT" "${WATCH_TOKEN_ROOT:-<a watched repo root>}"
+    return 1
+  fi
+  # a keyrack fault that ends frees every gap it grew
+  if [[ -f "$KEY_DIR/daemon.tokenfault" ]]; then
+    del_watch_outage tokenfault "token read answers again"
+    set_watch_all_prs_due
+  fi
+  if [[ "$WATCH_TOKEN_STATUS" != "granted" ]]; then
+    WATCH_TOKEN=""
+    set_watch_paused "$WATCH_TOKEN_STATUS"
+    return 1
+  fi
+  set_watch_token_source_logged
+  return 0
+}
+
+# .what = does this read's answer owe one fresh keyrack read and one retry?
+# .why  = a 401 means the held token died at its hour, or was revoked. a 404 to the held
+#         grove token may be that token's reach, while keyrack may now grant the seaturtle
+#         token, which sees more; so a rewatch after an unlock is served, not ended again
+# usage: is_watch_token_retry_owed <rc>
+is_watch_token_retry_owed() {
+  [[ "$1" -eq 3 ]] && return 0
+  [[ "$1" -eq 6 && "$WATCH_TOKEN_SOURCE" == "ambient" ]]
+}
+
+# .what = the http status a token retry answers to (401 or 404), for the log
+as_watch_token_retry_status() {
+  [[ "$1" -eq 3 ]] && { echo 401; return 0; }
+  echo 404
+}
+
+# .what = the held token's name as the notes say it: grove or seaturtle
+as_watch_token_source_label() {
+  [[ "$WATCH_TOKEN_SOURCE" == "ambient" ]] && { echo grove; return 0; }
+  echo seaturtle
+}
+
+# .what = read one pr's state; its fault lines reach the log, and its last one is kept as the cause
+# .why  = a 401 earns a second read in the same tick; both reads log and keep their cause
+#         the same way, so the retry adds no second copy of the err-file loop
+# sets: WATCH_READ_CAUSE
+# returns: the rc of get_watch_pr_state
+WATCH_READ_CAUSE=""
+get_watch_pr_state_logged() {
+  local repo="$1" pr="$2" state_file="$3" err_file line rc=0
+  err_file="$(mktemp)"
+  get_watch_pr_state "$repo" "$pr" "$state_file" 2>"$err_file" || rc=$?
+  # the read's fault lines reach the log through log_watch, so a repeat stays quiet
+  while IFS= read -r line; do
+    [[ -n "$line" ]] && log_watch "$line"
+  done <"$err_file"
+  WATCH_READ_CAUSE="$(as_watch_last_text_line <"$err_file" 2>/dev/null || echo "")"
+  rm -f "$err_file"
+  return $rc
+}
+
+# .what = are the daemon's github reads held right now? a pause, or a keyrack fault
+# .why  = a pr the daemon cannot read is neither quiet nor owed a bypass; the idle end
+#         and the unprimed bypass read this one rule, so neither can drift from the other
+is_watch_read_held() {
+  [[ -f "$KEY_DIR/daemon.paused" || -f "$KEY_DIR/daemon.tokenfault" ]]
+}
+
+# .what = does this pr's last read hold a fault?
+is_watch_pr_read_faulted() {
+  [[ -f "$(get_watch_pr_cache_dir "$1" "$2")/read.fault" ]]
+}
+
+# .what = make every watched pr due at the next tick; each idle clock stays
+# .why  = a gap that grew while the daemon could not read (a pause, a keyrack fault)
+#         says naught of any pr's own quiet, so once reads resume each pr reads at once
+set_watch_all_prs_due() {
+  local repo pr
+  while IFS='|' read -r repo pr; do
+    [[ -n "$repo" ]] && set_watch_pr_due "$KEY_DIR" "$repo" "$pr"
+  done < <(get_all_watched_repo_prs)
+  return 0
+}
+
+# .what = may this pr skip its poll gap, since one of its watches is not yet primed?
+# .why  = a fresh watch reads at the next tick whatever the pr's cadence; but a pr whose
+#         reads fault, or a daemon whose reads are held, would then read every tick
+#         forever, so the gap holds for those
+is_watch_pr_unprimed_and_readable() {
+  local repo="$1" pr="$2"
+  is_watch_read_held && return 1
+  is_watch_pr_read_faulted "$repo" "$pr" && return 1
+  is_watch_pr_unprimed "$repo" "$pr"
 }
 
 # .what = take one watch from an older key into this one, its held alerts with it
@@ -828,7 +983,7 @@ set_watch_record_stolen() {
   fi
   # one key per watch (F9): a twin here already holds it, so the old one only leaves
   if [[ ! -f "$target" ]]; then
-    as_watch_record_moved "$record" "$root" "$slug" | set_watch_file_atomic "$target" \
+    as_watch_record_stolen "$record" "$root" "$slug" | set_watch_file_atomic "$target" \
       || { drop_watch_lock "$old_dir"; log_watch "steal of $(basename "$record") failed to write; it stays"; return 0; }
     mkdir -p "$outbox"
     while IFS= read -r entry; do
@@ -840,20 +995,36 @@ set_watch_record_stolen() {
   log_watch "took $(basename "$record") from v$(as_watch_key_from_dir "$old_dir"): its root runs v$KEY now"
 }
 
-# .what = take every live watch an older key holds whose repo root runs this key now
+# .what = take every watch an older key holds that this key would serve; reap the ones no clone can reach
 # .why  = an upgrade moves its clones at once, not at each clone's next `set`; the
-#         old daemon drops to zero watches and exits
+#         old daemon drops to zero watches and exits. an ended record rides along, so
+#         its held closure note still goes out. a record whose repo root is gone has
+#         no clone to reach, and no daemon of any key would ever take it: it leaves
+# .note = "this key would serve it" is `is_watch_record_servable_by_key`, the rule the
+#         SessionStart hook counts by, so a record the hook spawned a daemon for is a
+#         record this pass takes
 set_watch_records_stolen() {
   local dir record root slug watch_id
-  WATCH_ROOT_KEYS=""
+  # each pass reads each root's key afresh, once
+  WATCH_ROOT_KEY_MEMO=""
   while IFS= read -r dir; do
     [[ -n "$dir" && "$dir" != "$KEY_DIR" ]] || continue
     while IFS= read -r record; do
       [[ -n "$record" ]] || continue
-      is_watch_ended "$record" && continue
-      IFS=$'\t' read -r root slug watch_id < <(jq -r '[.repoRoot, .cloneSlug, (.watchId // "")] | @tsv' "$record")
-      [[ -d "$root" ]] || continue
-      [[ "$(get_watch_key_of_root_cached "$root")" == "$KEY" ]] || continue
+      root="" slug="" watch_id=""
+      IFS=$'\x1f' read -r root slug watch_id < <(get_watch_record_fields "$record" .repoRoot .cloneSlug .watchId)
+      # a record that will not parse, or names no root, is no proof its root is gone: it stays, for a human
+      if [[ -z "$root" ]]; then
+        log_watch "record unreadable or names no repo root; $(basename "$record") stays in v$(as_watch_key_from_dir "$dir")"
+        continue
+      fi
+      if [[ ! -d "$root" ]]; then
+        log_watch "repo root gone ($root); reap $(basename "$record") from v$(as_watch_key_from_dir "$dir")"
+        del_watch_record_locked "$record" "$watch_id" \
+          || log_watch "lock of $dir timed out; $(basename "$record") stays until the next tick"
+        continue
+      fi
+      is_watch_record_servable_by_key "$record" "$KEY" || continue
       set_watch_record_stolen "$record" "$root" "$slug" "$watch_id"
     done < <(get_all_watch_records "$dir")
   done < <(get_all_watch_key_dirs)
@@ -879,58 +1050,67 @@ run_watch_tick() {
     return 0
   fi
 
-  # the token, read where a watch's repo manifest lives
-  get_watch_token_of_any_root
-
-  # a fault no human state explains: hold this tick; one that lasts earns a note
-  if [[ "$WATCH_TOKEN_STATUS" == "fault" ]]; then
-    log_watch "token read faulted: ${WATCH_TOKEN_FAULT:-no reply}; skip tick"
-    set_watch_outage tokenfault as_watch_token_fault_text "$WATCH_TOKEN_FAULT" "${WATCH_TOKEN_ROOT:-<a watched repo root>}"
-    set_watch_outbox_drained
-    return 0
-  fi
-  del_watch_outage tokenfault "token read answers again"
-
-  # a token state a human can act on: pause, loud, once
-  if [[ "$WATCH_TOKEN_STATUS" != "granted" ]]; then
-    set_watch_paused "$WATCH_TOKEN_STATUS"
-    set_watch_outbox_drained
-    return 0
-  fi
-  set_watch_token_source_logged
-
-  # one github read per pr, shared by its watchers
+  # one github read per due pr, shared by its watchers
+  # .note = the token is read only here, at the first due read with none held, and then
+  #         held: a tick with no due pr reads neither keyrack nor github (S1)
   # .note = a pause lifts only once github accepts the token; a granted keyrack
   #         read alone would lift a 401 pause each tick, and re-alert it (F7)
   # .note = the pairs ride fd 3, so no read in the loop can drain them from stdin
   # .note = the box-wide outage clock runs only while no read of the tick gets a reply;
   #         a pr dark alone keeps its own clock (read.fault), so a good read of another
   #         pr cannot clear it
-  local repo pr state_file err_file line cause rc record reads_ok=0 reads_down=0 prs_down=()
+  local repo pr state_file cause rc record reads_ok=0 reads_down=0 prs_down=() token_absent=false token_fresh=false token_prior=""
   while IFS='|' read -r -u 3 repo pr; do
     [[ -n "$repo" ]] || continue
     # a pr with no change past the ttl ends its watches; a quiet pr waits its gap
-    if is_watch_pr_idle "$KEY_DIR" "$repo" "$pr"; then
+    # .note = no idle end while reads are held: a pr the daemon could not read was not quiet
+    if ! is_watch_read_held && is_watch_pr_idle "$KEY_DIR" "$repo" "$pr"; then
       set_watch_idle_ended "$repo" "$pr"
       continue
     fi
-    is_watch_pr_due "$KEY_DIR" "$repo" "$pr" || is_watch_pr_unprimed "$repo" "$pr" || continue
+    is_watch_pr_due "$KEY_DIR" "$repo" "$pr" || is_watch_pr_unprimed_and_readable "$repo" "$pr" || continue
+
+    # no token to be had this tick: the due pr waits a longer gap, and keyrack is asked once per tick at most
+    [[ -n "$WATCH_TOKEN" ]] || token_fresh=true
+    if [[ "$token_absent" == true ]] || ! gen_watch_token_held; then
+      token_absent=true
+      set_watch_pr_cadence_held "$KEY_DIR" "$repo" "$pr"
+      continue
+    fi
+
     state_file="$(mktemp)"
-    err_file="$(mktemp)"
     rc=0
-    get_watch_pr_state "$repo" "$pr" "$state_file" 2>"$err_file" || rc=$?
-    # the read's fault lines reach the log through log_watch, so a repeat stays quiet;
-    # the last one is the cause a read fault records
-    while IFS= read -r line; do
-      [[ -n "$line" ]] && log_watch "$line"
-    done <"$err_file"
-    cause="$(as_watch_last_text_line <"$err_file" 2>/dev/null || echo "")"
-    rm -f "$err_file"
+    get_watch_pr_state_logged "$repo" "$pr" "$state_file" || rc=$?
+
+    # the held token may be stale: one fresh keyrack read, which prefers the seaturtle token,
+    # and one retry. a token read fresh this tick earns no second read, and a fresh read
+    # that hands back the same token earns no retry: github would answer it the same
+    if [[ "$token_fresh" == false ]] && is_watch_token_retry_owed "$rc"; then
+      log_watch "github answered $(as_watch_token_retry_status "$rc") to the held $(as_watch_token_source_label) token; one fresh keyrack read, one retry"
+      token_prior="$WATCH_TOKEN"
+      WATCH_TOKEN=""
+      token_fresh=true
+      if ! gen_watch_token_held; then
+        rm -f "$state_file"
+        token_absent=true
+        set_watch_pr_cadence_held "$KEY_DIR" "$repo" "$pr"
+        continue
+      fi
+      if [[ "$WATCH_TOKEN" != "$token_prior" ]]; then
+        rc=0
+        get_watch_pr_state_logged "$repo" "$pr" "$state_file" || rc=$?
+      fi
+    fi
+    cause="$WATCH_READ_CAUSE"
+
+    # refused again, with a fresh token: a pause a human must lift
     if [[ $rc -eq 3 ]]; then
       rm -f "$state_file"
+      WATCH_TOKEN=""
+      token_absent=true
       set_watch_paused "expired"
-      set_watch_outbox_drained
-      return 0
+      set_watch_pr_cadence_held "$KEY_DIR" "$repo" "$pr"
+      continue
     fi
     if [[ $rc -eq 4 ]]; then
       rm -f "$state_file"
@@ -938,22 +1118,40 @@ run_watch_tick() {
       set_watch_outbox_drained
       return 0
     fi
+    # no reply, or a 5xx: cursors hold, the gap doubles, and the idle clock runs, so a pr
+    # that never answers waits a longer gap each tick and ends at the idle ttl
     if [[ $rc -eq 5 ]]; then
       log_watch "github unreachable for $repo#$pr; cursors hold"
       rm -f "$state_file"
       set_watch_pr_read_fault "$repo" "$pr" 5 "${cause:0:200}"
+      set_watch_pr_cadence_faulted "$KEY_DIR" "$repo" "$pr"
       reads_down=$((reads_down + 1))
       prs_down+=("$repo|$pr")
       continue
     fi
+    # the pull answers 404: gone, or hidden from this token. its watches end;
+    # the gap is held too, so a mark that fails to land waits its gap, not every tick
+    # a 404 proves github accepts the token, so it lifts a pause as a good read does
+    if [[ $rc -eq 6 ]]; then
+      rm -f "$state_file"
+      reads_ok=$((reads_ok + 1))
+      del_watch_paused
+      set_watch_gone_ended "$repo" "$pr"
+      set_watch_pr_cadence_held "$KEY_DIR" "$repo" "$pr"
+      continue
+    fi
+    # any other fault: cursors hold, the gap doubles, and the idle clock runs
     if [[ $rc -ne 0 ]]; then
       log_watch "read of $repo#$pr failed; cursors hold"
       rm -f "$state_file"
       set_watch_pr_read_fault "$repo" "$pr" "$rc" "${cause:0:200}"
+      set_watch_pr_cadence_faulted "$KEY_DIR" "$repo" "$pr"
       continue
     fi
     reads_ok=$((reads_ok + 1))
     del_watch_paused
+    # a read that answers after faults snaps the gap back: the gap the faults grew says naught of the pr
+    is_watch_pr_read_faulted "$repo" "$pr" && set_watch_pr_due "$KEY_DIR" "$repo" "$pr"
     del_watch_pr_read_fault "$repo" "$pr"
     while IFS= read -r -u 4 record; do
       [[ -n "$record" ]] && set_watch_alert_for_record "$record" "$state_file"
@@ -967,6 +1165,8 @@ run_watch_tick() {
   # ends that outage, and each pr still dark then speaks to its own watchers
   [[ $reads_down -gt 0 && $reads_ok -eq 0 ]] && set_watch_unreachable
   if [[ $reads_ok -gt 0 ]]; then
+    # the first reply after a box-wide outage frees every gap the outage grew
+    [[ -f "$KEY_DIR/daemon.unreachable" ]] && set_watch_all_prs_due
     del_watch_unreachable
     local one
     for one in "${prs_down[@]+"${prs_down[@]}"}"; do

@@ -857,4 +857,101 @@ describe('git.pull.watch.operations', () => {
       });
     });
   });
+
+  given('[case10] a record whose first field is absent', () => {
+    when('[t0] its fields are read for a split', () => {
+      const result = useThen('the fields are read', async () => {
+        const home = genTempDir({ slug: 'watch-ops-fields', git: false });
+        const rootless = path.join(home, 'rootless.json');
+        const corrupt = path.join(home, 'corrupt.json');
+        fs.writeFileSync(
+          rootless,
+          JSON.stringify({ cloneSerial: 'serial-a1', watchId: 'w-1', pr: 7 }),
+        );
+        fs.writeFileSync(corrupt, '{ "repoRoot": "/x", ');
+        const split = (record: string) =>
+          runOps({
+            home,
+            snippet: [
+              'root="" serial="" watch_id=""',
+              `IFS=$'\\x1f' read -r root serial watch_id < <(get_watch_record_fields "${record}" .repoRoot .cloneSerial .watchId)`,
+              'echo "[$root][$serial][$watch_id]"',
+            ].join('\n'),
+          }).stdout.trim();
+        return { rootless: split(rootless), corrupt: split(corrupt) };
+      });
+      then(
+        'each field holds its place: the empty root does not take the serial',
+        () => {
+          expect(result.rootless).toEqual('[][serial-a1][w-1]');
+        },
+      );
+      then('a record that will not parse reads as all empty', () => {
+        expect(result.corrupt).toEqual('[][][]');
+      });
+    });
+  });
+
+  given(
+    '[case11] a closure note asked for an end reason it does not know',
+    () => {
+      when('[t0] the note is rendered', () => {
+        const result = useThen('the render runs', async () =>
+          runOps({
+            home: genTempDir({ slug: 'watch-ops-closure', git: false }),
+            snippet: [
+              `source "${path.join(__dirname, 'git.pull.watch.alert.sh')}"`,
+              'as_watch_closure_text 1220 vanished ""; echo "rc=$?"',
+            ].join('\n'),
+          }),
+        );
+        then('it fails loud, never reads as a close', () => {
+          expect(result.stdout).toContain('rc=1');
+          expect(result.stdout).not.toContain('watch ended');
+          expect(result.stderr).toContain(
+            "💥 MalfunctionError: as_watch_closure_text got an unknown end reason 'vanished' for #1220",
+          );
+        });
+      });
+    },
+  );
+
+  given('[case12] paused and outage notes at the production poll cap', () => {
+    when('[t0] the notes render with no cap override', () => {
+      const result = useThen('the render runs', async () =>
+        runOps({
+          home: genTempDir({ slug: 'watch-ops-cap', git: false }),
+          snippet: [
+            'unset WATCH_POLL_MAX_SECONDS GIT_PULL_WATCH_POLL_MAX_SECONDS',
+            `source "${path.join(__dirname, 'git.pull.watch.alert.sh')}"`,
+            'echo "--- one paused pr"',
+            'as_watch_paused_resume_line "#1220"',
+            'echo "--- two paused prs"',
+            'as_watch_paused_resume_line "#1220, #1221"',
+            'echo "--- outage"',
+            'as_watch_unreachable_text 6 "#1220"',
+          ].join('\n'),
+        }),
+      );
+      then('each names the 30 min default cap', () => {
+        expect(result.stdout).toContain(
+          '├─ after the fix: alerts resume within 30 min',
+        );
+        expect(result.stdout).toContain(
+          'alerts resume within 30 min of github',
+        );
+      });
+      then('the set is named "every paused watch" only for two or more', () => {
+        expect(result.stdout).toContain(
+          '└─ to resume now: rhx git.pull.watch set --which 1220 --mode apply',
+        );
+        expect(result.stdout).toContain(
+          '└─ to resume every paused watch now, one set: rhx git.pull.watch set --which 1220 --mode apply',
+        );
+      });
+      then('the notes read as rendered', () => {
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
 });

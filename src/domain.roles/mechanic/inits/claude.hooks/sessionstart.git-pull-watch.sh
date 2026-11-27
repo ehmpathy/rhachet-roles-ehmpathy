@@ -85,10 +85,13 @@ fi
 # watches this clone holds under an older key: after an upgrade and a reboot no
 # daemon serves them; this key's daemon takes each one whose root runs it now, at
 # its first tick (the steal), so they count toward the findsert below
+# .note = only records this key's daemon would take count, by the one predicate the
+#         steal reads: an older-key record whose root is gone, or runs another key,
+#         would spawn a daemon that steals naught and exits, at every session start
 OLDER=0
 while IFS= read -r OTHER_DIR; do
   [[ -n "$OTHER_DIR" && "$OTHER_DIR" != "$KEY_DIR" ]] || continue
-  read -r ONE _ < <(get_watch_record_counts_of_clone "$OTHER_DIR" "$RHACHET_CLONE_SERIAL")
+  ONE="$(get_watch_record_count_servable_of_clone "$OTHER_DIR" "$RHACHET_CLONE_SERIAL" "$KEY")"
   OLDER=$((OLDER + ONE))
 done < <(get_all_watch_key_dirs 2>/dev/null)
 TOTAL=$((COUNT + OLDER))

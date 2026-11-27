@@ -1,0 +1,18 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.pull.watch.operations given: [case12] paused and outage notes at the production poll cap when: [t0] the notes render with no cap override then: the notes read as rendered 1`] = `
+"--- one paused pr
+   ├─ after the fix: alerts resume within 30 min
+   └─ to resume now: rhx git.pull.watch set --which 1220 --mode apply
+--- two paused prs
+   ├─ after the fix: alerts resume within 30 min
+   └─ to resume every paused watch now, one set: rhx git.pull.watch set --which 1220 --mode apply
+--- outage
+🐢 bummer dude...
+
+🐚 git.pull.watch — cannot reach github
+   ├─ 💥 MalfunctionError: github unreachable for 6 min
+   ├─ watches held: #1220
+   └─ next: naught to do; no event is lost, and alerts resume within 30 min of github's return
+"
+`;
