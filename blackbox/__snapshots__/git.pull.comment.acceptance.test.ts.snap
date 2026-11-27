@@ -20,7 +20,7 @@ options:
 options:
   --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
-  --unanswered                 only the comments that wait on an answer from you
+  --unanswered                 only the comments that await a reply from you or the pr author
   --id <id> --kind <kind>      one comment, by id; kind = issue | review, never guessed
   --key <k> [--reply-to <id>]  your keyed comment (in that review thread, with --reply-to)
   --kind body                  the pr description alone
@@ -37,7 +37,9 @@ options:
   --from <path|@stdin>         the body; written as '🐢 ' + body, plus a hidden key marker
   --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
-  --mode plan|apply            plan shows preview, apply writes and reads back (default: plan)
+  --mode plan|apply            plan shows preview, apply writes and reads back (default: plan);
+                               after an apply, a 🥥 names each comment on the pr that awaits a reply,
+                               with the command that answers it (tree only; a failed read warns, exit 0)
   --auth as-ehmpath|as-human   who writes (default: as-ehmpath)
   --output tree|json           the output shape (default: tree)
   --help, -h                   show this help
