@@ -13,5 +13,7 @@ export const findsertTask = async (input: { exid: string }, context: { daoTask: 
   return context.daoTask.insert(input);
 };
 ```
+a send or emit checks its prior result first (an idempotency key); a procedure that cannot be idempotent is marked `.note`
 exception: in-memory setters
 enforcement: create*, insert*, add*, save* mutations = blocker; ambiguous update* = blocker
+full: rule.require.idempotent-procedures (twin)

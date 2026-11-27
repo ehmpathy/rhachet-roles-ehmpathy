@@ -181,7 +181,7 @@ exports[`boot.lessons given: [case:mechanic] the mechanic boot a clone receives 
   },
   {
     "path": "practices/work.flow/refactor/rule.require.review-test-changes.md",
-    "tier": "say",
+    "tier": "ref",
   },
   {
     "path": "practices/work.flow/diagnose/rule.require.clamp-edge-cases.md",

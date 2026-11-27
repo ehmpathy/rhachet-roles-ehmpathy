@@ -207,7 +207,6 @@ subject.code.prod:
       # procedures (pit of success)
       - briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.nonidempotent-mutations.md
       - briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.undefined-inputs.md
-      - briefs/practices/code.prod/pitofsuccess.procedures/rule.require.idempotent-procedures.md
       - briefs/practices/code.prod/pitofsuccess.procedures/rule.require.immutable-vars.md
 
       # typedefs
@@ -249,6 +248,7 @@ subject.code.prod:
       # require twins — the forbid peer stays say (it names the violation; it carries the cure)
       - briefs/practices/code.prod/pitofsuccess.typedefs/rule.require.assure-via-type-checks.md
       - briefs/practices/code.prod/readable.narrative/rule.require.named-transformers.md
+      - briefs/practices/code.prod/pitofsuccess.procedures/rule.require.idempotent-procedures.md
 
       # glossaries — the require pole, full detail; the forbid pole above is say
       - briefs/practices/code.prod/consistent.glossaries/rule.require.iso-time.md
@@ -354,7 +354,6 @@ subject.flow:
       - briefs/practices/work.flow/rule.require.trust-but-verify.md
       - briefs/practices/work.flow/rule.prefer.scouts-honor.md
       - briefs/practices/work.flow/diagnose/rule.require.clamp-edge-cases.md
-      - briefs/practices/work.flow/refactor/rule.require.review-test-changes.md
       - briefs/practices/work.flow/refactor/rule.forbid.test-edit-without-named-proof.md
       - briefs/practices/work.flow/release/rule.require.commit-scopes.md
       - briefs/practices/work.flow/release/rule.require.watch-release-after-push.md
@@ -368,6 +367,8 @@ subject.flow:
     ref:
       # peers — clamp-edge-cases carries test-covered-repairs; the sedreplace skill carries its rule
       - briefs/practices/work.flow/diagnose/rule.require.test-covered-repairs.md
+      # require twin — test-edit-without-named-proof stays say (it names the violation; it carries the cure)
+      - briefs/practices/work.flow/refactor/rule.require.review-test-changes.md
       - briefs/practices/work.flow/refactor/rule.prefer.sedreplace-for-renames.md
 
       - briefs/practices/work.flow/diagnose/howto.bisect.[lesson].md

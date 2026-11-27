@@ -304,10 +304,11 @@ const PLAN: { slugRole: string; path: string; tier: BootTier }[] = [
     path: 'practices/work.flow/refactor/rule.forbid.test-edit-without-named-proof.md',
     tier: 'say',
   },
+  // the require pole of the pair: the budget forces a choice, so the forbid pole above stays say
   {
     slugRole: 'mechanic',
     path: 'practices/work.flow/refactor/rule.require.review-test-changes.md',
-    tier: 'say',
+    tier: 'ref',
   },
   {
     slugRole: 'mechanic',
