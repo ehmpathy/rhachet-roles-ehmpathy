@@ -1,7 +1,6 @@
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-
 import { given, then, useBeforeAll, when } from 'test-fns';
 
 import { genTestDir } from './.test/invokeHook';
@@ -92,14 +91,24 @@ describe('git.release.uses (acceptance)', () => {
 
       then('it refuses, exit 2, and writes no release stamp', () => {
         expect(res.code).toBe(2);
-        expect(res.stdout).toContain('ConstraintError: no terminal on this command');
-        expect(res.stderr).toContain('ConstraintError: no terminal on this command');
+        expect(res.stdout).toContain(
+          'ConstraintError: no terminal on this command',
+        );
+        expect(res.stderr).toContain(
+          'ConstraintError: no terminal on this command',
+        );
         // a sponsor grants a release the way it grants commits: a human or a director
-        expect(res.stdout).toContain('only a sponsor at a real terminal may run this');
-        expect(res.stdout).toContain('a sponsor runs it from their own terminal');
+        expect(res.stdout).toContain(
+          'only a sponsor at a real terminal may run this',
+        );
+        expect(res.stdout).toContain(
+          'a sponsor runs it from their own terminal',
+        );
         expect(res.stdout).not.toContain('a human');
         expect(
-          fs.existsSync(path.join(repo.dir, '.meter', 'git.release.uses.jsonc')),
+          fs.existsSync(
+            path.join(repo.dir, '.meter', 'git.release.uses.jsonc'),
+          ),
         ).toBe(false);
         expect(asSkillRender({ stdout: res.stdout })).toMatchSnapshot();
       });
@@ -168,22 +177,27 @@ describe('git.release.uses (acceptance)', () => {
       });
     });
 
-    when('[t3] the human blocks releases globally, then any actor reads it', () => {
-      const res = useBeforeAll(async () => ({
-        blocked: runViaRhachet({
-          dir: repo.dir,
-          args: ['block', '--global'],
-          human: true,
-        }),
-        got: runViaRhachet({ dir: repo.dir, args: ['get'] }),
-      }));
-      then('the global blocker wins over the local stamp', () => {
-        expect(res.blocked.code).toBe(0);
-        expect(res.got.stdout).toContain('verdict: blocked by global');
-        expect(asSkillRender({ stdout: res.blocked.stdout })).toMatchSnapshot();
-        expect(asSkillRender({ stdout: res.got.stdout })).toMatchSnapshot();
-      });
-    });
+    when(
+      '[t3] the human blocks releases globally, then any actor reads it',
+      () => {
+        const res = useBeforeAll(async () => ({
+          blocked: runViaRhachet({
+            dir: repo.dir,
+            args: ['block', '--global'],
+            human: true,
+          }),
+          got: runViaRhachet({ dir: repo.dir, args: ['get'] }),
+        }));
+        then('the global blocker wins over the local stamp', () => {
+          expect(res.blocked.code).toBe(0);
+          expect(res.got.stdout).toContain('verdict: blocked by global');
+          expect(
+            asSkillRender({ stdout: res.blocked.stdout }),
+          ).toMatchSnapshot();
+          expect(asSkillRender({ stdout: res.got.stdout })).toMatchSnapshot();
+        });
+      },
+    );
 
     when('[t4] the human lifts the global blocker', () => {
       const res = useBeforeAll(async () =>
@@ -206,18 +220,25 @@ describe('git.release.uses (acceptance)', () => {
         revoked: runViaRhachet({ dir: repo.dir, args: ['del'], human: true }),
         got: runViaRhachet({ dir: repo.dir, args: ['get'] }),
       }));
-      then('the stamp is revoked to zero, and get reads it blocked by local', () => {
-        expect(res.blocked.code).toBe(0);
-        expect(res.revoked.code).toBe(0);
-        expect(JSON.parse(fs.readFileSync(stampPath(), 'utf-8'))).toEqual({
-          uses: 0,
-        });
-        expect(res.got.stdout).toContain('local: 0 left');
-        expect(res.got.stdout).toContain('verdict: blocked by local');
-        expect(asSkillRender({ stdout: res.blocked.stdout })).toMatchSnapshot();
-        expect(asSkillRender({ stdout: res.revoked.stdout })).toMatchSnapshot();
-        expect(asSkillRender({ stdout: res.got.stdout })).toMatchSnapshot();
-      });
+      then(
+        'the stamp is revoked to zero, and get reads it blocked by local',
+        () => {
+          expect(res.blocked.code).toBe(0);
+          expect(res.revoked.code).toBe(0);
+          expect(JSON.parse(fs.readFileSync(stampPath(), 'utf-8'))).toEqual({
+            uses: 0,
+          });
+          expect(res.got.stdout).toContain('local: 0 left');
+          expect(res.got.stdout).toContain('verdict: blocked by local');
+          expect(
+            asSkillRender({ stdout: res.blocked.stdout }),
+          ).toMatchSnapshot();
+          expect(
+            asSkillRender({ stdout: res.revoked.stdout }),
+          ).toMatchSnapshot();
+          expect(asSkillRender({ stdout: res.got.stdout })).toMatchSnapshot();
+        },
+      );
     });
   });
 });

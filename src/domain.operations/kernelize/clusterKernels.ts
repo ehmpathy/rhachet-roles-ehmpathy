@@ -262,6 +262,11 @@ export const clusterKernels = withSimpleCacheAsync(_clusterKernels, {
         brainSlug: input.brainSlug,
         attempt: input.attempt,
       }),
+    // the on-disk cache stores strings; serialize the output so a read returns the object
+    value: (output) => JSON.stringify(output),
+  },
+  deserialize: {
+    value: (cached) => JSON.parse(cached),
   },
   bypass: {
     get: (input) => input.force === true,

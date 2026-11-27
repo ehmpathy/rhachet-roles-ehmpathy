@@ -1,7 +1,6 @@
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-
 import { genTempDir, given, then, useBeforeAll, when } from 'test-fns';
 
 import { genTestDir } from './.test/invokeHook';
@@ -59,9 +58,15 @@ describe('git.branch.uses (acceptance)', () => {
   given('[case1] a linked repo of the ehmpathy org', () => {
     const scene = useBeforeAll(async () => {
       const dir = await genTestDir({ slug: 'branch-uses-acceptance' });
-      const home = genTempDir({ slug: 'branch-uses-acceptance-home', git: false });
+      const home = genTempDir({
+        slug: 'branch-uses-acceptance-home',
+        git: false,
+      });
       fs.mkdirSync(path.join(dir, '.agent'), { recursive: true });
-      fs.writeFileSync(path.join(dir, '.agent', 'keyrack.yml'), 'org: ehmpathy\n');
+      fs.writeFileSync(
+        path.join(dir, '.agent', 'keyrack.yml'),
+        'org: ehmpathy\n',
+      );
       return { dir, home };
     });
     const run = (args: string[], human = true) =>
@@ -70,7 +75,10 @@ describe('git.branch.uses (acceptance)', () => {
       asSnapshotSafe({ dir: scene.dir, home: scene.home, text });
     const readMeterLocal = () =>
       JSON.parse(
-        fs.readFileSync(path.join(scene.dir, '.meter', 'git.branch.uses.jsonc'), 'utf-8'),
+        fs.readFileSync(
+          path.join(scene.dir, '.meter', 'git.branch.uses.jsonc'),
+          'utf-8',
+        ),
       );
 
     when('[t0] a human grants two cutovers', () => {

@@ -3,8 +3,8 @@ import * as fs from 'fs';
 import { UnexpectedCodePathError } from 'helpful-errors';
 import * as path from 'path';
 
-import { parseReviewCounts } from '../review/parseReviewCounts';
-import type { ReviewResult } from '../schemas';
+import { parseReviewCounts } from '@src/domain.roles/.evals/review/parseReviewCounts';
+import type { ReviewResult } from '@src/domain.roles/.evals/schemas';
 
 /**
  * .what = run a rubric review against code content

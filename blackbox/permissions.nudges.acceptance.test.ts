@@ -1,7 +1,6 @@
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-
 import { given, then, useBeforeAll, when } from 'test-fns';
 
 import { genTestDir } from './.test/invokeHook';
@@ -65,9 +64,27 @@ describe('permissions.nudges (acceptance)', () => {
       genLedgerRepo({
         slug: 'pn-linked',
         rows: [
-          { at: '2026-10-07T10:00:00Z', part: 'python3 -c 1', head: 'python3', kind: 'novel', verdict: 'nudged' },
-          { at: '2026-10-07T10:00:09Z', part: 'python3 -c 1', head: 'python3', kind: 'novel', verdict: 'retried' },
-          { at: '2026-10-07T10:01:00Z', part: 'ls src', head: 'ls', kind: 'alt', verdict: 'nudged' },
+          {
+            at: '2026-10-07T10:00:00Z',
+            part: 'python3 -c 1',
+            head: 'python3',
+            kind: 'novel',
+            verdict: 'nudged',
+          },
+          {
+            at: '2026-10-07T10:00:09Z',
+            part: 'python3 -c 1',
+            head: 'python3',
+            kind: 'novel',
+            verdict: 'retried',
+          },
+          {
+            at: '2026-10-07T10:01:00Z',
+            part: 'ls src',
+            head: 'ls',
+            kind: 'alt',
+            verdict: 'nudged',
+          },
         ],
       }),
     );
@@ -84,11 +101,14 @@ describe('permissions.nudges (acceptance)', () => {
         expect(res.stdout).toContain('python3 (2)');
       });
 
-      then('it names how to report a head upstream (the wish: report upstream)', () => {
-        expect(res.stdout).toContain(
-          "rhx radio.task.push --via gh.issues --into ehmpathy/rhachet-roles-ehmpathy --title 'pave: <head>'",
-        );
-      });
+      then(
+        'it names how to report a head upstream (the wish: report upstream)',
+        () => {
+          expect(res.stdout).toContain(
+            "rhx radio.task.push --via gh.issues --into ehmpathy/rhachet-roles-ehmpathy --title 'pave: <head>'",
+          );
+        },
+      );
 
       then('the render matches snapshot', () => {
         expect(asSkillRender({ stdout: res.stdout })).toMatchSnapshot();

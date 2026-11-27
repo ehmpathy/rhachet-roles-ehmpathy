@@ -2,8 +2,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { given, then, useThen, when } from 'test-fns';
 
-import { genWatchTestScene } from '../../skills/git.pull.watch/__test_utils__/genWatchTestScene';
-import { waitForWatch } from '../../skills/git.pull.watch/__test_utils__/waitForWatch';
+import { genWatchTestScene } from '@src/domain.roles/mechanic/skills/git.pull.watch/.test.utils/genWatchTestScene';
+import { waitForWatch } from '@src/domain.roles/mechanic/skills/git.pull.watch/.test.utils/waitForWatch';
 
 /**
  * .what = the prompt hook prints each pr-watch alert the daemon could not say
@@ -61,7 +61,11 @@ describe('userpromptsubmit.git-pull-watch.sh', () => {
       return outboxes.flatMap((dir) =>
         fs
           .readdirSync(dir)
-          .filter((name) => name.includes(`.clone=${SERIAL}.`))
+          // only whole entries: the daemon stages each at `<entry>.json.tmp.*`, then mv's it in
+          .filter(
+            (name) =>
+              name.includes(`.clone=${SERIAL}.`) && name.endsWith('.json'),
+          )
           .map((name) =>
             JSON.parse(fs.readFileSync(path.join(dir, name), 'utf-8')),
           ),

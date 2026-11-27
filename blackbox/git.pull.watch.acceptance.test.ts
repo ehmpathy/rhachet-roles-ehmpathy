@@ -1,7 +1,6 @@
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-
 import { genTempDir, given, then, useBeforeAll, useThen, when } from 'test-fns';
 
 import { genTestDir } from './.test/invokeHook';
@@ -120,19 +119,22 @@ describe('git.pull.watch, via rhachet', () => {
           args: [],
         }),
       }));
-      then('each refuses with exit 2 and names the fix, on both streams', () => {
-        expect(result.setNoPr.code).toBe(2);
-        expect(result.setNoPr.stdout).toContain(
-          '✋ ConstraintError: --which <n> is required',
-        );
-        expect(result.setNoPr.stderr).toContain('ConstraintError');
-        expect(result.setBadMode.code).toBe(2);
-        expect(result.setBadMode.stdout).toContain(
-          '--mode must be one of: plan | apply',
-        );
-        expect(result.delNoPr.code).toBe(2);
-        expect(result.delNoPr.stdout).toContain('--which <n> is required');
-      });
+      then(
+        'each refuses with exit 2 and names the fix, on both streams',
+        () => {
+          expect(result.setNoPr.code).toBe(2);
+          expect(result.setNoPr.stdout).toContain(
+            '✋ ConstraintError: --which <n> is required',
+          );
+          expect(result.setNoPr.stderr).toContain('ConstraintError');
+          expect(result.setBadMode.code).toBe(2);
+          expect(result.setBadMode.stdout).toContain(
+            '--mode must be one of: plan | apply',
+          );
+          expect(result.delNoPr.code).toBe(2);
+          expect(result.delNoPr.stdout).toContain('--which <n> is required');
+        },
+      );
       then('each refusal is snapped', () => {
         expect({
           setNoPr: asSkillRender(result.setNoPr),
@@ -171,7 +173,10 @@ describe('git.pull.watch, via rhachet', () => {
     when('[t3] get reads a box with no watches', () => {
       // HOME at a temp dir: the read sees an empty box, never the runner's own state
       const result = useThen('it runs', async () => {
-        const home = genTempDir({ slug: 'git-pull-watch-acceptance-home', git: false });
+        const home = genTempDir({
+          slug: 'git-pull-watch-acceptance-home',
+          git: false,
+        });
         return {
           tree: runViaRhachet({
             dir: scene.dir,
@@ -298,23 +303,28 @@ describe('git.pull.watch, via rhachet', () => {
           'ehmpathy/surf-demo#1230 → @:mechanic-two (root: surf-demo.beav.feat-wave)',
         );
       });
-      then('the tree names the cure for each unwell part, under one coconut', () => {
-        expect(result.tree.stdout.match(/🥥 did you know\?/g)).toHaveLength(1);
-        expect(result.tree.stdout).toContain(
-          'daemon v1.0.0+cafe0001 is stale; it serves no watch',
-        );
-        expect(result.tree.stdout).toContain(
-          'daemon v1.0.1+cafe0002 is absent; it serves no watch',
-        );
-        // the stale daemon is paused too, but an unlock cannot revive a dead pid
-        expect(result.tree.stdout).not.toContain(
-          'a paused daemon reads naught',
-        );
-        expect(result.tree.stdout).toContain(
-          'a watch record that does not parse is held, never served',
-        );
-        expect(asMasked(asSkillRender(result.tree))).toMatchSnapshot();
-      });
+      then(
+        'the tree names the cure for each unwell part, under one coconut',
+        () => {
+          expect(result.tree.stdout.match(/🥥 did you know\?/g)).toHaveLength(
+            1,
+          );
+          expect(result.tree.stdout).toContain(
+            'daemon v1.0.0+cafe0001 is stale; it serves no watch',
+          );
+          expect(result.tree.stdout).toContain(
+            'daemon v1.0.1+cafe0002 is absent; it serves no watch',
+          );
+          // the stale daemon is paused too, but an unlock cannot revive a dead pid
+          expect(result.tree.stdout).not.toContain(
+            'a paused daemon reads naught',
+          );
+          expect(result.tree.stdout).toContain(
+            'a watch record that does not parse is held, never served',
+          );
+          expect(asMasked(asSkillRender(result.tree))).toMatchSnapshot();
+        },
+      );
       then('the json holds the same daemons and watches', () => {
         expect(result.json.code).toBe(0);
         const at = result.json.stdout.indexOf('{');
@@ -338,7 +348,9 @@ describe('git.pull.watch, via rhachet', () => {
       });
       then('a bad --output refuses with exit 2 and names the choices', () => {
         expect(result.badOutput.code).toBe(2);
-        expect(result.badOutput.stdout).toContain('✋ ConstraintError: --output');
+        expect(result.badOutput.stdout).toContain(
+          '✋ ConstraintError: --output',
+        );
         expect(result.badOutput.stderr).toContain('ConstraintError');
         expect(asSkillRender(result.badOutput)).toMatchSnapshot();
       });
@@ -437,7 +449,14 @@ describe('git.pull.watch, via rhachet', () => {
           });
         return {
           noSerial: run({
-            args: ['--which', '7', '--in', 'ehmpathy/surf-demo', '--mode', 'apply'],
+            args: [
+              '--which',
+              '7',
+              '--in',
+              'ehmpathy/surf-demo',
+              '--mode',
+              'apply',
+            ],
             serial: '',
           }),
           badIn: run({
@@ -445,7 +464,14 @@ describe('git.pull.watch, via rhachet', () => {
             serial: 'f0f0f0f0-0000-4000-8000-00000000000f',
           }),
           strangerSerial: run({
-            args: ['--which', '7', '--in', 'ehmpathy/surf-demo', '--mode', 'apply'],
+            args: [
+              '--which',
+              '7',
+              '--in',
+              'ehmpathy/surf-demo',
+              '--mode',
+              'apply',
+            ],
             serial: 'f0f0f0f0-0000-4000-8000-00000000000f',
           }),
         };
@@ -482,50 +508,54 @@ describe('git.pull.watch, via rhachet', () => {
       });
     });
 
-    when('[t7] the linked role is read for the files a daemon boots from', () => {
-      // `set` copies the skill dir's *.sh into each key's own bin, then boots the
-      // daemon from that copy; a file the build drops would fail only at spawn
-      const result = useThen('it reads', async () => {
-        const linkedDir = path.join(
-          scene.dir,
-          '.agent/repo=ehmpathy/role=mechanic/skills/git.pull.watch',
-        );
-        const sourceDir = path.join(
-          __dirname,
-          '../src/domain.roles/mechanic/skills/git.pull.watch',
-        );
-        const asShFiles = (dir: string): string[] =>
-          fs
-            .readdirSync(dir)
-            .filter((name) => name.endsWith('.sh'))
-            .sort();
-        const linked = asShFiles(linkedDir);
-        return {
-          linked,
-          source: asShFiles(sourceDir),
-          // each shipped file, byte for byte against source, and its exec bit
-          drifts: linked.filter(
-            (name) =>
-              !fs
-                .readFileSync(path.join(linkedDir, name))
-                .equals(fs.readFileSync(path.join(sourceDir, name))),
-          ),
-          // no exec bit for owner, group, or other
-          unexecutable: linked.filter(
-            (name) => (fs.statSync(path.join(linkedDir, name)).mode & 0o111) === 0,
-          ),
-        };
-      });
-      then('every daemon file in source ships in the linked role', () => {
-        expect(result.linked).toEqual(result.source);
-        expect(result.linked).toContain('git.pull.watch.daemon.sh');
-        expect(result.linked).toContain('git.pull.watch.alert.sh');
-        expect(result.linked).toContain('git.pull.watch.operations.sh');
-      });
-      then('each shipped file is whole and executable', () => {
-        expect(result.drifts).toEqual([]);
-        expect(result.unexecutable).toEqual([]);
-      });
-    });
+    when(
+      '[t7] the linked role is read for the files a daemon boots from',
+      () => {
+        // `set` copies the skill dir's *.sh into each key's own bin, then boots the
+        // daemon from that copy; a file the build drops would fail only at spawn
+        const result = useThen('it reads', async () => {
+          const linkedDir = path.join(
+            scene.dir,
+            '.agent/repo=ehmpathy/role=mechanic/skills/git.pull.watch',
+          );
+          const sourceDir = path.join(
+            __dirname,
+            '../src/domain.roles/mechanic/skills/git.pull.watch',
+          );
+          const asShFiles = (dir: string): string[] =>
+            fs
+              .readdirSync(dir)
+              .filter((name) => name.endsWith('.sh'))
+              .sort();
+          const linked = asShFiles(linkedDir);
+          return {
+            linked,
+            source: asShFiles(sourceDir),
+            // each shipped file, byte for byte against source, and its exec bit
+            drifts: linked.filter(
+              (name) =>
+                !fs
+                  .readFileSync(path.join(linkedDir, name))
+                  .equals(fs.readFileSync(path.join(sourceDir, name))),
+            ),
+            // no exec bit for owner, group, or other
+            unexecutable: linked.filter(
+              (name) =>
+                (fs.statSync(path.join(linkedDir, name)).mode & 0o111) === 0,
+            ),
+          };
+        });
+        then('every daemon file in source ships in the linked role', () => {
+          expect(result.linked).toEqual(result.source);
+          expect(result.linked).toContain('git.pull.watch.daemon.sh');
+          expect(result.linked).toContain('git.pull.watch.alert.sh');
+          expect(result.linked).toContain('git.pull.watch.operations.sh');
+        });
+        then('each shipped file is whole and executable', () => {
+          expect(result.drifts).toEqual([]);
+          expect(result.unexecutable).toEqual([]);
+        });
+      },
+    );
   });
 });
