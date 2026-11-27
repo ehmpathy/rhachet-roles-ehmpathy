@@ -21,6 +21,7 @@ use `rhx git.repo.test` to run tests with automatic keyrack unlock, log capture,
 | run acceptance | `rhx git.repo.test --what acceptance` |
 | run lint | `rhx git.repo.test --what lint` |
 | pass raw jest args | `rhx git.repo.test --what unit -- --verbose` |
+| narrow the bound | `rhx git.repo.test --what unit --mode apply --timeout 120` |
 
 ## .flags
 
@@ -30,6 +31,7 @@ use `rhx git.repo.test` to run tests with automatic keyrack unlock, log capture,
 | `--scope` | regex pattern for jest's `--testPathPatterns` (optional) |
 | `--resnap` | set `RESNAP=true` to update snapshots (optional) |
 | `--thorough` | set `THOROUGH=true` for full test runs (optional) |
+| `--timeout` | bound in whole seconds for the whole call; default and max 420 (optional) |
 | `--` | separator for raw args passed to jest (optional) |
 
 ## .auto behaviors
@@ -37,6 +39,16 @@ use `rhx git.repo.test` to run tests with automatic keyrack unlock, log capture,
 - **keyrack unlock**: integration and acceptance tests auto-unlock `ehmpath/test` credentials
 - **log capture**: all output captured to `.log/role=mechanic/skill=git.repo.test/what=${TYPE}/`
 - **summary only**: terminal shows summary (stats, log paths), not raw jest output
+
+## .bound: 7 minutes per call, hard
+
+no call runs past 420s. `--timeout <secs>` may narrow the bound, never widen it: a value above 420 is refused at parse, exit 2. a call cut short prints `⏱️ too slow`, says "woah, too slow", and exits 2.
+
+- the slow suite is yours to root cause: Read the log, narrow with `--scope`, fix why it is slow
+- no suite earns a wider bound; a suite that needs more than 7 minutes is a speed defect
+- ctrl-c (or a kill of the skill) stops the suite at once; the bound is a cap, not a hold
+- `--what all` holds one bound for the whole call; each type runs under what the types before it left
+- a caller that runs the skill under its own time limit (an agent's shell call, a ci step) must allow more than the bound, or the caller's clock fires first and the "too slow" lesson never shows. the skill prints the figure under its `bound:` line: 450s for one type at the 420s default, plus 30s per extra type for `--what all`
 
 ## .scope is regex
 
@@ -56,8 +68,8 @@ rhx git.repo.test --what unit --scope "**/getUserById*"
 | code | semantics |
 |------|-----------|
 | 0 | tests passed |
-| 1 | malfunction (npm failed, keyrack failed) |
-| 2 | constraint (tests failed, no tests matched, absent command) |
+| 1 | malfunction (npm failed, keyrack failed, the bound's fuse could not run) |
+| 2 | constraint (tests failed, no tests matched, absent command, too slow, bad `--timeout`) |
 
 ## .log locations
 
@@ -66,8 +78,8 @@ logs are namespaced by test type to avoid overlap:
 ```
 .log/role=mechanic/skill=git.repo.test/
 ├─ what=lint/
-│  ├─ 2026-04-08T14-23-01Z.stdout.log
-│  └─ 2026-04-08T14-23-01Z.stderr.log
+│  ├─ ISOTIME.stdout.log
+│  └─ ISOTIME.stderr.log
 ├─ what=unit/
 │  └─ ...
 ├─ what=integration/
@@ -90,8 +102,8 @@ logs are namespaced by test type to avoid overlap:
    │  ├─ tests: 12 passed, 0 failed, 0 skipped
    │  └─ time: 2.4s
    └─ log
-      ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=unit/2026-04-08T14-23-01Z.stdout.log
-      └─ stderr: .log/role=mechanic/skill=git.repo.test/what=unit/2026-04-08T14-23-01Z.stderr.log
+      ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=unit/ISOTIME.stdout.log
+      └─ stderr: .log/role=mechanic/skill=git.repo.test/what=unit/ISOTIME.stderr.log
 ```
 
 ### failure
@@ -106,20 +118,22 @@ logs are namespaced by test type to avoid overlap:
    │  ├─ tests: 3 passed, 1 failed, 0 skipped
    │  └─ time: 1.2s
    ├─ log
-   │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=unit/2026-04-08T14-23-01Z.stdout.log
-   │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=unit/2026-04-08T14-23-01Z.stderr.log
+   │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=unit/ISOTIME.stdout.log
+   │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=unit/ISOTIME.stderr.log
    └─ tip: Read the log for full test output and failure details
 ```
 
 ## .when to use each type
 
-| type | what it tests | keyrack | typical duration |
-|------|---------------|---------|------------------|
-| lint | code style, format | no | < 5s |
-| unit | pure logic, no i/o | no | < 30s |
-| integration | db, apis, services | yes | 1-5 min |
-| acceptance | full flows, contracts | yes | 1-10 min |
-| all | lint → unit → integration → acceptance | yes | 5-15 min |
+| type | what it tests | keyrack | typical duration | against the 420s bound |
+|------|---------------|---------|------------------|------------------------|
+| lint | code style, format | no | < 5s | far under |
+| unit | pure logic, no i/o | no | < 30s | far under |
+| integration | db, apis, services | yes | 1-5 min | under; past 7 min is a speed defect to fix |
+| acceptance | full flows, contracts | yes | 1-10 min | past 7 min is a speed defect; split the run with `--scope` until each call fits |
+| all | lint → unit → integration → acceptance | yes | 5-15 min | the whole call shares one 420s bound; run slow types on their own |
+
+typical durations are the figures this howto has long carried, not a measurement.
 
 ## .diagnosis workflow
 

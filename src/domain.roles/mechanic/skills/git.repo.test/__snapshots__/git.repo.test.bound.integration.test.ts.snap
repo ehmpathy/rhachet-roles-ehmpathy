@@ -1,0 +1,964 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.repo.test.sh bound given: [case1] a fast suite, no --timeout when: [t0] \`rhx git.repo.test --what lint --mode apply\` is run then: output matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what lint --mode apply
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case2] a slow suite, no --timeout when: [t0] the 420s default fires (shim shortens it to 1s for the test) then: stderr matches snapshot 1`] = `
+"🐢 woah, too slow...
+
+🐚 git.repo.test --what lint --mode apply
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
+   │  └─ ⏱️ too slow (Xs)
+   ├─ log
+   │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stdout.log
+   │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
+   └─ ✋ ConstraintError: woah, too slow — past the 420s bound (default)
+      ├─ this speed defect is yours to root cause
+      └─ find why the lint tool is slow: the files it scans, its config, its cache
+
+🥥 did you know?
+   ├─ time the tool alone: npm run test:lint
+   └─ no call may run past 420s: make the suite fast, never the bound wide
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case2] a slow suite, no --timeout when: [t0] the 420s default fires (shim shortens it to 1s for the test) then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what lint --mode apply
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ ⏱️ too slow (Xs)
+   ├─ log
+   │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stdout.log
+   │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
+   └─ ✋ ConstraintError: woah, too slow — past the 420s bound (default)
+      ├─ this speed defect is yours to root cause
+      └─ find why the lint tool is slow: the files it scans, its config, its cache
+
+🥥 did you know?
+   ├─ time the tool alone: npm run test:lint
+   └─ no call may run past 420s: make the suite fast, never the bound wide
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case3] an explicit --timeout when: [t0] --timeout 7 on a single type then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what lint --mode apply --timeout 7
+   ├─ bound: 7s (--timeout)
+   │  └─ let your shell call run past 37s, or its own clock ends this run first
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case3] an explicit --timeout when: [t1] --timeout=7, the attached form then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what lint --timeout 7
+   ├─ bound: 7s (--timeout)
+   │  └─ let your shell call run past 37s, or its own clock ends this run first
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case3] an explicit --timeout when: [t2] --timeout 7 with --what lint,format (multi-mode) then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what lint,format --timeout 7
+   └─ bound: 7s (--timeout), for the whole call, 2 of 2 types run
+      └─ let your shell call run past 67s, or its own clock ends this run first
+
+🐚 git.repo.test --what lint --timeout 7
+   ├─ bound: 7s (--timeout)
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+
+🐚 git.repo.test --what format --timeout 7
+   ├─ bound: 7s (--timeout)
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case3] an explicit --timeout when: [t3] no --timeout with --what lint,format (multi-mode) then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what lint,format
+   └─ bound: 420s (default), for the whole call, 2 of 2 types run
+      └─ let your shell call run past 480s, or its own clock ends this run first
+
+🐚 git.repo.test --what lint
+   ├─ bound: 420s (default)
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+
+🐚 git.repo.test --what format
+   ├─ bound: 420s (default)
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case3] an explicit --timeout when: [t4] multi-mode where the first type is cut short then: stderr matches snapshot 1`] = `
+"🐢 woah, too slow...
+
+🐚 git.repo.test --what lint --timeout 1
+   ├─ bound: 1s (--timeout)
+   ├─ status
+   │  └─ ⏱️ too slow (Xs)
+   ├─ log
+   │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stdout.log
+   │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
+   └─ ✋ ConstraintError: woah, too slow — past the 1s bound (--timeout), for the whole call
+      ├─ this speed defect is yours to root cause
+      └─ find why the lint tool is slow: the files it scans, its config, its cache
+
+🥥 did you know?
+   ├─ time the tool alone: npm run test:lint
+   └─ no call may run past 420s: make the suite fast, never the bound wide
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case3] an explicit --timeout when: [t4] multi-mode where the first type is cut short then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what lint,format --timeout 1
+   └─ bound: 1s (--timeout), for the whole call, 2 of 2 types run
+      └─ let your shell call run past 61s, or its own clock ends this run first
+
+🐚 git.repo.test --what lint --timeout 1
+   ├─ bound: 1s (--timeout)
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ ⏱️ too slow (Xs)
+   ├─ log
+   │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stdout.log
+   │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
+   └─ ✋ ConstraintError: woah, too slow — past the 1s bound (--timeout), for the whole call
+      ├─ this speed defect is yours to root cause
+      └─ find why the lint tool is slow: the files it scans, its config, its cache
+
+🥥 did you know?
+   ├─ time the tool alone: npm run test:lint
+   └─ no call may run past 420s: make the suite fast, never the bound wide
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case3] an explicit --timeout when: [t5] multi-mode in plan mode, where a jest type only previews then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what lint,unit
+   └─ bound: 420s (default), for the whole call, 1 of 2 types run
+      └─ let your shell call run past 450s, or its own clock ends this run first
+
+🐚 git.repo.test --what lint
+   ├─ bound: 420s (default)
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+
+🐚 git.repo.test --what unit
+   ├─ scope: all
+   │  └─ matched: 1 files
+   └─ files
+      └─ src/a.test.js
+
+🥥 did you know?
+   └─ run with \`--mode apply\` to execute
+
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case3] an explicit --timeout when: [t6] multi-mode with no --timeout, where the first type outlasts the default (c5) then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what lint,format
+   └─ bound: 420s (default), for the whole call, 2 of 2 types run
+      └─ let your shell call run past 480s, or its own clock ends this run first
+
+🐚 git.repo.test --what lint
+   ├─ bound: 420s (default)
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ ⏱️ too slow (Xs)
+   ├─ log
+   │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stdout.log
+   │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
+   └─ ✋ ConstraintError: woah, too slow — past the 420s bound (default), for the whole call
+      ├─ this speed defect is yours to root cause
+      └─ find why the lint tool is slow: the files it scans, its config, its cache
+
+🥥 did you know?
+   ├─ time the tool alone: npm run test:lint
+   └─ no call may run past 420s: make the suite fast, never the bound wide
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case4] a --timeout the skill cannot read when: [t0] --timeout 5m --mode apply then: stderr matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint --timeout 5m
+   └─ ✋ ConstraintError: --timeout must be whole seconds, e.g. --timeout 120
+
+🥥 did you know?
+   ├─ in seconds, 5m is --timeout 300
+   ├─ --timeout narrows the bound, up to the 420s max; omit it for the 420s default
+   └─ rerun: rhx git.repo.test --what lint --mode apply --timeout 300
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case4] a --timeout the skill cannot read when: [t0] --timeout 5m --mode apply then: stdout matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint --timeout 5m
+   └─ ✋ ConstraintError: --timeout must be whole seconds, e.g. --timeout 120
+
+🥥 did you know?
+   ├─ in seconds, 5m is --timeout 300
+   ├─ --timeout narrows the bound, up to the 420s max; omit it for the 420s default
+   └─ rerun: rhx git.repo.test --what lint --mode apply --timeout 300
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case4] a --timeout the skill cannot read when: [t1] --timeout 0 --mode apply then: stderr matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint --timeout 0
+   └─ ✋ ConstraintError: --timeout must be whole seconds, e.g. --timeout 120
+
+🥥 did you know?
+   ├─ --timeout narrows the bound, up to the 420s max; omit it for the 420s default
+   └─ rerun: rhx git.repo.test --what lint --mode apply --timeout 420
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case4] a --timeout the skill cannot read when: [t1] --timeout 0 --mode apply then: stdout matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint --timeout 0
+   └─ ✋ ConstraintError: --timeout must be whole seconds, e.g. --timeout 120
+
+🥥 did you know?
+   ├─ --timeout narrows the bound, up to the 420s max; omit it for the 420s default
+   └─ rerun: rhx git.repo.test --what lint --mode apply --timeout 420
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case4] a --timeout the skill cannot read when: [t2] --timeout abc --mode apply then: stderr matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint --timeout abc
+   └─ ✋ ConstraintError: --timeout must be whole seconds, e.g. --timeout 120
+
+🥥 did you know?
+   ├─ --timeout narrows the bound, up to the 420s max; omit it for the 420s default
+   └─ rerun: rhx git.repo.test --what lint --mode apply --timeout 420
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case4] a --timeout the skill cannot read when: [t2] --timeout abc --mode apply then: stdout matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint --timeout abc
+   └─ ✋ ConstraintError: --timeout must be whole seconds, e.g. --timeout 120
+
+🥥 did you know?
+   ├─ --timeout narrows the bound, up to the 420s max; omit it for the 420s default
+   └─ rerun: rhx git.repo.test --what lint --mode apply --timeout 420
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case4] a --timeout the skill cannot read when: [t3] --timeout 5m --mode plan then: stderr matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint --timeout 5m
+   └─ ✋ ConstraintError: --timeout must be whole seconds, e.g. --timeout 120
+
+🥥 did you know?
+   ├─ in seconds, 5m is --timeout 300
+   ├─ --timeout narrows the bound, up to the 420s max; omit it for the 420s default
+   └─ rerun: rhx git.repo.test --what lint --mode plan --timeout 300
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case4] a --timeout the skill cannot read when: [t3] --timeout 5m --mode plan then: stdout matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint --timeout 5m
+   └─ ✋ ConstraintError: --timeout must be whole seconds, e.g. --timeout 120
+
+🥥 did you know?
+   ├─ in seconds, 5m is --timeout 300
+   ├─ --timeout narrows the bound, up to the 420s max; omit it for the 420s default
+   └─ rerun: rhx git.repo.test --what lint --mode plan --timeout 300
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case4] a --timeout the skill cannot read when: [t4] --timeout (no value) --mode apply then: stderr matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint --timeout (empty)
+   └─ ✋ ConstraintError: --timeout must be whole seconds, e.g. --timeout 120
+
+🥥 did you know?
+   ├─ --timeout narrows the bound, up to the 420s max; omit it for the 420s default
+   └─ rerun: rhx git.repo.test --what lint --mode apply --timeout 420
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case4] a --timeout the skill cannot read when: [t4] --timeout (no value) --mode apply then: stdout matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint --timeout (empty)
+   └─ ✋ ConstraintError: --timeout must be whole seconds, e.g. --timeout 120
+
+🥥 did you know?
+   ├─ --timeout narrows the bound, up to the 420s max; omit it for the 420s default
+   └─ rerun: rhx git.repo.test --what lint --mode apply --timeout 420
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case4] a --timeout the skill cannot read when: [t5] --timeout (followed by another flag) --mode apply then: stderr matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint --timeout (empty)
+   └─ ✋ ConstraintError: --timeout must be whole seconds, e.g. --timeout 120
+
+🥥 did you know?
+   ├─ --timeout narrows the bound, up to the 420s max; omit it for the 420s default
+   └─ rerun: rhx git.repo.test --what lint --mode apply --timeout 420
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case4] a --timeout the skill cannot read when: [t5] --timeout (followed by another flag) --mode apply then: stdout matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint --timeout (empty)
+   └─ ✋ ConstraintError: --timeout must be whole seconds, e.g. --timeout 120
+
+🥥 did you know?
+   ├─ --timeout narrows the bound, up to the 420s max; omit it for the 420s default
+   └─ rerun: rhx git.repo.test --what lint --mode apply --timeout 420
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case4] a --timeout the skill cannot read when: [t6] --timeout 420s --mode apply then: stderr matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint --timeout 420s
+   └─ ✋ ConstraintError: --timeout must be whole seconds, e.g. --timeout 120
+
+🥥 did you know?
+   ├─ --timeout narrows the bound, up to the 420s max; omit it for the 420s default
+   └─ rerun: rhx git.repo.test --what lint --mode apply --timeout 420
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case4] a --timeout the skill cannot read when: [t6] --timeout 420s --mode apply then: stdout matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint --timeout 420s
+   └─ ✋ ConstraintError: --timeout must be whole seconds, e.g. --timeout 120
+
+🥥 did you know?
+   ├─ --timeout narrows the bound, up to the 420s max; omit it for the 420s default
+   └─ rerun: rhx git.repo.test --what lint --mode apply --timeout 420
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case4] a --timeout the skill cannot read when: [t7] --timeout 1.5 --mode apply then: stderr matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint --timeout 1.5
+   └─ ✋ ConstraintError: --timeout must be whole seconds, e.g. --timeout 120
+
+🥥 did you know?
+   ├─ --timeout narrows the bound, up to the 420s max; omit it for the 420s default
+   └─ rerun: rhx git.repo.test --what lint --mode apply --timeout 420
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case4] a --timeout the skill cannot read when: [t7] --timeout 1.5 --mode apply then: stdout matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint --timeout 1.5
+   └─ ✋ ConstraintError: --timeout must be whole seconds, e.g. --timeout 120
+
+🥥 did you know?
+   ├─ --timeout narrows the bound, up to the 420s max; omit it for the 420s default
+   └─ rerun: rhx git.repo.test --what lint --mode apply --timeout 420
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case4] a --timeout the skill cannot read when: [t8] --timeout 007 --mode apply then: stderr matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint --timeout 007
+   └─ ✋ ConstraintError: --timeout must be whole seconds, e.g. --timeout 120
+
+🥥 did you know?
+   ├─ --timeout narrows the bound, up to the 420s max; omit it for the 420s default
+   └─ rerun: rhx git.repo.test --what lint --mode apply --timeout 420
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case4] a --timeout the skill cannot read when: [t8] --timeout 007 --mode apply then: stdout matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint --timeout 007
+   └─ ✋ ConstraintError: --timeout must be whole seconds, e.g. --timeout 120
+
+🥥 did you know?
+   ├─ --timeout narrows the bound, up to the 420s max; omit it for the 420s default
+   └─ rerun: rhx git.repo.test --what lint --mode apply --timeout 420
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case4] a --timeout the skill cannot read when: [t9] --timeout -5 --mode apply then: stderr matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint --timeout -5
+   └─ ✋ ConstraintError: --timeout must be whole seconds, e.g. --timeout 120
+
+🥥 did you know?
+   ├─ --timeout narrows the bound, up to the 420s max; omit it for the 420s default
+   └─ rerun: rhx git.repo.test --what lint --mode apply --timeout 420
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case4] a --timeout the skill cannot read when: [t9] --timeout -5 --mode apply then: stdout matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint --timeout -5
+   └─ ✋ ConstraintError: --timeout must be whole seconds, e.g. --timeout 120
+
+🥥 did you know?
+   ├─ --timeout narrows the bound, up to the 420s max; omit it for the 420s default
+   └─ rerun: rhx git.repo.test --what lint --mode apply --timeout 420
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case4] a --timeout the skill cannot read when: [t10] --timeout =-5 --mode apply then: stderr matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint --timeout -5
+   └─ ✋ ConstraintError: --timeout must be whole seconds, e.g. --timeout 120
+
+🥥 did you know?
+   ├─ --timeout narrows the bound, up to the 420s max; omit it for the 420s default
+   └─ rerun: rhx git.repo.test --what lint --mode apply --timeout 420
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case4] a --timeout the skill cannot read when: [t10] --timeout =-5 --mode apply then: stdout matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint --timeout -5
+   └─ ✋ ConstraintError: --timeout must be whole seconds, e.g. --timeout 120
+
+🥥 did you know?
+   ├─ --timeout narrows the bound, up to the 420s max; omit it for the 420s default
+   └─ rerun: rhx git.repo.test --what lint --mode apply --timeout 420
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case4] a --timeout the skill cannot read when: [t11] --timeout 5m with --what lint,format (multi-mode) then: stderr matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint,format --timeout 5m
+   └─ ✋ ConstraintError: --timeout must be whole seconds, e.g. --timeout 120
+
+🥥 did you know?
+   ├─ in seconds, 5m is --timeout 300
+   ├─ --timeout narrows the bound, up to the 420s max; omit it for the 420s default
+   └─ rerun: rhx git.repo.test --what lint,format --mode plan --timeout 300
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case4] a --timeout the skill cannot read when: [t11] --timeout 5m with --what lint,format (multi-mode) then: stdout matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint,format --timeout 5m
+   └─ ✋ ConstraintError: --timeout must be whole seconds, e.g. --timeout 120
+
+🥥 did you know?
+   ├─ in seconds, 5m is --timeout 300
+   ├─ --timeout narrows the bound, up to the 420s max; omit it for the 420s default
+   └─ rerun: rhx git.repo.test --what lint,format --mode plan --timeout 300
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case5] a slow suite that spawns its own children when: [t0] the bound fires under gnu timeout then: stderr matches snapshot 1`] = `
+"🐢 woah, too slow...
+
+🐚 git.repo.test --what lint --timeout 1
+   ├─ bound: 1s (--timeout)
+   │  └─ let your shell call run past 31s, or its own clock ends this run first
+   ├─ status
+   │  └─ ⏱️ too slow (Xs)
+   ├─ log
+   │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stdout.log
+   │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
+   └─ ✋ ConstraintError: woah, too slow — past the 1s bound (--timeout)
+      ├─ this speed defect is yours to root cause
+      └─ find why the lint tool is slow: the files it scans, its config, its cache
+
+🥥 did you know?
+   ├─ time the tool alone: npm run test:lint
+   └─ no call may run past 420s: make the suite fast, never the bound wide
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case5] a slow suite that spawns its own children when: [t0] the bound fires under gnu timeout then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what lint --timeout 1
+   ├─ bound: 1s (--timeout)
+   │  └─ let your shell call run past 31s, or its own clock ends this run first
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ ⏱️ too slow (Xs)
+   ├─ log
+   │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stdout.log
+   │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
+   └─ ✋ ConstraintError: woah, too slow — past the 1s bound (--timeout)
+      ├─ this speed defect is yours to root cause
+      └─ find why the lint tool is slow: the files it scans, its config, its cache
+
+🥥 did you know?
+   ├─ time the tool alone: npm run test:lint
+   └─ no call may run past 420s: make the suite fast, never the bound wide
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case6] a slow jest suite under --resnap, cut mid-output when: [t0] the bound fires after the suite printed partial jest output then: stderr matches snapshot 1`] = `
+"🐢 woah, too slow...
+
+🐚 git.repo.test --what unit --mode apply --resnap --timeout 1
+   ├─ bound: 1s (--timeout)
+   │  └─ let your shell call run past 31s, or its own clock ends this run first
+   ├─ status
+   │  └─ ⏱️ too slow (Xs)
+   ├─ log
+   │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=unit/ISOTIME.stdout.log
+   │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=unit/ISOTIME.stderr.log
+   └─ ✋ ConstraintError: woah, too slow — past the 1s bound (--timeout)
+      ├─ this speed defect is yours to root cause
+      ├─ fix why it is slow: shared setup, real waits, redundant calls
+      └─ a cut skips jest teardown: a server the suite detached may still run
+
+🥥 did you know?
+   ├─ find the slow suite: Read the log; a cut log lists only the files that finished, so the slow one never reported
+   ├─ or bisect it: rerun with --scope over half the files, then half again
+   ├─ snapshots may be partly written: rerun --resnap once the suite is fast
+   └─ no call may run past 420s: make the suite fast, never the bound wide
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case6] a slow jest suite under --resnap, cut mid-output when: [t0] the bound fires after the suite printed partial jest output then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --mode apply --resnap --timeout 1
+   ├─ bound: 1s (--timeout)
+   │  └─ let your shell call run past 31s, or its own clock ends this run first
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ ⏱️ too slow (Xs)
+   ├─ log
+   │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=unit/ISOTIME.stdout.log
+   │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=unit/ISOTIME.stderr.log
+   └─ ✋ ConstraintError: woah, too slow — past the 1s bound (--timeout)
+      ├─ this speed defect is yours to root cause
+      ├─ fix why it is slow: shared setup, real waits, redundant calls
+      └─ a cut skips jest teardown: a server the suite detached may still run
+
+🥥 did you know?
+   ├─ find the slow suite: Read the log; a cut log lists only the files that finished, so the slow one never reported
+   ├─ or bisect it: rerun with --scope over half the files, then half again
+   ├─ snapshots may be partly written: rerun --resnap once the suite is fast
+   └─ no call may run past 420s: make the suite fast, never the bound wide
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case9] a slow suite run by a stop hook when: [t0] --when hook.onStop with a 1s bound then: stderr matches snapshot 1`] = `
+"🐢 woah, too slow...
+
+🐚 git.repo.test --what lint --timeout 1
+   ├─ bound: 1s (--timeout)
+   │  └─ let your shell call run past 31s, or its own clock ends this run first
+   ├─ status
+   │  └─ ⏱️ too slow (Xs)
+   ├─ log
+   │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stdout.log
+   │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
+   └─ ✋ ConstraintError: woah, too slow — past the 1s bound (--timeout)
+      ├─ this speed defect is yours to root cause
+      └─ find why the lint tool is slow: the files it scans, its config, its cache
+
+🥥 did you know?
+   ├─ time the tool alone: npm run test:lint
+   └─ no call may run past 420s: make the suite fast, never the bound wide
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case9] a slow suite run by a stop hook when: [t0] --when hook.onStop with a 1s bound then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what lint --timeout 1
+   ├─ bound: 1s (--timeout)
+   │  └─ let your shell call run past 31s, or its own clock ends this run first
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ ⏱️ too slow (Xs)
+   ├─ log
+   │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stdout.log
+   │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
+   └─ ✋ ConstraintError: woah, too slow — past the 1s bound (--timeout)
+      ├─ this speed defect is yours to root cause
+      └─ find why the lint tool is slow: the files it scans, its config, its cache
+
+🥥 did you know?
+   ├─ time the tool alone: npm run test:lint
+   └─ no call may run past 420s: make the suite fast, never the bound wide
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case11] a fuse that cannot run the suite when: [t0] the skill runs a suite through it then: stderr matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
+   │  └─ 💥 malfunction (Xs)
+   └─ log: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
+
+💥 MalfunctionError: the bound could not run the suite
+   └─ why: \`timeout\` exited 125 before the suite ran, so no suite verdict exists
+
+🥥 did you know?
+   └─ check the fuse with: timeout --kill-after=1s 1s bash -c :
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case11] a fuse that cannot run the suite when: [t0] the skill runs a suite through it then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what lint
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 💥 malfunction (Xs)
+   └─ log: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
+
+💥 MalfunctionError: the bound could not run the suite
+   └─ why: \`timeout\` exited 125 before the suite ran, so no suite verdict exists
+
+🥥 did you know?
+   └─ check the fuse with: timeout --kill-after=1s 1s bash -c :
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case12] the skill is stopped mid-run when: [t0] SIGINT, as a ctrl-c then: stderr matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint --timeout 60
+   ├─ bound: 60s (--timeout)
+   │  └─ let your shell call run past 90s, or its own clock ends this run first
+   ├─ status
+   │  └─ 🌙 stopped by the caller
+   └─ log
+      ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stdout.log
+      └─ stderr: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case12] the skill is stopped mid-run when: [t0] SIGINT, as a ctrl-c then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what lint --timeout 60
+   ├─ bound: 60s (--timeout)
+   │  └─ let your shell call run past 90s, or its own clock ends this run first
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🌙 stopped by the caller
+   └─ log
+      ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stdout.log
+      └─ stderr: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case12] the skill is stopped mid-run when: [t2] SIGTERM to a multi-type run (--what lint,format) then: stderr matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint --timeout 60
+   ├─ bound: 60s (--timeout)
+   ├─ status
+   │  └─ 🌙 stopped by the caller
+   └─ log
+      ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stdout.log
+      └─ stderr: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case12] the skill is stopped mid-run when: [t2] SIGTERM to a multi-type run (--what lint,format) then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what lint,format --timeout 60
+   └─ bound: 60s (--timeout), for the whole call, 2 of 2 types run
+      └─ let your shell call run past 120s, or its own clock ends this run first
+
+🐚 git.repo.test --what lint --timeout 60
+   ├─ bound: 60s (--timeout)
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🌙 stopped by the caller
+   └─ log
+      ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stdout.log
+      └─ stderr: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case12] the skill is stopped mid-run when: [t4] SIGTERM in the scope preview, before the status tree opens then: stderr matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what unit --scope a --mode apply --timeout 60
+   └─ 🌙 stopped by the caller, before the run began
+      ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=unit/ISOTIME.stdout.log
+      └─ stderr: .log/role=mechanic/skill=git.repo.test/what=unit/ISOTIME.stderr.log
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case12] the skill is stopped mid-run when: [t4] SIGTERM in the scope preview, before the status tree opens then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --scope a --mode apply --timeout 60
+   └─ 🌙 stopped by the caller, before the run began
+      ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=unit/ISOTIME.stdout.log
+      └─ stderr: .log/role=mechanic/skill=git.repo.test/what=unit/ISOTIME.stderr.log
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case13] the skill on a host with no fuse tool (c14, c15) when: [t0] a slow suite runs past its bound then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what lint --timeout 1
+   ├─ bound: 1s (--timeout)
+   │  └─ let your shell call run past 31s, or its own clock ends this run first
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ ⏱️ too slow (Xs)
+   ├─ log
+   │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stdout.log
+   │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
+   └─ ✋ ConstraintError: woah, too slow — past the 1s bound (--timeout)
+      ├─ this speed defect is yours to root cause
+      └─ find why the lint tool is slow: the files it scans, its config, its cache
+
+🥥 did you know?
+   ├─ time the tool alone: npm run test:lint
+   └─ no call may run past 420s: make the suite fast, never the bound wide
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case13] the skill on a host with no fuse tool (c14, c15) when: [t1] a fast suite ends inside its bound then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what lint
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case16] a fuse that cannot take hold of or mark the run, through the skill when: [t0] the watchdog run does not get its own process group then: stderr matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
+   │  └─ 💥 malfunction (Xs)
+   └─ log: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
+
+💥 MalfunctionError: the bound could not take hold of the run
+   ├─ why: the run got process group 1, not its own (PID); a cut would miss its children
+   └─ note: the run's leader (PID) is stopped; any child it had already started may still run, in group 1
+
+🥥 did you know?
+   ├─ install gnu coreutils, and the bound uses gtimeout instead of this watchdog
+   └─ find leftovers with: ps -o pid,pgid,args -g 1
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case16] a fuse that cannot take hold of or mark the run, through the skill when: [t0] the watchdog run does not get its own process group then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what lint
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 💥 malfunction (Xs)
+   └─ log: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
+
+💥 MalfunctionError: the bound could not take hold of the run
+   ├─ why: the run got process group 1, not its own (PID); a cut would miss its children
+   └─ note: the run's leader (PID) is stopped; any child it had already started may still run, in group 1
+
+🥥 did you know?
+   ├─ install gnu coreutils, and the bound uses gtimeout instead of this watchdog
+   └─ find leftovers with: ps -o pid,pgid,args -g 1
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case16] a fuse that cannot take hold of or mark the run, through the skill when: [t1] the bound cannot make its marker dir then: stderr matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
+   │  └─ 💥 malfunction (Xs)
+   └─ log: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
+
+💥 MalfunctionError: the bound could not make its marker dir
+   └─ why: \`mktemp -d\` failed, so no run could be read; none started
+
+🥥 did you know?
+   └─ check the temp dir with: mktemp -d
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case16] a fuse that cannot take hold of or mark the run, through the skill when: [t1] the bound cannot make its marker dir then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what lint
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 💥 malfunction (Xs)
+   └─ log: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
+
+💥 MalfunctionError: the bound could not make its marker dir
+   └─ why: \`mktemp -d\` failed, so no run could be read; none started
+
+🥥 did you know?
+   └─ check the temp dir with: mktemp -d
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case17] a --timeout past the 420s max when: [t0] --timeout 421 --what lint then: stdout matches snapshot 1`] = `
+"🐢 woah, too slow...
+
+🐚 git.repo.test --what lint --timeout 421
+   └─ ✋ ConstraintError: --timeout 421 is past the 420s max for any call
+      └─ a suite that needs more is too slow: fix its speed, never its bound
+
+🥥 did you know?
+   ├─ the max holds for the whole call, every type and every scope
+   └─ rerun under the max: rhx git.repo.test --what lint --mode apply --timeout 420
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case17] a --timeout past the 420s max when: [t1] --timeout 480 --what lint then: stdout matches snapshot 1`] = `
+"🐢 woah, too slow...
+
+🐚 git.repo.test --what lint --timeout 480
+   └─ ✋ ConstraintError: --timeout 480 is past the 420s max for any call
+      └─ a suite that needs more is too slow: fix its speed, never its bound
+
+🥥 did you know?
+   ├─ the max holds for the whole call, every type and every scope
+   └─ rerun under the max: rhx git.repo.test --what lint --mode apply --timeout 420
+"
+`;
+
+exports[`git.repo.test.sh bound given: [case17] a --timeout past the 420s max when: [t2] --timeout 900 --what lint,format then: stdout matches snapshot 1`] = `
+"🐢 woah, too slow...
+
+🐚 git.repo.test --what lint,format --timeout 900
+   └─ ✋ ConstraintError: --timeout 900 is past the 420s max for any call
+      └─ a suite that needs more is too slow: fix its speed, never its bound
+
+🥥 did you know?
+   ├─ the max holds for the whole call, every type and every scope
+   └─ rerun under the max: rhx git.repo.test --what lint,format --mode apply --timeout 420
+"
+`;

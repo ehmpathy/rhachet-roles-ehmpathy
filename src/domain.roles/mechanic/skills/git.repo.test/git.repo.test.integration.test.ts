@@ -1328,8 +1328,8 @@ module.exports = {
     when(
       '[t0] `rhx git.repo.test --what lint --timeout 1` with slow command',
       () => {
-        then('exit code is 1 (malfunction) when timeout exceeded', () => {
-          const result = runInTempGitRepo({
+        const result = useThen('it runs', async () =>
+          runInTempGitRepo({
             packageJson: {
               name: 'test-repo',
               scripts: {
@@ -1337,37 +1337,29 @@ module.exports = {
               },
             },
             gitRepoTestArgs: ['--what', 'lint', '--timeout', '1'],
-          });
+          }),
+        );
 
-          expect(result.exitCode).toBe(1);
-        });
+        then(
+          "exit code is 2 (constraint): the slow suite is the caller's to fix",
+          () => {
+            expect(result.exitCode).toBe(2);
+          },
+        );
 
-        then('stdout shows timeout message', () => {
-          const result = runInTempGitRepo({
-            packageJson: {
-              name: 'test-repo',
-              scripts: {
-                'test:lint': 'sleep 5',
-              },
-            },
-            gitRepoTestArgs: ['--what', 'lint', '--timeout', '1'],
-          });
-
-          expect(result.stdout).toContain('timeout');
-          expect(result.stdout).toContain('1s');
-        });
+        then(
+          'stdout says too slow, names the bound, and names the owner',
+          () => {
+            expect(result.stdout).toContain('woah, too slow');
+            expect(result.stdout).toContain('bound: 1s (--timeout)');
+            expect(result.stdout).toContain(
+              'this speed defect is yours to root cause',
+            );
+            expect(result.stderr).toContain('woah, too slow');
+          },
+        );
 
         then('output matches snapshot', () => {
-          const result = runInTempGitRepo({
-            packageJson: {
-              name: 'test-repo',
-              scripts: {
-                'test:lint': 'sleep 5',
-              },
-            },
-            gitRepoTestArgs: ['--what', 'lint', '--timeout', '1'],
-          });
-
           expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         });
       },
@@ -1388,7 +1380,12 @@ module.exports = {
           });
 
           expect(result.exitCode).toBe(0);
-          expect(result.stdout).not.toContain('timeout');
+          expect(result.stdout).toContain('bound: 10s (--timeout)');
+          // the run is not cut: no cut status, no cut error, on either stream
+          expect(result.stdout).not.toContain('⏱️ too slow');
+          expect(result.stdout).not.toContain('ConstraintError');
+          expect(result.stderr).not.toContain('too slow');
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         });
       },
     );

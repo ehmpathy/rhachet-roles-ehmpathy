@@ -4,6 +4,8 @@ exports[`git.repo.test.sh given: [case1] lint passes when: [t0] \`rhx git.repo.t
 "🐢 lets ride...
 
 🐚 git.repo.test --what lint
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -18,6 +20,9 @@ exports[`git.repo.test.sh given: [case2] lint fails when: [t0] \`rhx git.repo.te
 "🐢 bummer dude...
 
 🐚 git.repo.test --what lint
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
    │  └─ ✋ failed (Xs)
    ├─ defects: 3
    ├─ log
@@ -31,6 +36,9 @@ exports[`git.repo.test.sh given: [case3] npm error (malfunction) when: [t0] \`rh
 "🐢 bummer dude...
 
 🐚 git.repo.test --what lint
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
    │  └─ 💥 malfunction (Xs)
    └─ log: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
 
@@ -93,6 +101,9 @@ exports[`git.repo.test.sh given: [case10] lint exits with non-zero (warnings or 
 "🐢 bummer dude...
 
 🐚 git.repo.test --what lint
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
    │  └─ ✋ failed (Xs)
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stdout.log
@@ -105,6 +116,8 @@ exports[`git.repo.test.sh given: [case11] types passes when: [t0] \`rhx git.repo
 "🐢 lets ride...
 
 🐚 git.repo.test --what types
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -119,6 +132,9 @@ exports[`git.repo.test.sh given: [case12] types fails when: [t0] \`rhx git.repo.
 "🐢 bummer dude...
 
 🐚 git.repo.test --what types
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
    │  └─ ✋ failed (Xs)
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=types/ISOTIME.stdout.log
@@ -131,6 +147,8 @@ exports[`git.repo.test.sh given: [case13] format passes when: [t0] \`rhx git.rep
 "🐢 lets ride...
 
 🐚 git.repo.test --what format
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -145,6 +163,9 @@ exports[`git.repo.test.sh given: [case14] format fails when: [t0] \`rhx git.repo
 "🐢 bummer dude...
 
 🐚 git.repo.test --what format
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
    │  └─ ✋ failed (Xs)
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=format/ISOTIME.stdout.log
@@ -156,7 +177,12 @@ exports[`git.repo.test.sh given: [case14] format fails when: [t0] \`rhx git.repo
 exports[`git.repo.test.sh given: [case17] comma-separated --what values when: [t0] \`rhx git.repo.test --what types,format\` is run then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
+🐚 git.repo.test --what types,format
+   └─ bound: 420s (default), for the whole call, 2 of 2 types run
+      └─ let your shell call run past 480s, or its own clock ends this run first
+
 🐚 git.repo.test --what types
+   ├─ bound: 420s (default)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -166,6 +192,7 @@ exports[`git.repo.test.sh given: [case17] comma-separated --what values when: [t
       └─ hint: use \`--log always\` to persist when desired
 
 🐚 git.repo.test --what format
+   ├─ bound: 420s (default)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -216,18 +243,39 @@ hint: create jest.unit.config.ts for unit tests
 exports[`git.repo.test.sh given: [case22] --timeout flag when: [t0] \`rhx git.repo.test --what lint --timeout 1\` with slow command then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what lint
+🐚 git.repo.test --what lint --timeout 1
+   ├─ bound: 1s (--timeout)
+   │  └─ let your shell call run past 31s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
-   │  └─ ⏱️ timeout (Xs)
-   ├─ status: malfunction
-   ├─ error: test exceeded 1s timeout
-   └─ log
-      ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stdout.log
-      └─ stderr: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
+   │  └─ ⏱️ too slow (Xs)
+   ├─ log
+   │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stdout.log
+   │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
+   └─ ✋ ConstraintError: woah, too slow — past the 1s bound (--timeout)
+      ├─ this speed defect is yours to root cause
+      └─ find why the lint tool is slow: the files it scans, its config, its cache
 
-hint: increase --timeout or check for slow tests
+🥥 did you know?
+   ├─ time the tool alone: npm run test:lint
+   └─ no call may run past 420s: make the suite fast, never the bound wide
+"
+`;
+
+exports[`git.repo.test.sh given: [case22] --timeout flag when: [t1] \`rhx git.repo.test --what lint --timeout 10\` with fast command then: completes normally when under timeout 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what lint --timeout 10
+   ├─ bound: 10s (--timeout)
+   │  └─ let your shell call run past 40s, or its own clock ends this run first
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
+   │  └─ 🎉 passed (Xs)
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
 "
 `;
 

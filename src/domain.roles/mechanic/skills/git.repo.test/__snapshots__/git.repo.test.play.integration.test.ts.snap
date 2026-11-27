@@ -4,6 +4,8 @@ exports[`git.repo.test given: [case1] repo with tests that pass when: [t0] --wha
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --mode apply
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -22,6 +24,9 @@ exports[`git.repo.test given: [case2] repo with tests that fail when: [t0] --wha
 "🐢 bummer dude...
 
 🐚 git.repo.test --what unit --mode apply
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
    │  └─ ✋ failed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
@@ -42,6 +47,8 @@ exports[`git.repo.test given: [case3] repo with multiple test files when: [t0] -
    │  └─ matched: 1 files
    ├─ files
    │  └─ /tmp/TEMP/src/user.unit.test.ts
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -60,6 +67,8 @@ exports[`git.repo.test given: [case4] repo with snapshot to update when: [t0] --
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --mode apply --resnap
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -78,6 +87,9 @@ exports[`git.repo.test given: [case4] repo with snapshot to update when: [t1] --
 "🐢 bummer dude...
 
 🐚 git.repo.test --what unit --mode apply --resnap
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
    │  └─ ✋ failed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
@@ -95,6 +107,8 @@ exports[`git.repo.test given: [case4] repo with snapshot to update when: [t2] --
 
 🐚 git.repo.test --what integration --mode apply --resnap
    ├─ keyrack: unlocked ehmpath/test
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -114,6 +128,9 @@ exports[`git.repo.test given: [case4] repo with snapshot to update when: [t3] --
 
 🐚 git.repo.test --what integration --mode apply --resnap
    ├─ keyrack: unlocked ehmpath/test
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
    │  └─ ✋ failed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
@@ -131,6 +148,8 @@ exports[`git.repo.test given: [case4] repo with snapshot to update when: [t4] --
 
 🐚 git.repo.test --what acceptance --mode apply --resnap --against local --env test
    ├─ keyrack: unlocked ehmpath/test
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -150,6 +169,9 @@ exports[`git.repo.test given: [case4] repo with snapshot to update when: [t5] --
 
 🐚 git.repo.test --what acceptance --mode apply --resnap --against local --env test
    ├─ keyrack: unlocked ehmpath/test
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
    │  └─ ✋ failed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
@@ -167,6 +189,8 @@ exports[`git.repo.test given: [case5] repo with integration tests when: [t0] --w
 
 🐚 git.repo.test --what integration --mode apply
    ├─ keyrack: unlocked ehmpath/test
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -186,6 +210,9 @@ exports[`git.repo.test given: [case5] repo with integration tests when: [t1] --w
 
 🐚 git.repo.test --what integration --mode apply
    ├─ keyrack: unlocked ehmpath/test
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
    │  └─ ✋ failed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
@@ -212,7 +239,14 @@ keyrack unlock failed: vault locked
 `;
 
 exports[`git.repo.test given: [case6] repo with no matched tests when: [t0] --what unit --scope with no matches is called then: output matches snapshot 1`] = `
-"   ├─ status: constraint
+"🐢 bummer dude...
+
+🐚 git.repo.test --what unit --scope nonexistent --mode apply
+   ├─ scope: path://nonexistent
+   │  └─ matched: 0 files
+   ├─ files
+   │  └─ (none)
+   ├─ status: constraint
    └─ error: no tests matched scope 'path://nonexistent'
 
 hint: check the scope pattern or run without --scope to see all tests
@@ -234,6 +268,8 @@ exports[`git.repo.test given: [case8] repo with tests that need extra args when:
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --mode apply
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -252,6 +288,8 @@ exports[`git.repo.test given: [case9] repo with lint command when: [t0] --what l
 "🐢 lets ride...
 
 🐚 git.repo.test --what lint --scope src --mode apply --resnap
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -266,6 +304,9 @@ exports[`git.repo.test given: [case9] repo with lint command when: [t1] --what l
 "🐢 bummer dude...
 
 🐚 git.repo.test --what lint --mode apply
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
    │  └─ ✋ failed (Xs)
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/TIMESTAMP.stdout.log
@@ -279,6 +320,8 @@ exports[`git.repo.test given: [case10] repo with acceptance tests when: [t0] --w
 
 🐚 git.repo.test --what acceptance --mode apply --against local --env test
    ├─ keyrack: unlocked ehmpath/test
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -298,6 +341,9 @@ exports[`git.repo.test given: [case10] repo with acceptance tests when: [t1] --w
 
 🐚 git.repo.test --what acceptance --mode apply --against local --env test
    ├─ keyrack: unlocked ehmpath/test
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
    │  └─ ✋ failed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
@@ -332,6 +378,8 @@ exports[`git.repo.test given: [case10] repo with acceptance tests when: [t3] --w
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/checkout.acceptance.test.ts
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -349,7 +397,12 @@ exports[`git.repo.test given: [case10] repo with acceptance tests when: [t3] --w
 exports[`git.repo.test given: [case11] repo with all test commands when: [t0] --what all is called and all pass then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
+🐚 git.repo.test --what all --mode apply --against local
+   └─ bound: 420s (default), for the whole call, 4 of 4 types run
+      └─ let your shell call run past 540s, or its own clock ends this run first
+
 🐚 git.repo.test --what lint --mode apply
+   ├─ bound: 420s (default)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -359,6 +412,7 @@ exports[`git.repo.test given: [case11] repo with all test commands when: [t0] --
       └─ hint: use \`--log always\` to persist when desired
 
 🐚 git.repo.test --what unit --mode apply
+   ├─ bound: 420s (default)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -373,6 +427,7 @@ exports[`git.repo.test given: [case11] repo with all test commands when: [t0] --
 
 🐚 git.repo.test --what integration --mode apply
    ├─ keyrack: unlocked ehmpath/test
+   ├─ bound: 420s (default)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -387,6 +442,7 @@ exports[`git.repo.test given: [case11] repo with all test commands when: [t0] --
 
 🐚 git.repo.test --what acceptance --mode apply --against local --env test
    ├─ keyrack: unlocked ehmpath/test
+   ├─ bound: 420s (default)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -406,6 +462,8 @@ exports[`git.repo.test given: [case11] repo with all test commands when: [t1] --
 "🐢 bummer dude...
 
 🐚 git.repo.test --what lint --mode apply
+   ├─ bound: 420s (default)
+   ├─ status
    │  └─ ✋ failed (Xs)
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/TIMESTAMP.stdout.log
@@ -418,6 +476,8 @@ exports[`git.repo.test given: [case11] repo with all test commands when: [t2] --
 "🐢 bummer dude...
 
 🐚 git.repo.test --what unit --mode apply
+   ├─ bound: 420s (default)
+   ├─ status
    │  └─ ✋ failed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
@@ -435,6 +495,8 @@ exports[`git.repo.test given: [case11] repo with all test commands when: [t3] --
 
 🐚 git.repo.test --what integration --mode apply
    ├─ keyrack: unlocked ehmpath/test
+   ├─ bound: 420s (default)
+   ├─ status
    │  └─ ✋ failed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
@@ -452,6 +514,8 @@ exports[`git.repo.test given: [case11] repo with all test commands when: [t4] --
 
 🐚 git.repo.test --what acceptance --mode apply --against local --env test
    ├─ keyrack: unlocked ehmpath/test
+   ├─ bound: 420s (default)
+   ├─ status
    │  └─ ✋ failed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
@@ -468,6 +532,8 @@ exports[`git.repo.test given: [case12] repo with tests to run thorough when: [t0
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --mode apply --thorough
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -486,6 +552,9 @@ exports[`git.repo.test given: [case12] repo with tests to run thorough when: [t1
 "🐢 bummer dude...
 
 🐚 git.repo.test --what unit --mode apply --thorough
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
    │  └─ ✋ failed (Xs)
    ├─ stats
    │  ├─ suites: 5 files
@@ -503,6 +572,8 @@ exports[`git.repo.test given: [case12] repo with tests to run thorough when: [t2
 
 🐚 git.repo.test --what integration --mode apply --thorough
    ├─ keyrack: unlocked ehmpath/test
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -522,6 +593,9 @@ exports[`git.repo.test given: [case12] repo with tests to run thorough when: [t3
 
 🐚 git.repo.test --what integration --mode apply --thorough
    ├─ keyrack: unlocked ehmpath/test
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
    │  └─ ✋ failed (Xs)
    ├─ stats
    │  ├─ suites: 3 files
@@ -539,6 +613,8 @@ exports[`git.repo.test given: [case12] repo with tests to run thorough when: [t4
 
 🐚 git.repo.test --what acceptance --mode apply --thorough --against local --env test
    ├─ keyrack: unlocked ehmpath/test
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -558,6 +634,9 @@ exports[`git.repo.test given: [case12] repo with tests to run thorough when: [t5
 
 🐚 git.repo.test --what acceptance --mode apply --thorough --against local --env test
    ├─ keyrack: unlocked ehmpath/test
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
+   ├─ status
    │  └─ ✋ failed (Xs)
    ├─ stats
    │  ├─ suites: 2 files
@@ -574,6 +653,8 @@ exports[`git.repo.test given: [case13] repo with unit tests when: [t0] --what un
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --mode apply
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -592,10 +673,12 @@ exports[`git.repo.test given: [case14] repo with no changed test files when: [t0
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --mode apply
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
-   ├─ status: skipped
+   │  └─ 🌙 skipped
    ├─ files: 0 (no test files changed since origin/main)
    └─ tests: 0 (no tests to run)
 
@@ -627,7 +710,9 @@ options:
                         local = test against local server (test:acceptance:locally)
                         cloud = test against deployed service (test:acceptance)
                         note: --env test --against cloud is invalid
-  --timeout <secs>    max time in seconds before timeout
+  --timeout <secs>    bound in whole seconds for the whole call (default and max: 420)
+                        a call past it is cut short and exits 2: the slow suite is yours to root cause
+                        may only narrow the bound, e.g. --timeout 120
   --log <mode>        auto | always (default: auto)
                         auto = persist logs on failure only
                         always = persist logs on success and failure
@@ -656,7 +741,7 @@ usage: git.repo.test.sh --what <lint|unit|integration|acceptance|all>
 "
 `;
 
-exports[`git.repo.test given: [case18] real repo with real npm when: [t0] --what unit --scope with real npm call then: output matches snapshot 1`] = `
+exports[`git.repo.test given: [case18] a real repo whose scope matches no files, no npm shim when: [t0] --what unit --scope with real npm call then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope nonexistent --mode apply
@@ -676,6 +761,8 @@ exports[`git.repo.test given: [case19] real integration test with keyrack when: 
 
 🐚 git.repo.test --what integration --mode apply
    ├─ keyrack: unlocked ehmpath/test
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -694,6 +781,8 @@ exports[`git.repo.test given: [case20] flag combinations when: [t0] --what unit 
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/user.unit.test.ts
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -716,6 +805,8 @@ exports[`git.repo.test given: [case20] flag combinations when: [t1] --what unit 
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/user.unit.test.ts
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -738,6 +829,8 @@ exports[`git.repo.test given: [case20] flag combinations when: [t2] --what unit 
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/user.unit.test.ts
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -761,6 +854,8 @@ exports[`git.repo.test given: [case20] flag combinations when: [t3] --what integ
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/api.integration.test.ts
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -783,6 +878,8 @@ exports[`git.repo.test given: [case20] flag combinations when: [t4] --what unit 
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/user.unit.test.ts
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -801,6 +898,8 @@ exports[`git.repo.test given: [case21] edge cases when: [t0] --scope with empty 
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --mode apply
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -844,7 +943,12 @@ hint: ensure jest is installed and supports --listTests
 exports[`git.repo.test given: [case22] additional flag combinations when: [t0] --what all --thorough combined then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
+🐚 git.repo.test --what all --mode apply --thorough --against local
+   └─ bound: 420s (default), for the whole call, 4 of 4 types run
+      └─ let your shell call run past 540s, or its own clock ends this run first
+
 🐚 git.repo.test --what lint --mode apply --thorough
+   ├─ bound: 420s (default)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -854,6 +958,7 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t0] -
       └─ hint: use \`--log always\` to persist when desired
 
 🐚 git.repo.test --what unit --mode apply --thorough
+   ├─ bound: 420s (default)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -868,6 +973,7 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t0] -
 
 🐚 git.repo.test --what integration --mode apply --thorough
    ├─ keyrack: unlocked ehmpath/test
+   ├─ bound: 420s (default)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -882,6 +988,7 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t0] -
 
 🐚 git.repo.test --what acceptance --mode apply --thorough --against local --env test
    ├─ keyrack: unlocked ehmpath/test
+   ├─ bound: 420s (default)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -900,7 +1007,12 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t0] -
 exports[`git.repo.test given: [case22] additional flag combinations when: [t1] --what all --resnap combined then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
+🐚 git.repo.test --what all --mode apply --resnap --against local
+   └─ bound: 420s (default), for the whole call, 4 of 4 types run
+      └─ let your shell call run past 540s, or its own clock ends this run first
+
 🐚 git.repo.test --what lint --mode apply --resnap
+   ├─ bound: 420s (default)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -910,6 +1022,7 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t1] -
       └─ hint: use \`--log always\` to persist when desired
 
 🐚 git.repo.test --what unit --mode apply --resnap
+   ├─ bound: 420s (default)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -924,6 +1037,7 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t1] -
 
 🐚 git.repo.test --what integration --mode apply --resnap
    ├─ keyrack: unlocked ehmpath/test
+   ├─ bound: 420s (default)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -938,6 +1052,7 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t1] -
 
 🐚 git.repo.test --what acceptance --mode apply --resnap --against local --env test
    ├─ keyrack: unlocked ehmpath/test
+   ├─ bound: 420s (default)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -962,6 +1077,8 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t2] -
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/api.integration.test.ts
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -985,6 +1102,8 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t3] -
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/checkout.acceptance.test.ts
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -1003,6 +1122,8 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t4] -
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --mode apply --resnap
+   ├─ bound: 420s (default)
+   │  └─ let your shell call run past 450s, or its own clock ends this run first
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
