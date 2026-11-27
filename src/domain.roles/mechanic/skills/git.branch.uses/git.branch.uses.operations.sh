@@ -327,7 +327,8 @@ guard_branch_uses_granted() {
       note="$BRANCH_USES_NOTE" note_arg="$BRANCH_USES_NOTE_ARG"
   fi
   emit_branch_meter_constraint cmd="$cmd" reason="$BRANCH_USES_REASON" \
-    ask="$BRANCH_USES_ASK" lift="$BRANCH_USES_LIFT"
+    branches="$BRANCH_USES_BRANCHES" ask="$BRANCH_USES_ASK" \
+    lift="$BRANCH_USES_LIFT" note="$BRANCH_USES_NOTE"
 }
 
 ######################################################################
@@ -346,6 +347,7 @@ guard_branch_uses_granted() {
 set_branch_uses_verdict() {
   BRANCH_USES_VERDICT="granted"
   BRANCH_USES_REASON=""
+  BRANCH_USES_BRANCHES=""
   BRANCH_USES_ASK=""
   BRANCH_USES_LIFT=""
   BRANCH_USES_NOTE=""
@@ -368,14 +370,26 @@ set_branch_uses_verdict() {
   # org gate next: an org must be allowed, by name or via @all
   if ! check_org_blocker; then
     BRANCH_USES_REASON="$ORG_BLOCK_REASON"
+    BRANCH_USES_BRANCHES="$ORG_BLOCK_BRANCHES"
     if [[ "$ORG_BLOCK_CORRUPT" == "true" ]]; then
       BRANCH_USES_VERDICT="damaged"
       BRANCH_USES_NOTE="print_org_corrupt_note"
       return 0
     fi
     BRANCH_USES_VERDICT="refused"
+
+    # a keyrack fault is the file's to fix; the meter lift cannot cure it.
+    # the note renders the full remedy on refusal; ask + lift feed the one-line
+    # plan preview (`get_plan_quota_line`), which reads them on every refusal
+    if [[ -n "${ORG_KEYRACK_FAULT:-}" ]]; then
+      BRANCH_USES_NOTE="print_keyrack_org_note"
+      BRANCH_USES_ASK="ask your human to fix"
+      BRANCH_USES_LIFT=$(as_keyrack_fault_lift fault="$ORG_KEYRACK_FAULT" kind="${ORG_UNREADABLE_KIND:-}" at="${ORG_UNREADABLE_AT:-}")
+      return 0
+    fi
+
     BRANCH_USES_ASK="ask your human to allow"
-    BRANCH_USES_LIFT="rhx git.branch.uses allow --org <org>"
+    BRANCH_USES_LIFT="rhx git.branch.uses allow --org ${ORG_BLOCK_ORG:-<org>}"
     return 0
   fi
 
@@ -417,23 +431,32 @@ set_branch_uses_verdict() {
 # .why  = the guard reads as its decision (global → org → local); each
 #         level hands its reason and its lift here, so the shape is one
 #
-# usage: emit_branch_meter_constraint cmd=<c> reason=<r> ask=<lead-in> lift=<command>
+# usage: emit_branch_meter_constraint cmd=<c> reason=<r> [branches=<lines>] ask=<lead-in> lift=<command>
+#        emit_branch_meter_constraint cmd=<c> reason=<r> note=<fn>
+#
+# .note = a refusal no meter command lifts (a keyrack fault) hands a note
+#         function in place of ask + lift
 ######################################################################
 emit_branch_meter_constraint() {
-  local cmd="" reason="" ask="" lift="" arg
+  local cmd="" reason="" branches="" ask="" lift="" note="" arg
   for arg in "$@"; do
     case "$arg" in
       cmd=*) cmd="${arg#cmd=}" ;;
       reason=*) reason="${arg#reason=}" ;;
+      branches=*) branches="${arg#branches=}" ;;
       ask=*) ask="${arg#ask=}" ;;
       lift=*) lift="${arg#lift=}" ;;
+      note=*) note="${arg#note=}" ;;
     esac
   done
   emit_both "$(
     print_turtle_header "bummer dude..."
     print_tree_start "$cmd"
     print_tree_constraint "$reason"
-    print_coconut_hint "$ask" "$lift"
+    print_org_block_branches branches="$branches"
+    # a note names its own remedy, in place of ask + lift
+    [[ -z "$note" ]] || "$note"
+    [[ -n "$note" ]] || print_coconut_hint "$ask" "$lift"
   )"
   exit 2
 }

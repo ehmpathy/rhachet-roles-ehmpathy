@@ -909,6 +909,11 @@ options:
   --help, -h             show this help
 
 requires:
+  an org gate — .agent/keyrack.yml org: names one org (org: ehmpathy)
+  or a list (org: [ahbode, bhanya], or '- org' lines). every listed
+  org must allow commits; the first refusal names its org:
+    $ rhx git.commit.uses --org <org> get
+
   a sponsor — the human who answers for the commit. on a human's
   own machine, git config names them and no bind is needed. a bind
   in this tree wins over git config; on the clone's machine a bind
@@ -1428,5 +1433,278 @@ exports[`git.commit.set.sh given: [case53] the LOCAL quota file is damaged when:
    ├─ ask your human to reset the quota, then grant again
    ├─ git.commit.uses del
    └─ git.commit.uses set --quant N
+"
+`;
+
+exports[`git.commit.set.sh given: [case54] keyrack.yml org: as a scalar or a list gates the commit when: [t0] a flow list whose every org allows then: the commit lands 1`] = `
+"🐢 righteous!
+
+🐚 git.commit.set
+   ├─ commit
+   │  ├─ header: fix(x): y
+   │  ├─ body
+   │  │  └─ - z
+   │  ├─ author
+   │  │  ├─ name: seaturtle[bot]
+   │  │  └─ email: seaturtle@ehmpath.com
+   │  └─ sponsor
+   │     ├─ name: Test Human
+   │     ├─ email: human@test.com
+   │     └─ from: bound (this tree)
+   ├─ push: skipped
+   └─ meter
+      ├─ left: 2
+      └─ push: held
+"
+`;
+
+exports[`git.commit.set.sh given: [case54] keyrack.yml org: as a scalar or a list gates the commit when: [t1] a block list whose second org is blocked then: the commit is refused with exit 2 and names bhanya 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ ✋ ConstraintError: commits blocked for org bhanya
+      ├─ .agent/keyrack.yml org: lists ahbode, bhanya
+      └─ every listed org must allow commits
+
+🥥 did you know?
+   ├─ a human blocked this org; ask them to allow it
+   └─ git.commit.uses allow --org bhanya
+"
+`;
+
+exports[`git.commit.set.sh given: [case54] keyrack.yml org: as a scalar or a list gates the commit when: [t2] a quoted scalar with a trailed comment, org blocked then: the remedy names the real org, never a placeholder 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ ✋ ConstraintError: commits blocked for org ehmpathy
+
+🥥 did you know?
+   ├─ a human blocked this org; ask them to allow it
+   └─ git.commit.uses allow --org ehmpathy
+"
+`;
+
+exports[`git.commit.set.sh given: [case54] keyrack.yml org: as a scalar or a list gates the commit when: [t3] org: holds a shape it cannot read then: the commit is refused with exit 2 and shows what it read 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ ✋ ConstraintError: .agent/keyrack.yml org: shape not readable
+
+   .agent/keyrack.yml org: read as:
+     org: { name: ahbode }
+
+ask your human to name the org in .agent/keyrack.yml, as one of:
+  org: ehmpathy
+  org: [ahbode, bhanya]
+a flow list [a, b] must sit on one line
+an org name is letters, digits, and _ . - (no spaces, no yaml anchor)
+"
+`;
+
+exports[`git.commit.set.sh given: [case54] keyrack.yml org: as a scalar or a list gates the commit when: [t4] keyrack.yml is absent then: the commit is refused with exit 2 and names the keyrack fix 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ ✋ ConstraintError: .agent/keyrack.yml not found
+
+🥥 did you know?
+   ├─ ask a human to name the org in .agent/keyrack.yml, or to add the ehmpath keyrack so ehmpaths can unlock their own keys
+   ├─ echo 'org: ehmpathy' > .agent/keyrack.yml
+   └─ npx rhachet run --init keyrack.ehmpath
+"
+`;
+
+exports[`git.commit.set.sh given: [case54] keyrack.yml org: as a scalar or a list gates the commit when: [t5] a block list whose every org allows then: the commit lands 1`] = `
+"🐢 righteous!
+
+🐚 git.commit.set
+   ├─ commit
+   │  ├─ header: fix(x): y
+   │  ├─ body
+   │  │  └─ - z
+   │  ├─ author
+   │  │  ├─ name: seaturtle[bot]
+   │  │  └─ email: seaturtle@ehmpath.com
+   │  └─ sponsor
+   │     ├─ name: Test Human
+   │     ├─ email: human@test.com
+   │     └─ from: bound (this tree)
+   ├─ push: skipped
+   └─ meter
+      ├─ left: 2
+      └─ push: held
+"
+`;
+
+exports[`git.commit.set.sh given: [case54] keyrack.yml org: as a scalar or a list gates the commit when: [t6] a flow list whose second org is blocked then: the commit is refused with exit 2 and names bhanya 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ ✋ ConstraintError: commits blocked for org bhanya
+      ├─ .agent/keyrack.yml org: lists ahbode, bhanya
+      └─ every listed org must allow commits
+
+🥥 did you know?
+   ├─ a human blocked this org; ask them to allow it
+   └─ git.commit.uses allow --org bhanya
+"
+`;
+
+exports[`git.commit.set.sh given: [case54] keyrack.yml org: as a scalar or a list gates the commit when: [t7] the meter allows ahbode, holds no key for bhanya, no @all then: exit 2 names bhanya as unconfigured, with its allow 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ ✋ ConstraintError: no org config for bhanya
+      ├─ .agent/keyrack.yml org: lists ahbode, bhanya
+      └─ every listed org must allow commits
+
+🥥 did you know?
+   ├─ no human has allowed this org yet; ask one to allow it
+   └─ git.commit.uses allow --org bhanya
+"
+`;
+
+exports[`git.commit.set.sh given: [case54] keyrack.yml org: as a scalar or a list gates the commit when: [t8] org: is an empty list then: exit 2 shows the read and the keyrack fix, no allow 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ ✋ ConstraintError: .agent/keyrack.yml org: lists no org
+
+   .agent/keyrack.yml org: read as:
+     org: []
+
+ask your human to name the org in .agent/keyrack.yml, as one of:
+  org: ehmpathy
+  org: [ahbode, bhanya]
+"
+`;
+
+exports[`git.commit.set.sh given: [case54] keyrack.yml org: as a scalar or a list gates the commit when: [t9] keyrack.yml holds no org: key then: the commit is refused with exit 2 and names the keyrack fix 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ ✋ ConstraintError: .agent/keyrack.yml org: absent
+
+ask your human to name the org in .agent/keyrack.yml, as one of:
+  org: ehmpathy
+  org: [ahbode, bhanya]
+"
+`;
+
+exports[`git.commit.set.sh given: [case54] keyrack.yml org: as a scalar or a list gates the commit when: [t10] a plain scalar, its org blocked then: exit 2 names the org and its allow, with no list suffix 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ ✋ ConstraintError: commits blocked for org ehmpathy
+
+🥥 did you know?
+   ├─ a human blocked this org; ask them to allow it
+   └─ git.commit.uses allow --org ehmpathy
+"
+`;
+
+exports[`git.commit.set.sh given: [case54] keyrack.yml org: as a scalar or a list gates the commit when: [t11] keyrack.yml is present but unreadable (mode 000) then: exit 2 names the permission and the chmod, no allow 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ ✋ ConstraintError: .agent/keyrack.yml not readable (permission denied)
+
+ask your human to make .agent/keyrack.yml readable:
+  $ chmod 644 .agent/keyrack.yml
+"
+`;
+
+exports[`git.commit.set.sh given: [case54] keyrack.yml org: as a scalar or a list gates the commit when: [t12] org: holds a member or shape keyrack refuses then: @all as a list member: exit 2, the read, its own fix, no allow 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ ✋ ConstraintError: .agent/keyrack.yml org: '@all' cannot be a member, it names no org
+
+   .agent/keyrack.yml org: read as:
+     org: [ahbode, "@all"]
+
+ask your human to remove '@all' from org: in .agent/keyrack.yml
+to reach a key of no org, pass --org @all at ask time
+"
+`;
+
+exports[`git.commit.set.sh given: [case54] keyrack.yml org: as a scalar or a list gates the commit when: [t12] org: holds a member or shape keyrack refuses then: @this as a scalar: exit 2, the read, its own fix, no allow 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ ✋ ConstraintError: .agent/keyrack.yml org: '@this' cannot be a member, it names no org
+
+   .agent/keyrack.yml org: read as:
+     org: '@this'
+
+ask your human to remove '@this' from org: in .agent/keyrack.yml
+to reach a key of no org, pass --org @all at ask time
+"
+`;
+
+exports[`git.commit.set.sh given: [case54] keyrack.yml org: as a scalar or a list gates the commit when: [t12] org: holds a member or shape keyrack refuses then: a flow list across lines: exit 2, the read, its own fix, no allow 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ ✋ ConstraintError: .agent/keyrack.yml org: shape not readable
+
+   .agent/keyrack.yml org: read as:
+     org: [ahbode,
+       bhanya]
+
+ask your human to name the org in .agent/keyrack.yml, as one of:
+  org: ehmpathy
+  org: [ahbode, bhanya]
+a flow list [a, b] must sit on one line
+an org name is letters, digits, and _ . - (no spaces, no yaml anchor)
+"
+`;
+
+exports[`git.commit.set.sh given: [case54] keyrack.yml org: as a scalar or a list gates the commit when: [t12] org: holds a member or shape keyrack refuses then: a member listed twice: exit 2, the read, its own fix, no allow 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ ✋ ConstraintError: .agent/keyrack.yml org: 'ahbode' is listed more than once
+
+   .agent/keyrack.yml org: read as:
+     org:
+       - ahbode
+       - ahbode
+
+ask your human to remove the repeat of 'ahbode' from org: in .agent/keyrack.yml
+"
+`;
+
+exports[`git.commit.set.sh given: [case54] keyrack.yml org: as a scalar or a list gates the commit when: [t12] org: holds a member or shape keyrack refuses then: a name with a space: exit 2, the read, its own fix, no allow 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ ✋ ConstraintError: .agent/keyrack.yml org: shape not readable
+
+   .agent/keyrack.yml org: read as:
+     org: "acme corp"
+
+ask your human to name the org in .agent/keyrack.yml, as one of:
+  org: ehmpathy
+  org: [ahbode, bhanya]
+a flow list [a, b] must sit on one line
+an org name is letters, digits, and _ . - (no spaces, no yaml anchor)
+"
+`;
+
+exports[`git.commit.set.sh given: [case54] keyrack.yml org: as a scalar or a list gates the commit when: [t12] org: holds a member or shape keyrack refuses then: a quoted key: exit 2, the read, its own fix, no allow 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ ✋ ConstraintError: .agent/keyrack.yml org: shape not readable
+
+   .agent/keyrack.yml org: read as:
+     "org": ahbode
+
+ask your human to name the org in .agent/keyrack.yml, as one of:
+  org: ehmpathy
+  org: [ahbode, bhanya]
+a flow list [a, b] must sit on one line
+an org name is letters, digits, and _ . - (no spaces, no yaml anchor)
 "
 `;

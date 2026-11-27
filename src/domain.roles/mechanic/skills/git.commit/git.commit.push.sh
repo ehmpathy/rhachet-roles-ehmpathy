@@ -105,6 +105,9 @@ while [[ $# -gt 0 ]]; do
       echo "  --pr-title-fallback \"...\"    fallback pr title when no commits on branch yet"
       echo "  --debug                      show verbose debug output"
       echo "  --help, -h                   show this help"
+      echo ""
+      echo "org gate:"
+      echo "  every org in .agent/keyrack.yml org: must allow commits (rhx git.commit.uses --org <org> get)"
       exit 0
       ;;
     --repo|--role|--skill)
@@ -141,18 +144,19 @@ AUTH_WHO=$(get_auth_who_label "$AUTH")
 # emit_error: emit an error in the chosen output format
 # note: errors go to both stdout and stderr per skill output streams brief
 #
-# usage: emit_error class=constraint|malfunction message="..."
+# usage: emit_error class=constraint|malfunction message="..." [branches="<glyph'd lines>"]
 #
 # .why the class = the tree header names who must act
 #        (rule.require.qualified-error-headers); it follows the exit code the
 #        caller uses next — constraint for 2, malfunction for 1.
 ######################################################################
 emit_error() {
-  local class="" message="" arg
+  local class="" message="" branches="" arg
   for arg in "$@"; do
     case "$arg" in
       class=*) class="${arg#class=}" ;;
       message=*) message="${arg#message=}" ;;
+      branches=*) branches="${arg#branches=}" ;;
     esac
   done
   # default to the tree format; the json branch overrides it (no else — the
@@ -165,7 +169,8 @@ emit_error() {
     fi
     if [[ "$class" != "malfunction" ]]; then
       print_tree_constraint "$message"
-    fi)
+    fi
+    print_org_block_branches branches="$branches")
   if [[ "$OUTPUT" == "json" ]]; then
     output=$(printf '{"status":"error","error":"%s"}\n' "$(escape_json_string "$message")")
   fi
@@ -314,16 +319,17 @@ if ! check_org_blocker; then
   if [[ "$ORG_BLOCK_CORRUPT" == "true" ]]; then
     ORG_BLOCK_CLASS="malfunction"
   fi
-  emit_error class="$ORG_BLOCK_CLASS" message="$ORG_BLOCK_REASON"
+  emit_error class="$ORG_BLOCK_CLASS" message="$ORG_BLOCK_REASON" branches="$ORG_BLOCK_BRANCHES"
   if [[ "$OUTPUT" == "tree" ]]; then
     # different guidance based on error type
-    if [[ "$ORG_BLOCK_REASON" == *"keyrack.yml not found"* ]]; then
+    #
+    # .why a named fault rather than a match on the reason = a keyrack fault
+    #      of any kind (file absent, `org:` empty or unreadable) takes the
+    #      keyrack remedy; the meter remedy cannot cure it. a match on one
+    #      phrase caught one of those faults and sent the rest to `allow --org`.
+    if [[ -n "${ORG_KEYRACK_FAULT:-}" ]]; then
       # output to both stdout and stderr per skill output streams brief
-      KEYRACK_HINT=$(
-        print_coconut_hint "ask a human to name the org in .agent/keyrack.yml, or to add the ehmpath keyrack so ehmpaths can unlock their own keys" \
-          "echo 'org: ehmpathy' > .agent/keyrack.yml" \
-          "npx rhachet run --init keyrack.ehmpath"
-      )
+      KEYRACK_HINT=$(print_keyrack_org_note)
       echo "$KEYRACK_HINT"
       echo "$KEYRACK_HINT" >&2
     elif [[ "$ORG_BLOCK_CORRUPT" == "true" ]]; then

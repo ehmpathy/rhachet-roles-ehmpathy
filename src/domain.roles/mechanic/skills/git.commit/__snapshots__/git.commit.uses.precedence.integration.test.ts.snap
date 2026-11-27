@@ -75,3 +75,75 @@ exports[`git.commit.uses precedence matrix given: [global=unset, org=unset, loca
    └─ git.commit.uses allow --org ehmpathy
 "
 `;
+
+exports[`git.commit.uses precedence matrix given: [keyrack org: cannot be read] when: [t0] org: is an empty list then: blocked - shows what it read, names no org allow 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ ✋ ConstraintError: .agent/keyrack.yml org: lists no org
+
+   .agent/keyrack.yml org: read as:
+     org: []
+
+ask your human to name the org in .agent/keyrack.yml, as one of:
+  org: ehmpathy
+  org: [ahbode, bhanya]
+"
+`;
+
+exports[`git.commit.uses precedence matrix given: [keyrack org: cannot be read] when: [t1] keyrack.yml is absent then: blocked - names the keyrack fix, no org allow 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ ✋ ConstraintError: .agent/keyrack.yml not found
+
+🥥 did you know?
+   ├─ ask a human to name the org in .agent/keyrack.yml, or to add the ehmpath keyrack so ehmpaths can unlock their own keys
+   ├─ echo 'org: ehmpathy' > .agent/keyrack.yml
+   └─ npx rhachet run --init keyrack.ehmpath
+"
+`;
+
+exports[`git.commit.uses precedence matrix given: [keyrack org: lists several orgs, every one allowed] when: [t0] push is attempted then: allowed - shows plan 1`] = `
+"🐢 heres the wave...
+
+🐚 git.commit.push --mode plan
+   ├─ push: origin/turtle/feature
+   ├─ pr
+   │  ├─ title: feat: test commit
+   │  ├─ action: findsert
+   │  └─ opened: as-ehmpath (ehmpath keyrack)
+   └─ meter
+      └─ push: held → held (a push spends no use, revokes naught)
+
+run with --mode apply to execute
+"
+`;
+
+exports[`git.commit.uses precedence matrix given: [keyrack org: lists several orgs, the second blocked] when: [t0] push is attempted with a flow list then: blocked - names the blocked org and its allow 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ ✋ ConstraintError: commits blocked for org bhanya
+      ├─ .agent/keyrack.yml org: lists ahbode, bhanya
+      └─ every listed org must allow commits
+
+🥥 did you know?
+   ├─ a human blocked this org; ask them to allow it
+   └─ git.commit.uses allow --org bhanya
+"
+`;
+
+exports[`git.commit.uses precedence matrix given: [keyrack org: lists several orgs, the second blocked] when: [t1] push is attempted with a block list then: blocked - names the blocked org 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ ✋ ConstraintError: commits blocked for org bhanya
+      ├─ .agent/keyrack.yml org: lists ahbode, bhanya
+      └─ every listed org must allow commits
+
+🥥 did you know?
+   ├─ a human blocked this org; ask them to allow it
+   └─ git.commit.uses allow --org bhanya
+"
+`;

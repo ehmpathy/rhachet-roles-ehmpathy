@@ -1182,9 +1182,10 @@ get_plan_quota_line() {
   local uses
   set_branch_uses_verdict
   if [[ "$BRANCH_USES_VERDICT" == "refused" ]]; then
-    printf '%s\n' \
-      "quota: ✋ apply will refuse: $BRANCH_USES_REASON" \
-      "└─ $BRANCH_USES_ASK $BRANCH_USES_LIFT"
+    echo "quota: ✋ apply will refuse: $BRANCH_USES_REASON"
+    # a list org names why it gates, as apply does; the lift stays the last branch
+    [[ -z "${BRANCH_USES_BRANCHES:-}" ]] || printf '%s\n' "${BRANCH_USES_BRANCHES//└─/├─}"
+    echo "└─ $BRANCH_USES_ASK $BRANCH_USES_LIFT"
     return 0
   fi
   if [[ "$BRANCH_USES_VERDICT" == "damaged" ]]; then

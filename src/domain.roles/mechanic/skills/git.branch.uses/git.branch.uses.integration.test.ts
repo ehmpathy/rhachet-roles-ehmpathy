@@ -1,7 +1,19 @@
 import { spawn, spawnSync } from 'child_process';
 import * as fs from 'fs';
+import { ConstraintError } from 'helpful-errors';
 import * as path from 'path';
 import { genTempDir, given, then, useBeforeAll, when } from 'test-fns';
+
+/**
+ * .what = refuse to run a mode-000 case as root
+ * .why = root reads a mode-000 file, so the case would assert a fault root never meets
+ */
+const failfastIfRoot = () => {
+  if (process.getuid?.() !== 0) return;
+  throw new ConstraintError('a mode-000 keyrack case cannot run as root', {
+    hint: 'run the suite as a non-root user',
+  });
+};
 
 /**
  * .what = integration tests for the git.branch.uses meter
@@ -16,14 +28,17 @@ describe('git.branch.uses', () => {
   /**
    * .what = a sandbox: a temp repo with an org, and a temp HOME
    */
-  const genSandbox = (input: { org: string }) => {
+  const genSandbox = (input: { org: string; keyrack?: string | null }) => {
     const repoDir = genTempDir({ slug: 'branch-uses-repo', git: true });
     const homeDir = genTempDir({ slug: 'branch-uses-home', git: false });
     fs.mkdirSync(path.join(repoDir, '.agent'), { recursive: true });
-    fs.writeFileSync(
-      path.join(repoDir, '.agent', 'keyrack.yml'),
-      `org: ${input.org}\n`,
-    );
+
+    // keyrack: null = no keyrack.yml; a string = the file verbatim
+    if (input.keyrack !== null)
+      fs.writeFileSync(
+        path.join(repoDir, '.agent', 'keyrack.yml'),
+        input.keyrack ?? `org: ${input.org}\n`,
+      );
     const globalMeterDir = path.join(
       homeDir,
       '.rhachet',
@@ -518,6 +533,141 @@ describe('git.branch.uses', () => {
             result.stdout.replace(sandbox.homeDir, '<home>'),
           ).toMatchSnapshot();
         },
+      );
+    });
+  });
+
+  given('[case8b] keyrack.yml org: lists several orgs', () => {
+    when('[t0] every listed org allows (flow list)', () => {
+      then('the gate passes', () => {
+        const sandbox = genSandbox({ org: '[ahbode, bhanya]' });
+        writeOrgMeter(sandbox, { ahbode: 'allowed', bhanya: 'allowed' });
+        writeLocalMeter(sandbox, '{ "uses": 2 }');
+        const result = runGate({ sandbox });
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout.trim()).toBe('GATE_PASSED');
+      });
+    });
+
+    when('[t1] the second listed org is blocked (block list)', () => {
+      then('it refuses with exit 2 and names the blocked org', () => {
+        const sandbox = genSandbox({
+          org: '',
+          keyrack: 'org:\n  - ahbode\n  - bhanya\n',
+        });
+        writeOrgMeter(sandbox, { ahbode: 'allowed', bhanya: 'blocked' });
+        writeLocalMeter(sandbox, '{ "uses": 2 }');
+        const result = runGate({ sandbox });
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('cutovers blocked for org bhanya');
+        expect(result.stdout).toContain('every listed org must allow');
+        expect(result.stdout).toContain(
+          'rhx git.branch.uses allow --org bhanya',
+        );
+        expect(readLocalMeter(sandbox)).toEqual({ uses: 2 });
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t2] org: is an empty list', () => {
+      then(
+        'it refuses with exit 2, shows the read, and names no org allow',
+        () => {
+          const sandbox = genSandbox({ org: '[]' });
+          writeOrgMeter(sandbox, { '@all': 'allowed' });
+          writeLocalMeter(sandbox, '{ "uses": 2 }');
+          const result = runGate({ sandbox });
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain('org: lists no org');
+          expect(result.stdout).toContain('org: read as:');
+          expect(result.stdout).not.toContain('allow --org');
+          expect(readLocalMeter(sandbox)).toEqual({ uses: 2 });
+          expect(result.stdout).toMatchSnapshot();
+        },
+      );
+    });
+
+    when('[t3] keyrack.yml is absent', () => {
+      then('it refuses with exit 2 and names no org allow', () => {
+        const sandbox = genSandbox({ org: '', keyrack: null });
+        writeOrgMeter(sandbox, { '@all': 'allowed' });
+        writeLocalMeter(sandbox, '{ "uses": 2 }');
+        const result = runGate({ sandbox });
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('.agent/keyrack.yml not found');
+        expect(result.stdout).not.toContain('allow --org');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t4] a cutover plan previews a keyrack fault', () => {
+      // the plan's quota line (`get_plan_quota_line`) prints ask + lift;
+      // each fault kind owes its own one-line fix, never allow --org
+      const PREVIEW_CASES = [
+        {
+          description: 'org: [] names the org shapes',
+          keyrack: 'org: []\n',
+          mode: 0o644,
+          lift: '.agent/keyrack.yml org: (one org, or a list of orgs)',
+        },
+        {
+          description: 'an absent keyrack.yml names how to add it',
+          keyrack: null,
+          mode: 0o644,
+          lift: "echo 'org: <org>' > .agent/keyrack.yml",
+        },
+        {
+          description: 'an unreadable keyrack.yml names the chmod',
+          keyrack: 'org: ehmpathy\n',
+          mode: 0o000,
+          lift: 'chmod 644 .agent/keyrack.yml',
+        },
+        {
+          description: 'an @all member names its removal',
+          keyrack: 'org: [ehmpathy, "@all"]\n',
+          mode: 0o644,
+          lift: "remove '@all' from org: in .agent/keyrack.yml",
+        },
+        {
+          description: 'a repeated member names the repeat to drop',
+          keyrack: 'org: [ehmpathy, ehmpathy]\n',
+          mode: 0o644,
+          lift: "remove the repeat of 'ehmpathy' from org: in .agent/keyrack.yml",
+        },
+      ];
+      PREVIEW_CASES.map((thisCase) =>
+        then(thisCase.description, () => {
+          if (thisCase.mode === 0o000) failfastIfRoot();
+          const sandbox = genSandbox({
+            org: 'ehmpathy',
+            keyrack: thisCase.keyrack,
+          });
+          const keyrackPath = path.join(
+            sandbox.repoDir,
+            '.agent',
+            'keyrack.yml',
+          );
+          if (thisCase.keyrack !== null)
+            fs.chmodSync(keyrackPath, thisCase.mode);
+          writeOrgMeter(sandbox, { '@all': 'allowed' });
+          writeLocalMeter(sandbox, '{ "uses": 2 }');
+          const result = spawnSync(
+            'bash',
+            [
+              '-c',
+              `source "${operationsPath}" && set_branch_uses_verdict && echo "$BRANCH_USES_VERDICT|$BRANCH_USES_ASK $BRANCH_USES_LIFT"`,
+            ],
+            {
+              cwd: sandbox.repoDir,
+              encoding: 'utf-8', // note: library api requires this term
+              env: { ...process.env, HOME: sandbox.homeDir },
+            },
+          );
+          if (thisCase.keyrack !== null) fs.chmodSync(keyrackPath, 0o644);
+          expect(result.stdout.trim()).toBe(
+            `refused|ask your human to fix ${thisCase.lift}`,
+          );
+        }),
       );
     });
   });

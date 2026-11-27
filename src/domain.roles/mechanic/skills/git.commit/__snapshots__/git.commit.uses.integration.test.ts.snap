@@ -692,6 +692,31 @@ exports[`git.commit.uses.sh given: [case37] the ORG meter is damaged, and a huma
 "
 `;
 
+exports[`git.commit.uses.sh given: [case38] a human asks --org --help, about to grant when: [t0] the org help is shown then: it declares that every org in keyrack.yml org: must allow 1`] = `
+"usage: git.commit.uses --org <org> allow|block|del
+       git.commit.uses --org @all allow|block
+       git.commit.uses --org get
+       git.commit.uses --org <org> get
+
+commands:
+  allow        allow commits for this org
+  block        block commits for this org
+  del          remove org config, defer to @all
+  get          show org config(s)
+
+special values:
+  @all         sets default for all orgs (resets all + sets default)
+
+which orgs gate a repo:
+  every org in the repo's .agent/keyrack.yml org: must allow.
+  an org the meter names decides for itself; @all covers
+  only the orgs the meter omits.
+
+options:
+  --help, -h   show this help
+"
+`;
+
 exports[`git.commit.uses.sh given: [caseLocalMeterDamaged] the LOCAL quota file is damaged when: [t0] \`get\` reads a truncated file then: it names the class, the file, and the fix, on both streams 1`] = `
 "🐢 bummer dude...
 

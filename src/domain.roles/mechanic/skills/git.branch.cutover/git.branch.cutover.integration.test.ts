@@ -4713,6 +4713,113 @@ describe('git.branch.cutover', () => {
     });
   });
 
+  given('[case66b] a plan while one org of a keyrack list is blocked', () => {
+    // .why = the preview must say why an org the human never typed gates:
+    //        keyrack.yml lists it, and every listed org must allow
+    const scene = useBeforeAll(async () => {
+      const scene = genScene({
+        slug: 'cutover-case66b',
+        featureCommits: FEATURE_COMMITS,
+      });
+      fs.writeFileSync(
+        path.join(scene.repoDir, '.agent', 'keyrack.yml'),
+        'org: [ehmpathy, bhanya]\n',
+      );
+      git(scene.repoDir, ['add', '.agent/keyrack.yml']);
+      git(scene.repoDir, [
+        'commit',
+        '-q',
+        '-m',
+        'chore(keyrack): list two orgs',
+      ]);
+      fs.writeFileSync(
+        path.join(
+          scene.homeDir,
+          '.rhachet',
+          'storage',
+          'repo=ehmpathy',
+          'role=mechanic',
+          '.meter',
+          'git.branch.uses.org.jsonc',
+        ),
+        JSON.stringify({ orgs: { ehmpathy: 'allowed', bhanya: 'blocked' } }),
+      );
+      return scene;
+    });
+
+    when('[t0] begin in plan mode', () => {
+      const result = useBeforeAll(async () =>
+        runCutover(scene, [
+          'begin',
+          '--from',
+          '@main',
+          '--into',
+          'turtle/wave-report-v2',
+        ]),
+      );
+
+      then(
+        'the quota line names the blocked org, the list, and its lift',
+        () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain(
+            'quota: ✋ apply will refuse: cutovers blocked for org bhanya',
+          );
+          expect(result.stdout).toContain(
+            '├─ .agent/keyrack.yml org: lists ehmpathy, bhanya',
+          );
+          expect(result.stdout).toContain(
+            '├─ every listed org must allow cutovers',
+          );
+          expect(result.stdout).toContain(
+            'rhx git.branch.uses allow --org bhanya',
+          );
+          expect(asSnapshotSafe(result.stdout)).toMatchSnapshot();
+        },
+      );
+    });
+  });
+
+  given('[case66c] a plan while keyrack.yml org: lists no org', () => {
+    // .why = a keyrack fault previews its own lift (a file fix), never a
+    //        meter grant that could not cure it
+    const scene = useBeforeAll(async () => {
+      const scene = genScene({
+        slug: 'cutover-case66c',
+        featureCommits: FEATURE_COMMITS,
+      });
+      fs.writeFileSync(
+        path.join(scene.repoDir, '.agent', 'keyrack.yml'),
+        'org: []\n',
+      );
+      git(scene.repoDir, ['add', '.agent/keyrack.yml']);
+      git(scene.repoDir, ['commit', '-q', '-m', 'chore(keyrack): empty list']);
+      return scene;
+    });
+
+    when('[t0] begin in plan mode', () => {
+      const result = useBeforeAll(async () =>
+        runCutover(scene, [
+          'begin',
+          '--from',
+          '@main',
+          '--into',
+          'turtle/wave-report-v2',
+        ]),
+      );
+
+      then('the quota line names the fault and its file lift', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('quota: ✋ apply will refuse:');
+        expect(result.stdout).toContain(
+          'ask your human to fix .agent/keyrack.yml',
+        );
+        expect(result.stdout).not.toContain('allow --org');
+        expect(asSnapshotSafe(result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
   given('[case67] an untracked file appears mid-halt where a pick adds', () => {
     // .why = inv-0 holds past begin: continue must refuse before the replay
     //        meets an untracked file at a path a later pick adds
