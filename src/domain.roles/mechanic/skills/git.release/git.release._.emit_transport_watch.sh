@@ -311,6 +311,7 @@ _emit_watch_fault() {
 #   drop_automerge_lease                  # once the merge is seen
 ######################################################################
 AUTOMERGE_LEASE_PR=""
+AUTOMERGE_LEASE_PRIOR_EXIT_TRAP=""
 hold_automerge_lease() {
   local arg
   for arg in "$@"; do
@@ -318,6 +319,18 @@ hold_automerge_lease() {
       pr_number=*) AUTOMERGE_LEASE_PR="${arg#pr_number=}" ;;
     esac
   done
+  # chain the exit trap the lease replaces (the release footers), so both run;
+  # a second lease must not chain the lease trap to itself
+  local prior_spec prior_command=""
+  prior_spec=$(trap -p EXIT)
+  if [[ -n "$prior_spec" ]]; then
+    eval "set -- $prior_spec"
+    prior_command="$3"
+  fi
+  if [[ "$prior_command" != "_on_exit_release_automerge_lease" ]]; then
+    AUTOMERGE_LEASE_PRIOR_EXIT_TRAP="$prior_command"
+  fi
+
   trap '_on_exit_release_automerge_lease' EXIT
   trap '_on_signal_release_automerge_lease 130 SIGINT' INT
   trap '_on_signal_release_automerge_lease 143 SIGTERM' TERM
@@ -329,11 +342,27 @@ drop_automerge_lease() {
 
 ######################################################################
 # _on_exit_release_automerge_lease
-# .what = the exit trap: disarm an automerge still armed on an unmerged pr
+# .what = the exit trap: disarm an automerge still armed on an unmerged pr,
+#         then run the exit trap the lease replaced
 # .why  = keeps the exit code; raises 0 to 1 only when the disarm fails
 ######################################################################
 _on_exit_release_automerge_lease() {
   local exit_code=$?
+  local disarm_status=0
+  _disarm_automerge_lease_if_armed || disarm_status=$?
+  if [[ -n "$AUTOMERGE_LEASE_PRIOR_EXIT_TRAP" ]]; then
+    eval "$AUTOMERGE_LEASE_PRIOR_EXIT_TRAP"
+  fi
+  if [[ $disarm_status -ne 0 && $exit_code -eq 0 ]]; then exit 1; fi
+  exit "$exit_code"
+}
+
+######################################################################
+# _disarm_automerge_lease_if_armed
+# .what = disarm an automerge still armed on the leased, unmerged pr
+# returns: 0 naught to disarm, or disarmed; 1 the disarm failed (said aloud)
+######################################################################
+_disarm_automerge_lease_if_armed() {
   if [[ -z "$AUTOMERGE_LEASE_PR" ]]; then return 0; fi
   local pr_number="$AUTOMERGE_LEASE_PR"
   AUTOMERGE_LEASE_PR=""
@@ -358,8 +387,7 @@ _on_exit_release_automerge_lease() {
   echo ""
   echo "$msg"
   echo "$msg" >&2
-  if [[ $exit_code -eq 0 ]]; then exit 1; fi
-  exit "$exit_code"
+  return 1
 }
 
 ######################################################################
@@ -376,7 +404,9 @@ _on_signal_release_automerge_lease() {
     echo ""
     echo "🌴 interrupted ($signal_name); disable automerge on pr #$AUTOMERGE_LEASE_PR before exit..."
   fi
-  _on_exit_release_automerge_lease || true
+  # the exit below runs the exit trap too, which finds the lease released
+  # and runs the trap it replaced
+  _disarm_automerge_lease_if_armed || true
   exit "$signal_exit_code"
 }
 

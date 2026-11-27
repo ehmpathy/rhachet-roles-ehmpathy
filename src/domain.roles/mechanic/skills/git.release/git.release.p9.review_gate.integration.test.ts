@@ -13,8 +13,10 @@ import {
   MOCK_FEAT_HEAD_SHA,
   type ReviewFixture,
   type Scene,
+  setGitReleaseUsesPermission,
   writeSceneGhMock,
 } from './.test/infra/mockGh';
+import { setGitBranchPushed } from './.test/infra/setGitBranchPushed';
 import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
 
 /**
@@ -71,9 +73,9 @@ const SHA_OLDER = '0ldc0de00ldc0de00ldc0de00ldc0de00ldc0de0';
 // ============================================================================
 
 /**
- * .what = a temp feature-branch repo with a scene gh mock and a granted commit quota
+ * .what = a temp feature-branch repo with a scene gh mock and a granted release stamp
  * .why  = every case runs the real skill against one fixed pr #42 scene;
- *         the quota is infinite so the gate is proven to hold regardless
+ *         the stamp is infinite so the gate is proven to stay shut regardless
  */
 const setupScene = (input: {
   scene: Scene;
@@ -125,13 +127,11 @@ exit 1
   spawnSync('git', ['tag', 'v1.2.3'], { cwd: tempDir });
   spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], { cwd: tempDir });
 
-  // commit quota granted: the gate must hold even with infinite uses
-  const meterDir = path.join(tempDir, '.meter');
-  fs.mkdirSync(meterDir, { recursive: true });
-  fs.writeFileSync(
-    path.join(meterDir, 'git.commit.uses.jsonc'),
-    JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
-  );
+  // every commit pushed: the unpushed-commit guard (F14) counts against origin/<branch>
+  setGitBranchPushed({ tempDir });
+
+  // release stamp granted at every level: the gate must stay shut even with infinite uses
+  setGitReleaseUsesPermission({ tempDir });
 
   const cleanup = () => fs.rmSync(tempDir, { recursive: true, force: true });
 

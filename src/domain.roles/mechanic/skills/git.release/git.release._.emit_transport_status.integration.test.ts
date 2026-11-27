@@ -298,10 +298,10 @@ describe('emit_transport_status', () => {
 
           expect(result.status).toBe(1);
           expect(result.stdout).toContain(
-            '💥 MalfunctionError: enable_automerge on pr #42 got no head_sha',
+            '💥 MalfunctionError: no head_sha to pin the merge of pr #42',
           );
           expect(result.stderr).toContain(
-            '💥 MalfunctionError: enable_automerge on pr #42 got no head_sha',
+            '💥 MalfunctionError: no head_sha to pin the merge of pr #42',
           );
           expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
 
@@ -433,7 +433,7 @@ describe('emit_transport_status', () => {
         expect(callSites).toEqual([
           {
             file: 'git.release.operations.sh',
-            line: 'if enable_automerge "$pr_number"; then',
+            line: 'enable_automerge pr_number="$pr_number" head_sha="$head_sha" || enable_result=$?',
           },
         ]);
 
@@ -446,7 +446,7 @@ describe('emit_transport_status', () => {
           -1,
         );
         expect(armBody.indexOf('spend_release_use_before_arm')).toBeLessThan(
-          armBody.indexOf('enable_automerge "$pr_number"'),
+          armBody.indexOf('enable_automerge pr_number="$pr_number"'),
         );
       });
     });

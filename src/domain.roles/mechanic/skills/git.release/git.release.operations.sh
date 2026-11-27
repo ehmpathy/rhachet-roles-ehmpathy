@@ -525,6 +525,15 @@ arm_release_merge() {
     esac
   done
 
+  # a merge with no head named must not be written: refuse before the spend, so it costs no use
+  if [[ -z "$head_sha" ]]; then
+    # closes the caller's status tree, as _emit_head_moved_refusal does
+    local fault_msg="   └─ 💥 MalfunctionError: no head_sha to pin the merge of pr #$pr_number (pass a sha, or @unpinned for the release pr)"
+    echo "$fault_msg"
+    echo "$fault_msg" >&2
+    return 1
+  fi
+
   # spend first; an apply that already spent (the second hop) spends naught
   local spent_here="false"
   if [[ "$RELEASE_USE_SPENT" != "true" ]]; then
@@ -612,7 +621,7 @@ enable_automerge() {
   # a merge with no head named must not be written; fail loud
   if [[ -z "$head_sha" ]]; then
     # closes the caller's status tree, as _emit_head_moved_refusal does
-    local fault_msg="   └─ 💥 MalfunctionError: enable_automerge on pr #$pr_number got no head_sha (pass a sha, or @unpinned for the release pr)"
+    local fault_msg="   └─ 💥 MalfunctionError: no head_sha to pin the merge of pr #$pr_number (pass a sha, or @unpinned for the release pr)"
     echo "$fault_msg"
     echo "$fault_msg" >&2
     return 1
