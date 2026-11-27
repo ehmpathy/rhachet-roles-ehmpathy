@@ -7,5 +7,6 @@ bound — "when able":
 - safe: risks no behavior you are not here to touch (rule.require.review-test-changes)
 - cheap: rename, comment, cut, delete — not a re-architecture
 - large? note it or open a follow-up; never smuggle a refactor in
+- a paved tool fails you? fix it at root, never pave a twin beside it (rule.forbid.twin-tool-sprawl = blocker)
 
 enforcement: cheap, safe, in-scope improvement left unmade in a file you edited = nitpick; large or out-of-scope cleanup smuggled into an unrelated change = blocker
