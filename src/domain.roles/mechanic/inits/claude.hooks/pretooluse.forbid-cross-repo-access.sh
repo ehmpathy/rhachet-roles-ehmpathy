@@ -949,6 +949,37 @@ fi
 
 if [[ "$TOOL_NAME" == "Bash" ]]; then
   COMMAND=$(echo "$STDIN_INPUT" | jq -r '.tool_input.command // empty' 2>/dev/null || echo "")
+
+  # a lone git.repo.get call is the sanctioned reader this hook's every block
+  # names; to gate it on a path in its args would refuse the redirect itself
+  #
+  # .why = admitted ONLY as one bare command: a chain (; && || |), a subshell,
+  #        a backtick, or a redirect could smuggle a raw read in beside it, so
+  #        those still scan
+  # .why = single-quoted args are inert to the shell, and a --words regex like
+  #        'a|b' carries a `|`. they are cut before the chain check, so only
+  #        operators the shell would act on count. the cut is pure bash: this
+  #        hook runs on every Bash call, so it forks no sed
+  GIT_REPO_GET_PREFIX='^[[:space:]]*(rhx|npx[[:space:]]+rhx|npx[[:space:]]+rhachet[[:space:]]+run[[:space:]]+--skill)[[:space:]]+git\.repo\.get([[:space:]]|$)'
+  QUOTED_SEGMENT_PATTERN="^(.*)'[^']*'(.*)$"
+  COMMAND_SANS_QUOTES="$COMMAND"
+  while [[ "$COMMAND_SANS_QUOTES" =~ $QUOTED_SEGMENT_PATTERN ]]; do
+    COMMAND_SANS_QUOTES="${BASH_REMATCH[1]}${BASH_REMATCH[2]}"
+  done
+  if [[ "$COMMAND" =~ $GIT_REPO_GET_PREFIX \
+     && "$COMMAND_SANS_QUOTES" != *"'"* \
+     && "$COMMAND_SANS_QUOTES" != *'"'* \
+     && "$COMMAND_SANS_QUOTES" != *";"* \
+     && "$COMMAND_SANS_QUOTES" != *"&"* \
+     && "$COMMAND_SANS_QUOTES" != *"|"* \
+     && "$COMMAND_SANS_QUOTES" != *'`'* \
+     && "$COMMAND_SANS_QUOTES" != *'$('* \
+     && "$COMMAND_SANS_QUOTES" != *'>'* \
+     && "$COMMAND_SANS_QUOTES" != *'<'* \
+     && "$COMMAND" != *$'\n'* ]]; then
+    exit 0
+  fi
+
   if [[ -n "$COMMAND" ]]; then
     # pull out tokens that name a path under the git root, in ~/git/...,
     # $HOME/git/..., or /abs/path/git/... form. both the canonical root and

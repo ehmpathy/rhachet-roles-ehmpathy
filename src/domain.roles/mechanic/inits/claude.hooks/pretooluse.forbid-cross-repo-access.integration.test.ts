@@ -2217,4 +2217,96 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
       }
     },
   );
+
+  // .why = git.repo.get is the reader every block names. a lone call to it
+  //        must pass even when its args spell a peer path, or the hook would
+  //        refuse its own redirect. any shell operator beside it could smuggle
+  //        a raw read in, so a call with one still scans
+  given('[case28] a Bash command that is one bare git.repo.get call', () => {
+    const peerPath = '$HOME/git/testorg/peer-repo/src/index.ts';
+    const CASES_ADMITTED = [
+      {
+        label: '[t0] rhx git.repo.get with a peer path in its args',
+        command: `rhx git.repo.get lines --in testorg/peer-repo --paths ${peerPath}`,
+      },
+      {
+        label: "[t1] a --words regex whose `|` sits inside single quotes",
+        command: `rhx git.repo.get lines --in testorg/peer-repo --words 'reef|wave' --paths ${peerPath}`,
+      },
+      {
+        label: '[t2] the npx rhachet run --skill form',
+        command: `npx rhachet run --skill git.repo.get lines --in testorg/peer-repo --paths ${peerPath}`,
+      },
+    ];
+    for (const item of CASES_ADMITTED) {
+      when(item.label, () => {
+        then('allows it', () => {
+          const { gitRoot, homeDir, repoSelf, cleanup } = genTempRoot();
+          try {
+            const result = runHook({
+              toolName: 'Bash',
+              toolInput: { command: item.command },
+              cwd: repoSelf,
+              homeDir,
+              gitRoot,
+            });
+            expect(result.exitCode).toBe(0);
+          } finally {
+            cleanup();
+          }
+        });
+      });
+    }
+
+    const CASES_SCANNED = [
+      { label: '[t3] a ; chain', operator: '; cat' },
+      { label: '[t4] an && chain', operator: '&& cat' },
+      { label: '[t5] a pipe', operator: '| cat' },
+      { label: '[t6] a redirect', operator: '> /dev/null; cat' },
+      { label: '[t7] a subshell', operator: '$(cat' },
+      { label: '[t8] a backtick', operator: '`cat' },
+      { label: '[t9] a newline', operator: '\ncat' },
+      { label: '[t10] a double-quoted arg', operator: '--words "x" ; cat' },
+    ];
+    for (const item of CASES_SCANNED) {
+      when(item.label, () => {
+        then('blocks it — the path beside the call is still scanned', () => {
+          const { gitRoot, homeDir, repoSelf, cleanup } = genTempRoot();
+          try {
+            const result = runHook({
+              toolName: 'Bash',
+              toolInput: {
+                command: `rhx git.repo.get files --in testorg/self-repo ${item.operator} ${peerPath}`,
+              },
+              cwd: repoSelf,
+              homeDir,
+              gitRoot,
+            });
+            expect(result.exitCode).toBe(2);
+            expect(result.stderr).toContain('testorg/peer-repo');
+          } finally {
+            cleanup();
+          }
+        });
+      });
+    }
+
+    when('[t11] a raw cat with a peer path, no git.repo.get at all', () => {
+      then('blocks it, as before', () => {
+        const { gitRoot, homeDir, repoSelf, cleanup } = genTempRoot();
+        try {
+          const result = runHook({
+            toolName: 'Bash',
+            toolInput: { command: `cat ${peerPath}` },
+            cwd: repoSelf,
+            homeDir,
+            gitRoot,
+          });
+          expect(result.exitCode).toBe(2);
+        } finally {
+          cleanup();
+        }
+      });
+    });
+  });
 });

@@ -501,6 +501,12 @@ options:
                      main clone counts as a tree too, so its branch
                      reads that clone's live disk state.
                      applies to the files and lines subcommands.
+  --limit <N|all>    entries to render per list (default: 20; 10 per repo
+                     in a multi-repo file list)
+  --ignored <exclude|include>
+                     with --tree: also list, search, and read files the
+                     tree gitignores (node_modules always skipped).
+                     default: exclude
   --refresh <on|off> fetch latest before query (default: on)
 
 examples:
@@ -512,6 +518,9 @@ examples:
 
   # peek at the main clone's own live state (dirty edits included)
   rhx git.repo.get lines --in ehmpathy/domain-objects --tree main --paths 'src/index.ts'
+
+  # every file of a tree, its gitignored scratch included
+  rhx git.repo.get files --in ehmpathy/domain-objects --tree feat/new-refs --ignored include --limit all
 "
 `;
 
@@ -925,5 +934,116 @@ exports[`git.repo.get.sh given: [case44] repos for an org while the real gh hold
    ├─ cloud: skipped, gh holds no github credential (run: gh auth login)
    │
    └─ found: 0 repos
+"
+`;
+
+exports[`git.repo.get.sh given: [case45] --ignored include on a worktree with gitignored scratch when: [t0] files --tree --ignored include then: lists the scratch note, never node_modules 1`] = `
+"🐢 far out
+
+🐚 git.repo.get files
+   ├─ repo: testorg/short (local)
+   ├─ tree: feat/inflight (inflight)
+   │
+   ├─ .gitignore
+   ├─ README.md
+   ├─ package.json
+   ├─ scratch.local
+   ├─ src/index.ts
+   ├─ src/utils.ts
+   │
+   └─ found: 6 files
+"
+`;
+
+exports[`git.repo.get.sh given: [case45] --ignored include on a worktree with gitignored scratch when: [t1] lines --tree --ignored include --words then: searches the scratch note, never node_modules 1`] = `
+"🐢 far out
+
+🐚 git.repo.get lines
+   ├─ repo: testorg/short (local)
+   ├─ tree: feat/inflight (inflight)
+   ├─ words: scratchSymbol
+   ├─ radius: 21
+   │
+   ├─ scratch.local
+   │  ├─
+   │  │ >    1: export const scratchSymbol = "plan";
+   │  └─
+   │
+   └─ found: 1 matches
+"
+`;
+
+exports[`git.repo.get.sh given: [case45] --ignored include on a worktree with gitignored scratch when: [t2] lines --tree --ignored include --paths names the scratch note then: read mode serves it — one flag, one sense in all three modes 1`] = `
+"🐢 far out
+
+🐚 git.repo.get lines
+   ├─ repo: testorg/short (local)
+   ├─ tree: feat/inflight (inflight)
+   ├─ paths: scratch.local
+   │
+   ├─ scratch.local (1 lines)
+   │  ├─
+   │  │     1: export const scratchSymbol = "plan";
+   │  └─
+   │
+   └─ found: 1 file
+"
+`;
+
+exports[`git.repo.get.sh given: [case46] --ignored that cannot apply when: [t0] --ignored include with no --tree then: refuses with exit 2 and names --tree 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.get
+   └─ ✋ ConstraintError: --ignored include needs --tree <name>; a git ref carries no gitignored files
+
+🥥 did you know?
+   ├─ see every form git.repo.get takes, with examples
+   └─ rhx git.repo.get --help
+"
+`;
+
+exports[`git.repo.get.sh given: [case47] a worktree with more files than one list renders when: [t0] no --limit then: renders 20 and names --limit all for the rest 1`] = `
+"🐢 far out
+
+🐚 git.repo.get files
+   ├─ repo: testorg/short (local)
+   ├─ tree: feat/inflight (inflight)
+   ├─ paths: src/many/*
+   │
+   ├─ src/many/wave00.ts
+   ├─ src/many/wave01.ts
+   ├─ src/many/wave02.ts
+   ├─ src/many/wave03.ts
+   ├─ src/many/wave04.ts
+   ├─ src/many/wave05.ts
+   ├─ src/many/wave06.ts
+   ├─ src/many/wave07.ts
+   ├─ src/many/wave08.ts
+   ├─ src/many/wave09.ts
+   ├─ src/many/wave10.ts
+   ├─ src/many/wave11.ts
+   ├─ src/many/wave12.ts
+   ├─ src/many/wave13.ts
+   ├─ src/many/wave14.ts
+   ├─ src/many/wave15.ts
+   ├─ src/many/wave16.ts
+   ├─ src/many/wave17.ts
+   ├─ src/many/wave18.ts
+   ├─ src/many/wave19.ts
+   ├─ ... 5 more (--limit all to see every one)
+   │
+   └─ found: 25 files
+"
+`;
+
+exports[`git.repo.get.sh given: [case47] a worktree with more files than one list renders when: [t3] --limit 0 then: refuses with exit 2 and names the valid values 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.get
+   └─ ✋ ConstraintError: --limit must be a positive whole number or 'all' (got: 0)
+
+🥥 did you know?
+   ├─ see every form git.repo.get takes, with examples
+   └─ rhx git.repo.get --help
 "
 `;
