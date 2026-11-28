@@ -1,0 +1,124 @@
+# .what = the mech lines of the mechanic role: one per hook the role declares
+# .why  = the dispatcher of rhachet#858 reads mech.yml to learn which hooks a quarantine marker
+#         may never skip (`safety: true`), and what each hook may cost
+#
+# .note = inert by construction. each line runs the very file its declared hook runs
+#         (getMechanicRole.ts), so it binds that hook and stands in place of naught: the hook
+#         set is unchanged. no line declares a cost bound, so no run can breach one. a rhachet
+#         that predates #858 reads no mech.yml at all
+# .note = no prices yet. a price is measured on the dispatcher's own ledger, never guessed
+#         (rule.require.price-the-measure-point); each line gains its `cost:` once measured
+# .note = the shape is clamped by mech.yml.integration.test.ts: one line per declared hook,
+#         each gate marked `safety: true`
+hook:
+  # boot
+  sessionstart.notify-permissions:
+    on: onBoot
+    run: bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/sessionstart.notify-permissions.sh
+    timeout: 10
+    why: names the permission nudges at boot; a skip loses a hint, never a gate
+  sessionstart.git-pull-watch:
+    on: onBoot
+    run: bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/sessionstart.git-pull-watch.sh
+    timeout: 45
+    why: brings back the pr-watch daemon of a clone with a live watch
+  postcompact.trust-but-verify:
+    on: onBoot PostCompact
+    run: bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/postcompact.trust-but-verify.sh
+    timeout: 30
+    why: reminds a compacted clone to verify inherited claims
+
+  # tool gates, before the call
+  pretooluse.forbid-test-background:
+    on: onTool Bash
+    run: bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-test-background.sh
+    timeout: 10
+    safety: true
+    why: a test run sent to the background reports green before it ends
+  pretooluse.forbid-sedreplace-special-chars:
+    on: onTool Bash
+    run: bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-sedreplace-special-chars.sh
+    timeout: 10
+    safety: true
+    why: a sedreplace pattern with raw special chars rewrites files it was never aimed at
+  pretooluse.forbid-suspicious-shell-syntax:
+    on: onTool Bash
+    run: bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-suspicious-shell-syntax.sh
+    timeout: 10
+    safety: true
+    why: shell syntax the permission parser misreads would pass the gate unread
+  pretooluse.forbid-stderr-redirect:
+    on: onTool Bash
+    run: bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-stderr-redirect.sh
+    timeout: 10
+    safety: true
+    why: a merged stderr hides the failure a reader must see
+  pretooluse.forbid-terms.gerunds:
+    on: onTool Write|Edit
+    run: bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-terms.gerunds.sh
+    timeout: 10
+    safety: true
+    why: the write gate of the term rules
+  pretooluse.forbid-terms.blocklist:
+    on: onTool Write|Edit
+    run: bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-terms.blocklist.sh
+    timeout: 10
+    safety: true
+    why: the write gate of the banned terms
+  pretooluse.check-permissions:
+    on: onTool Bash
+    run: bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.check-permissions.sh
+    timeout: 10
+    safety: true
+    why: the permission gate of every Bash call
+  pretooluse.forbid-tmp-writes:
+    on: onTool Write|Edit|Read|Bash
+    run: bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-tmp-writes.sh
+    timeout: 10
+    safety: true
+    why: a write to /tmp escapes the repo and its review
+  pretooluse.forbid-shouted-readme:
+    on: onTool Write|Edit|Read
+    run: bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-shouted-readme.sh
+    timeout: 10
+    safety: true
+    why: the gate of the lowercase readme name
+  pretooluse.forbid-cross-repo-access:
+    on: onTool Write|Edit|Read|NotebookEdit|Grep|Glob|Bash
+    run: bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-cross-repo-access.sh
+    timeout: 10
+    safety: true
+    why: the border gate between this repo and its peers
+  pretooluse.forbid-planmode:
+    on: onTool EnterPlanMode
+    run: bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-planmode.sh
+    timeout: 10
+    safety: true
+    why: plan mode parks an unattended seat on a modal
+  pretooluse.forbid-worktree-askuser:
+    on: onTool EnterWorktree|AskUserQuestion
+    run: bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-worktree-askuser.sh
+    timeout: 10
+    safety: true
+    why: an unattended seat must neither move into another tree nor park on a modal
+
+  # tool gates, after the call
+  posttooluse.guardBorder.onWebfetch:
+    on: onTool WebFetch
+    when: after
+    run: bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/posttooluse.guardBorder.onWebfetch.sh
+    timeout: 60
+    safety: true
+    why: the border guard on fetched web content
+
+  # talk and stop
+  userpromptsubmit.git-pull-watch:
+    on: onTalk
+    run: bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/userpromptsubmit.git-pull-watch.sh
+    timeout: 15
+    why: prints each pr-watch alert the daemon could not say into this clone
+  stop.git-package-patch:
+    on: onStop
+    run: bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/stop.git-package-patch.sh
+    timeout: 30
+    why: nudges a repair for a local patch that no longer applies
