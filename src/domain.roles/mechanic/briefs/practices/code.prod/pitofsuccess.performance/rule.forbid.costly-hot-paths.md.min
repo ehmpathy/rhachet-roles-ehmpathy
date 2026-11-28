@@ -1,0 +1,5 @@
+# rule.forbid.costly-hot-paths
+
+a hot path (hook, guard, per-call check) pays its cost per seat per call. cure: one process per event, rules in-process (no fork per rule) · parse a file once, cache on mtime + size · a cheap test before a heavy start; never node on a per-call hook · read logs from the tail · fail closed: doubt falls through to the full check
+proof: parity corpus run red then green, strace start count, before/after cpu
+enforcement: fork per rule, file parsed per call, or a guess with no fall-through = blocker

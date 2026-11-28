@@ -225,6 +225,9 @@ subject.code.prod:
       - briefs/practices/code.prod/pitofsuccess.typedefs/rule.forbid.as-cast.md
       - briefs/practices/code.prod/pitofsuccess.typedefs/rule.require.shapefit.md
 
+      # performance — the forbid pole; it names the cure, the node start included
+      - briefs/practices/code.prod/pitofsuccess.performance/rule.forbid.costly-hot-paths.md
+
       # readability
       - briefs/practices/code.prod/readable.comments/rule.require.what-why-headers.md
       - briefs/practices/code.prod/readable.comments/rule.require.timeless-comments.md
@@ -261,6 +264,12 @@ subject.code.prod:
       - briefs/practices/code.prod/pitofsuccess.typedefs/rule.require.assure-via-type-checks.md
       - briefs/practices/code.prod/readable.narrative/rule.require.named-transformers.md
       - briefs/practices/code.prod/pitofsuccess.procedures/rule.require.idempotent-procedures.md
+
+      # performance — the require pole and the node-start detail; the forbid pole above is say
+      - briefs/practices/code.prod/pitofsuccess.performance/rule.forbid.a-node-start-on-a-hook-hot-path.md
+      - briefs/practices/code.prod/pitofsuccess.performance/rule.require.count-starts-with-strace.md
+      - briefs/practices/code.prod/pitofsuccess.performance/rule.require.parity-corpus-before-a-hook-swap.md
+      - briefs/practices/code.prod/pitofsuccess.performance/rule.require.price-the-measure-point.md
 
       # glossaries — the require pole, full detail; the forbid pole above is say
       - briefs/practices/code.prod/consistent.glossaries/rule.require.iso-time.md
