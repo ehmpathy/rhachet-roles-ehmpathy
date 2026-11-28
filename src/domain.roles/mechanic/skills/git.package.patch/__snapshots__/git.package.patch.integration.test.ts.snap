@@ -1645,3 +1645,18 @@ exports[`git.package.patch.sh given: [case13] a gated package (rhachet-roles-bhr
    └─ rhx git.package.patch set --package rhachet-roles-bhrain@1.0.0 --mode apply
 "
 `;
+
+exports[`git.package.patch.sh given: [case14] a sealed patch on is-number@7.0.0, whose installed copy then gets an edit in place when: [t0] the installed copy carries an edit its patch lacks then: the render matches its snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.install
+   ├─ package: is-odd
+   ├─ unsaved edits
+   │  └─ is-number@7.0.0: index.js
+   └─ ✋ ConstraintError: a patched installed copy has an edit its patch lacks; the install would wipe it
+
+🥥 did you know?
+   ├─ seal the edit into its patch first: open an edit dir, carry the edit in, then seal it
+   └─ rhx git.package.patch set --package is-number@7.0.0 --mode apply
+"
+`;

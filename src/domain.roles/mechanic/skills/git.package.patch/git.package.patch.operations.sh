@@ -1271,6 +1271,59 @@ is_patch_fit() {
 }
 
 ######################################################################
+# .what = print each file a patched installed copy holds beyond its patch,
+#         one "<installed dir>\t<file>" per line; naught when none
+# .why  = an install rebuilds each patched copy from its pristine source plus
+#         its patch. an edit made in the installed copy in place, and never
+#         sealed into the patch, is wiped with no trace; set.package.install
+#         asks this first, and refuses while it prints aught
+# .note = the expected copy is the pristine source plus the committed patch,
+#         opened the same way set (open) opens one, in a dir apart from any
+#         edit dir a crew has open; it is removed after the compare
+# .note = only a copy pnpm built with the patch (`_patch_hash=` in its path)
+#         is compared: an unpatched copy beside it is pristine by design
+# .note = an install is a rare, deliberate act, so this check is full every
+#         time; it never runs on a hook
+# usage: get_patch_unsaved_edits --root <root> --spec <name@version> --patch <rel>
+######################################################################
+get_patch_unsaved_edits() {
+  local root="$2" spec="$4" patch_rel="$6"
+  local name version dirs_raw dir
+  name=$(as_package_name "$spec")
+  version=$(as_package_version "$spec")
+  dirs_raw=$(get_all_installed_package_dirs "$root" "$name" "$version") || return 2
+  local patched=()
+  while IFS= read -r dir; do
+    [[ "$dir" == *_patch_hash=* ]] && patched+=("$dir")
+  done <<<"$dirs_raw"
+  [[ ${#patched[@]} -gt 0 ]] || return 0
+
+  # open the expected copy: the pristine source, then the committed patch
+  local expect="$root/$EDIT_DIR_BASE_REL/.install-guard/$name@$version" out
+  out=$(set_edit_dir_via_pnpm "$root" "$spec" "$expect") || { echo "$out" >&2; rm -rf -- "$expect"; return 2; }
+  out=$(set_prior_patch_laid "$expect" "$root/$patch_rel") || { echo "$out" >&2; rm -rf -- "$expect"; return 2; }
+
+  # compare each patched copy against it; git diff exits 1 on a difference
+  local files status
+  for dir in "${patched[@]}"; do
+    status=0
+    files=$(git -c core.fileMode=false diff --no-index --name-only -- "$expect" "$dir" 2>&1) || status=$?
+    [[ $status -le 1 ]] || { echo "$files" >&2; rm -rf -- "$expect"; return 2; }
+    [[ -n "$files" ]] || continue
+    # git names a changed or added file by the installed side, a removed one
+    # by the expected side; either prefix is cut, so each reads relative
+    while IFS= read -r each; do
+      [[ -n "$each" ]] || continue
+      each="/${each#/}"
+      each="${each#"$dir"/}"
+      each="${each#"$expect"/}"
+      printf '%s\t%s\n' "$dir" "$each"
+    done <<<"$files"
+  done
+  rm -rf -- "$expect"
+}
+
+######################################################################
 # .what = print "<state>\t<target version>\t<reason>" for one patch
 # .why  = the states check names:
 #         - applied       the installed copy holds the patch

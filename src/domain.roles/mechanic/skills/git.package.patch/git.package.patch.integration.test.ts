@@ -3932,4 +3932,137 @@ describe('git.package.patch.sh', () => {
       );
     });
   });
+
+  given(
+    '[case14] a sealed patch on is-number@7.0.0, whose installed copy then gets an edit in place',
+    () => {
+      const INSTALL_PATH = path.join(
+        __dirname,
+        '../set.package/set.package.install.sh',
+      );
+      const scene = useBeforeAll(async () => {
+        const dir = genPnpmRepo({
+          slug: 'git-package-patch-install-guard',
+          dependencies: { 'is-number': '7.0.0' },
+        });
+        const opened = runSkill({
+          cwd: dir,
+          args: ['set', '--package', 'is-number', '--mode', 'apply'],
+        });
+        if (opened.exitCode !== 0)
+          throw new MalfunctionError('begin is-number@7.0.0 failed', {
+            stdout: opened.stdout,
+          });
+        editIsNumber({ dir });
+        const sealed = runSkill({
+          cwd: dir,
+          args: [
+            'set',
+            '--package',
+            'is-number',
+            '--why',
+            WHY,
+            '--upstream',
+            UPSTREAM,
+            '--mode',
+            'apply',
+          ],
+        });
+        if (sealed.exitCode !== 0)
+          throw new MalfunctionError('seal is-number@7.0.0 failed', {
+            stdout: sealed.stdout,
+          });
+        const installed = path.join(dir, 'node_modules/is-number/index.js');
+        return {
+          dir,
+          installed,
+          sealedContent: fs.readFileSync(installed, 'utf-8'),
+        };
+      });
+
+      /**
+       * .what = replace the installed copy's index.js with new content
+       * .why  = pnpm hardlinks a package's files from its global cache; an
+       *         in-place write would edit the cache, so unlink first
+       */
+      const setInstalledContent = (input: { content: string }): void => {
+        fs.rmSync(scene.installed);
+        fs.writeFileSync(scene.installed, input.content);
+      };
+
+      /**
+       * .what = run set.package.install in the scene, with pnpm on PATH
+       */
+      const runInstall = (): {
+        stdout: string;
+        stderr: string;
+        exitCode: number;
+      } =>
+        runSkill({
+          cwd: scene.dir,
+          executable: INSTALL_PATH,
+          args: [
+            '--package',
+            'is-odd',
+            '--at',
+            '3.0.1',
+            '--for',
+            'prod',
+            '--reason',
+            'reef check: an odd wave count',
+          ],
+        });
+
+      when('[t0] the installed copy carries an edit its patch lacks', () => {
+        const result = useThen('install runs', async () => {
+          setInstalledContent({
+            content: `${scene.sealedContent}\n// reef edit: never sealed\n`,
+          });
+          return runInstall();
+        });
+
+        then('it exits 2 and names the unsaved file', () => {
+          expect(result.exitCode).toEqual(2);
+          expect(result.stdout).toContain('unsaved edits');
+          expect(result.stdout).toContain('is-number@7.0.0');
+          expect(result.stdout).toContain('index.js');
+          expect(result.stderr).toContain(
+            'a patched installed copy has an edit its patch lacks',
+          );
+        });
+
+        then('the hint names the seal path', () => {
+          expect(result.stdout).toContain(
+            'rhx git.package.patch set --package is-number@7.0.0 --mode apply',
+          );
+        });
+
+        then('naught is written: no new dep, the edit kept', () => {
+          const pkgJson = JSON.parse(
+            fs.readFileSync(path.join(scene.dir, 'package.json'), 'utf-8'),
+          );
+          expect(pkgJson.dependencies['is-odd']).toBeUndefined();
+          expect(fs.readFileSync(scene.installed, 'utf-8')).toContain(
+            '// reef edit: never sealed',
+          );
+        });
+
+        then('the render matches its snapshot', () => {
+          expectStableSnapshot({ result, dir: scene.dir });
+        });
+      });
+
+      when('[t1] the installed copy matches its patch again', () => {
+        const result = useThen('install runs', async () => {
+          setInstalledContent({ content: scene.sealedContent });
+          return runInstall();
+        });
+
+        then('the guard lets it through', () => {
+          expect(result.stdout).not.toContain('unsaved edits');
+          expect(result.stdout).not.toContain('MalfunctionError');
+        });
+      });
+    },
+  );
 });

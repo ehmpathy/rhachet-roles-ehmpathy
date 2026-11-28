@@ -14,6 +14,8 @@
 # guarantee:
 #   - fails fast if security audit fails
 #   - fails fast if package already installed (use upgrade instead)
+#   - refuses, before any write, while a patched installed copy has an edit
+#     its patch lacks: the install would rebuild that copy and wipe the edit
 #   - persists reason to .route/v{date}.package.install/
 #   - uses pnpm by default, npm if package-lock.json extant
 ######################################################################
@@ -21,6 +23,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/set.package.operations.sh"
+# the patch operations come before output.sh, so this skill's print_* win
+source "$SCRIPT_DIR/../git.package.patch/git.package.patch.operations.sh"
 source "$SCRIPT_DIR/output.sh"
 
 # globals
@@ -181,6 +185,31 @@ EOF
 }
 
 ######################################################################
+# print "<spec>\t<installed dir>\t<file>" per edit a patched copy holds
+# beyond its patch; naught when none
+# .why  = pnpm rebuilds each patched copy on install; an edit made in place
+#         and never sealed would vanish with no trace
+# .note = a spec with no version is checked at each installed version
+######################################################################
+_get_all_unsaved_patch_edits() {
+  local root="$1" entries spec patch_rel manifest name version versions edits
+  entries=$(get_all_patch_entries "$root") || return 2
+  while IFS=$'\t' read -r spec patch_rel manifest; do
+    [[ -n "$spec" && -f "$root/$patch_rel" ]] || continue
+    name=$(as_package_name "$spec")
+    version=$(as_package_version "$spec")
+    versions="$version"
+    [[ -n "$version" ]] || versions=$(get_all_used_versions "$root" "$name") || return 2
+    while IFS= read -r version; do
+      [[ -n "$version" ]] || continue
+      edits=$(get_patch_unsaved_edits --root "$root" --spec "$name@$version" --patch "$patch_rel") || return 2
+      [[ -n "$edits" ]] || continue
+      while IFS= read -r line; do printf '%s\t%s\n' "$name@$version" "$line"; done <<<"$edits"
+    done <<<"$versions"
+  done <<<"$entries"
+}
+
+######################################################################
 # install package
 ######################################################################
 _install_package() {
@@ -233,6 +262,47 @@ main() {
       "upgrade it instead" \
       "rhx set.package.upgrade --package $PACKAGE --to $VERSION"
     exit 2
+  fi
+
+  # guard: the install rebuilds each patched copy, so refuse while one has
+  # an edit its patch lacks; this runs before any write and any network call
+  if [[ "$(_detect_package_manager "$repo_root")" == "pnpm" ]]; then
+    local unsaved=""
+    local unsaved_status=0
+    unsaved=$(_get_all_unsaved_patch_edits "$repo_root" 2>&1) || unsaved_status=$?
+    if [[ $unsaved_status -ne 0 ]]; then
+      OUTPUT_STREAM="both"
+      print_turtle_header "bummer dude..."
+      print_tree_start "set.package.install"
+      print_tree_leaf "package" "$PACKAGE"
+      print_malfunction "could not compare the patched installed copies against their patches ($(echo "$unsaved" | awk 'NF' | tail -n 1))"
+      print_footer "install blocked. it fails closed; rerun once the patched copies read."
+      exit 1
+    fi
+    if [[ -n "$unsaved" ]]; then
+      local unsaved_spec
+      unsaved_spec=$(echo "$unsaved" | head -n 1 | cut -f1)
+      OUTPUT_STREAM="both"
+      print_turtle_header "bummer dude..."
+      print_tree_start "set.package.install"
+      print_tree_leaf "package" "$PACKAGE"
+      print_tree_branch "unsaved edits"
+      local unsaved_lines
+      readarray -t unsaved_lines <<< "$unsaved"
+      local unsaved_idx=0
+      local line
+      for line in "${unsaved_lines[@]}"; do
+        unsaved_idx=$((unsaved_idx + 1))
+        local unsaved_last="false"
+        [[ $unsaved_idx -eq ${#unsaved_lines[@]} ]] && unsaved_last="true"
+        print_nested_leaf "$(echo "$line" | cut -f1)" "$(echo "$line" | cut -f3)" "false" "$unsaved_last"
+      done
+      print_error "a patched installed copy has an edit its patch lacks; the install would wipe it"
+      print_coconut_hint \
+        "seal the edit into its patch first: open an edit dir, carry the edit in, then seal it" \
+        "rhx git.package.patch set --package $unsaved_spec --mode apply"
+      exit 2
+    fi
   fi
 
   # expand version if needed - capture status to avoid set -e exit on non-zero
