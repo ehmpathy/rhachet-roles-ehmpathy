@@ -120,6 +120,9 @@ always:
       - skills/claude.tools/symlink.sh
       - skills/claude.tools/teesafe.sh
 
+      # chmod — the deny of raw chmod names this safe twin
+      - skills/git.repo.chmod/git.repo.chmod.sh
+
       # package docs — the say brief rule.require.read-package-docs-before-use names both calls
       - skills/get.package.docs.sh
 
