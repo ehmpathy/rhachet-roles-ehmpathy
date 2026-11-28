@@ -125,6 +125,7 @@ always:
 
       # package management — rare, deliberate acts
       - skills/declapract.upgrade.sh
+      - skills/git.package.patch/git.package.patch.sh
       - skills/set.package/set.package.install.sh
       - skills/set.package/set.package.upgrade.sh
 
@@ -168,6 +169,17 @@ always:
       - skills/git.branch.cutover/git.branch.cutover.output.sh
       - skills/git.branch.uses/git.branch.uses.local.sh
       - skills/git.branch.uses/git.branch.uses.operations.sh
+      # the package patch sub-files: the git.package.patch dispatcher in ref names each subcommand
+      - skills/git.package.patch/git.package.patch.del.sh
+      - skills/git.package.patch/git.package.patch.get.sh
+      - skills/git.package.patch/git.package.patch.operations.sh
+      - skills/git.package.patch/git.package.patch.set.sh
+      - skills/git.package.patch/git.package.patch.set.open.sh
+      - skills/git.package.patch/git.package.patch.set.seal.sh
+      - skills/git.package.patch/git.package.patch.uses.sh
+      - skills/git.package.patch/output.sh
+      - skills/git.package.patch/git.package.patch.integration.test.ts
+      - skills/git.package.patch/__snapshots__/git.package.patch.integration.test.ts.snap
 
 subject.code.prod:
   briefs:
@@ -370,12 +382,16 @@ subject.flow:
       # require twin — test-edit-without-named-proof stays say (it names the violation; it carries the cure)
       - briefs/practices/work.flow/refactor/rule.require.review-test-changes.md
       - briefs/practices/work.flow/refactor/rule.prefer.sedreplace-for-renames.md
+      # scouts-honor carries the twin-tool cue; this holds the full rule
+      - briefs/practices/work.flow/tools/rule.forbid.twin-tool-sprawl.md
 
       - briefs/practices/work.flow/diagnose/howto.bisect.[lesson].md
       - briefs/practices/work.flow/diagnose/howto.logservation.[lesson].md
       - briefs/practices/work.flow/release/howto.git-release.[lesson].md
       # the pr watch — each alert names its next command; this maps alert → act on demand
       - briefs/practices/work.flow/tools/howto.git-pull-watch.[lesson].md
+      # the package patch — the raw pnpm patch block names the verb at the moment of need
+      - briefs/practices/work.flow/tools/howto.git-package-patch.[lesson].md
       - briefs/practices/work.flow/tools/howto.fix-declapract-upgrade-failures.[lesson].md
       - briefs/practices/work.flow/tools/rule.prefer.allowlist-examples.[lesson].md
       - briefs/practices/work.flow/tools/rule.prefer.jq.[demo].md
