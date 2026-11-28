@@ -298,14 +298,15 @@ for JOB_ID in $JOB_IDS; do
     # capture both stdout and stderr
     # .note = jest logs carry ansi color codes; gh refuses to print a body with
     #         terminal escapes unless allowed, so allow them, then strip the codes
-    LOGS=$(gh api --method GET "repos/$REPO/actions/jobs/$JOB_ID/logs" --allow-escape-sequences 2>&1 || true)
+    LOGS_RC=0
+    LOGS=$(gh api --method GET "repos/$REPO/actions/jobs/$JOB_ID/logs" --allow-escape-sequences 2>&1) || LOGS_RC=$?
     LOGS=$(printf '%s' "$LOGS" | sed $'s/\x1b\\[[0-9;?]*[A-Za-z]//g')
 
-    # check if logs are available:
-    # - not empty
-    # - not "null"
-    # - not an error message about job status, nor a gh refusal to print
-    if [[ -n "$LOGS" && "$LOGS" != "null" && ! "$LOGS" =~ "still running" && ! "$LOGS" =~ "not available" && ! "$LOGS" =~ "HTTP 4" && ! "$LOGS" =~ "contains terminal escape sequences" ]]; then
+    # logs are ready when gh answers 0 with a body; any error (404 while the job
+    # runs, a 4xx, a refusal to print) exits nonzero
+    # .note = never match phrases in the body: a test log can name "HTTP 4" or
+    #         "not available" itself, and would then never read as ready
+    if [[ $LOGS_RC -eq 0 && -n "$LOGS" && "$LOGS" != "null" ]]; then
       LOGS_READY=true
       break
     fi

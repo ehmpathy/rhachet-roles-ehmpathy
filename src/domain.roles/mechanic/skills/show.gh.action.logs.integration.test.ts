@@ -165,6 +165,51 @@ esac
     });
   });
 
+  given('[case7] a ready log whose own text names an http error', () => {
+    when('[t0] gh answers 0 with a body that says HTTP 404 and not available', () => {
+      then('shows the logs at once, never read as not ready', () => {
+        const tempDir = setupTempRepo({
+          branch: 'feature/test',
+          ghMock: `#!/bin/bash
+case "$*" in
+  "auth status")
+    exit 0
+    ;;
+  "run list"*)
+    echo '[{"databaseId":123,"workflowName":"test","status":"completed","conclusion":"failure","createdAt":"2024-01-01T00:00:00Z"}]'
+    ;;
+  "repo view"*)
+    echo '{"nameWithOwner":"test/repo"}'
+    ;;
+  *"actions/runs/123/jobs"*)
+    echo '[{"id":456,"name":"test-unit","conclusion":"failure"}]'
+    ;;
+  *"actions/jobs/456/logs"*)
+    echo "FAIL src/reef.test.ts"
+    echo "  ✕ then: a gone pr reads as HTTP 404, and the watch says the pr is not available"
+    echo "PASS other test"
+    ;;
+  *)
+    echo "unhandled: $*" >&2
+    exit 1
+    ;;
+esac
+`,
+        });
+
+        const result = runScript({
+          tempDir,
+          scriptArgs: ['--flow', 'test'],
+        });
+
+        expect(result.stdout).toContain('FAIL src/reef.test.ts');
+        expect(result.stdout).toContain('reads as HTTP 404');
+        expect(result.stdout).not.toContain('logs not ready');
+        expect(result.exitCode).toBe(0);
+      });
+    });
+  });
+
   given('[case2] logs are delayed (github slow)', () => {
     when('[t0] api returns error then succeeds', () => {
       then('retries and eventually shows logs', () => {
