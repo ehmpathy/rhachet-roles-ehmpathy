@@ -1539,3 +1539,37 @@ exports[`git.branch.rebase --unstaged given: [case37] a set-aside step fails mid
    └─ rhx git.branch.rebase abort
 "
 `;
+
+exports[`git.branch.rebase --unstaged given: [case38] a skip-worktree path with a local edit that main also changes when: [t0] begin --mode apply --unstaged ignore then: the rebase lands, the local edit comes back, and so does its bit 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 1 ✓
+   │  └─ status: clean
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  └─ package.json
+   │  ├─ ⚠️ main also changed these paths; your held copy reverts main's change there
+   │  │  └─ package.json
+   │  └─ status: all put back
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/1)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🥥 did you know?
+   ├─ to take main's version of a path main also changed, check it out from HEAD
+   ├─ git diff -- package.json
+   └─ git checkout HEAD -- package.json
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;

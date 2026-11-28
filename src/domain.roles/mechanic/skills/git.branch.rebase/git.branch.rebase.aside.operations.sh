@@ -18,6 +18,8 @@
 #   $store/paths   one held path per line (repo-root relative)
 #   $store/absent  held paths that were absent (an unstaged deletion)
 #   $store/bases   "<HEAD blob or none>\t<path>" at set-aside time
+#   $store/skipworktree  paths set aside whose index entry had the skip-worktree
+#                  bit; the bit is cleared for the rebase and set again at put-back
 #   $store/tree/   a link-safe copy of each present held path
 #   $store/done    held paths already put back (a retry skips them)
 #   $store/failed  "<path>\t<error>" per path a put-back could not write
@@ -199,6 +201,58 @@ print_aside_set_failure() {
 }
 
 ######################################################################
+# get skip-worktree paths whose tree bytes differ from their index blob
+# returns: newline-separated list of file paths (repo-root relative)
+# .note = git diff never lists a skip-worktree path, yet a checkout that
+#         must write one refuses ("would be overwritten"); so begin sets
+#         these aside beside the unstaged paths
+# .note = an absent skip-worktree path is a sparse checkout's own choice,
+#         no local change, so it is never listed
+######################################################################
+get_skip_worktree_changed_files() {
+  local root line path blob now
+  root=$(git rev-parse --show-toplevel 2>/dev/null) || return 0
+  while IFS= read -r -d '' line; do
+    path="${line#* }"
+    [[ -L "$root/$path" || -f "$root/$path" ]] || continue
+    blob=$(cd "$root" && git rev-parse -q --verify ":$path") || continue
+    if [[ -L "$root/$path" ]]; then
+      now=$(printf '%s' "$(readlink -- "$root/$path")" | git hash-object --stdin)
+    else
+      now=$(cd "$root" && git hash-object -- "$path")
+    fi
+    [[ "$now" != "$blob" ]] && echo "$path"
+  done < <(cd "$root" && git -c core.quotepath=off ls-files -v -z | grep -z '^[Ss] ' || true)
+  return 0
+}
+
+######################################################################
+# get unstaged paths plus skip-worktree paths with a local change
+# returns: newline-separated list of file paths, each once
+######################################################################
+get_unstaged_files_with_skip_worktree() {
+  { get_unstaged_files; get_skip_worktree_changed_files; } | awk 'length && !seen[$0]++'
+  return 0
+}
+
+######################################################################
+# get the paths of a list whose index entry has the skip-worktree bit
+# args: paths= (newline list, repo-root relative; non-empty)
+# returns: newline-separated subset of paths
+######################################################################
+get_skip_worktree_paths_of() {
+  local paths root line
+  read_named_args "$@"
+  root=$(git rev-parse --show-toplevel)
+  local list=()
+  mapfile -t list <<< "$paths"
+  while IFS= read -r -d '' line; do
+    echo "${line#* }"
+  done < <(cd "$root" && git --literal-pathspecs -c core.quotepath=off ls-files -v -z -- "${list[@]}" | grep -z '^[Ss] ' || true)
+  return 0
+}
+
+######################################################################
 # set paths aside into the extant store, then reset each from the index
 # args: label= (the command tree root), paths= (newline list, repo-root relative)
 # .note = a path already held is skipped, and never reset: the held copy
@@ -236,8 +290,21 @@ set_paths_aside() {
     processed+=("$path")
   done <<< "$list"
 
-  # reset only the paths set aside here, from the index (the index is never touched)
   [[ ${#processed[@]} -eq 0 ]] && return 0
+
+  # a skip-worktree path: record it, then clear its bit, so the reset below
+  # writes the index blob and the rebase can write main's copy over it
+  local skipped
+  skipped=$(get_skip_worktree_paths_of paths="$(printf '%s\n' "${processed[@]}")")
+  if [[ -n "$skipped" ]]; then
+    local skips=()
+    mapfile -t skips <<< "$skipped"
+    printf '%s\n' "${skips[@]}" >> "$store/skipworktree"
+    err=$(cd "$root" && git --literal-pathspecs update-index --no-skip-worktree -- "${skips[@]}" 2>&1) \
+      || { print_aside_set_failure label="$label" what="cannot clear the skip-worktree bit of the paths set aside" error="$err"; exit 1; }
+  fi
+
+  # reset only the paths set aside here, from the index (index content is never touched)
   err=$(cd "$root" && git --literal-pathspecs checkout -- "${processed[@]}" 2>&1) \
     || { print_aside_set_failure label="$label" what="cannot reset the paths set aside" error="$err"; exit 1; }
 }
@@ -434,6 +501,11 @@ try_one_path_put_back() {
   # copy back, link as link
   err=$(mkdir -p "$(dirname "$root/$path")" 2>&1) || { echo "$err"; return 1; }
   err=$(cp -a -- "$store/tree/$path" "$root/$path" 2>&1) || { echo "$err"; return 1; }
+
+  # a path that had the skip-worktree bit gets it again, while the index has the path
+  grep -qxF -- "$path" "$store/skipworktree" 2>/dev/null || return 0
+  (cd "$root" && git rev-parse -q --verify ":$path" &>/dev/null) || return 0
+  err=$(cd "$root" && git --literal-pathspecs update-index --skip-worktree -- "$path" 2>&1) || { echo "$err"; return 1; }
 }
 
 ######################################################################

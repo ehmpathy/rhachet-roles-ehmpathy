@@ -2667,4 +2667,49 @@ describe('git.branch.rebase --unstaged', () => {
       },
     );
   });
+
+  // .why = git diff never lists a skip-worktree path, so a local edit there
+  //        hid from the unstaged guard, and the rebase then refused to write
+  //        main's copy over it ("would be overwritten"). begin now sets such
+  //        a path aside, clears its bit for the rebase, and sets it again
+  given('[case38] a skip-worktree path with a local edit that main also changes', () => {
+    when('[t0] begin --mode apply --unstaged ignore', () => {
+      then('the rebase lands, the local edit comes back, and so does its bit', () => {
+        const { workDir, baseDir } = setupScenario({
+          conflict: false,
+          mainChangesPackageJson: true,
+        });
+        try {
+          git({
+            cwd: workDir,
+            args: ['update-index', '--skip-worktree', 'package.json'],
+          });
+          fs.writeFileSync(
+            path.join(workDir, 'package.json'),
+            '{ "version": "0.0.0-local" }\n',
+          );
+
+          const result = runRebase({ workDir, args: BEGIN_APPLY_IGNORE });
+
+          expect(result.status).toBe(0);
+          expect(
+            git({ cwd: workDir, args: ['log', '--format=%s', '-2', 'HEAD'] }),
+          ).toBe('feat(reef): add feature\nchore(release): v1.1.0');
+          expect(
+            git({ cwd: workDir, args: ['show', 'HEAD:package.json'] }),
+          ).toBe('{ "version": "1.1.0" }');
+          expect(readFile({ workDir, file: 'package.json' })).toBe(
+            '{ "version": "0.0.0-local" }\n',
+          );
+          expect(
+            git({ cwd: workDir, args: ['ls-files', '-v', '--', 'package.json'] }),
+          ).toBe('S package.json');
+          expect(fs.existsSync(getStorePath({ workDir }))).toBe(false);
+          expect(asStableOutput(result.stdout)).toMatchSnapshot();
+        } finally {
+          fs.rmSync(baseDir, { recursive: true, force: true });
+        }
+      });
+    });
+  });
 });
