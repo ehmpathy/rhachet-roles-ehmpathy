@@ -105,6 +105,7 @@
       "Bash(npx rhachet run --skill git.release.uses get)",
       "Bash(npx rhachet run --skill git.release.uses:*)",
       "Bash(npx rhachet run --skill git.release:*)",
+      "Bash(npx rhachet run --skill git.repo.chmod:*)",
       "Bash(npx rhachet run --skill git.repo.get:*)",
       "Bash(npx rhachet run --skill git.repo.test:*)",
       "Bash(npx rhachet run --skill git.stage.add --glob 'src/**/*.ts')",
@@ -166,10 +167,12 @@
       "Bash(rhx git.branch.uses:*)",
       "Bash(rhx git.commit.push:*)",
       "Bash(rhx git.commit.set:*)",
-      "Bash(rhx git.package.patch begin --package rhachet --mode apply)",
-      "Bash(rhx git.package.patch commit --package rhachet --why '<why>' --upstream https://github.com/ehmpathy/rhachet/issues/1 --mode apply)",
+      "Bash(rhx git.package.patch set --package rhachet --mode apply)",
+      "Bash(rhx git.package.patch set --package rhachet --why '<why>' --upstream https://github.com/ehmpathy/rhachet/issues/1 --mode apply)",
       "Bash(rhx git.package.patch:*)",
       "Bash(rhx git.release:*)",
+      "Bash(rhx git.repo.chmod --path src/domain.roles/mechanic/skills/tool.sh --exec on --mode apply)",
+      "Bash(rhx git.repo.chmod:*)",
       "Bash(rhx git.repo.get files --in ehmpathy/domain-objects)",
       "Bash(rhx git.repo.get files --repos 'ehmpathy/*' --words 'DomainEntity')",
       "Bash(rhx git.repo.get lines --in ehmpathy/domain-objects --paths 'src/index.ts')",
@@ -224,6 +227,7 @@
     "deny": [
       "Bash(bash:*)",
       "Bash(cd:*)",
+      "Bash(chmod:*)",
       "Bash(find:*)",
       "Bash(gh api --method DELETE:*)",
       "Bash(gh api --method PATCH:*)",
@@ -287,6 +291,8 @@
       "Bash(ls:*)",
       "Bash(mkdir:*)",
       "Bash(mv:*)",
+      "Bash(npm i:*)",
+      "Bash(npm install:*)",
       "Bash(npx biome:*)",
       "Bash(npx jest:*)",
       "Bash(npx rhachet run --skill git.branch.uses -- allow:*)",
@@ -318,6 +324,9 @@
       "Bash(npx rhachet run --skill git.release.uses --org * del:*)",
       "Bash(npx rhachet run --skill git.release.uses allow:*)",
       "Bash(npx rhachet run --skill git.release.uses set:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm i:*)",
+      "Bash(pnpm install:*)",
       "Bash(rhx git.branch.uses -- allow:*)",
       "Bash(rhx git.branch.uses -- set:*)",
       "Bash(rhx git.branch.uses --global allow:*)",
@@ -354,12 +363,7 @@
       "EnterPlanMode",
       "Read(.quarantine/*)"
     ],
-    "ask": [
-      "Bash(chmod:*)",
-      "Bash(npm install:*)",
-      "Bash(pnpm add:*)",
-      "Bash(pnpm install:*)"
-    ]
+    "ask": []
   },
   "hooks": {
     "SessionStart": [

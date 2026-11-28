@@ -268,16 +268,24 @@
 
       // git release alias — DEPRECATED, use rhx git.release instead
       // the alias lacks skill guarantees (quota, push permission, turtle output)
-      "Bash(git release:*)"
-    ],
+      "Bash(git release:*)",
 
-    // commands that require explicit user approval each time
-    "ask": [
+      // raw exec bit and raw install — each has a paved verb, and an ask stops a
+      // delegated seat on a human it may never reach. the paved verbs run these
+      // inside rhx, which a Bash-tool deny does not reach:
+      //   rhx git.repo.chmod --path <file> --exec on --mode apply
+      //   npm ci · rhx set.package.install --package <name> --at <version> --for prod --reason '<why>'
       "Bash(chmod:*)",
       "Bash(npm install:*)",
+      "Bash(npm i:*)",
       "Bash(pnpm install:*)",
+      "Bash(pnpm i:*)",
       "Bash(pnpm add:*)"
     ],
+
+    // commands that require explicit human approval each time: none. every
+    // command once asked here has a paved verb (see the deny block above)
+    "ask": [],
 
     // commands that are safe to auto-approve
     "allow": [
@@ -513,6 +521,11 @@
       "Bash(rhx git.repo.get lines --in ehmpathy/domain-objects --paths 'src/index.ts')",
       // multi-repo search (find files with pattern across all repos in org)
       "Bash(rhx git.repo.get files --repos 'ehmpathy/*' --words 'DomainEntity')",
+
+      // git.repo.chmod - set or clear the exec bit of one file in the repo (raw chmod is denied)
+      "Bash(npx rhachet run --skill git.repo.chmod:*)",
+      "Bash(rhx git.repo.chmod:*)",
+      "Bash(rhx git.repo.chmod --path src/domain.roles/mechanic/skills/tool.sh --exec on --mode apply)",
 
       // keyrack unlock - for git.repo.test (broad) or skills (narrow with --key)
       // note: rhx:* and npx rhx:* already allowed; these are just examples

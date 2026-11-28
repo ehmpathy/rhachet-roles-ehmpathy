@@ -3925,7 +3925,10 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
           expect(result.exitCode).toBe(2);
           expect(result.stderr).not.toContain('did you mean?');
           expect(result.stderr).not.toContain('cmd | rhx teesafe');
-          expect(result.stderr).toContain('no paved path fits this part');
+          // chmod has a paved alternative of its own (raw chmod is denied), so the
+          // block names it rather than a typo match
+          expect(result.stderr).toContain('paved alternatives for `chmod`');
+          expect(result.stderr).toContain('rhx git.repo.chmod --path <file>');
         });
       },
     );
