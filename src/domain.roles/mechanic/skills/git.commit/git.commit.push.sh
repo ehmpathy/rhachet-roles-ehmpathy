@@ -693,7 +693,8 @@ if [[ -z "$PR_FOUND" ]]; then
   [[ "$DEBUG" == "true" ]] && echo "[debug] pr create output: $PR_CREATE_OUTPUT" >&2
 
   if [[ $PR_CREATE_EXIT -eq 0 ]]; then
-    NEW_PR=$(echo "$PR_CREATE_OUTPUT" | grep -oE '[0-9]+$' || echo "")
+    # read the number from the pr url alone; gh may trail it with hint lines that end in a digit
+    NEW_PR=$(echo "$PR_CREATE_OUTPUT" | grep -oE '/pull/[0-9]+' | head -n 1 | grep -oE '[0-9]+' || echo "")
     if [[ -n "$NEW_PR" ]]; then
       PR_STATUS="pr #$NEW_PR (created)"
     else

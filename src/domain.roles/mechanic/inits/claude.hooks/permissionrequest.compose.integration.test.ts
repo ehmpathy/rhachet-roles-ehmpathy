@@ -150,10 +150,12 @@ describe('permissionrequest — composed control stack', () => {
 
   given('[case1] the seam is registered in the settings manifest', () => {
     when('[t0] the PermissionRequest hook block is read', () => {
-      then('it registers the decider on a Bash matcher', () => {
+      then('it registers the decider on every tool', () => {
+        // every tool, not Bash alone: a subagent's prompt is denied on any tool;
+        // the decider lifts a main-seat request that is not Bash, as before
         const parsed = JSON.parse(fs.readFileSync(SETTINGS, 'utf-8'));
         const entry = parsed?.hooks?.PermissionRequest?.[0];
-        expect(entry?.matcher).toBe('Bash');
+        expect(entry?.matcher).toBe('*');
         expect(entry?.hooks?.[0]?.command).toContain(
           'permissionrequest.decide-permissions',
         );

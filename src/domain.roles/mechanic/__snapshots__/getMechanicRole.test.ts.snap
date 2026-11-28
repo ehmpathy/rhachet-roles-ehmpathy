@@ -29,6 +29,12 @@ exports[`getMechanicRole given: [case1] the mechanic role definition when: [t4] 
           "timeout": "PT30S",
         },
       ],
+      "onStop": [
+        {
+          "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/stop.git-package-patch.sh",
+          "timeout": "PT30S",
+        },
+      ],
       "onTalk": [
         {
           "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/userpromptsubmit.git-pull-watch.sh",
@@ -120,6 +126,14 @@ exports[`getMechanicRole given: [case1] the mechanic role definition when: [t4] 
           "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-planmode.sh",
           "filter": {
             "what": "EnterPlanMode",
+            "when": "before",
+          },
+          "timeout": "PT10S",
+        },
+        {
+          "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-worktree-askuser.sh",
+          "filter": {
+            "what": "EnterWorktree|AskUserQuestion",
             "when": "before",
           },
           "timeout": "PT10S",

@@ -205,3 +205,8 @@ exports[`permissionrequest.decide-permissions.sh given: [case11] the audit-log p
 
 "
 `;
+
+exports[`permissionrequest.decide-permissions.sh given: [case99] a request raised from a subagent when: [t0] an unpaved Bash call carries a top-level agent_id then: it is denied, interrupt false, with the paved path named 1`] = `
+"{"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"deny","message":"denied: this Bash call is not pre-approved, and a subagent has no human to ask. do not retry it, unchanged or reworded. use a paved path instead: an rhx skill (run 'rhx list' to see them, 'rhx <skill> --help' for its flags), or the Read, Edit, and Write tools for files. no paved path fits? report that gap in your final message rather than ask.","interrupt":false}}}
+"
+`;

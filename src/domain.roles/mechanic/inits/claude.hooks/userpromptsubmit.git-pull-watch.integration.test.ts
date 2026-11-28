@@ -61,7 +61,11 @@ describe('userpromptsubmit.git-pull-watch.sh', () => {
       return outboxes.flatMap((dir) =>
         fs
           .readdirSync(dir)
-          .filter((name) => name.includes(`.clone=${SERIAL}.`))
+          // an entry mid-write is a `<entry>.tmp.<pid>.<n>` file beside it; only whole entries count
+          .filter(
+            (name) =>
+              name.includes(`.clone=${SERIAL}.`) && name.endsWith('.json'),
+          )
           .map((name) =>
             JSON.parse(fs.readFileSync(path.join(dir, name), 'utf-8')),
           ),

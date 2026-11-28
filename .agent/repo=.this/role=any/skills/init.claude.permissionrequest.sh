@@ -21,6 +21,8 @@
 #   ✔ refuses a target that is a link (exit 2), so no write goes through it
 #   ✔ upserts one decider entry, first, keyed on its command;
 #     every other PermissionRequest entry is kept
+#   ✔ the matcher is "*": a subagent's prompt is denied on any tool, and
+#     the decider lifts a main-seat request that is not Bash, as before
 #   ✔ leaves the matcher untagged (no `# author=`), so rhachet's hook
 #     sync never claims nor prunes it
 #   ✔ idempotent: a rerun with no change writes naught
@@ -66,7 +68,7 @@ if ! jq --arg decider "$DECIDER_COMMAND" '
   def is_decider_entry: (.hooks // []) | any(.command // "" | contains("permissionrequest.decide-permissions"));
   .hooks //= {} |
   .hooks.PermissionRequest = (
-    [{ matcher: "Bash", hooks: [{ type: "command", command: $decider, timeout: 5 }] }]
+    [{ matcher: "*", hooks: [{ type: "command", command: $decider, timeout: 5 }] }]
     + (.hooks.PermissionRequest // [] | map(select(is_decider_entry | not)))
   )
 ' "$SETTINGS_FILE" > "$FILE_TEMP"; then

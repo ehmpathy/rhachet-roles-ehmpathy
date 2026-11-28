@@ -212,21 +212,58 @@ as_watch_idle_label() {
   echo "$(as_watch_minutes_ceil "$seconds") min"
 }
 
-# .what = the closure note of a watch that ended
-# .why  = a close without merge must never read as a ship, so it says so and by whom
+# .what = the note of a watch whose pull answered 404: gone, or hidden from the token
+# .why  = a 404 has two readings, and the fix differs by the token that got it: under
+#         the grove token, the likely cause is that token's reach, so the note puts
+#         the seaturtle unlock before the rewatch; a bare rewatch would only 404 again
+# usage: as_watch_gone_text <pr> <seaturtle|ambient>
+as_watch_gone_text() {
+  local pr="$1" source="$2"
+  if [[ "$source" == "ambient" ]]; then
+    print_watch_alert_header "bummer dude..." "#$pr answers 404 to the grove token (${WATCH_TOKEN_SLUG_AMBIENT:-@all.prep.GITHUB_TOKEN}); watch ended"
+    echo "   ├─ the pr may be gone, or out of the grove token's reach; the seaturtle token was not granted"
+    echo "   ├─ 1. unlock: rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN"
+    echo "   └─ 2. rewatch: rhx git.pull.watch set --which $pr --mode apply"
+    return 0
+  fi
+  print_watch_alert_header "bummer dude..." "#$pr answers 404 to the seaturtle token (gone, or out of its reach); watch ended"
+  echo "   └─ rewatch: rhx git.pull.watch set --which $pr --mode apply"
+}
+
+# .what = the closure note of a watch that ended: the one switch over every end reason
+# .why  = a close without merge must never read as a ship, so it says so and by whom;
+#         a watch whose reads faulted to the idle ttl was unread, not quiet, so it names
+#         the fault; a reason this switch does not know fails loud, never reads as a close
+# usage: as_watch_closure_text <pr> <end> <detail>
+#   end    = merged · closed · idle · dark · gone
+#   detail = closed: who closed it · dark: the last fault · gone: the token source · else empty
 as_watch_closure_text() {
-  local pr="$1" end="$2" closed_by="$3"
-  if [[ "$end" == "idle" ]]; then
-    print_watch_alert_header "heads up dude..." "#$pr quiet for $(as_watch_idle_label "$WATCH_IDLE_TTL_SECONDS"); watch ended"
-    echo "   └─ rewatch: rhx git.pull.watch set --which $pr --mode apply"
-    return 0
-  fi
-  if [[ "$end" == "merged" ]]; then
-    print_watch_alert_header "cowabunga!" "#$pr merged; watch ended"
-    return 0
-  fi
-  print_watch_alert_header "bummer dude..." "#$pr closed without merge; watch ended"
-  [[ -n "$closed_by" ]] && echo "   └─ by: @$closed_by"
+  local pr="$1" end="$2" detail="$3"
+  case "$end" in
+    merged)
+      print_watch_alert_header "cowabunga!" "#$pr merged; watch ended"
+      ;;
+    closed)
+      print_watch_alert_header "bummer dude..." "#$pr closed without merge; watch ended"
+      [[ -n "$detail" ]] && echo "   └─ by: @$detail"
+      ;;
+    idle)
+      print_watch_alert_header "heads up dude..." "#$pr quiet for $(as_watch_idle_label "$WATCH_IDLE_TTL_SECONDS"); watch ended"
+      echo "   └─ rewatch: rhx git.pull.watch set --which $pr --mode apply"
+      ;;
+    dark)
+      print_watch_alert_header "heads up dude..." "#$pr unreadable for $(as_watch_idle_label "$WATCH_IDLE_TTL_SECONDS"); watch ended"
+      echo "   ├─ last fault: $detail"
+      echo "   └─ rewatch: rhx git.pull.watch set --which $pr --mode apply"
+      ;;
+    gone)
+      as_watch_gone_text "$pr" "$detail"
+      ;;
+    *)
+      echo "💥 MalfunctionError: as_watch_closure_text got an unknown end reason '$end' for #$pr" >&2
+      return 1
+      ;;
+  esac
   return 0
 }
 
@@ -241,6 +278,21 @@ as_watch_alert_text() {
   return 0
 }
 
+# .what = the last line of every paused alert: when the watches resume, and how to resume them now
+# .why  = a paused daemon re-reads keyrack on each pr's poll gap, which doubles up to its cap;
+#         a human who fixed the token would otherwise wait out that gap with no word of it.
+#         one good read lifts the pause and makes every watched pr due, so a set on the
+#         first paused pr resumes them all at the next tick
+# usage: as_watch_paused_resume_line <prs, as "#1220, #1221">
+as_watch_paused_resume_line() {
+  local prs="$1" first label="to resume now"
+  first="${prs%%,*}"
+  first="${first#\#}"
+  [[ "$prs" == *,* ]] && label="to resume every paused watch now, one set"
+  echo "   ├─ after the fix: alerts resume within $(as_watch_minutes_ceil "${WATCH_POLL_MAX_SECONDS:-1800}") min"
+  echo "   └─ $label: rhx git.pull.watch set --which $first --mode apply"
+}
+
 # .what = the paused alert: the token is out, so the watches wait
 # .why  = locked needs an unlock; absent needs a human fill first — each names its fix
 as_watch_paused_text() {
@@ -249,25 +301,28 @@ as_watch_paused_text() {
   if [[ "$status" == "absent" ]]; then
     echo "   ├─ ✋ ConstraintError: github token not filled"
     echo "   ├─ watches paused: $prs"
-    echo "   └─ fix: a human runs \`rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN\`, then"
-    echo "      ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN"
-    echo "      └─ or, for the whole grove: \`rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN\`"
+    echo "   ├─ fix: a human runs \`rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN\`, then"
+    echo "   │  ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN"
+    echo "   │  └─ or, for the whole grove: \`rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN\`"
+    as_watch_paused_resume_line "$prs"
     return 0
   fi
   # github refused the token: an unlock cannot clear it; a human sets one github accepts
   if [[ "$status" == "expired" ]]; then
     echo "   ├─ ✋ ConstraintError: github token expired"
     echo "   ├─ watches paused: $prs"
-    echo "   └─ fix: a human runs \`rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN --refresh\`"
-    echo "      └─ or, where the grove token served: \`rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN\`"
+    echo "   ├─ fix: a human runs \`rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN --refresh\`"
+    echo "   │  └─ or, where the grove token served: \`rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN\`"
+    as_watch_paused_resume_line "$prs"
     return 0
   fi
   local cause="github token locked"
   [[ "$status" == "blocked" ]] && cause="github token blocked by keyrack"
   echo "   ├─ ✋ ConstraintError: $cause"
   echo "   ├─ watches paused: $prs"
-  echo "   └─ fix: rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN"
-  echo "      └─ or, for the whole grove: \`rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN\`"
+  echo "   ├─ fix: rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN"
+  echo "   │  └─ or, for the whole grove: \`rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN\`"
+  as_watch_paused_resume_line "$prs"
 }
 
 # .what = the outage note: github has not answered for a while; cursors hold
@@ -277,7 +332,7 @@ as_watch_unreachable_text() {
   print_watch_alert_header "bummer dude..." "cannot reach github"
   echo "   ├─ 💥 MalfunctionError: github unreachable for $minutes min"
   echo "   ├─ watches held: $prs"
-  echo "   └─ next: naught to do; cursors hold, and alerts resume once github answers"
+  echo "   └─ next: naught to do; no event is lost, and alerts resume within $(as_watch_minutes_ceil "${WATCH_POLL_MAX_SECONDS:-1800}") min of github's return"
 }
 
 # .what = the token-fault note: keyrack itself has not answered for a while

@@ -2365,4 +2365,301 @@ describe('git.repo.get.sh', () => {
       });
     });
   });
+
+  /**
+   * .what = a worktree with gitignored scratch and a node_modules dir
+   * .why = the three --ignored include cases share one shape: a tracked file,
+   *        an ignored scratch note, and an ignored node_modules that must stay
+   *        out even when ignored files are let in
+   */
+  const genWorktreeWithScratch = (input: {
+    gitRoot: string;
+  }): { worktreePath: string } => {
+    const { worktreePath } = genWorktree({
+      gitRoot: input.gitRoot,
+      repo: 'testorg/short',
+      branch: 'feat/inflight',
+      worktreeDirName: 'short.vlad.feat-inflight',
+    });
+    fs.writeFileSync(
+      path.join(worktreePath, '.gitignore'),
+      'scratch.local\nnode_modules/\n',
+    );
+    fs.writeFileSync(
+      path.join(worktreePath, 'scratch.local'),
+      'export const scratchSymbol = "plan";\n',
+    );
+    fs.mkdirSync(path.join(worktreePath, 'node_modules', 'reef'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(worktreePath, 'node_modules', 'reef', 'index.js'),
+      'export const scratchSymbol = "dependency";\n',
+    );
+    return { worktreePath };
+  };
+
+  given(
+    '[case45] --ignored include on a worktree with gitignored scratch',
+    () => {
+      when('[t0] files --tree --ignored include', () => {
+        then('lists the scratch note, never node_modules', () => {
+          const { homeDir, gitRoot, cleanup } = genTempDir();
+          try {
+            genWorktreeWithScratch({ gitRoot });
+            const result = runSkill(
+              'files --in testorg/short --tree feat/inflight --ignored include',
+              { HOME: homeDir },
+            );
+            expect(result.exitCode).toBe(0);
+            expect(result.stdout).toContain('scratch.local');
+            expect(result.stdout).toContain('src/index.ts');
+            expect(result.stdout).not.toContain('node_modules');
+            expect(result.stdout).toMatchSnapshot();
+          } finally {
+            cleanup();
+          }
+        });
+      });
+
+      when('[t1] lines --tree --ignored include --words', () => {
+        then('searches the scratch note, never node_modules', () => {
+          const { homeDir, gitRoot, cleanup } = genTempDir();
+          try {
+            genWorktreeWithScratch({ gitRoot });
+            const result = runSkill(
+              'lines --in testorg/short --tree feat/inflight --ignored include --words scratchSymbol',
+              { HOME: homeDir },
+            );
+            expect(result.exitCode).toBe(0);
+            expect(result.stdout).toContain('scratch.local');
+            expect(result.stdout).not.toContain('node_modules');
+            expect(result.stdout).toMatchSnapshot();
+          } finally {
+            cleanup();
+          }
+        });
+      });
+
+      when(
+        '[t2] lines --tree --ignored include --paths names the scratch note',
+        () => {
+          then(
+            'read mode serves it — one flag, one sense in all three modes',
+            () => {
+              const { homeDir, gitRoot, cleanup } = genTempDir();
+              try {
+                genWorktreeWithScratch({ gitRoot });
+                const result = runSkill(
+                  'lines --in testorg/short --tree feat/inflight --ignored include --paths scratch.local',
+                  { HOME: homeDir },
+                );
+                expect(result.exitCode).toBe(0);
+                expect(result.stdout).toContain('scratchSymbol');
+                expect(result.stdout).toMatchSnapshot();
+              } finally {
+                cleanup();
+              }
+            },
+          );
+        },
+      );
+
+      when('[t3] the same files call with no --ignored', () => {
+        then('the scratch note stays hidden, as before', () => {
+          const { homeDir, gitRoot, cleanup } = genTempDir();
+          try {
+            genWorktreeWithScratch({ gitRoot });
+            const result = runSkill(
+              'files --in testorg/short --tree feat/inflight',
+              { HOME: homeDir },
+            );
+            expect(result.exitCode).toBe(0);
+            expect(result.stdout).not.toContain('scratch.local');
+          } finally {
+            cleanup();
+          }
+        });
+      });
+    },
+  );
+
+  given('[case46] --ignored that cannot apply', () => {
+    when('[t0] --ignored include with no --tree', () => {
+      then('refuses with exit 2 and names --tree', () => {
+        const { homeDir, cleanup } = genTempDir();
+        try {
+          const result = runSkill(
+            'files --in testorg/short --ignored include',
+            { HOME: homeDir },
+          );
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain('--ignored include needs --tree');
+          expect(result.stdout).toMatchSnapshot();
+        } finally {
+          cleanup();
+        }
+      });
+    });
+
+    when('[t1] --ignored with a value it does not know', () => {
+      then('refuses with exit 2 and names the valid values', () => {
+        const { homeDir, cleanup } = genTempDir();
+        try {
+          const result = runSkill(
+            'files --in testorg/short --tree feat/inflight --ignored some',
+            { HOME: homeDir },
+          );
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain(
+            "--ignored must be 'exclude' or 'include'",
+          );
+        } finally {
+          cleanup();
+        }
+      });
+    });
+  });
+
+  given('[case47] a worktree with more files than one list renders', () => {
+    /**
+     * .what = a worktree with 25 untracked files under src/many/
+     */
+    const genWorktreeWithMany = (input: { gitRoot: string }): void => {
+      const { worktreePath } = genWorktree({
+        gitRoot: input.gitRoot,
+        repo: 'testorg/short',
+        branch: 'feat/inflight',
+        worktreeDirName: 'short.vlad.feat-inflight',
+      });
+      fs.mkdirSync(path.join(worktreePath, 'src', 'many'), { recursive: true });
+      Array.from({ length: 25 }, (_, index) =>
+        fs.writeFileSync(
+          path.join(
+            worktreePath,
+            'src',
+            'many',
+            `wave${String(index).padStart(2, '0')}.ts`,
+          ),
+          `export const wave = ${index};\n`,
+        ),
+      );
+    };
+
+    when('[t0] no --limit', () => {
+      then('renders 20 and names --limit all for the rest', () => {
+        const { homeDir, gitRoot, cleanup } = genTempDir();
+        try {
+          genWorktreeWithMany({ gitRoot });
+          const result = runSkill(
+            'files --in testorg/short --tree feat/inflight --paths src/many/*',
+            { HOME: homeDir },
+          );
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain(
+            '... 5 more (--limit all to see every one)',
+          );
+          expect(result.stdout).toContain('found: 25 files');
+          expect(result.stdout).toMatchSnapshot();
+        } finally {
+          cleanup();
+        }
+      });
+    });
+
+    when('[t1] --limit all', () => {
+      then('renders every file, with no more line', () => {
+        const { homeDir, gitRoot, cleanup } = genTempDir();
+        try {
+          genWorktreeWithMany({ gitRoot });
+          const result = runSkill(
+            'files --in testorg/short --tree feat/inflight --paths src/many/* --limit all',
+            { HOME: homeDir },
+          );
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('src/many/wave24.ts');
+          expect(result.stdout).not.toContain('more (--limit all');
+        } finally {
+          cleanup();
+        }
+      });
+    });
+
+    when('[t2] --limit 3', () => {
+      then('renders 3 and names the 22 left', () => {
+        const { homeDir, gitRoot, cleanup } = genTempDir();
+        try {
+          genWorktreeWithMany({ gitRoot });
+          const result = runSkill(
+            'files --in testorg/short --tree feat/inflight --paths src/many/* --limit 3',
+            { HOME: homeDir },
+          );
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('src/many/wave02.ts');
+          expect(result.stdout).not.toContain('src/many/wave03.ts');
+          expect(result.stdout).toContain('... 22 more');
+        } finally {
+          cleanup();
+        }
+      });
+    });
+
+    when('[t3] --limit 0', () => {
+      then('refuses with exit 2 and names the valid values', () => {
+        const { homeDir, cleanup } = genTempDir();
+        try {
+          const result = runSkill('files --in testorg/short --limit 0', {
+            HOME: homeDir,
+          });
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain(
+            "--limit must be a positive whole number or 'all'",
+          );
+          expect(result.stdout).toMatchSnapshot();
+        } finally {
+          cleanup();
+        }
+      });
+    });
+  });
+
+  // .why = `echo "$list" | head -20` under pipefail exits 141 once the list
+  //        outgrows the pipe buffer: head closes its end, echo takes SIGPIPE,
+  //        and the skill reports a malfunction on a healthy read
+  given('[case48] a list larger than the pipe buffer', () => {
+    when('[t0] files --tree on a worktree of 3000 long-named files', () => {
+      then('renders the first 20 and exits 0, never 141', () => {
+        const { homeDir, gitRoot, cleanup } = genTempDir();
+        try {
+          const { worktreePath } = genWorktree({
+            gitRoot,
+            repo: 'testorg/short',
+            branch: 'feat/inflight',
+            worktreeDirName: 'short.vlad.feat-inflight',
+          });
+          const dir = path.join(worktreePath, 'src', 'swell');
+          fs.mkdirSync(dir, { recursive: true });
+          Array.from({ length: 3000 }, (_, index) =>
+            fs.writeFileSync(
+              path.join(
+                dir,
+                `a-long-file-name-for-the-pipe-buffer-${String(index).padStart(4, '0')}.ts`,
+              ),
+              '',
+            ),
+          );
+          const result = runSkill(
+            'files --in testorg/short --tree feat/inflight',
+            { HOME: homeDir },
+          );
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain(
+            'more (--limit all to see every one)',
+          );
+        } finally {
+          cleanup();
+        }
+      });
+    });
+  });
 });

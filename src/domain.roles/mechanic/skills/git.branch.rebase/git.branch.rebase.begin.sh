@@ -216,7 +216,9 @@ if [[ -n "$STAGED_FILES" ]]; then
 fi
 
 # guard: unstaged edits need an explicit --unstaged choice
-UNSTAGED_FILES=$(get_unstaged_files)
+# .note = a skip-worktree path with a local change counts too: git diff never
+#         lists it, yet the rebase refuses to write over it
+UNSTAGED_FILES=$(get_unstaged_files_with_skip_worktree)
 if [[ -n "$UNSTAGED_FILES" && -z "$UNSTAGED" ]]; then
   emit_both "$(
     print_turtle_header "hold up dude..."
@@ -410,7 +412,7 @@ if [[ "$MODE" == "apply" ]]; then
 
   # set unstaged paths aside (--unstaged ignore); read them again, since an
   # edit may have landed while begin fetched
-  [[ "$UNSTAGED" == "ignore" ]] && UNSTAGED_FILES=$(get_unstaged_files)
+  [[ "$UNSTAGED" == "ignore" ]] && UNSTAGED_FILES=$(get_unstaged_files_with_skip_worktree)
   if [[ -n "$UNSTAGED_FILES" ]]; then
     # a concurrent run that created the store first wins; this run refuses
     set_aside_store_claimed label="git.branch.rebase begin --mode apply" rerun="rhx git.branch.rebase begin --mode apply --unstaged ignore"

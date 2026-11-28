@@ -1,7 +1,7 @@
 import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import { given, then, useThen, when } from 'test-fns';
+import { getError, given, then, useThen, when } from 'test-fns';
 
 import { genWatchSkillCopy } from './__test_utils__/genWatchSkillCopy';
 import {
@@ -1898,5 +1898,68 @@ describe('git.pull.watch lifecycle', () => {
         });
       },
     );
+  });
+
+  given('[case21] the scene waits for ticks of a daemon that is gone', () => {
+    /**
+     * .what = the scene's tick wait, against a daemon that crashed and one it stopped
+     * .why  = an absence claim ("no second alert") passes only once ticks pass;
+     *         a crashed daemon ticks no more, so the wait must fail, never pass empty
+     */
+    const scene = genWatchTestScene({
+      slug: 'watch-case21',
+      repos: ['surf-demo'],
+      store: {},
+    });
+    scene.setStore((store) => {
+      store.clones[scene.roots['surf-demo']!] = [
+        { serial: SERIAL_A, slug: 'mechanic', reachState: 'LIVE' },
+      ];
+    });
+    setPrOpen({ scene, pr: '1220' });
+    afterAll(() => scene.stopAllDaemons());
+
+    // spawn a primed daemon for #1220
+    const setWatchPrimed = async (): Promise<void> => {
+      scene.runSkill({
+        verb: 'set',
+        args: ['--which', '1220', '--mode', 'apply'],
+        root: scene.roots['surf-demo']!,
+        serial: SERIAL_A,
+      });
+      await scene.waitForPrimed();
+    };
+
+    when('[t0] the daemon dies by a hand other than the scene', () => {
+      const result = useThen('the wait runs', async () => {
+        await setWatchPrimed();
+        const [pid] = getAllWatchDaemonPids({ home: scene.home });
+        process.kill(-pid!, 'SIGKILL');
+        await waitForWatch({
+          label: 'daemon dead',
+          check: () => !isPidAlive(pid!),
+        });
+        return {
+          error: await getError(scene.waitForDaemonTicks({ ticks: 1 })),
+        };
+      });
+      then('the wait fails loud, never passes with no tick seen', () => {
+        expect(result.error.message).toContain(
+          'a watch daemon died mid-test; no tick can pass',
+        );
+      });
+    });
+
+    when('[t1] the scene stops the daemon on purpose', () => {
+      const result = useThen('the wait runs', async () => {
+        await setWatchPrimed();
+        scene.stopAllDaemons();
+        await scene.waitForDaemonTicks({ ticks: 1 });
+        return { waited: true };
+      });
+      then('the stopped key is skipped, and the wait resolves', () => {
+        expect(result.waited).toEqual(true);
+      });
+    });
   });
 });

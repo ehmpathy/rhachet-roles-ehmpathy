@@ -1,0 +1,3 @@
+# rule.forbid.twin-tool-sprawl
+
+paved tool fails → fix it at root; never pave a twin under a new name. twin = blocker

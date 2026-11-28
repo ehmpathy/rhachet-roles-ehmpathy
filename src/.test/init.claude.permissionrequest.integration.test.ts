@@ -18,8 +18,10 @@ describe('init.claude.permissionrequest.sh', () => {
   );
   const deciderCommand =
     'bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/permissionrequest.decide-permissions.sh';
+  // every tool: a subagent's prompt is denied on any tool (the decider lifts a
+  // main-seat request that is not Bash, as before)
   const deciderEntry = {
-    matcher: 'Bash',
+    matcher: '*',
     hooks: [{ type: 'command', command: deciderCommand, timeout: 5 }],
   };
 

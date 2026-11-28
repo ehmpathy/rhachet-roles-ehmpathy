@@ -1,0 +1,7 @@
+# rule.forbid.a-node-start-on-a-hook-hot-path
+
+a hook on every call, stop, or edit never starts node (the lazy cli, a bundle import, an `rhx` hand-off). a bash head tests first; node runs only on real work
+case: `route.drive` through the lazy node cli read a 54 s median on Stop (lost 10 of 10) and about 580 ms direct; a fast bash hook reads about 10 ms (nheuron, 2026-11-26)
+enforcement: a per-call hook that starts node, or a node start to learn there is naught to do = blocker
+full: rule.forbid.costly-hot-paths
+

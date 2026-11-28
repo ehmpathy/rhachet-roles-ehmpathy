@@ -41,6 +41,12 @@ if [[ "$-" != *e* ]] || ! shopt -qo pipefail; then
   return 1 2>/dev/null || exit 1
 fi
 
+# the list caps and the ignore mode; the entrypoint parses --limit and --ignored
+# and overrides these. the defaults keep a caller that never parses them safe
+LIMIT_N="${LIMIT_N:-20}"
+LIMIT_PER_REPO_N="${LIMIT_PER_REPO_N:-10}"
+IGNORED="${IGNORED:-exclude}"
+
 ######################################################################
 # get_git_root — return root directory for local git clones
 ######################################################################
@@ -673,9 +679,16 @@ get_files_at_tree() {
   #        rethrow carries the status only. the turtle frame is emitted by
   #        the caller, which is not inside a command substitution
   local out
-  out="$(git -C "$wtpath" ls-files --cached --others --exclude-standard)" || return 1
+  if [[ "${IGNORED:-exclude}" == "include" ]]; then
+    # .why = a worktree's gitignored files are still the caller's own inflight
+    #        work: scratch notes, route files, a plan. node_modules is the one
+    #        dir that is never the answer and would drown every other path
+    out="$(git -C "$wtpath" ls-files --cached --others -- ':(exclude,glob)**/node_modules/**' ':(exclude,glob)node_modules/**')" || return 1
+  else
+    out="$(git -C "$wtpath" ls-files --cached --others --exclude-standard)" || return 1
+  fi
 
-  echo "$out" | LC_ALL=C sort -u
+  LC_ALL=C sort -u <<< "$out"
 }
 
 ######################################################################
@@ -1344,12 +1357,13 @@ cmd_files_multi() {
       # output files with proper termination
       local file_count
       file_count=$(echo "$files" | wc -l)
-      local shown_count=$((file_count > 10 ? 10 : file_count))
+      local per_repo_n="$LIMIT_PER_REPO_N"
+      local shown_count=$((file_count > per_repo_n ? per_repo_n : file_count))
       local file_idx=0
 
-      echo "$files" | head -10 | while IFS= read -r f; do
+      head -n "$per_repo_n" <<< "$files" | while IFS= read -r f; do
         file_idx=$((file_idx + 1))
-        local is_last_file=$([[ $file_idx -eq $shown_count && $file_count -le 10 ]] && echo true || echo false)
+        local is_last_file=$([[ $file_idx -eq $shown_count && $file_count -le $per_repo_n ]] && echo true || echo false)
         local file_connector="├─"
         if $is_last_file; then
           file_connector="└─"
@@ -1357,8 +1371,8 @@ cmd_files_multi() {
         echo "   ${file_prefix}${file_connector} $f"
       done
 
-      if [[ $file_count -gt 10 ]]; then
-        echo "   ${file_prefix}└─ ... $((file_count - 10)) more"
+      if [[ $file_count -gt $per_repo_n ]]; then
+        echo "   ${file_prefix}└─ ... $((file_count - per_repo_n)) more (--limit all to see every one)"
       fi
       echo "   │"
     done
@@ -1462,7 +1476,9 @@ cmd_files() {
     if [[ -n "$tree_path" ]]; then
       # no ref => git grep searches the live worktree files on disk;
       # --untracked so a brand-new file is searched, not skipped
-      found_files=$(cd "$tree_path" && run_git_grep -E -l --untracked "$WORDS_PATTERN" -- ${files:-}) \
+      local ignored_flag=()
+      [[ "${IGNORED:-exclude}" == "include" ]] && ignored_flag=(--no-exclude-standard)
+      found_files=$(cd "$tree_path" && run_git_grep -E -l --untracked "${ignored_flag[@]}" "$WORDS_PATTERN" -- ${files:-}) \
         || fail_git_in_tree "search" "$tree_path" "$REPO_SLUG"
     elif [[ "$source" == "local" ]]; then
       found_files=$(cd "$location" && git grep -E -l "$WORDS_PATTERN" "$ref" -- ${files:-} 2>/dev/null | sed "s|^$ref:||" || true)
@@ -1510,12 +1526,12 @@ cmd_files() {
   fi
 
   # show files (simple list for now)
-  echo "$files" | head -20 | while IFS= read -r f; do
+  head -n "$LIMIT_N" <<< "$files" | while IFS= read -r f; do
     echo "   ├─ $f"
   done
 
-  if [[ $count -gt 20 ]]; then
-    echo "   ├─ ... $((count - 20)) more"
+  if [[ $count -gt $LIMIT_N ]]; then
+    echo "   ├─ ... $((count - LIMIT_N)) more (--limit all to see every one)"
   fi
 
   echo "   │"
@@ -1678,7 +1694,7 @@ cmd_lines_multi() {
 
       # collect unique files and their line counts
       local files_in_repo
-      files_in_repo=$(echo "$matches" | head -20 | while IFS= read -r line; do
+      files_in_repo=$(head -n "$LIMIT_N" <<< "$matches" | while IFS= read -r line; do
         local file_and_line="${line#$ref:}"
         echo "${file_and_line%%:*}"
       done | uniq)
@@ -1689,7 +1705,7 @@ cmd_lines_multi() {
 
       # group by file within repo
       local current_file=""
-      echo "$matches" | head -20 | while IFS= read -r line; do
+      head -n "$LIMIT_N" <<< "$matches" | while IFS= read -r line; do
         local file_and_line="${line#$ref:}"
         local file="${file_and_line%%:*}"
         local rest="${file_and_line#*:}"
@@ -1698,7 +1714,7 @@ cmd_lines_multi() {
 
         if [[ "$file" != "$current_file" ]]; then
           file_idx=$((file_idx + 1))
-          local is_last_file=$([[ $file_idx -eq $num_files && $repo_count -le 20 ]] && echo true || echo false)
+          local is_last_file=$([[ $file_idx -eq $num_files && $repo_count -le $LIMIT_N ]] && echo true || echo false)
           local file_connector="├─"
           if $is_last_file; then
             file_connector="└─"
@@ -1712,9 +1728,9 @@ cmd_lines_multi() {
         printf "   │  │  > %4d: %s\n" "$linenum" "$content"
       done
 
-      if [[ $repo_count -gt 20 ]]; then
+      if [[ $repo_count -gt $LIMIT_N ]]; then
         echo "   │  │"
-        echo "   │  └─ ... $((repo_count - 20)) more matches"
+        echo "   │  └─ ... $((repo_count - LIMIT_N)) more matches (--limit all to see every one)"
       fi
       echo "   │"
     done
@@ -1800,9 +1816,13 @@ cmd_lines() {
       # so the search sees the same set `files --tree` lists.
       # output is file:line:content (no ref prefix), so prefix it with the
       # ref-shaped sentinel the parser below strips uniformly.
-      local grep_args=(-E -n --untracked "$WORDS_PATTERN")
+      local grep_args=(-E -n --untracked)
+      [[ "${IGNORED:-exclude}" == "include" ]] && grep_args+=(--no-exclude-standard)
+      grep_args+=("$WORDS_PATTERN")
       if [[ -n "$PATHS_GLOB" ]]; then
         grep_args+=(-- "$PATHS_GLOB")
+      elif [[ "${IGNORED:-exclude}" == "include" ]]; then
+        grep_args+=(-- . ':(exclude,glob)**/node_modules/**' ':(exclude,glob)node_modules/**')
       fi
 
       matches=$(run_git_grep "${grep_args[@]}" | sed "s|^|$ref:|") \
@@ -1935,8 +1955,9 @@ cmd_lines() {
 
       # and it must honor .gitignore, exactly as the file list and the
       # search already do — otherwise read mode alone serves the scratch
-      # the other two modes report as absent
-      if is_path_gitignored_in_tree "$tree_path" "$PATHS_GLOB"; then
+      # the other two modes report as absent. `--ignored include` lifts it in
+      # all three modes at once, so one flag keeps one sense
+      if [[ "${IGNORED:-exclude}" != "include" ]] && is_path_gitignored_in_tree "$tree_path" "$PATHS_GLOB"; then
         fail_path_gitignored "lines" "$REPO_SLUG" "$TREE_NAME" "$PATHS_GLOB"
       fi
 

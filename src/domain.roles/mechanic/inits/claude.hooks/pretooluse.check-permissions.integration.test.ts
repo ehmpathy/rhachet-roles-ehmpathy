@@ -1746,6 +1746,87 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
         expect(result.stderr).toMatchSnapshot();
       });
     });
+
+    when('[t8] a raw pnpm patch', () => {
+      then('the block offers the paved git.package.patch set', () => {
+        const opened = runHook({
+          command: 'pnpm patch reef-board@7.0.0',
+          settings: { allow: ['Bash(rhx:*)'] },
+          clearNudges: true,
+        });
+        expect(opened.exitCode).toBe(2);
+        expect(opened.stderr).toContain('paved alternatives for `pnpm patch`');
+        expect(opened.stderr).toContain('rhx git.package.patch set');
+        expect(opened.stderr).toMatchSnapshot();
+      });
+    });
+
+    when('[t8.1] a raw pnpm patch-commit', () => {
+      then('the block offers the paved git.package.patch set', () => {
+        const sealed = runHook({
+          command:
+            'pnpm patch-commit node_modules/.pnpm_patches/reef-board@7.0.0',
+          settings: { allow: ['Bash(rhx:*)'] },
+          clearNudges: true,
+        });
+        expect(sealed.exitCode).toBe(2);
+        expect(sealed.stderr).toContain('rhx git.package.patch set');
+        expect(sealed.stderr).toMatchSnapshot();
+      });
+    });
+
+    when(
+      '[t9] the paved git.package.patch verb, under its own allow lines only',
+      () => {
+        const allow = [
+          'Bash(rhx git.package.patch:*)',
+          'Bash(npx rhachet run --skill git.package.patch:*)',
+          'Bash(printf:*)',
+        ];
+
+        then('begin runs with no prompt', () => {
+          const result = runHook({
+            command:
+              'rhx git.package.patch set --package reef-board --mode apply',
+            settings: { allow },
+            clearNudges: true,
+          });
+          // exit 0 can still carry an ask payload on stdout; silent on both streams is no prompt
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toBe('');
+          expect(result.stderr).toBe('');
+          expect({
+            code: result.exitCode,
+            stdout: result.stdout,
+            stderr: result.stderr,
+          }).toMatchSnapshot();
+        });
+
+        then('commit runs with a prose --why, parens and all', () => {
+          const result = runHook({
+            command:
+              "rhx git.package.patch set --package reef-board --why 'kelp fix (see #580) for [1] wave' --upstream https://github.com/ehmpathy/reef/issues/1 --mode apply",
+            settings: { allow },
+            clearNudges: true,
+          });
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toBe('');
+          expect(result.stderr).toBe('');
+        });
+
+        then('commit runs with the why piped via --why @stdin', () => {
+          const result = runHook({
+            command:
+              "printf 'it is the reef fix' | rhx git.package.patch set --package reef-board --why @stdin --upstream https://github.com/ehmpathy/reef/issues/1 --mode apply",
+            settings: { allow },
+            clearNudges: true,
+          });
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toBe('');
+          expect(result.stderr).toBe('');
+        });
+      },
+    );
   });
 
   given('[case31] a typo of a paved command', () => {
@@ -3844,7 +3925,10 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
           expect(result.exitCode).toBe(2);
           expect(result.stderr).not.toContain('did you mean?');
           expect(result.stderr).not.toContain('cmd | rhx teesafe');
-          expect(result.stderr).toContain('no paved path fits this part');
+          // chmod has a paved alternative of its own (raw chmod is denied), so the
+          // block names it rather than a typo match
+          expect(result.stderr).toContain('paved alternatives for `chmod`');
+          expect(result.stderr).toContain('rhx git.repo.chmod --path <file>');
         });
       },
     );
@@ -4463,6 +4547,20 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
                 "the nudge record lock stayed held past the hook's deadline",
               );
               expect(Date.now() - startedAt).toBeLessThan(1500);
+              // the deadline branch is the only one that names the deadline; the ~2s live-holder
+              // wait names "past the wait" instead
+              // .note = "at once" holds by structure: the deadline check precedes the loop's only
+              //         sleep, so an age past LOCK_DEADLINE returns on the first try. pin that
+              //         precondition, so a raised deadline cannot turn this into a quiet wait
+              const lockDeadline = Number(
+                /^LOCK_DEADLINE=(\d+)$/m.exec(
+                  fs.readFileSync(scriptPath, 'utf-8'),
+                )?.[1],
+              );
+              expect(9).toBeGreaterThan(lockDeadline);
+              expect(result.stderr).not.toContain(
+                'stayed held past the wait by a live process',
+              );
             },
           );
         },

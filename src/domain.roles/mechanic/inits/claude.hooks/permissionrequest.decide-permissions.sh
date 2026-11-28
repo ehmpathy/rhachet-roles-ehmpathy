@@ -75,14 +75,11 @@ set -euo pipefail
 # read hook json from stdin (claude-cli passes input via stdin)
 INPUT="$(cat)"
 
-# extract the command; empty -> lift (let the normal flow decide)
+# extract the command (empty for a non-Bash request)
 CMD="$(printf '%s' "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/null || echo '')"
-if [[ -z "$CMD" ]]; then
-  exit 0
-fi
 
 # load the one layer rule shared with the peer permission hooks: which dirs and
-# settings files hold the allow + deny sets, and where this clone's config dir is
+# settings files contain the allow + deny sets, and where this clone's config dir is
 # shellcheck source=permissions.layers.operations.sh
 source "$(dirname "${BASH_SOURCE[0]}")/permissions.layers.operations.sh"
 
@@ -205,6 +202,44 @@ emit_warn() {
   emit_leaves "$1"
   printf '\n' >&2
 }
+
+# .what = transformer: is this request raised from a subagent?
+# .why  = a subagent has no human to ask; its prompt lands on a human who never spawned it
+# .how  = claude code marks a subagent's hook payload (hooks reference, agent fields):
+#         - a top-level `agent_id` that is not empty
+#         - fallback: a top-level transcript_path of the form .../subagents/agent-<id>.jsonl
+#         the top level alone: a tool input that names an `agent_id` is no subagent.
+#         a payload jq cannot parse that still names an agent_id reads as a subagent,
+#         so a doubt never lets a subagent's prompt reach the human
+is_request_from_subagent() {
+  local fields agent transcript
+  # join on the unit separator, never a tab: tab is IFS whitespace, so an empty
+  # agent_id would collapse and shift the transcript path into its place
+  if fields="$(printf '%s' "$INPUT" | jq -j 'if type == "object" then [(.agent_id // ""), (.transcript_path // "")] | map(if type == "string" then . else tojson end) | join("\u001f") else "\u001f" end' 2>/dev/null)"; then
+    agent="${fields%%$'\x1f'*}"
+    transcript="${fields#*$'\x1f'}"
+    [[ -n "$agent" ]] && return 0
+    [[ "$transcript" =~ /subagents/agent-[^/]+\.jsonl$ ]] && return 0
+    return 1
+  fi
+  [[ "$INPUT" =~ \"agent_id\"[[:space:]]*:[[:space:]]*\"[^\"]+\" ]]
+}
+
+# deny a subagent's request on any tool, with the paved path named; interrupt false,
+# so the subagent reads why and carries on with a paved form
+if is_request_from_subagent; then
+  SUBAGENT_TOOL="$(printf '%s' "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null || echo '')"
+  SUBAGENT_TOOL="${SUBAGENT_TOOL//[^A-Za-z0-9_.-]/}"
+  SUBAGENT_MESSAGE="denied: this ${SUBAGENT_TOOL:-tool} call is not pre-approved, and a subagent has no human to ask. do not retry it, unchanged or reworded. use a paved path instead: an rhx skill (run 'rhx list' to see them, 'rhx <skill> --help' for its flags), or the Read, Edit, and Write tools for files. no paved path fits? report that gap in your final message rather than ask."
+  printf '%s\n' "{\"hookSpecificOutput\":{\"hookEventName\":\"PermissionRequest\",\"decision\":{\"behavior\":\"deny\",\"message\":\"${SUBAGENT_MESSAGE}\",\"interrupt\":false}}}"
+  audit_decision "deny" "subagent request; no human to ask"
+  exit 0
+fi
+
+# no command (a non-Bash request from the main seat) -> lift (let the normal flow decide)
+if [[ -z "$CMD" ]]; then
+  exit 0
+fi
 
 # .what = transformer: the ONE quote-aware pass over a command. in a single walk it
 #         emits the atoms (split at every top-level && || ; |), the separator that

@@ -115,6 +115,101 @@ esac
     });
   });
 
+  given('[case6] logs carry ansi color codes, as jest output does', () => {
+    when('[t0] gh refuses a body with escapes unless allowed', () => {
+      then('shows the failure text, with the codes stripped', () => {
+        const tempDir = setupTempRepo({
+          branch: 'feature/test',
+          ghMock: `#!/bin/bash
+case "$*" in
+  "auth status")
+    exit 0
+    ;;
+  "run list"*)
+    echo '[{"databaseId":123,"workflowName":"test","status":"completed","conclusion":"failure","createdAt":"2024-01-01T00:00:00Z"}]'
+    ;;
+  "repo view"*)
+    echo '{"nameWithOwner":"test/repo"}'
+    ;;
+  *"actions/runs/123/jobs"*)
+    echo '[{"id":456,"name":"test-unit","conclusion":"failure"}]'
+    ;;
+  *"actions/jobs/456/logs"*)
+    if [[ "$*" != *"--allow-escape-sequences"* ]]; then
+      echo "the response contains terminal escape sequences; pass --allow-escape-sequences to output it anyway" >&2
+      exit 1
+    fi
+    printf '\\033[31mFAIL\\033[39m src/reef.test.ts\\n'
+    printf '  expected \\033[32m1\\033[39m to equal \\033[31m2\\033[39m\\n'
+    printf 'PASS other test\\n'
+    ;;
+  *)
+    echo "unhandled: $*" >&2
+    exit 1
+    ;;
+esac
+`,
+        });
+
+        const result = runScript({
+          tempDir,
+          scriptArgs: ['--flow', 'test'],
+        });
+
+        expect(result.stdout).toContain('FAIL src/reef.test.ts');
+        expect(result.stdout).toContain('expected 1 to equal 2');
+        expect(result.stdout).not.toContain('terminal escape sequences');
+        expect(result.stdout).not.toContain('\u001b[');
+        expect(result.exitCode).toBe(0);
+      });
+    });
+  });
+
+  given('[case7] a ready log whose own text names an http error', () => {
+    when('[t0] gh answers 0 with a body that says HTTP 404 and not available', () => {
+      then('shows the logs at once, never read as not ready', () => {
+        const tempDir = setupTempRepo({
+          branch: 'feature/test',
+          ghMock: `#!/bin/bash
+case "$*" in
+  "auth status")
+    exit 0
+    ;;
+  "run list"*)
+    echo '[{"databaseId":123,"workflowName":"test","status":"completed","conclusion":"failure","createdAt":"2024-01-01T00:00:00Z"}]'
+    ;;
+  "repo view"*)
+    echo '{"nameWithOwner":"test/repo"}'
+    ;;
+  *"actions/runs/123/jobs"*)
+    echo '[{"id":456,"name":"test-unit","conclusion":"failure"}]'
+    ;;
+  *"actions/jobs/456/logs"*)
+    echo "FAIL src/reef.test.ts"
+    echo "  ✕ then: a gone pr reads as HTTP 404, and the watch says the pr is not available"
+    echo "PASS other test"
+    ;;
+  *)
+    echo "unhandled: $*" >&2
+    exit 1
+    ;;
+esac
+`,
+        });
+
+        const result = runScript({
+          tempDir,
+          scriptArgs: ['--flow', 'test'],
+        });
+
+        expect(result.stdout).toContain('FAIL src/reef.test.ts');
+        expect(result.stdout).toContain('reads as HTTP 404');
+        expect(result.stdout).not.toContain('logs not ready');
+        expect(result.exitCode).toBe(0);
+      });
+    });
+  });
+
   given('[case2] logs are delayed (github slow)', () => {
     when('[t0] api returns error then succeeds', () => {
       then('retries and eventually shows logs', () => {

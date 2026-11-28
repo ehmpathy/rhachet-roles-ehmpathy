@@ -1,0 +1,3 @@
+# git.package.patch
+
+patch a dependency in-tree via `rhx git.package.patch set --package <name>`, never raw `pnpm patch`. edit the dir it names, then seal: same call + `--why` + `--upstream <issue-url>`. `get` checks; `del` retires. `--help` for more

@@ -23,8 +23,13 @@ describe('getMechanicRole', () => {
         ).toBeGreaterThanOrEqual(7);
       });
 
-      // .note = onStop removed: lint hook was too expensive (60s block)
-      // .todo = add onStop tests when brain.hooks.onPush lands
+      then('onBrain.onStop holds the git.package.patch nudge', () => {
+        const hook = ROLE_MECHANIC.hooks?.onBrain?.onStop?.find((h) =>
+          h.command.includes('stop.git-package-patch'),
+        );
+        expect(hook).toBeDefined();
+        expect(hook?.timeout).toEqual('PT30S');
+      });
     });
 
     when('[t1] onBoot hooks are inspected', () => {
@@ -127,6 +132,7 @@ describe('getMechanicRole', () => {
       const allHooks = [
         ...(ROLE_MECHANIC.hooks?.onBrain?.onBoot ?? []),
         ...(ROLE_MECHANIC.hooks?.onBrain?.onTool ?? []),
+        ...(ROLE_MECHANIC.hooks?.onBrain?.onStop ?? []),
       ];
 
       then('every command takes one of exactly two shapes', () => {

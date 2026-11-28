@@ -7,10 +7,12 @@ import { genTempDir, given, then, useThen, when } from 'test-fns';
 /**
  * .what = the daemon's github read against the real github api: an etag read,
  *         then a conditional read that github answers 304, then each list a tick
- *         reads (check runs, issue comments, review comments, reviews), then a bad token
+ *         reads (check runs, issue comments, review comments, reviews), a pull
+ *         that never was, then a bad token
  * .why  = the stub gh in the other watch suites mirrors github's contract; this
  *         suite proves the mirror holds — the 304 on a matched etag, the weak
- *         etag kept verbatim, and the 401 classification — on the real service
+ *         etag kept verbatim, the 404 classification, and the 401 classification —
+ *         on the real service
  * .note = read-only, on a merged pr of this public repo; the token is the ehmpath
  *         test key (keyrack env test), as the daemon reads its own (prep)
  * .note = `gh` is spied, never mocked: a shim on PATH logs each status line,
@@ -272,6 +274,41 @@ describe('git.pull.watch.github (real github)', () => {
           );
         },
       );
+    },
+  );
+
+  given.runIf(isLiveTargeted({ mechanism: 'github' }))(
+    '[case4] a pull this repo never had (TEST_LIVE=github)',
+    () => {
+      when('[t0] the pull is read', () => {
+        const result = useThen('the read runs', async () => {
+          const token = getToken();
+          const cache = genTempDir({ slug: 'watch-github-real-gone' });
+          const log = path.join(cache, 'gh.status.log');
+          const read = runRead({
+            cache,
+            token,
+            spyBin: genGhSpy({ log }),
+            endpoint: 'repos/ehmpathy/rhachet-roles-ehmpathy/pulls/999999',
+          });
+          return {
+            read,
+            statuses: fs.readFileSync(log, 'utf-8').trim().split('\n'),
+          };
+        });
+        then(
+          'github answers 404 on the first line, as the stub gh mirrors',
+          () => {
+            expect(result.statuses[0]).toMatch(/^HTTP\/\S+ 404/);
+          },
+        );
+        then('it returns 6, so the daemon ends the watch', () => {
+          expect(result.read.status).toEqual(6);
+          expect(result.read.stderr).toContain(
+            'github read not found: repos/ehmpathy/rhachet-roles-ehmpathy/pulls/999999 (status: 404)',
+          );
+        });
+      });
     },
   );
 

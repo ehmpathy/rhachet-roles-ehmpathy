@@ -167,6 +167,13 @@ export const ROLE_MECHANIC: Role = Role.build({
           timeout: 'PT10S',
           filter: { what: 'EnterPlanMode', when: 'before' },
         },
+        // .why = an unattended seat must neither move into another tree nor park
+        //        on a modal that waits for a human
+        {
+          command: asHookCommand('pretooluse.forbid-worktree-askuser'),
+          timeout: 'PT10S',
+          filter: { what: 'EnterWorktree|AskUserQuestion', when: 'before' },
+        },
         {
           command: asHookCommand('posttooluse.guardBorder.onWebfetch'),
           timeout: 'PT60S',
@@ -182,8 +189,15 @@ export const ROLE_MECHANIC: Role = Role.build({
           timeout: 'PT15S',
         },
       ],
-      // .note = lint onStop removed: 60s blocks session end, too expensive
-      // .todo = revisit when brain.hooks.onPush lands
+      onStop: [
+        // .note = nudges a repair for a local patch that no longer applies; silent
+        //         in a repo with no patch (a few file tests), and never blocks: it
+        //         always exits 0. a lint onStop was dropped: 60s per stop cost too much
+        {
+          command: asHookCommand('stop.git-package-patch'),
+          timeout: 'PT30S',
+        },
+      ],
     },
   },
 });

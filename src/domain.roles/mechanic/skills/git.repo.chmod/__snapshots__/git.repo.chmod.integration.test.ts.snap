@@ -1,0 +1,75 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.repo.chmod given: [case1] a file inside a repo when: [t0] --help then: it prints usage, inputs, and an example, exit 0 1`] = `
+"🐚 git.repo.chmod
+   └─ set or clear the exec bit of one file inside the repo
+
+usage:
+  rhx git.repo.chmod --path <file> --exec on|off [--mode plan|apply]
+
+inputs:
+  --path <file>       the file, in the repo; a directory, a symlink out, or an absent file is refused
+                      from a worktree, a role skill through .agent/repo=.this into the main worktree of the same repo is admitted
+  --exec on|off       on: add the exec bit wherever read is granted. off: clear every exec bit. no numeric modes
+  --mode plan|apply   plan (default): print the file, its mode now, its mode after. apply: set it, then read it back
+  --help, -h          this text
+
+example:
+  rhx git.repo.chmod --path src/domain.roles/mechanic/skills/tool.sh --exec on
+  rhx git.repo.chmod --path src/domain.roles/mechanic/skills/tool.sh --exec on --mode apply
+"
+`;
+
+exports[`git.repo.chmod given: [case1] a file inside a repo when: [t1] plan by default then: it prints the file, the mode now, and the mode after, and changes naught 1`] = `
+"🐢 sweet
+
+🐚 git.repo.chmod
+   ├─ file: tool.sh
+   ├─ exec: on
+   ├─ mode: plan
+   ├─ now:  644
+   ├─ after: 755
+   └─ plan only; naught changed
+
+🥥 did you know?
+   └─ rhx git.repo.chmod --path tool.sh --exec on --mode apply
+"
+`;
+
+exports[`git.repo.chmod given: [case1] a file inside a repo when: [t3] apply on then: it sets the exec bit and reads it back 1`] = `
+"🐢 sweet
+
+🐚 git.repo.chmod
+   ├─ file: tool.sh
+   ├─ exec: on
+   ├─ mode: apply
+   ├─ now:  644
+   ├─ after: 755
+   └─ applied; read back: 755
+"
+`;
+
+exports[`git.repo.chmod given: [case1] a file inside a repo when: [t5] a numeric mode is given as --exec then: it refuses, exit 2, and names the fix 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.chmod
+   └─ ✋ ConstraintError: --exec must be on or off, got: '755'
+      └─ no numeric modes, no setuid, no world-write: only the exec bit moves
+
+🥥 did you know?
+   ├─ pass --exec on|off
+   └─ rhx git.repo.chmod --path <file> --exec on|off [--mode plan|apply]
+"
+`;
+
+exports[`git.repo.chmod given: [case2] a path that must be refused when: [t3] the file is absent then: it refuses, exit 2 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.chmod
+   └─ ✋ ConstraintError: file is absent: nope.sh
+
+🥥 did you know?
+   ├─ name a file that exists in the repo
+   └─ rhx git.repo.chmod --path <file> --exec on|off [--mode plan|apply]
+"
+`;

@@ -57,6 +57,8 @@ RADIUS="21"
 REF=""
 TREE_NAME=""
 REFRESH="on"
+LIMIT=""
+IGNORED="exclude"
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -102,6 +104,14 @@ while [[ $# -gt 0 ]]; do
       REFRESH="$2"
       shift 2
       ;;
+    --limit)
+      LIMIT="$2"
+      shift 2
+      ;;
+    --ignored)
+      IGNORED="$2"
+      shift 2
+      ;;
     --help|-h)
       echo "usage: rhx git.repo.get <subcommand> [options]"
       echo ""
@@ -123,6 +133,12 @@ while [[ $# -gt 0 ]]; do
       echo "                     main clone counts as a tree too, so its branch"
       echo "                     reads that clone's live disk state."
       echo "                     applies to the files and lines subcommands."
+      echo "  --limit <N|all>    entries to render per list (default: 20; 10 per repo"
+      echo "                     in a multi-repo file list)"
+      echo "  --ignored <exclude|include>"
+      echo "                     with --tree: also list, search, and read files the"
+      echo "                     tree gitignores (node_modules always skipped)."
+      echo "                     default: exclude"
       echo "  --refresh <on|off> fetch latest before query (default: on)"
       echo ""
       echo "examples:"
@@ -134,6 +150,9 @@ while [[ $# -gt 0 ]]; do
       echo ""
       echo "  # peek at the main clone's own live state (dirty edits included)"
       echo "  rhx git.repo.get lines --in ehmpathy/domain-objects --tree main --paths 'src/index.ts'"
+      echo ""
+      echo "  # every file of a tree, its gitignored scratch included"
+      echo "  rhx git.repo.get files --in ehmpathy/domain-objects --tree feat/new-refs --ignored include --limit all"
       exit 0
       ;;
     *)
@@ -152,6 +171,41 @@ done
 # export for operations.sh
 ######################################################################
 export REFRESH
+
+######################################################################
+# --limit — how many entries each list renders
+# .why = a fixed 20 hid the answer behind "... N more" with no way to
+#        reach it. `all` renders every entry
+######################################################################
+if [[ -z "$LIMIT" ]]; then
+  LIMIT_N=20
+  LIMIT_PER_REPO_N=10
+elif [[ "$LIMIT" == "all" ]]; then
+  LIMIT_N=2147483647
+  LIMIT_PER_REPO_N="$LIMIT_N"
+elif [[ "$LIMIT" =~ ^[1-9][0-9]*$ ]]; then
+  LIMIT_N="$LIMIT"
+  LIMIT_PER_REPO_N="$LIMIT_N"
+else
+  emit_usage_refusal --skill git.repo.get --message "--limit must be a positive whole number or 'all' (got: $LIMIT)"
+  exit 2
+fi
+export LIMIT_N LIMIT_PER_REPO_N
+
+######################################################################
+# --ignored — reads gitignored files of a local worktree
+# .why = a git ref carries no gitignored file, so the flag has sense only
+#        with --tree; to accept and drop it would surprise the caller
+######################################################################
+if [[ "$IGNORED" != "exclude" && "$IGNORED" != "include" ]]; then
+  emit_usage_refusal --skill git.repo.get --message "--ignored must be 'exclude' or 'include' (got: $IGNORED)"
+  exit 2
+fi
+if [[ "$IGNORED" == "include" && -z "$TREE_NAME" ]]; then
+  emit_usage_refusal --skill git.repo.get --message "--ignored include needs --tree <name>; a git ref carries no gitignored files"
+  exit 2
+fi
+export IGNORED
 
 ######################################################################
 # --tree has no sense on the `repos` subcommand

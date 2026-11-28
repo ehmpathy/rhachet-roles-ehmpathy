@@ -1451,6 +1451,74 @@ exec /usr/bin/git "$@"
     });
   });
 
+  given('[case18a] gh pr create trails its url with hint lines', () => {
+    when(
+      '[t0] the hint ends in a digit (an event name like ...submitted.v1)',
+      () => {
+        then('the pr number is read from the url alone', () => {
+          // clamp (live 2026-11-28): the pr read back as "1554\n1" — the trailer's last
+          //        line, a gh event name, ended in a digit
+          const tempDir = setupTempRepo({
+            meterState: { uses: 3, held: true },
+            branch: 'turtle/feature',
+            commits: ['feat: test pr number read'],
+            commitAuthor: {
+              name: 'seaturtle[bot]',
+              email: 'seaturtle@ehmpath.com',
+            },
+          });
+          const fakeBinDir = path.join(tempDir, '.fakebin');
+          fs.mkdirSync(fakeBinDir, { recursive: true });
+
+          // .mock = fake gh cli - pr create prints its url, then the event-listen hint on stderr
+          fs.writeFileSync(
+            path.join(fakeBinDir, 'gh'),
+            `#!/bin/bash
+if [[ "$1" == "api" && "$2" == "/user" ]]; then
+  echo '{"login":"ehm-seaturtle"}'
+  exit 0
+elif [[ "$1" == "pr" && "$2" == "list" ]]; then
+  exit 0
+elif [[ "$1" == "pr" && "$2" == "create" ]]; then
+  echo "https://github.com/test/repo/pull/42"
+  echo "hint: to wait on this pr, use:" >&2
+  echo "    gh event listen --event com.github.pull_request.review.submitted.v1" >&2
+  exit 0
+fi
+exit 1
+`,
+          );
+          fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+          // .mock = fake git push - returns success
+          fs.writeFileSync(
+            path.join(fakeBinDir, 'git'),
+            `#!/bin/bash
+if [[ "$1" == "push" ]]; then
+  exit 0
+fi
+exec /usr/bin/git "$@"
+`,
+          );
+          fs.chmodSync(path.join(fakeBinDir, 'git'), '755');
+
+          const result = runPush({
+            tempDir,
+            pushArgs: ['--mode', 'apply'],
+            env: {
+              EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
+              PATH: `${fakeBinDir}:${process.env.PATH}`,
+            },
+          });
+
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('pr: pr #42 (created)');
+          expect(result.stdout).not.toMatch(/pr #42\s*\n\s*1/);
+        });
+      },
+    );
+  });
+
   given('[case18b] an enrolled clone whose pr watch refuses', () => {
     when(
       '[t0] push and pr creation succeed; the clone is not in this repo registry',

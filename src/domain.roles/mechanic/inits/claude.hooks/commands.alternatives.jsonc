@@ -62,6 +62,10 @@
       "alternatives": ["rhx mkdirsafe --path <dir>"]
     },
     {
+      "heads": ["chmod"],
+      "alternatives": ["rhx git.repo.chmod --path <file> --exec on --mode apply"]
+    },
+    {
       "heads": ["ln"],
       "alternatives": ["rhx symlink --at <link> --to <target> --mode relative"]
     },
@@ -115,10 +119,17 @@
       "alternatives": ["rhx git.repo.test --what unit --scope <scope>"]
     },
     {
-      "heads": ["npm install", "npm i", "pnpm add", "pnpm install"],
+      "heads": ["npm install", "npm i", "pnpm add", "pnpm install", "pnpm i"],
       "alternatives": [
         "npm ci",
         "rhx set.package.install --package <name> --at <version> --for prod --reason '<why>'"
+      ]
+    },
+    {
+      "heads": ["pnpm patch", "pnpm patch-commit"],
+      "alternatives": [
+        "rhx git.package.patch set --package <name> --mode apply",
+        "rhx git.package.patch set --package <name> --why '<why>' --upstream '<issue-url>' --mode apply"
       ]
     },
     {
