@@ -58,24 +58,23 @@ describe('check.timestamps.sh', () => {
         }),
       );
 
-      then('it halts as a constraint on both streams, exit 2', () => {
+      // .note = the husky practice owns this hook (check.timestamps.lock.sh pins its blob);
+      //         its refusal speaks on stderr alone, the stream git shows at commit
+      then('it halts as a constraint on stderr, exit 2', () => {
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain(
-          '✋ ConstraintError: timestamps are forbidden in staged files',
+        expect(result.stderr).toContain(
+          '✋ ConstraintError: timestamps are forbidden in tracked files',
         );
-        expect(result.stderr).toContain('✋ ConstraintError');
+        expect(result.stdout).toEqual('');
       });
 
-      then('it names the file and line, and ends on a coconut command', () => {
-        expect(result.stdout).toContain('__snapshots__/reef.test.ts.snap:1:');
-        expect(result.stdout).toContain('🥥 did you know?');
-        expect(result.stdout.trimEnd().split('\n').pop()).toEqual(
-          '   └─ rhx git.repo.test --what unit --mode apply --resnap',
-        );
-        // mask the stamp the hook echoes, or this very snapshot trips the hook
+      then('it names why, and the file and line', () => {
+        expect(result.stderr).toContain('├─ why: a timestamp is a privacy leak');
+        expect(result.stderr).toContain('└─ __snapshots__/reef.test.ts.snap:1:');
+        // mask every clock form the hook scans for, or this very snapshot trips the hook
         expect(
-          result.stdout.replace(
-            /T?\d\d:\d\d:\d\d(Z|[+-]\d\d:?\d\d)?/g,
+          result.stderr.replace(
+            /T\d\d[:-]\d\d([:-]\d\d)?(Z|[+-]\d\d:?\d\d)?|\d\d:\d\d(:\d\d)?/g,
             '<time>',
           ),
         ).toMatchSnapshot();
@@ -128,15 +127,13 @@ describe('check.timestamps.sh', () => {
         }),
       );
 
-      then('it halts as a malfunction on both streams, exit 1', () => {
+      then('it halts as a malfunction on stderr, exit 1, and names the file', () => {
         expect(result.exitCode).toBe(1);
-        expect(result.stdout).toContain(
-          '💥 MalfunctionError: could not read staged content for notes/reef.md',
-        );
         expect(result.stderr).toContain(
-          '💥 MalfunctionError: could not read staged content for notes/reef.md',
+          '💥 MalfunctionError: check.timestamps could not read the staged blob',
         );
-        expect(result.stdout).toMatchSnapshot();
+        expect(result.stderr).toContain('└─ notes/reef.md');
+        expect(result.stdout).toEqual('');
       });
     });
   });
