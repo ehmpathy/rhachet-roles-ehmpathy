@@ -69,6 +69,27 @@ const setCheckFailed = (input: {
     });
   });
 
+/**
+ * .what = has the daemon counted at least n refused tries on the first watch?
+ * .why  = the daemon bumps the outbox count only after `clone say` returns, so the
+ *         fake say log can show a try the count lacks; a snapshot that pins the
+ *         count must wait on the count itself
+ */
+const isRefusedTriesAtLeast = (input: {
+  scene: WatchScene;
+  root: string;
+  ticks: number;
+}): boolean => {
+  const listed = input.scene.runSkill({
+    verb: 'get',
+    args: ['--output', 'json'],
+    root: input.root,
+    serial: null,
+  });
+  const watch = JSON.parse(listed.stdout).daemons?.[0]?.watches?.[0];
+  return (watch?.heldTicks ?? 0) >= input.ticks;
+};
+
 describe('git.pull.watch delivery', () => {
   given(
     '[case7] an alert due while the clone is busy, at a modal, then free',
@@ -109,8 +130,13 @@ describe('git.pull.watch delivery', () => {
               name: 'test-integration',
             });
             await waitForWatch({
-              label: 'two withheld tries',
-              check: () => scene.getSays().length >= 2,
+              label: 'two withheld tries, counted',
+              check: () =>
+                isRefusedTriesAtLeast({
+                  scene,
+                  root: scene.roots['surf-demo']!,
+                  ticks: 2,
+                }),
               scene,
             });
             const listed = scene.runSkill({
@@ -227,8 +253,13 @@ describe('git.pull.watch delivery', () => {
           store.github.prs['ehmpathy/surf-demo#1220']!.merged = true;
         });
         await waitForWatch({
-          label: 'two withheld closure tries',
-          check: () => scene.getSays().length >= 2,
+          label: 'two withheld closure tries, counted',
+          check: () =>
+            isRefusedTriesAtLeast({
+              scene,
+              root: scene.roots['surf-demo']!,
+              ticks: 2,
+            }),
           scene,
         });
         const tree = scene.runSkill({
