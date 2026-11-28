@@ -2399,81 +2399,90 @@ describe('git.repo.get.sh', () => {
     return { worktreePath };
   };
 
-  given('[case45] --ignored include on a worktree with gitignored scratch', () => {
-    when('[t0] files --tree --ignored include', () => {
-      then('lists the scratch note, never node_modules', () => {
-        const { homeDir, gitRoot, cleanup } = genTempDir();
-        try {
-          genWorktreeWithScratch({ gitRoot });
-          const result = runSkill(
-            'files --in testorg/short --tree feat/inflight --ignored include',
-            { HOME: homeDir },
-          );
-          expect(result.exitCode).toBe(0);
-          expect(result.stdout).toContain('scratch.local');
-          expect(result.stdout).toContain('src/index.ts');
-          expect(result.stdout).not.toContain('node_modules');
-          expect(result.stdout).toMatchSnapshot();
-        } finally {
-          cleanup();
-        }
+  given(
+    '[case45] --ignored include on a worktree with gitignored scratch',
+    () => {
+      when('[t0] files --tree --ignored include', () => {
+        then('lists the scratch note, never node_modules', () => {
+          const { homeDir, gitRoot, cleanup } = genTempDir();
+          try {
+            genWorktreeWithScratch({ gitRoot });
+            const result = runSkill(
+              'files --in testorg/short --tree feat/inflight --ignored include',
+              { HOME: homeDir },
+            );
+            expect(result.exitCode).toBe(0);
+            expect(result.stdout).toContain('scratch.local');
+            expect(result.stdout).toContain('src/index.ts');
+            expect(result.stdout).not.toContain('node_modules');
+            expect(result.stdout).toMatchSnapshot();
+          } finally {
+            cleanup();
+          }
+        });
       });
-    });
 
-    when('[t1] lines --tree --ignored include --words', () => {
-      then('searches the scratch note, never node_modules', () => {
-        const { homeDir, gitRoot, cleanup } = genTempDir();
-        try {
-          genWorktreeWithScratch({ gitRoot });
-          const result = runSkill(
-            'lines --in testorg/short --tree feat/inflight --ignored include --words scratchSymbol',
-            { HOME: homeDir },
-          );
-          expect(result.exitCode).toBe(0);
-          expect(result.stdout).toContain('scratch.local');
-          expect(result.stdout).not.toContain('node_modules');
-          expect(result.stdout).toMatchSnapshot();
-        } finally {
-          cleanup();
-        }
+      when('[t1] lines --tree --ignored include --words', () => {
+        then('searches the scratch note, never node_modules', () => {
+          const { homeDir, gitRoot, cleanup } = genTempDir();
+          try {
+            genWorktreeWithScratch({ gitRoot });
+            const result = runSkill(
+              'lines --in testorg/short --tree feat/inflight --ignored include --words scratchSymbol',
+              { HOME: homeDir },
+            );
+            expect(result.exitCode).toBe(0);
+            expect(result.stdout).toContain('scratch.local');
+            expect(result.stdout).not.toContain('node_modules');
+            expect(result.stdout).toMatchSnapshot();
+          } finally {
+            cleanup();
+          }
+        });
       });
-    });
 
-    when('[t2] lines --tree --ignored include --paths names the scratch note', () => {
-      then('read mode serves it — one flag, one sense in all three modes', () => {
-        const { homeDir, gitRoot, cleanup } = genTempDir();
-        try {
-          genWorktreeWithScratch({ gitRoot });
-          const result = runSkill(
-            'lines --in testorg/short --tree feat/inflight --ignored include --paths scratch.local',
-            { HOME: homeDir },
+      when(
+        '[t2] lines --tree --ignored include --paths names the scratch note',
+        () => {
+          then(
+            'read mode serves it — one flag, one sense in all three modes',
+            () => {
+              const { homeDir, gitRoot, cleanup } = genTempDir();
+              try {
+                genWorktreeWithScratch({ gitRoot });
+                const result = runSkill(
+                  'lines --in testorg/short --tree feat/inflight --ignored include --paths scratch.local',
+                  { HOME: homeDir },
+                );
+                expect(result.exitCode).toBe(0);
+                expect(result.stdout).toContain('scratchSymbol');
+                expect(result.stdout).toMatchSnapshot();
+              } finally {
+                cleanup();
+              }
+            },
           );
-          expect(result.exitCode).toBe(0);
-          expect(result.stdout).toContain('scratchSymbol');
-          expect(result.stdout).toMatchSnapshot();
-        } finally {
-          cleanup();
-        }
-      });
-    });
+        },
+      );
 
-    when('[t3] the same files call with no --ignored', () => {
-      then('the scratch note stays hidden, as before', () => {
-        const { homeDir, gitRoot, cleanup } = genTempDir();
-        try {
-          genWorktreeWithScratch({ gitRoot });
-          const result = runSkill(
-            'files --in testorg/short --tree feat/inflight',
-            { HOME: homeDir },
-          );
-          expect(result.exitCode).toBe(0);
-          expect(result.stdout).not.toContain('scratch.local');
-        } finally {
-          cleanup();
-        }
+      when('[t3] the same files call with no --ignored', () => {
+        then('the scratch note stays hidden, as before', () => {
+          const { homeDir, gitRoot, cleanup } = genTempDir();
+          try {
+            genWorktreeWithScratch({ gitRoot });
+            const result = runSkill(
+              'files --in testorg/short --tree feat/inflight',
+              { HOME: homeDir },
+            );
+            expect(result.exitCode).toBe(0);
+            expect(result.stdout).not.toContain('scratch.local');
+          } finally {
+            cleanup();
+          }
+        });
       });
-    });
-  });
+    },
+  );
 
   given('[case46] --ignored that cannot apply', () => {
     when('[t0] --ignored include with no --tree', () => {
@@ -2502,7 +2511,9 @@ describe('git.repo.get.sh', () => {
             { HOME: homeDir },
           );
           expect(result.exitCode).toBe(2);
-          expect(result.stdout).toContain("--ignored must be 'exclude' or 'include'");
+          expect(result.stdout).toContain(
+            "--ignored must be 'exclude' or 'include'",
+          );
         } finally {
           cleanup();
         }
@@ -2545,7 +2556,9 @@ describe('git.repo.get.sh', () => {
             { HOME: homeDir },
           );
           expect(result.exitCode).toBe(0);
-          expect(result.stdout).toContain('... 5 more (--limit all to see every one)');
+          expect(result.stdout).toContain(
+            '... 5 more (--limit all to see every one)',
+          );
           expect(result.stdout).toContain('found: 25 files');
           expect(result.stdout).toMatchSnapshot();
         } finally {
@@ -2640,7 +2653,9 @@ describe('git.repo.get.sh', () => {
             { HOME: homeDir },
           );
           expect(result.exitCode).toBe(0);
-          expect(result.stdout).toContain('more (--limit all to see every one)');
+          expect(result.stdout).toContain(
+            'more (--limit all to see every one)',
+          );
         } finally {
           cleanup();
         }

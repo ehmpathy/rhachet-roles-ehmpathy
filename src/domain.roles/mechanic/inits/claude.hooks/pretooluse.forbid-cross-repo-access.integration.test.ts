@@ -2230,7 +2230,7 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
         command: `rhx git.repo.get lines --in testorg/peer-repo --paths ${peerPath}`,
       },
       {
-        label: "[t1] a --words regex whose `|` sits inside single quotes",
+        label: '[t1] a --words regex whose `|` sits inside single quotes',
         command: `rhx git.repo.get lines --in testorg/peer-repo --words 'reef|wave' --paths ${peerPath}`,
       },
       {

@@ -70,12 +70,15 @@ describe('mech.yml', () => {
 
   given('[case1] the mechanic mech.yml', () => {
     when('[t0] its keys are read', () => {
-      then('the root names only the sections and caps the contract admits', () => {
-        const rootUnknown = Object.keys(mech).filter(
-          (key) => !KEYS_ROOT.includes(key) && !key.startsWith('max.'),
-        );
-        expect(rootUnknown).toEqual([]);
-      });
+      then(
+        'the root names only the sections and caps the contract admits',
+        () => {
+          const rootUnknown = Object.keys(mech).filter(
+            (key) => !KEYS_ROOT.includes(key) && !key.startsWith('max.'),
+          );
+          expect(rootUnknown).toEqual([]);
+        },
+      );
 
       then('each line names only the keys the contract admits', () => {
         const keysUnknown = lines.flatMap(([name, line]) =>
@@ -86,26 +89,34 @@ describe('mech.yml', () => {
         expect(keysUnknown).toEqual([]);
       });
 
-      then('each `on:` names a rhachet event word, never a claude event', () => {
-        const eventsUnknown = hooksOfLines
-          .map((hook) => hook.event)
-          .filter(
-            (event) =>
-              !EVENTS_RHACHET.includes(event as (typeof EVENTS_RHACHET)[number]),
-          );
-        expect(eventsUnknown).toEqual([]);
-      });
+      then(
+        'each `on:` names a rhachet event word, never a claude event',
+        () => {
+          const eventsUnknown = hooksOfLines
+            .map((hook) => hook.event)
+            .filter(
+              (event) =>
+                !EVENTS_RHACHET.includes(
+                  event as (typeof EVENTS_RHACHET)[number],
+                ),
+            );
+          expect(eventsUnknown).toEqual([]);
+        },
+      );
     });
 
     when('[t1] its lines are compared with the declared hooks', () => {
-      then('there is exactly one line per declared hook, each the same moment and file', () => {
-        const asKey = (hook: { event: unknown; run: unknown }) =>
-          `${hook.event} ${hook.run}`;
-        expect(hooksOfLines.map(asKey).sort()).toEqual(
-          hooksDeclared.map(asKey).sort(),
-        );
-        expect(hooksOfLines).toHaveLength(hooksDeclared.length);
-      });
+      then(
+        'there is exactly one line per declared hook, each the same moment and file',
+        () => {
+          const asKey = (hook: { event: unknown; run: unknown }) =>
+            `${hook.event} ${hook.run}`;
+          expect(hooksOfLines.map(asKey).sort()).toEqual(
+            hooksDeclared.map(asKey).sort(),
+          );
+          expect(hooksOfLines).toHaveLength(hooksDeclared.length);
+        },
+      );
 
       then('each line restates its hook matcher, moment, and timeout', () => {
         const byRun = new Map(hooksDeclared.map((hook) => [hook.run, hook]));
@@ -116,37 +127,46 @@ describe('mech.yml', () => {
     });
 
     when('[t2] its effect on a dispatcher is read', () => {
-      then('it is inert: no line drops, replaces, denies, or declares a cost bound', () => {
-        const lever = lines
-          .filter(
-            ([, line]) =>
-              line.drop !== undefined ||
-              line.replaces !== undefined ||
-              line.deny !== undefined ||
-              line.fits !== undefined ||
-              line.front !== undefined ||
-              line.cost !== undefined ||
-              line.delegate !== undefined,
-          )
-          .map(([name]) => name);
-        expect(lever).toEqual([]);
-      });
+      then(
+        'it is inert: no line drops, replaces, denies, or declares a cost bound',
+        () => {
+          const lever = lines
+            .filter(
+              ([, line]) =>
+                line.drop !== undefined ||
+                line.replaces !== undefined ||
+                line.deny !== undefined ||
+                line.fits !== undefined ||
+                line.front !== undefined ||
+                line.cost !== undefined ||
+                line.delegate !== undefined,
+            )
+            .map(([name]) => name);
+          expect(lever).toEqual([]);
+        },
+      );
 
-      then('every tool gate is marked safety, so a quarantine marker never skips it', () => {
-        const gatesUnmarked = lines
-          .filter(([, line]) => String(line.on).startsWith('onTool'))
-          .filter(([, line]) => line.safety !== true)
-          .map(([name]) => name);
-        expect(gatesUnmarked).toEqual([]);
-      });
+      then(
+        'every tool gate is marked safety, so a quarantine marker never skips it',
+        () => {
+          const gatesUnmarked = lines
+            .filter(([, line]) => String(line.on).startsWith('onTool'))
+            .filter(([, line]) => line.safety !== true)
+            .map(([name]) => name);
+          expect(gatesUnmarked).toEqual([]);
+        },
+      );
 
-      then('no boot, talk, or stop line is marked safety; each may be skipped', () => {
-        const markedOffGate = lines
-          .filter(([, line]) => !String(line.on).startsWith('onTool'))
-          .filter(([, line]) => line.safety === true)
-          .map(([name]) => name);
-        expect(markedOffGate).toEqual([]);
-      });
+      then(
+        'no boot, talk, or stop line is marked safety; each may be skipped',
+        () => {
+          const markedOffGate = lines
+            .filter(([, line]) => !String(line.on).startsWith('onTool'))
+            .filter(([, line]) => line.safety === true)
+            .map(([name]) => name);
+          expect(markedOffGate).toEqual([]);
+        },
+      );
 
       then('each line says why it exists', () => {
         const whyAbsent = lines
@@ -159,7 +179,10 @@ describe('mech.yml', () => {
     when('[t3] the build is read', () => {
       then('the dist build copies mech.yml beside boot.yml', () => {
         const pkg = JSON.parse(
-          fs.readFileSync(path.join(__dirname, '../../../package.json'), 'utf-8'),
+          fs.readFileSync(
+            path.join(__dirname, '../../../package.json'),
+            'utf-8',
+          ),
         );
         expect(pkg.scripts['build:complete:dist']).toContain(
           "--include='**/mech.yml'",

@@ -2054,30 +2054,39 @@ describe('permissionrequest.decide-permissions.sh', () => {
     });
 
     when('[t4] an empty agent_id beside a subagent transcript_path', () => {
-      then('it is denied: the empty field does not shift the transcript', () => {
-        const result = decidePayload({
-          tool_name: 'Bash',
-          agent_id: '',
-          transcript_path:
-            '/home/surfer/.claude/projects/reef/abc/subagents/agent-9d1.jsonl',
-          tool_input: { command: 'du -sh src' },
-        });
-        const parsed = JSON.parse(result.stdout);
-        expect(parsed.hookSpecificOutput.decision.behavior).toBe('deny');
-      });
+      then(
+        'it is denied: the empty field does not shift the transcript',
+        () => {
+          const result = decidePayload({
+            tool_name: 'Bash',
+            agent_id: '',
+            transcript_path:
+              '/home/surfer/.claude/projects/reef/abc/subagents/agent-9d1.jsonl',
+            tool_input: { command: 'du -sh src' },
+          });
+          const parsed = JSON.parse(result.stdout);
+          expect(parsed.hookSpecificOutput.decision.behavior).toBe('deny');
+        },
+      );
     });
 
-    when('[t5] the main seat names an agent_id only inside its tool input', () => {
-      then('it is no subagent: the prior verdict stands (a clean rhx call approves)', () => {
-        const result = decidePayload({
-          tool_name: 'Bash',
-          transcript_path: '/home/surfer/.claude/projects/reef/abc.jsonl',
-          tool_input: { command: 'rhx git.repo.get repos', agent_id: 'x' },
-        });
-        const parsed = JSON.parse(result.stdout);
-        expect(parsed.hookSpecificOutput.decision.behavior).toBe('allow');
-      });
-    });
+    when(
+      '[t5] the main seat names an agent_id only inside its tool input',
+      () => {
+        then(
+          'it is no subagent: the prior verdict stands (a clean rhx call approves)',
+          () => {
+            const result = decidePayload({
+              tool_name: 'Bash',
+              transcript_path: '/home/surfer/.claude/projects/reef/abc.jsonl',
+              tool_input: { command: 'rhx git.repo.get repos', agent_id: 'x' },
+            });
+            const parsed = JSON.parse(result.stdout);
+            expect(parsed.hookSpecificOutput.decision.behavior).toBe('allow');
+          },
+        );
+      },
+    );
 
     when('[t6] the main seat sends a non-Bash request', () => {
       then('it lifts, as before: no stdout', () => {
@@ -2091,13 +2100,16 @@ describe('permissionrequest.decide-permissions.sh', () => {
     });
 
     when('[t7] a payload jq cannot parse still names an agent_id', () => {
-      then('it is denied: a doubt never lets a subagent reach the human', () => {
-        const result = decidePayload({
-          __raw: '{"tool_name":"Bash","agent_id":"agent-7f3e","tool_input":{',
-        });
-        const parsed = JSON.parse(result.stdout);
-        expect(parsed.hookSpecificOutput.decision.behavior).toBe('deny');
-      });
+      then(
+        'it is denied: a doubt never lets a subagent reach the human',
+        () => {
+          const result = decidePayload({
+            __raw: '{"tool_name":"Bash","agent_id":"agent-7f3e","tool_input":{',
+          });
+          const parsed = JSON.parse(result.stdout);
+          expect(parsed.hookSpecificOutput.decision.behavior).toBe('deny');
+        },
+      );
     });
   });
 });

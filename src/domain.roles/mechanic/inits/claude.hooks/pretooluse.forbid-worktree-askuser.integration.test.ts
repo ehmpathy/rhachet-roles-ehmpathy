@@ -8,7 +8,10 @@ import { given, then, when } from 'test-fns';
  *         modal that waits for a human; the hook fails closed on any other tool
  */
 describe('pretooluse.forbid-worktree-askuser.sh', () => {
-  const scriptPath = path.join(__dirname, 'pretooluse.forbid-worktree-askuser.sh');
+  const scriptPath = path.join(
+    __dirname,
+    'pretooluse.forbid-worktree-askuser.sh',
+  );
 
   const runHook = (input: { stdin: string }) => {
     const result = spawnSync('bash', [scriptPath], {

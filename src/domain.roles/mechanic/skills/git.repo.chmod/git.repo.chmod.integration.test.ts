@@ -64,16 +64,22 @@ describe('git.repo.chmod', () => {
     });
 
     when('[t1] plan by default', () => {
-      then('it prints the file, the mode now, and the mode after, and changes naught', () => {
-        const res = run({ cwd: root, args: ['--path', 'tool.sh', '--exec', 'on'] });
-        expect(res.status).toBe(0);
-        expect(res.stdout).toContain('tool.sh');
-        expect(res.stdout).toContain('644');
-        expect(res.stdout).toContain('755');
-        expect(res.stdout).toContain('plan only');
-        expect(modeOf(file)).toBe(0o644);
-        expect(res.stdout).toMatchSnapshot();
-      });
+      then(
+        'it prints the file, the mode now, and the mode after, and changes naught',
+        () => {
+          const res = run({
+            cwd: root,
+            args: ['--path', 'tool.sh', '--exec', 'on'],
+          });
+          expect(res.status).toBe(0);
+          expect(res.stdout).toContain('tool.sh');
+          expect(res.stdout).toContain('644');
+          expect(res.stdout).toContain('755');
+          expect(res.stdout).toContain('plan only');
+          expect(modeOf(file)).toBe(0o644);
+          expect(res.stdout).toMatchSnapshot();
+        },
+      );
     });
 
     when('[t2] --mode plan stated', () => {
@@ -237,140 +243,155 @@ describe('git.repo.chmod', () => {
    * .why = a worktree's .agent/repo=.this links into the main checkout of the SAME repo, so a
    *        live role skill with no exec bit, read from a worktree, sits outside the worktree root
    */
-  given('[case3] a worktree whose .agent/repo=.this links into the main worktree', () => {
-    const main = genRepo('git-repo-chmod-main');
-    gitq(main, ['commit', '-q', '--allow-empty', '-m', 'init']);
-    const skillsRel = join('.agent', 'repo=.this', 'role=director', 'skills');
-    mkdirSync(join(main, skillsRel), { recursive: true });
-    const live = join(main, skillsRel, 'tool.sh');
-    writeFileSync(live, '#!/bin/sh\n', { mode: 0o644 });
-    mkdirSync(join(main, skillsRel, 'adir'));
-    const outside = genDir('git-repo-chmod-out');
-    const outsideFile = join(outside, 'far.sh');
-    writeFileSync(outsideFile, 'x\n', { mode: 0o644 });
-    symlinkSync(outsideFile, join(main, skillsRel, 'esc.sh'));
+  given(
+    '[case3] a worktree whose .agent/repo=.this links into the main worktree',
+    () => {
+      const main = genRepo('git-repo-chmod-main');
+      gitq(main, ['commit', '-q', '--allow-empty', '-m', 'init']);
+      const skillsRel = join('.agent', 'repo=.this', 'role=director', 'skills');
+      mkdirSync(join(main, skillsRel), { recursive: true });
+      const live = join(main, skillsRel, 'tool.sh');
+      writeFileSync(live, '#!/bin/sh\n', { mode: 0o644 });
+      mkdirSync(join(main, skillsRel, 'adir'));
+      const outside = genDir('git-repo-chmod-out');
+      const outsideFile = join(outside, 'far.sh');
+      writeFileSync(outsideFile, 'x\n', { mode: 0o644 });
+      symlinkSync(outsideFile, join(main, skillsRel, 'esc.sh'));
 
-    const worktree = join(genDir('git-repo-chmod-wt'), 'wt');
-    gitq(main, ['worktree', 'add', '-q', worktree]);
-    // the shape a worktree has: .agent/repo=.this is a dir, each role=<x> in it a link into main
-    mkdirSync(join(worktree, '.agent', 'repo=.this'), { recursive: true });
-    symlinkSync(
-      join(main, '.agent', 'repo=.this', 'role=director'),
-      join(worktree, '.agent', 'repo=.this', 'role=director'),
-    );
-    symlinkSync(
-      join(main, '.agent', 'repo=.this'),
-      join(worktree, '.agent', 'repo=other'),
-    );
+      const worktree = join(genDir('git-repo-chmod-wt'), 'wt');
+      gitq(main, ['worktree', 'add', '-q', worktree]);
+      // the shape a worktree has: .agent/repo=.this is a dir, each role=<x> in it a link into main
+      mkdirSync(join(worktree, '.agent', 'repo=.this'), { recursive: true });
+      symlinkSync(
+        join(main, '.agent', 'repo=.this', 'role=director'),
+        join(worktree, '.agent', 'repo=.this', 'role=director'),
+      );
+      symlinkSync(
+        join(main, '.agent', 'repo=.this'),
+        join(worktree, '.agent', 'repo=other'),
+      );
 
-    // a foreign repo, and a second worktree of main whose .agent/repo=.this links into it
-    const foreign = genRepo('git-repo-chmod-foreign');
-    mkdirSync(join(foreign, skillsRel), { recursive: true });
-    const foreignFile = join(foreign, skillsRel, 'tool.sh');
-    writeFileSync(foreignFile, '#!/bin/sh\n', { mode: 0o644 });
-    const worktreeFar = join(genDir('git-repo-chmod-wt'), 'wt');
-    gitq(main, ['worktree', 'add', '-q', '-b', 'far', worktreeFar]);
-    mkdirSync(join(worktreeFar, '.agent', 'repo=.this'), { recursive: true });
-    symlinkSync(
-      join(foreign, '.agent', 'repo=.this', 'role=director'),
-      join(worktreeFar, '.agent', 'repo=.this', 'role=director'),
-    );
+      // a foreign repo, and a second worktree of main whose .agent/repo=.this links into it
+      const foreign = genRepo('git-repo-chmod-foreign');
+      mkdirSync(join(foreign, skillsRel), { recursive: true });
+      const foreignFile = join(foreign, skillsRel, 'tool.sh');
+      writeFileSync(foreignFile, '#!/bin/sh\n', { mode: 0o644 });
+      const worktreeFar = join(genDir('git-repo-chmod-wt'), 'wt');
+      gitq(main, ['worktree', 'add', '-q', '-b', 'far', worktreeFar]);
+      mkdirSync(join(worktreeFar, '.agent', 'repo=.this'), { recursive: true });
+      symlinkSync(
+        join(foreign, '.agent', 'repo=.this', 'role=director'),
+        join(worktreeFar, '.agent', 'repo=.this', 'role=director'),
+      );
 
-    const viaThis = join(skillsRel, 'tool.sh');
+      const viaThis = join(skillsRel, 'tool.sh');
 
-    when('[t0] plan on a role skill through the link', () => {
-      then('it plans, shows the real path, and changes naught', () => {
-        const res = run({
-          cwd: worktree,
-          args: ['--path', viaThis, '--exec', 'on'],
+      when('[t0] plan on a role skill through the link', () => {
+        then('it plans, shows the real path, and changes naught', () => {
+          const res = run({
+            cwd: worktree,
+            args: ['--path', viaThis, '--exec', 'on'],
+          });
+          expect(res.status).toBe(0);
+          expect(res.stdout).toContain(live);
+          expect(res.stdout).toContain('644');
+          expect(res.stdout).toContain('755');
+          expect(res.stdout).toContain('plan only');
+          expect(modeOf(live)).toBe(0o644);
         });
-        expect(res.status).toBe(0);
-        expect(res.stdout).toContain(live);
-        expect(res.stdout).toContain('644');
-        expect(res.stdout).toContain('755');
-        expect(res.stdout).toContain('plan only');
-        expect(modeOf(live)).toBe(0o644);
       });
-    });
 
-    when('[t1] apply on a role skill through the link', () => {
-      then('it sets the exec bit on the real file', () => {
-        const res = run({
-          cwd: worktree,
-          args: ['--path', viaThis, '--exec', 'on', '--mode', 'apply'],
+      when('[t1] apply on a role skill through the link', () => {
+        then('it sets the exec bit on the real file', () => {
+          const res = run({
+            cwd: worktree,
+            args: ['--path', viaThis, '--exec', 'on', '--mode', 'apply'],
+          });
+          expect(res.status).toBe(0);
+          expect(modeOf(live)).toBe(0o755);
         });
-        expect(res.status).toBe(0);
-        expect(modeOf(live)).toBe(0o755);
       });
-    });
 
-    when('[t2] the .agent/repo=.this link points into a foreign repo', () => {
-      then('it refuses, exit 2, and leaves the foreign file as is', () => {
-        const res = run({
-          cwd: worktreeFar,
-          args: ['--path', viaThis, '--exec', 'on', '--mode', 'apply'],
+      when('[t2] the .agent/repo=.this link points into a foreign repo', () => {
+        then('it refuses, exit 2, and leaves the foreign file as is', () => {
+          const res = run({
+            cwd: worktreeFar,
+            args: ['--path', viaThis, '--exec', 'on', '--mode', 'apply'],
+          });
+          expect(res.status).toBe(2);
+          expect(res.stdout).toContain('outside');
+          expect(modeOf(foreignFile)).toBe(0o644);
         });
-        expect(res.status).toBe(2);
-        expect(res.stdout).toContain('outside');
-        expect(modeOf(foreignFile)).toBe(0o644);
       });
-    });
 
-    when('[t3] a link of another name points into the same main worktree', () => {
-      then('it refuses, exit 2: only the .agent/repo=.this link is admitted', () => {
-        chmodSync(live, 0o644);
-        const res = run({
-          cwd: worktree,
-          args: [
-            '--path',
-            join('.agent', 'repo=other', 'role=director', 'skills', 'tool.sh'),
-            '--exec',
-            'on',
-            '--mode',
-            'apply',
-          ],
-        });
-        expect(res.status).toBe(2);
-        expect(res.stdout).toContain('outside');
-        expect(modeOf(live)).toBe(0o644);
-      });
-    });
+      when(
+        '[t3] a link of another name points into the same main worktree',
+        () => {
+          then(
+            'it refuses, exit 2: only the .agent/repo=.this link is admitted',
+            () => {
+              chmodSync(live, 0o644);
+              const res = run({
+                cwd: worktree,
+                args: [
+                  '--path',
+                  join(
+                    '.agent',
+                    'repo=other',
+                    'role=director',
+                    'skills',
+                    'tool.sh',
+                  ),
+                  '--exec',
+                  'on',
+                  '--mode',
+                  'apply',
+                ],
+              });
+              expect(res.status).toBe(2);
+              expect(res.stdout).toContain('outside');
+              expect(modeOf(live)).toBe(0o644);
+            },
+          );
+        },
+      );
 
-    when('[t4] a symlink behind the link escapes the main worktree', () => {
-      then('it refuses, exit 2, and leaves the target as is', () => {
-        const res = run({
-          cwd: worktree,
-          args: [
-            '--path',
-            join(skillsRel, 'esc.sh'),
-            '--exec',
-            'on',
-            '--mode',
-            'apply',
-          ],
+      when('[t4] a symlink behind the link escapes the main worktree', () => {
+        then('it refuses, exit 2, and leaves the target as is', () => {
+          const res = run({
+            cwd: worktree,
+            args: [
+              '--path',
+              join(skillsRel, 'esc.sh'),
+              '--exec',
+              'on',
+              '--mode',
+              'apply',
+            ],
+          });
+          expect(res.status).toBe(2);
+          expect(res.stdout).toContain('symlink');
+          expect(modeOf(outsideFile)).toBe(0o644);
         });
-        expect(res.status).toBe(2);
-        expect(res.stdout).toContain('symlink');
-        expect(modeOf(outsideFile)).toBe(0o644);
       });
-    });
 
-    when('[t5] a directory through the link', () => {
-      then('it refuses, exit 2', () => {
-        const res = run({
-          cwd: worktree,
-          args: [
-            '--path',
-            join(skillsRel, 'adir'),
-            '--exec',
-            'on',
-            '--mode',
-            'apply',
-          ],
+      when('[t5] a directory through the link', () => {
+        then('it refuses, exit 2', () => {
+          const res = run({
+            cwd: worktree,
+            args: [
+              '--path',
+              join(skillsRel, 'adir'),
+              '--exec',
+              'on',
+              '--mode',
+              'apply',
+            ],
+          });
+          expect(res.status).toBe(2);
+          expect(res.stdout).toContain('directory');
         });
-        expect(res.status).toBe(2);
-        expect(res.stdout).toContain('directory');
       });
-    });
-  });
+    },
+  );
 });
