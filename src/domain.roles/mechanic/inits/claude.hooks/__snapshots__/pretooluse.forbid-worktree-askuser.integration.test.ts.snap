@@ -1,0 +1,16 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`pretooluse.forbid-worktree-askuser.sh given: [case1] an EnterWorktree call when: [t0] the hook runs then: it blocks, exit 2, and names the fix 1`] = `
+"✋ ConstraintError: EnterWorktree is forbidden to the mechanic: it moves this seat, its cwd and its hooks, into another tree. fix: hand the work to a crew in its own tree (see: rhx clone --help)
+"
+`;
+
+exports[`pretooluse.forbid-worktree-askuser.sh given: [case2] an AskUserQuestion call when: [t0] the hook runs then: it blocks, exit 2, and names the fix 1`] = `
+"✋ ConstraintError: AskUserQuestion is forbidden to the mechanic: its modal parks the seat until a human answers, and an unattended seat waits for hours. fix: ask in plain chat text (name the question and its options in your reply), and carry on with the work that does not wait on the answer
+"
+`;
+
+exports[`pretooluse.forbid-worktree-askuser.sh given: [case3] a tool the hook was never registered for when: [t0] a Read call reaches it (a registration defect) then: it fails closed, exit 2, with a MalfunctionError 1`] = `
+"💥 MalfunctionError: pretooluse.forbid-worktree-askuser.sh names no tool it knows (tool: 'Read'); the call stays blocked. fix: register it for EnterWorktree or AskUserQuestion only
+"
+`;

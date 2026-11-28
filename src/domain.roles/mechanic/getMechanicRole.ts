@@ -167,6 +167,13 @@ export const ROLE_MECHANIC: Role = Role.build({
           timeout: 'PT10S',
           filter: { what: 'EnterPlanMode', when: 'before' },
         },
+        // .why = an unattended seat must neither move into another tree nor park
+        //        on a modal that waits for a human
+        {
+          command: asHookCommand('pretooluse.forbid-worktree-askuser'),
+          timeout: 'PT10S',
+          filter: { what: 'EnterWorktree|AskUserQuestion', when: 'before' },
+        },
         {
           command: asHookCommand('posttooluse.guardBorder.onWebfetch'),
           timeout: 'PT60S',

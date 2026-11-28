@@ -131,6 +131,14 @@ exports[`getMechanicRole given: [case1] the mechanic role definition when: [t4] 
           "timeout": "PT10S",
         },
         {
+          "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-worktree-askuser.sh",
+          "filter": {
+            "what": "EnterWorktree|AskUserQuestion",
+            "when": "before",
+          },
+          "timeout": "PT10S",
+        },
+        {
           "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/posttooluse.guardBorder.onWebfetch.sh",
           "filter": {
             "what": "WebFetch",

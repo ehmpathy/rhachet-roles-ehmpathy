@@ -529,6 +529,17 @@
         ]
       },
       {
+        "matcher": "EnterWorktree|AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-worktree-askuser.sh",
+            "timeout": 10,
+            "author": "repo=ehmpathy/role=mechanic"
+          }
+        ]
+      },
+      {
         "matcher": "WebFetch",
         "hooks": [
           {

@@ -1969,4 +1969,135 @@ describe('permissionrequest.decide-permissions.sh', () => {
       );
     });
   });
+
+  /**
+   * .what = a request raised from a subagent is denied on any tool, the paved path named
+   * .why  = a subagent has no human to ask; its prompt would land on a human who never
+   *         spawned it. the main seat's request keeps every prior verdict
+   */
+  given('[case99] a request raised from a subagent', () => {
+    const decidePayload = (payload: Record<string, unknown>) => {
+      const tempDir = genTempDir({ slug: 'decide-permissions-subagent' });
+      const claudeDir = path.join(tempDir, '.claude');
+      fs.mkdirSync(claudeDir, { recursive: true });
+      seedClaudeSettings(claudeDir);
+      const result = spawnSync('bash', [scriptPath], {
+        encoding: 'utf-8',
+        cwd: tempDir,
+        input:
+          typeof payload.__raw === 'string'
+            ? payload.__raw
+            : JSON.stringify(payload),
+        stdio: ['pipe', 'pipe', 'pipe'],
+        env: HOOK_ENV,
+      });
+      return { stdout: result.stdout ?? '', exitCode: result.status ?? 1 };
+    };
+
+    when('[t0] an unpaved Bash call carries a top-level agent_id', () => {
+      then('it is denied, interrupt false, with the paved path named', () => {
+        const result = decidePayload({
+          tool_name: 'Bash',
+          hook_event_name: 'PermissionRequest',
+          agent_id: 'agent-7f3e',
+          tool_input: { command: 'du -sh src' },
+        });
+        expect(result.exitCode).toBe(0);
+        const parsed = JSON.parse(result.stdout);
+        expect(parsed.hookSpecificOutput.decision.behavior).toBe('deny');
+        expect(parsed.hookSpecificOutput.decision.interrupt).toBe(false);
+        expect(parsed.hookSpecificOutput.decision.message).toContain(
+          'a subagent has no human to ask',
+        );
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] a clean rhx call carries a top-level agent_id', () => {
+      then('it is still denied: a subagent never reaches a prompt', () => {
+        const result = decidePayload({
+          tool_name: 'Bash',
+          agent_id: 'agent-7f3e',
+          tool_input: { command: 'rhx git.repo.get repos' },
+        });
+        const parsed = JSON.parse(result.stdout);
+        expect(parsed.hookSpecificOutput.decision.behavior).toBe('deny');
+      });
+    });
+
+    when('[t2] a non-Bash request carries a top-level agent_id', () => {
+      then('it is denied and names the tool', () => {
+        const result = decidePayload({
+          tool_name: 'WebFetch',
+          agent_id: 'agent-7f3e',
+          tool_input: { url: 'https://example.com' },
+        });
+        const parsed = JSON.parse(result.stdout);
+        expect(parsed.hookSpecificOutput.decision.behavior).toBe('deny');
+        expect(parsed.hookSpecificOutput.decision.message).toContain(
+          'this WebFetch call',
+        );
+      });
+    });
+
+    when('[t3] the only marker is a subagent transcript_path', () => {
+      then('it is denied', () => {
+        const result = decidePayload({
+          tool_name: 'Bash',
+          transcript_path:
+            '/home/surfer/.claude/projects/reef/abc/subagents/agent-9d1.jsonl',
+          tool_input: { command: 'du -sh src' },
+        });
+        const parsed = JSON.parse(result.stdout);
+        expect(parsed.hookSpecificOutput.decision.behavior).toBe('deny');
+      });
+    });
+
+    when('[t4] an empty agent_id beside a subagent transcript_path', () => {
+      then('it is denied: the empty field does not shift the transcript', () => {
+        const result = decidePayload({
+          tool_name: 'Bash',
+          agent_id: '',
+          transcript_path:
+            '/home/surfer/.claude/projects/reef/abc/subagents/agent-9d1.jsonl',
+          tool_input: { command: 'du -sh src' },
+        });
+        const parsed = JSON.parse(result.stdout);
+        expect(parsed.hookSpecificOutput.decision.behavior).toBe('deny');
+      });
+    });
+
+    when('[t5] the main seat names an agent_id only inside its tool input', () => {
+      then('it is no subagent: the prior verdict stands (a clean rhx call approves)', () => {
+        const result = decidePayload({
+          tool_name: 'Bash',
+          transcript_path: '/home/surfer/.claude/projects/reef/abc.jsonl',
+          tool_input: { command: 'rhx git.repo.get repos', agent_id: 'x' },
+        });
+        const parsed = JSON.parse(result.stdout);
+        expect(parsed.hookSpecificOutput.decision.behavior).toBe('allow');
+      });
+    });
+
+    when('[t6] the main seat sends a non-Bash request', () => {
+      then('it lifts, as before: no stdout', () => {
+        const result = decidePayload({
+          tool_name: 'WebFetch',
+          tool_input: { url: 'https://example.com' },
+        });
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout.trim()).toBe('');
+      });
+    });
+
+    when('[t7] a payload jq cannot parse still names an agent_id', () => {
+      then('it is denied: a doubt never lets a subagent reach the human', () => {
+        const result = decidePayload({
+          __raw: '{"tool_name":"Bash","agent_id":"agent-7f3e","tool_input":{',
+        });
+        const parsed = JSON.parse(result.stdout);
+        expect(parsed.hookSpecificOutput.decision.behavior).toBe('deny');
+      });
+    });
+  });
 });
