@@ -5,7 +5,7 @@ exports[`sessionstart.git-pull-watch, via the linked role given: [case1] a repo 
 
 🐚 sessionstart.git-pull-watch
    └─ 💥 MalfunctionError: 1 pr-watch record(s) of v<key> are unreadable; a watch of this clone may be unserved
-      └─ records: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v<key>/watches/
+      └─ records: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/watches/
 
 🥥 did you know?
    └─ to find the watch, pick one

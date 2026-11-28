@@ -1,0 +1,11 @@
+# F8 · the pr-watch skill's extant bash conventions stand in this change
+
+- fork: (a) give the new functions named args (`key=value`) and explicit return values, and move the hook suite's test utils to a shared dir · (b) keep the skill's extant conventions: positional args, a `sets:` global for a second output, and the hook suite's import of the skill's `__test_utils__`
+- taken: (b), for each of the three:
+  - **positional args.** every function in `git.pull.watch.*.sh` takes positional args, the `as_`/`is_` ones with two or more included: `is_watch_daemon_pid <pid> <key>`, `is_watch_pr_due <key_dir> <repo> <pr>`, `is_watch_pr_idle`, `as_watch_closure_text <pr> <end> <closed_by>`, `as_watch_record_moved <record> <root> <slug>`, `as_watch_clone_reach <list> <serial>`, and dozens more. the cited rule (`rule.forbid.positional-args.md.pt2`) states the ts `(input, context)` contract. three new bash functions with named args would be the only ones in the skill so; a reader would meet two conventions in one file (`rule.require.consistent-conventions` guide: be consistent with extant conventions unless the ask was to refactor). the skill-wide move to named args is a refactor of its own, caught as a dream
+  - **a `sets:` global for a second output.** the skill's pattern for a bash function that must return a status AND a value: `send_watch_alert` sets `WATCH_SAY_CAUSE`, `get_watch_token` sets `WATCH_TOKEN`/`WATCH_TOKEN_STATUS`/`WATCH_TOKEN_FAULT`/`WATCH_TOKEN_SOURCE`, `gen_watch_daemon` sets `WATCH_DAEMON_PID`/`WATCH_DAEMON_VERDICT`. each is declared empty above its setter and named in a `sets:` line. `WATCH_READ_CAUSE` follows it. bash has one return channel (the rc); the alternatives (a second `$( )` capture, a temp file per call) each cost a subshell or a file per read
+  - **the hook suite's import of `__test_utils__`.** `sessionstart.git-pull-watch.integration.test.ts` imported the same five utils on main (`git show origin/main:…` lines 6–10); this change adds a case that uses them, no new import
+- rework: clean for each; named args and a shared test-utils dir are mechanical once chosen skill-wide
+- confidence: 85%
+- where: `git.pull.watch.*.sh`; `sessionstart.git-pull-watch.integration.test.ts`
+- verdict: open

@@ -11,7 +11,64 @@ exports[`git.pull.watch read health given: [case1] two clones, each on its own p
          └─ ehmpathy/surf-demo#1221 → @:mechanic-b (root: <root:surf-demo>)
 
 🥥 did you know?
-   └─ a read fault holds the cursors of that pr; alerts resume once a read succeeds
+   └─ a read fault holds the cursors of that pr; alerts resume at its next good read, within 1 min
+      ├─ a pr with no good read for the idle ttl ends its watch, with a note that names its last fault
+      └─ each fault line is in the daemon log: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/daemon.log
+"
+`;
+
+exports[`git.pull.watch read health given: [case1] two clones, each on its own pr, one pr goes dark when: [t2] #1221 answers 404 then: one note reaches the clone of #1221, with the rewatch 1`] = `
+"🐢 bummer dude...
+
+🐚 git.pull.watch — #1221 answers 404 to the seaturtle token (gone, or out of its reach); watch ended
+   └─ rewatch: rhx git.pull.watch set --which 1221 --mode apply"
+`;
+
+exports[`git.pull.watch read health given: [case2] a pr that answers 404 to the grove token, the seaturtle token not granted when: [t0] the first due read then: the note names the grove token and puts the seaturtle unlock before the rewatch 1`] = `
+"🐢 bummer dude...
+
+🐚 git.pull.watch — #1230 answers 404 to the grove token (@all.prep.GITHUB_TOKEN); watch ended
+   ├─ the pr may be gone, or out of the grove token's reach; the seaturtle token was not granted
+   ├─ 1. unlock: rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   └─ 2. rewatch: rhx git.pull.watch set --which 1230 --mode apply"
+`;
+
+exports[`git.pull.watch read health given: [case3] a pr whose every read faults, from the first when: [t0] the watch is set and the idle ttl passes then: one idle note names the rewatch 1`] = `
+"🐢 heads up dude...
+
+🐚 git.pull.watch — #1240 unreadable for 1 min; watch ended
+   ├─ last fault: github read failed: repos/ehmpathy/surf-demo/pulls/1240 (status: 403) Resource not accessible by integration
+   └─ rewatch: rhx git.pull.watch set --which 1240 --mode apply"
+`;
+
+exports[`git.pull.watch read health given: [case3b] a pr whose every read gets no reply, from the first when: [t0] the watch is set and the idle ttl passes then: one idle note names the rewatch 1`] = `
+"🐢 heads up dude...
+
+🐚 git.pull.watch — #1241 unreadable for 1 min; watch ended
+   ├─ last fault: github unreachable: repos/ehmpathy/surf-demo/pulls/1241 (status: none) dial tcp: lookup api.github.com: no such host
+   └─ rewatch: rhx git.pull.watch set --which 1241 --mode apply"
+`;
+
+exports[`git.pull.watch read health given: [case3c] a second set on a pr whose every read faults when: [t1] the restarted ttl passes then: one idle note, once 1`] = `
+"🐢 heads up dude...
+
+🐚 git.pull.watch — #1242 unreadable for 1 min; watch ended
+   ├─ last fault: github read failed: repos/ehmpathy/surf-demo/pulls/1242 (status: 403) Resource not accessible by integration
+   └─ rewatch: rhx git.pull.watch set --which 1242 --mode apply"
+`;
+
+exports[`git.pull.watch read health given: [case4] a live pr whose head is gone: its pull reads fine, its check-runs answer 404 when: [t0] the watch is set and ticks pass then: the get tree names the 404 on the row of #1250 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.watch get
+   └─ daemon v<key> · live · pid <pid> · last tick <n>s ago
+      ├─ home: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/bin
+      └─ watches
+         └─ ehmpathy/surf-demo#1250 → @:mechanic (root: <root:surf-demo>) · read fault <n> min: github read not found: repos/ehmpathy/surf-demo/commits/sha-1250-forcepushed/check-runs (status: 404) · not yet primed
+
+🥥 did you know?
+   └─ a read fault holds the cursors of that pr; alerts resume at its next good read, within 1 min
+      ├─ a pr with no good read for the idle ttl ends its watch, with a note that names its last fault
       └─ each fault line is in the daemon log: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/daemon.log
 "
 `;
